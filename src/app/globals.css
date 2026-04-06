@@ -2,27 +2,100 @@
 
 :root {
   --brown: #5C3A21;
+  --brown-deep: #3D2515;
   --cream: #F5F0EB;
+  --cream-warm: #EDE5DB;
   --gold: #C9A96E;
-  --red: #C0392B;
-  --amber: #D4A017;
+  --gold-muted: #B89B62;
+  --red: #B5453A;
+  --amber: #C4960F;
   --green: #2E7D5B;
-  --background: #ffffff;
-  --foreground: #333333;
+  --background: #FAFAF8;
+  --foreground: #2C2420;
+  --text-secondary: #7A6E63;
+  --border: #E8E0D8;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-brown: var(--brown);
+  --color-brown-deep: var(--brown-deep);
   --color-cream: var(--cream);
+  --color-cream-warm: var(--cream-warm);
   --color-gold: var(--gold);
+  --color-gold-muted: var(--gold-muted);
   --color-danger: var(--red);
   --color-amber: var(--amber);
   --color-safe: var(--green);
+  --color-secondary: var(--text-secondary);
+  --color-border: var(--border);
 }
 
 body {
   background: var(--cream);
   color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Taste: tabular numbers for prices */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Taste: smooth transitions baseline */
+button, a, input, [role="button"] {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Taste: active press feedback */
+button:active:not(:disabled), [role="button"]:active {
+  transform: scale(0.97);
+}
+
+/* Taste: custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold-muted);
+}
+
+/* Taste: range input styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--brown);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(92, 58, 33, 0.2);
+}
+
+/* Taste: focus ring */
+input:focus-visible, button:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* Taste: number input hide arrows */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
