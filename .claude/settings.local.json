@@ -31,7 +31,29 @@
       "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('src/data/items/window.json','utf8'\\)\\); console.log\\('window.json OK'\\)\")",
       "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('src/data/items/woodwork.json','utf8'\\)\\); console.log\\('woodwork.json OK'\\)\")",
       "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('src/data/items/tile.json','utf8'\\)\\); console.log\\('tile.json OK'\\)\")",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(mkdir:*)",
+      "Bash(rm:*)",
+      "Bash(printf 'Ak1em&dnjs')",
+      "Bash(mv -v ulmadna_icon.png ulmadna_icon_brown.png public/)",
+      "Bash(rm -v ulmadna_logo.png)",
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(npm run:*)",
+      "Bash(start:*)",
+      "Bash(gh auth:*)",
+      "Bash(where gh:*)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" auth status)",
+      "Bash(\"/c/Program Files \\(x86\\)/GitHub CLI/gh.exe\" auth status)",
+      "Bash(cmd.exe /c \"gh auth status\")",
+      "Bash(cmd.exe:*)",
+      "Read(//c/Program Files/GitHub CLI//**)",
+      "Read(//c/Users/addmim/AppData/Local/Programs/**)",
+      "Bash(/c/Program Files/GitHub CLI/gh.exe repo:*)",
+      "Bash(gh search:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(mkdir -p \"/c/Users/addmim/Desktop/도토리스튜디오/4.인테리어/ulmadna/.claude/skills\")",
+      "Bash(curl -sL \"https://raw.githubusercontent.com/Leonxlnx/taste-skill/main/skills/taste-skill/SKILL.md\" -o \"/c/Users/addmim/Desktop/도토리스튜디오/4.인테리어/ulmadna/.claude/skills/taste-skill.md\")"
     ]
   }
 }

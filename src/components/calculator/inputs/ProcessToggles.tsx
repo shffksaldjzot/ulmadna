@@ -30,8 +30,19 @@ function gradeLabel(grade: string): string {
   return labels[grade] || grade;
 }
 
+// 아이템 옵션에서 현재 등급에 맞는 옵션 찾기
+function findItemOption(options: { grade: string; name: string; price?: number }[], selectedGrade: string): { name: string; price: number } | null {
+  const exact = options.find(o => o.grade === selectedGrade);
+  if (exact) return { name: exact.name, price: exact.price || 0 };
+  // fallback: mid → basic 순
+  const fallback = options.find(o => o.grade === 'mid') || options.find(o => o.grade === 'basic') || options[0];
+  if (fallback) return { name: fallback.name, price: fallback.price || 0 };
+  return null;
+}
+
 export default function ProcessToggles({ processes, output, grade, onToggle, onGradeChange, onCountChange }: ProcessTogglesProps) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [detailIds, setDetailIds] = useState<Set<string>>(new Set());
 
   const toggleExpand = (id: string) => {
     setExpandedIds(prev => {
@@ -170,6 +181,54 @@ export default function ProcessToggles({ processes, output, grade, onToggle, onG
                   <p className="text-[11px] text-gray-400">
                     {processResult.selectedOption}
                   </p>
+                )}
+
+                {/* Level 3: 아이템 상세 아코디언 */}
+                {dbProcess.items && dbProcess.items.length > 0 && (
+                  <div>
+                    <button
+                      onClick={() => {
+                        setDetailIds(prev => {
+                          const next = new Set(prev);
+                          if (next.has(dbProcess.id)) next.delete(dbProcess.id); else next.add(dbProcess.id);
+                          return next;
+                        });
+                      }}
+                      className={`w-full py-2 px-3 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1 ${
+                        detailIds.has(dbProcess.id)
+                          ? 'bg-gold/10 text-gold border border-gold/30'
+                          : 'bg-cream text-brown/60 border border-brown/10 hover:border-gold/30 hover:text-gold'
+                      }`}
+                    >
+                      {detailIds.has(dbProcess.id) ? '상세 접기 ▲' : `상세 보기 ▼ (${dbProcess.items.length}개 항목)`}
+                    </button>
+
+                    {detailIds.has(dbProcess.id) && (
+                      <div className="mt-2 pl-2 border-l-2 border-gold/20 space-y-1.5">
+                        {dbProcess.items.map(item => {
+                          const selectedOpt = item.options
+                            ? findItemOption(item.options, ps.selectedGrade)
+                            : null;
+
+                          return (
+                            <div key={item.id} className="flex items-center justify-between py-1">
+                              <div>
+                                <span className="text-[11px] text-gray-600">{item.name}</span>
+                                {selectedOpt && (
+                                  <span className="text-[10px] text-gray-400 ml-1">
+                                    ({selectedOpt.name})
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-[11px] font-medium text-brown">
+                                {((selectedOpt?.price || item.price || 0) / 10000).toFixed(item.price && item.price < 10000 ? 1 : 0)}만
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             )}

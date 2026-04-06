@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>얼마드나 견적서 디자인</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    background: #E8E0D8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    gap: 60px;
+  }
+
+  h1.section-title {
+    font-size: 14px;
+    color: #999;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: -40px;
+  }
+
+  /* ── 견적서 공통 ── */
+  .estimate-sheet {
+    width: 794px; /* A4 width at 96dpi */
+    background: #fff;
+    border-radius: 0;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    overflow: hidden;
+  }
+
+  /* ── 헤더 ── */
+  .sheet-header {
+    background: #5C3A21;
+    color: #fff;
+    padding: 32px 40px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .sheet-header .logo-area h2 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+  .sheet-header .logo-area p {
+    font-size: 11px;
+    color: #C9A96E;
+    margin-top: 4px;
+    letter-spacing: 1px;
+  }
+  .sheet-header .sponsor-area {
+    text-align: right;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .sheet-header .sponsor-area .sponsor-badge {
+    font-size: 8px;
+    color: #A08060;
+    border: 1px solid #A08060;
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+  .sheet-header .sponsor-area .sponsor-logo {
+    background: rgba(255,255,255,0.15);
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 13px;
+    color: #F5F0EB;
+    font-weight: 600;
+  }
+
+  /* ── 기본 정보 바 ── */
+  .info-bar {
+    background: #F5F0EB;
+    padding: 16px 40px;
+    display: flex;
+    gap: 32px;
+    border-bottom: 1px solid #E0D6CC;
+  }
+  .info-bar .info-item {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .info-bar .info-label {
+    font-size: 11px;
+    color: #8C7B6B;
+    font-weight: 500;
+  }
+  .info-bar .info-value {
+    font-size: 13px;
+    color: #5C3A21;
+    font-weight: 700;
+  }
+
+  /* ── 총액 영역 ── */
+  .total-section {
+    padding: 28px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #5C3A21;
+  }
+  .total-section .total-label {
+    font-size: 16px;
+    color: #5C3A21;
+    font-weight: 700;
+  }
+  .total-section .total-label small {
+    display: block;
+    font-size: 11px;
+    color: #8C7B6B;
+    font-weight: 400;
+    margin-top: 2px;
+  }
+  .total-section .total-amount {
+    font-size: 36px;
+    font-weight: 900;
+    color: #5C3A21;
+    letter-spacing: -1px;
+  }
+  .total-section .total-amount span {
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .total-sub {
+    padding: 12px 40px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 24px;
+    background: #FDFCFB;
+    border-bottom: 1px solid #E0D6CC;
+  }
+  .total-sub .sub-item {
+    font-size: 12px;
+    color: #8C7B6B;
+  }
+  .total-sub .sub-item strong {
+    color: #5C3A21;
+    font-weight: 700;
+  }
+
+  /* ── 공정별 견적 테이블 ── */
+  .process-table {
+    padding: 0 40px;
+  }
+  .process-table table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .process-table thead th {
+    font-size: 10px;
+    color: #8C7B6B;
+    font-weight: 600;
+    text-align: left;
+    padding: 12px 8px 8px;
+    border-bottom: 1px solid #E0D6CC;
+    letter-spacing: 1px;
+  }
+  .process-table thead th:last-child {
+    text-align: right;
+  }
+  .process-table thead th:nth-child(3) {
+    text-align: right;
+  }
+  .process-table tbody td {
+    font-size: 13px;
+    color: #3A2A1A;
+    padding: 10px 8px;
+    border-bottom: 1px solid #F0EBE5;
+    vertical-align: top;
+  }
+  .process-table tbody td:last-child {
+    text-align: right;
+    font-weight: 700;
+    font-size: 14px;
+    color: #5C3A21;
+    white-space: nowrap;
+  }
+  .process-table tbody td:nth-child(3) {
+    text-align: right;
+    color: #8C7B6B;
+    font-size: 12px;
+  }
+  .process-table tbody td .detail {
+    font-size: 11px;
+    color: #A09080;
+    margin-top: 2px;
+  }
+  .process-table tbody tr.subtotal td {
+    border-top: 1px solid #D0C8BE;
+    border-bottom: 2px solid #5C3A21;
+    font-weight: 800;
+    font-size: 15px;
+    padding: 14px 8px;
+    color: #5C3A21;
+  }
+  .process-table tbody tr.reserve td {
+    color: #D4A017;
+    font-style: italic;
+  }
+
+  /* ── 숨은 비용 알림 ── */
+  .hidden-cost {
+    margin: 20px 40px;
+    background: #FFF9F0;
+    border: 1px solid #E8D5B8;
+    border-radius: 8px;
+    padding: 16px 20px;
+  }
+  .hidden-cost h4 {
+    font-size: 12px;
+    color: #C0392B;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .hidden-cost ul {
+    list-style: none;
+    padding: 0;
+  }
+  .hidden-cost ul li {
+    font-size: 11px;
+    color: #6B5B4B;
+    padding: 3px 0;
+    display: flex;
+    justify-content: space-between;
+  }
+  .hidden-cost ul li span {
+    color: #C0392B;
+    font-weight: 600;
+  }
+  .hidden-cost .subtotal-line {
+    border-top: 1px solid #E8D5B8;
+    margin-top: 8px;
+    padding-top: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #C0392B;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* ── 체크리스트 ── */
+  .checklist {
+    margin: 0 40px 20px;
+    padding: 16px 20px;
+    background: #F5F0EB;
+    border-radius: 8px;
+  }
+  .checklist h4 {
+    font-size: 12px;
+    color: #5C3A21;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .checklist ul {
+    list-style: none;
+    padding: 0;
+    columns: 2;
+    column-gap: 20px;
+  }
+  .checklist ul li {
+    font-size: 10px;
+    color: #6B5B4B;
+    padding: 2px 0;
+  }
+  .checklist ul li::before {
+    content: "☐ ";
+  }
+
+  /* ── 광고 영역 (PDF 하단) ── */
+  .ad-section {
+    margin: 0 40px;
+    border: 1px solid #E0D6CC;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+  }
+  .ad-section .ad-label {
+    font-size: 8px;
+    color: #BBB;
+    margin-bottom: 8px;
+  }
+  .ad-section h4 {
+    font-size: 12px;
+    color: #5C3A21;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .ad-section .ad-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .ad-section .ad-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: #FDFCFB;
+    border: 1px solid #F0EBE5;
+    border-radius: 6px;
+  }
+  .ad-item .ad-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #3A2A1A;
+  }
+  .ad-item .ad-desc {
+    font-size: 11px;
+    color: #8C7B6B;
+  }
+  .ad-item .ad-contact {
+    font-size: 12px;
+    color: #5C3A21;
+    font-weight: 600;
+  }
+
+  /* ── 푸터 ── */
+  .sheet-footer {
+    background: #5C3A21;
+    color: #A08060;
+    padding: 16px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+  }
+  .sheet-footer .url {
+    color: #C9A96E;
+    font-weight: 700;
+    font-size: 12px;
+  }
+  .sheet-footer .disclaimer {
+    font-size: 9px;
+    color: #8B6B4B;
+    max-width: 400px;
+    text-align: right;
+    line-height: 1.4;
+  }
+
+  /* ── 이미지용 (카톡 공유) 간소화 버전 ── */
+  .estimate-image {
+    width: 600px;
+    background: #fff;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    overflow: hidden;
+  }
+  .estimate-image .img-header {
+    background: #5C3A21;
+    color: #fff;
+    padding: 20px 24px 16px;
+  }
+  .estimate-image .img-header h2 {
+    font-size: 22px;
+    font-weight: 800;
+  }
+  .estimate-image .img-header p {
+    font-size: 10px;
+    color: #C9A96E;
+    margin-top: 2px;
+  }
+  .estimate-image .img-info {
+    background: #F5F0EB;
+    padding: 12px 24px;
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: #5C3A21;
+  }
+  .estimate-image .img-info strong { font-weight: 700; }
+  .estimate-image .img-total {
+    padding: 20px 24px;
+    text-align: center;
+    border-bottom: 2px solid #5C3A21;
+  }
+  .estimate-image .img-total .label {
+    font-size: 13px;
+    color: #8C7B6B;
+  }
+  .estimate-image .img-total .amount {
+    font-size: 40px;
+    font-weight: 900;
+    color: #5C3A21;
+    margin: 4px 0;
+  }
+  .estimate-image .img-total .per-pyung {
+    font-size: 14px;
+    color: #2E7D5B;
+    font-weight: 600;
+  }
+  .estimate-image .img-list {
+    padding: 16px 24px;
+  }
+  .estimate-image .img-list .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 7px 0;
+    border-bottom: 1px solid #F0EBE5;
+    font-size: 13px;
+  }
+  .estimate-image .img-list .row .name { color: #3A2A1A; }
+  .estimate-image .img-list .row .price { color: #5C3A21; font-weight: 700; }
+  .estimate-image .img-list .row.total-row {
+    border-top: 2px solid #5C3A21;
+    border-bottom: none;
+    padding-top: 10px;
+    font-size: 15px;
+    font-weight: 800;
+  }
+  .estimate-image .img-footer {
+    background: #5C3A21;
+    color: #C9A96E;
+    padding: 12px 24px;
+    font-size: 11px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .estimate-image .img-footer .small { font-size: 9px; color: #8B6B4B; }
+</style>
+</head>
+<body>
+
+<h1 class="section-title">📄 PDF / 엑셀 — 풀 견적서 디자인</h1>
+
+<!-- ════════════════════════════════════════════ -->
+<!--           PDF/엑셀 풀 견적서                  -->
+<!-- ════════════════════════════════════════════ -->
+<div class="estimate-sheet">
+  
+  <!-- 헤더 -->
+  <div class="sheet-header">
+    <div class="logo-area">
+      <h2>얼마드나</h2>
+      <p>ULMADNA.COM · 무료 인테리어 예상 견적 계산기</p>
+    </div>
+    <div class="sponsor-area">
+      <span class="sponsor-badge">AD</span>
+      <div class="sponsor-logo">LX Z:IN</div>
+    </div>
+  </div>
+
+  <!-- 기본 정보 바 -->
+  <div class="info-bar">
+    <div class="info-item">
+      <span class="info-label">평형</span>
+      <span class="info-value">33평 (109㎡)</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">유형</span>
+      <span class="info-value">구축 10년</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">지역</span>
+      <span class="info-value">경기 남양주</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">등급</span>
+      <span class="info-value">중급</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">생성일</span>
+      <span class="info-value">2026.04.06</span>
+    </div>
+  </div>
+
+  <!-- 총액 -->
+  <div class="total-section">
+    <div class="total-label">
+      예상 총 비용
+      <small>자재 + 인건비 + 부자재 포함 · VAT 별도</small>
+    </div>
+    <div class="total-amount">4,793<span>만원</span></div>
+  </div>
+  <div class="total-sub">
+    <div class="sub-item">공사비 소계 <strong>4,357만원</strong></div>
+    <div class="sub-item">예비비 10% <strong>436만원</strong></div>
+    <div class="sub-item">평당 <strong>145만원</strong></div>
+  </div>
+
+  <!-- 공정별 견적 테이블 -->
+  <div class="process-table">
+    <table>
+      <thead>
+        <tr>
+          <th>공정</th>
+          <th>주요 선택사항</th>
+          <th>비중</th>
+          <th>금액</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>철거</td>
+          <td>전체 올철거 · 욕실2 · 폐기물3회<div class="detail">인건비 250,000/일 × 5일</div></td>
+          <td>5.3%</td>
+          <td>230만</td>
+        </tr>
+        <tr>
+          <td>설비/배관</td>
+          <td>급수+난방+욕실배관 이동 1개소<div class="detail">기본설비 30만 + 욕실배관 90만</div></td>
+          <td>2.8%</td>
+          <td>120만</td>
+        </tr>
+        <tr>
+          <td>방수</td>
+          <td>욕실 액체방수 × 2개소<div class="detail">150,000/개소</div></td>
+          <td>0.7%</td>
+          <td>30만</td>
+        </tr>
+        <tr>
+          <td>창호/샷시</td>
+          <td>KCC 프라임 이중창 · 로이유리 · 터닝도어 1개<div class="detail">부가시공비 132만 별도 발생 가능</div></td>
+          <td>19.7%</td>
+          <td>858만</td>
+        </tr>
+        <tr>
+          <td>목공</td>
+          <td>기존천장 · MDF래핑 · 도어5조(영림) · 9mm문선<div class="detail">공구손료 12만 포함</div></td>
+          <td>6.4%</td>
+          <td>280만</td>
+        </tr>
+        <tr>
+          <td>전기</td>
+          <td>나노스위치 35개 · 분전반 · 인덕션단독선<div class="detail">화재감지기 8개 포함</div></td>
+          <td>1.4%</td>
+          <td>59만</td>
+        </tr>
+        <tr>
+          <td>조명</td>
+          <td>엣지봉판LED · 매입등8개 · T5간접3개 · 센서등<div class="detail">설치기사 1일</div></td>
+          <td>2.0%</td>
+          <td>88만</td>
+        </tr>
+        <tr>
+          <td>도배</td>
+          <td>실크(베스띠) · 화이트실크천장 · 퍼티작업<div class="detail">시공면적 평당 46,000</div></td>
+          <td>8.7%</td>
+          <td>378만</td>
+        </tr>
+        <tr>
+          <td>바닥</td>
+          <td>장판 3.2T (LX 사랑애) · MDF걸레받이<div class="detail">시공포함 평당 67,000</div></td>
+          <td>5.3%</td>
+          <td>231만</td>
+        </tr>
+        <tr>
+          <td>타일</td>
+          <td>욕실벽300×600 · 바닥300×300 · 현관 · 주방 · 아덱스줄눈<div class="detail">양중비 40만 별도 발생 가능</div></td>
+          <td>5.3%</td>
+          <td>233만</td>
+        </tr>
+        <tr>
+          <td>욕실 (2개소)</td>
+          <td>대림 투피스 · 무광수전 · SMC돔 · 무광니켈악세사리<div class="detail">파티션+슬라이딩장+젠다이 포함</div></td>
+          <td>6.1%</td>
+          <td>264만</td>
+        </tr>
+        <tr>
+          <td>주방</td>
+          <td>사제 하부장 5m(한솔EO) · 인조대리석 · 하츠수전<div class="detail">싱크볼(백조780) 35만 포함</div></td>
+          <td>7.2%</td>
+          <td>315만</td>
+        </tr>
+        <tr>
+          <td>가구</td>
+          <td>신발장(하부비움) · 키큰장<div class="detail">도어 영림더도어 5조</div></td>
+          <td>6.0%</td>
+          <td>260만</td>
+        </tr>
+        <tr>
+          <td>필름</td>
+          <td>전체 필름 (LX Z:IN)<div class="detail">샷시+문틀+현관문 포함</div></td>
+          <td>1.7%</td>
+          <td>73만</td>
+        </tr>
+        <tr>
+          <td>도장</td>
+          <td>베란다 탄성코트 2칸 (KCC바이오세라믹)<div class="detail">프라이머+부자재 포함</div></td>
+          <td>1.2%</td>
+          <td>53만</td>
+        </tr>
+        <tr>
+          <td>중문</td>
+          <td>3연동 (미소로)<div class="detail">파티션가벽 미포함</div></td>
+          <td>1.8%</td>
+          <td>80만</td>
+        </tr>
+        <tr>
+          <td>현관문</td>
+          <td>리폼(안쪽면 필름) + 도어클로저<div class="detail">KD-2000 잠금장치 포함</div></td>
+          <td>0.6%</td>
+          <td>28만</td>
+        </tr>
+        <tr>
+          <td>인터폰/도어락</td>
+          <td>도어락 카드형 교체<div class="detail">설치비 포함</div></td>
+          <td>0.7%</td>
+          <td>30만</td>
+        </tr>
+        <tr>
+          <td>부대비용</td>
+          <td>보양(엘베+복도) · 준공청소 · 폐기물3회 · 실리콘<div class="detail">승강기이용료 관리사무소 별도</div></td>
+          <td>5.9%</td>
+          <td>255만</td>
+        </tr>
+        <tr>
+          <td>입주청소</td>
+          <td>기본 입주청소 (평당 17,000)<div class="detail">나노코팅·베이크아웃 미포함</div></td>
+          <td>1.3%</td>
+          <td>56만</td>
+        </tr>
+        <!-- 소계 -->
+        <tr class="reserve">
+          <td></td>
+          <td>예비비 (10%)</td>
+          <td></td>
+          <td>436만</td>
+        </tr>
+        <tr class="subtotal">
+          <td></td>
+          <td>예상 총 비용</td>
+          <td></td>
+          <td>4,793만원</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 숨은 비용 알림 -->
+  <div class="hidden-cost">
+    <h4>⚠️ 별도 발생 가능한 추가 비용</h4>
+    <ul>
+      <li>샷시 부가시공비 (실측+양중+철거+통바) <span>약 132만원</span></li>
+      <li>타일 양중비 <span>약 40~90만원</span></li>
+      <li>승강기 이용료 (관리사무소 규정) <span>약 10~44만원</span></li>
+      <li>사다리차 (필요시) <span>약 13~40만원</span></li>
+    </ul>
+    <div class="subtotal-line">
+      <span>예상 추가비용 합계</span>
+      <span>약 195~306만원</span>
+    </div>
+  </div>
+
+  <!-- 체크리스트 -->
+  <div class="checklist">
+    <h4>📋 계약 전 체크리스트</h4>
+    <ul>
+      <li>사업자등록증 확인 (설립일 체크)</li>
+      <li>법인 등기부등본 확인</li>
+      <li>중도금 법인계좌 입금 여부</li>
+      <li>도면 제공 여부</li>
+      <li>마감재 샘플 미팅 확인</li>
+      <li>공정표 사전 제공 여부</li>
+      <li>카카오톡 채팅 백업 필수</li>
+      <li>A/S 기간 계약서 명시 여부</li>
+    </ul>
+  </div>
+
+  <!-- 광고 영역 (PDF 하단 추천업체) -->
+  <div class="ad-section">
+    <div class="ad-label">광고</div>
+    <h4>📍 경기 남양주 지역 추천 인테리어 업체</h4>
+    <div class="ad-list">
+      <div class="ad-item">
+        <div>
+          <div class="ad-name">○○인테리어</div>
+          <div class="ad-desc">남양주·구리 전문 · 시공사례 200건+</div>
+        </div>
+        <div class="ad-contact">1588-XXXX</div>
+      </div>
+      <div class="ad-item">
+        <div>
+          <div class="ad-name">△△디자인</div>
+          <div class="ad-desc">아파트 올수리 · 강마루 전문</div>
+        </div>
+        <div class="ad-contact">010-XXXX-XXXX</div>
+      </div>
+      <div class="ad-item">
+        <div>
+          <div class="ad-name">□□홈인테리어</div>
+          <div class="ad-desc">욕실 리모델링 · 주방 전문</div>
+        </div>
+        <div class="ad-contact">031-XXX-XXXX</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 푸터 -->
+  <div class="sheet-footer">
+    <div>
+      <span class="url">ulmadna.com</span>
+      <span style="margin-left:12px;">도토리스튜디오</span>
+    </div>
+    <div class="disclaimer">
+      본 견적서는 시장 평균 단가 기반 예상 금액이며,<br>
+      실제 시공비는 현장 상태·업체에 따라 달라질 수 있습니다.<br>
+      추천 업체는 광고 제휴이며 시공 품질을 보증하지 않습니다.
+    </div>
+  </div>
+</div>
+
+
+<h1 class="section-title">📱 이미지 저장용 — 카톡 공유 최적화</h1>
+
+<!-- ════════════════════════════════════════════ -->
+<!--           이미지(PNG) 간소화 버전              -->
+<!-- ════════════════════════════════════════════ -->
+<div class="estimate-image">
+  
+  <div class="img-header">
+    <h2>얼마드나</h2>
+    <p>ULMADNA.COM · 무료 인테리어 예상 견적</p>
+  </div>
+
+  <div class="img-info">
+    <span><strong>33평</strong> 아파트</span>
+    <span><strong>구축 10년</strong></span>
+    <span><strong>경기 남양주</strong></span>
+    <span><strong>중급</strong></span>
+    <span>2026.04.06</span>
+  </div>
+
+  <div class="img-total">
+    <div class="label">예상 총 비용</div>
+    <div class="amount">4,793만원</div>
+    <div class="per-pyung">평당 145만원 · 예비비 10% 포함</div>
+  </div>
+
+  <div class="img-list">
+    <div class="row"><span class="name">철거</span><span class="price">230만</span></div>
+    <div class="row"><span class="name">설비/배관</span><span class="price">120만</span></div>
+    <div class="row"><span class="name">방수</span><span class="price">30만</span></div>
+    <div class="row"><span class="name">창호/샷시</span><span class="price">858만</span></div>
+    <div class="row"><span class="name">목공</span><span class="price">280만</span></div>
+    <div class="row"><span class="name">전기</span><span class="price">59만</span></div>
+    <div class="row"><span class="name">조명</span><span class="price">88만</span></div>
+    <div class="row"><span class="name">도배 (실크)</span><span class="price">378만</span></div>
+    <div class="row"><span class="name">바닥 (장판3.2T)</span><span class="price">231만</span></div>
+    <div class="row"><span class="name">타일</span><span class="price">233만</span></div>
+    <div class="row"><span class="name">욕실 2개소</span><span class="price">264만</span></div>
+    <div class="row"><span class="name">주방</span><span class="price">315만</span></div>
+    <div class="row"><span class="name">가구</span><span class="price">260만</span></div>
+    <div class="row"><span class="name">필름+도장+중문+현관</span><span class="price">234만</span></div>
+    <div class="row"><span class="name">부대비용+입주청소</span><span class="price">311만</span></div>
+    <div class="row"><span class="name" style="color:#D4A017">예비비 (10%)</span><span class="price" style="color:#D4A017">436만</span></div>
+    <div class="row total-row"><span class="name">예상 총 비용</span><span class="price">4,793만원</span></div>
+  </div>
+
+  <div class="img-footer">
+    <span style="font-weight:700;">ulmadna.com</span>
+    <span class="small">※ 시장 평균 단가 기반 예상 금액</span>
+  </div>
+</div>
+
+</body>
+</html>

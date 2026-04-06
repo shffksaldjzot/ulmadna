@@ -8,6 +8,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       clientSecret: process.env.KAKAO_CLIENT_SECRET || '',
     }),
   ],
+  pages: {
+    signIn: '/login',
+  },
   callbacks: {
     session({ session, token }) {
       if (session.user && token.sub) {

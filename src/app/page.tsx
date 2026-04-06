@@ -33,7 +33,7 @@ export default function Home() {
               완전 무료 · 개인정보 없음
             </span>
             <button
-              onClick={() => window.location.href = '/api/auth/signin'}
+              onClick={() => window.location.href = '/login'}
               className="text-xs text-gray-500 hover:text-brown border border-gray-200 px-4 py-2 rounded-full transition-colors"
             >
               로그인
@@ -53,7 +53,7 @@ export default function Home() {
               우리 집 인테리어,<br />얼마 드나?
             </h1>
             <p className="text-sm text-gray-500 mt-3 leading-relaxed">
-              회원가입과 개인정보 없이 누구나 쉽게! 10년 노하우를 담은 현장 경험을 토대로 견적서를 뽑아드립니다.
+              회원가입과 개인정보 없이 누구나 쉽게!
             </p>
           </div>
 {/* 인테리어 이미지 제거됨 */}
@@ -75,33 +75,7 @@ export default function Home() {
         </div>
       </main>
 
-      {/* ───── 절약 팁 & 현장 가격 카드 ───── */}
-      {state.output.savingTips.length > 0 && (
-        <section className="bg-cream py-10 px-4 lg:px-8">
-          <div className="max-w-[1400px] mx-auto grid md:grid-cols-2 gap-4">
-            <div className="bg-white rounded-2xl p-6 border border-gray-100">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="w-8 h-8 rounded-full bg-safe/10 flex items-center justify-center text-safe text-sm">&#9660;</span>
-                <h3 className="text-sm font-bold text-brown">절약 포인트</h3>
-              </div>
-              <div className="space-y-2">
-                {state.output.savingTips.map((tip, i) => (
-                  <p key={i} className="text-sm text-gray-600">{tip.text}</p>
-                ))}
-              </div>
-            </div>
-            <div className="bg-white rounded-2xl p-6 border border-gray-100">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="w-8 h-8 rounded-full bg-amber/10 flex items-center justify-center text-amber text-sm">&#9888;</span>
-                <h3 className="text-sm font-bold text-brown">현장 가격 안내</h3>
-              </div>
-              <p className="text-sm text-gray-600">
-                이 견적은 시장 평균 기반 예상치입니다. 현장 상황(누수, 석면, 구조 변경 등)에 따라 실제 비용은 달라질 수 있어요. 정확한 비용은 현장 실측 후 확인하세요.
-              </p>
-            </div>
-          </div>
-        </section>
-      )}
+      {/* 절약 팁 섹션 제거됨 */}
 
       {/* ───── 파트너 배너 ───── */}
       <section className="bg-cream py-8 px-4 lg:px-8">
@@ -124,12 +98,12 @@ export default function Home() {
           <div className="flex-1 max-w-lg">
             <p className="text-[10px] text-gold tracking-widest mb-4">얼마드나를 만든 이유</p>
             <h2 className="text-2xl font-bold text-brown leading-snug mb-4">
-              거품 없는 견적,<br />숫자로 증명하는 신뢰
+              실제 견적 데이터로<br />만든 계산기
             </h2>
             <p className="text-sm text-gray-500 leading-relaxed">
-              10년간 1,240건이 넘는 현장을 봐왔고, 매번 같은 질문을 받았습니다.
-              &ldquo;이거 적정 가격 맞아요?&rdquo; 그 질문에 제대로 답하고 싶어서
-              이 계산기를 만들었습니다. 무료이고, 개인정보를 받지 않고, 숫자의 근거를
+              인테리어 커뮤니티에서 수집한 실제 견적서 데이터를 분석하여
+              공정별 시장 평균 단가를 산출했습니다.
+              무료이고, 개인정보를 받지 않고, 숫자의 근거를
               투명하게 공개합니다.
             </p>
             <div className="mt-4 bg-amber/5 border border-amber/20 rounded-lg p-3">
@@ -145,16 +119,16 @@ export default function Home() {
         {/* 통계 */}
         <div className="max-w-[1400px] mx-auto mt-12 flex justify-center gap-12 lg:gap-20">
           <div className="text-center">
-            <p className="text-3xl font-bold text-brown">1,240+</p>
-            <p className="text-xs text-gray-400 mt-1">시공 완료 프로젝트</p>
+            <p className="text-3xl font-bold text-brown">35건+</p>
+            <p className="text-xs text-gray-400 mt-1">실제 견적서 분석</p>
           </div>
           <div className="text-center">
-            <p className="text-3xl font-bold text-brown">10년</p>
-            <p className="text-xs text-gray-400 mt-1">인테리어 실무 경력</p>
+            <p className="text-3xl font-bold text-brown">19개</p>
+            <p className="text-xs text-gray-400 mt-1">세부 공정 데이터</p>
           </div>
           <div className="text-center">
-            <p className="text-3xl font-bold text-brown">98%</p>
-            <p className="text-xs text-gray-400 mt-1">고객 만족도</p>
+            <p className="text-3xl font-bold text-brown">100%</p>
+            <p className="text-xs text-gray-400 mt-1">완전 무료</p>
           </div>
         </div>
       </section>

@@ -26,7 +26,7 @@ export default function SaveEstimate({ input, output }: SaveEstimateProps) {
 
       if (res.status === 401) {
         if (confirm('카카오로 간편 로그인하면 저장할 수 있어요. 3초면 끝나요.\n\n로그인하시겠어요?')) {
-          window.location.href = '/api/auth/signin';
+          window.location.href = '/login';
         }
         setShowNameModal(false);
         return;
