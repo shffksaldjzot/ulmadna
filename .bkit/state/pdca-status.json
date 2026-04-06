@@ -1,6 +1,6 @@
 {
   "version": "3.0",
-  "lastUpdated": "2026-04-06T10:18:53.514Z",
+  "lastUpdated": "2026-04-06T10:22:55.231Z",
   "activeFeatures": [
     "ulmadna",
     "inputs",
@@ -49,7 +49,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-04-05T10:59:19.754Z",
-        "lastUpdated": "2026-04-06T10:14:10.448Z"
+        "lastUpdated": "2026-04-06T10:22:55.229Z"
       },
       "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\components\\calculator\\inputs\\ProcessToggles.tsx"
     },
@@ -322,7 +322,7 @@
   "session": {
     "startedAt": "2026-04-05T10:02:32.426Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-04-06T10:18:53.514Z"
+    "lastActivity": "2026-04-06T10:22:55.231Z"
   },
   "history": [
     {
@@ -1876,6 +1876,30 @@
     {
       "timestamp": "2026-04-06T10:18:53.514Z",
       "feature": "users",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T10:22:22.865Z",
+      "feature": "inputs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T10:22:36.872Z",
+      "feature": "inputs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T10:22:47.328Z",
+      "feature": "inputs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T10:22:55.231Z",
+      "feature": "inputs",
       "phase": "do",
       "action": "updated"
     }

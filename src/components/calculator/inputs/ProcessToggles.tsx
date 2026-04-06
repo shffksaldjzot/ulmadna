@@ -53,14 +53,14 @@ function RadioChips({ options, selected, onChange, label }: {
   options: DBOption[]; selected: string; onChange: (g: string) => void; label?: string;
 }) {
   return (
-    <div className="mb-2">
+    <div className="mb-2 w-full min-w-0">
       {label && <p className="text-[11px] text-gray-500 mb-1.5">{label}</p>}
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex flex-wrap gap-1.5 w-full">
         {options.map(opt => (
           <button
             key={opt.grade}
             onClick={() => onChange(opt.grade)}
-            className={`px-3 py-1.5 text-xs rounded-full border transition-all ${
+            className={`px-3 py-1.5 text-xs rounded-full border transition-all max-w-full truncate ${
               selected === opt.grade
                 ? 'bg-brown text-white border-brown'
                 : 'bg-cream text-gray-600 border-gray-200 hover:border-gold'
@@ -128,12 +128,12 @@ function RadioList({ options, selected, onChange, label }: {
   return (
     <div className="mb-2">
       {label && <p className="text-[11px] text-gray-500 mb-1.5">{label}</p>}
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1 w-full">
         {options.map(opt => (
           <button
             key={opt.grade}
             onClick={() => onChange(opt.grade)}
-            className={`flex items-center gap-2 px-2.5 py-1.5 text-xs text-left rounded-lg border transition-all ${
+            className={`flex items-center gap-2 px-2.5 py-1.5 text-xs text-left rounded-lg border transition-all w-full min-w-0 ${
               selected === opt.grade
                 ? 'bg-brown/5 border-brown/30 text-brown font-medium'
                 : 'bg-white border-gray-100 text-gray-600 hover:border-gold/50'
@@ -144,8 +144,8 @@ function RadioList({ options, selected, onChange, label }: {
             }`}>
               {selected === opt.grade && <span className="w-1.5 h-1.5 rounded-full bg-brown" />}
             </span>
-            <span>{opt.name}</span>
-            <span className="ml-auto opacity-60 flex-shrink-0">{fmtPriceUnit(opt)}</span>
+            <span className="truncate min-w-0">{opt.name}</span>
+            <span className="ml-auto opacity-60 flex-shrink-0 text-[10px]">{fmtPriceUnit(opt)}</span>
           </button>
         ))}
       </div>
@@ -275,7 +275,7 @@ const ProcessToggles = forwardRef<{ expandAll: () => void; collapseAll: () => vo
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-full">
       {PROCESS_GROUPS.map(group => {
         const groupProcesses = group.ids
           .map(id => db.processes.find(p => p.id === id))
@@ -320,7 +320,7 @@ const ProcessToggles = forwardRef<{ expandAll: () => void; collapseAll: () => vo
 
                     {/* 펼침 내용 */}
                     {on && open && (
-                      <div className="px-4 pb-4 border-t border-gray-50 pt-3 space-y-2 overflow-hidden">
+                      <div className="px-4 pb-4 border-t border-gray-50 pt-3 space-y-2 overflow-hidden min-w-0 w-full">
 
                         {/* 공정 수량 (욕실 2개소, 방문 5조 등) */}
                         {isCountable && (
