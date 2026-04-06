@@ -19,7 +19,7 @@ const GRADE_LABELS: Record<string, string> = {
   basic: '기본(가성비)', mid: '중급(대중적)', premium: '고급(프리미엄)',
 };
 const HOUSING_LABELS: Record<string, string> = {
-  new: '신축 입주', old10: '구축 10년 미만', old20: '구축 20년 이상',
+  new: '신축 입주', old20: '구축 리모델링',
 };
 
 export default function ResultPanel({ input, output, dispatch }: ResultPanelProps) {

@@ -6,10 +6,13 @@ interface TotalCostProps {
   total: number;
   perPyeong: number;
   subtotal: number;
+  margin: number;
+  marginRate: number;
   contingency: number;
+  contingencyRate: number;
 }
 
-export default function TotalCost({ total, perPyeong, subtotal, contingency }: TotalCostProps) {
+export default function TotalCost({ total, perPyeong, subtotal, margin, marginRate, contingency, contingencyRate }: TotalCostProps) {
   return (
     <div className="text-center py-6">
       <p className="text-sm text-gray-500 mb-1">예상 견적이에요</p>
@@ -20,8 +23,9 @@ export default function TotalCost({ total, perPyeong, subtotal, contingency }: T
         평당 {formatPerPyeong(perPyeong)}
       </p>
       <div className="mt-3 text-xs text-gray-400 space-y-0.5">
-        <p>공사비 {formatWonExact(subtotal)} + 예비비 {formatWonExact(contingency)}</p>
-        <p>예비비 15% 포함 금액이에요. 인테리어는 항상 예상보다 조금 더 들거든요.</p>
+        <p>
+          공사비 {formatWonExact(subtotal)} + 이윤 {formatWonExact(margin)} ({Math.round(marginRate * 100)}%) + 예비비 {formatWonExact(contingency)} ({Math.round(contingencyRate * 100)}%)
+        </p>
       </div>
     </div>
   );

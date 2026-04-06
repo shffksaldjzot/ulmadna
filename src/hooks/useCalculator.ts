@@ -1,17 +1,24 @@
 /**
- * v2 계산기 상태 관리 훅
- * - 등급 변경 → 비커스텀 필드 일괄 업데이트
- * - 개별 필드 변경 → customized = true
- * - localStorage 자동 저장/복원 → 재방문 시 이전 입력값 유지
+ * v3 계산기 상태 관리 훅
+ * - ulmadna_db.json 기반 하이브리드 적산
+ * - 등급/평수/유형 변경 → 자동 재계산
+ * - localStorage 자동 저장/복원
  */
 
 'use client';
 
 import { useReducer, useEffect, useRef } from 'react';
 import type { CalculatorInput, CalculatorOutput, CalculatorAction } from '@/types/calculator';
-import { calculate, createDefaultInput, applyGradeChange } from '@/lib/calculator';
+import {
+  calculate,
+  createDefaultInput,
+  applyGradeChange,
+  applyAreaChange,
+  applyHousingTypeChange,
+  enableDefaultProcesses,
+} from '@/lib/calculator';
 
-const STORAGE_KEY = 'ulmadna-calculator-input';
+const STORAGE_KEY = 'ulmadna-v3-input';
 
 interface CalculatorState {
   input: CalculatorInput;
@@ -34,7 +41,7 @@ function saveInput(input: CalculatorInput) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(input));
   } catch {
-    // localStorage 용량 초과 등 무시
+    // ignore
   }
 }
 
@@ -50,24 +57,23 @@ function calculatorReducer(state: CalculatorState, action: CalculatorAction): Ca
   let newInput: CalculatorInput;
 
   switch (action.type) {
-    case 'SET_AREA':
-      newInput = {
-        ...state.input,
-        basic: { ...state.input.basic, area: action.payload },
-      };
+    case 'SET_AREA': {
+      newInput = applyAreaChange(state.input, action.payload);
+      // 평수 처음 선택 시 공정 자동 활성화
+      if (state.input.basic.area === 0 && action.payload > 0) {
+        newInput = enableDefaultProcesses(newInput);
+      }
       break;
+    }
 
     case 'SET_HOUSING_TYPE':
-      newInput = {
-        ...state.input,
-        basic: { ...state.input.basic, housingType: action.payload },
-      };
+      newInput = applyHousingTypeChange(state.input, action.payload);
       break;
 
-    case 'SET_REGION':
+    case 'SET_LIVING_CONDITION':
       newInput = {
         ...state.input,
-        basic: { ...state.input.basic, region: action.payload },
+        basic: { ...state.input.basic, livingCondition: action.payload },
       };
       break;
 
@@ -82,6 +88,13 @@ function calculatorReducer(state: CalculatorState, action: CalculatorAction): Ca
       };
       break;
 
+    case 'SET_MARGIN_RATE':
+      newInput = {
+        ...state.input,
+        basic: { ...state.input.basic, marginRate: action.payload },
+      };
+      break;
+
     case 'TOGGLE_PROCESS':
       newInput = {
         ...state.input,
@@ -91,20 +104,23 @@ function calculatorReducer(state: CalculatorState, action: CalculatorAction): Ca
       };
       break;
 
-    case 'SET_FIELD': {
-      const { processId, fieldId, value } = action.payload;
+    case 'SET_PROCESS_GRADE': {
+      const { processId, grade } = action.payload;
       newInput = {
         ...state.input,
         processes: state.input.processes.map(p =>
-          p.id === processId
-            ? {
-                ...p,
-                fields: {
-                  ...p.fields,
-                  [fieldId]: { value, customized: true },
-                },
-              }
-            : p
+          p.id === processId ? { ...p, selectedGrade: grade } : p
+        ),
+      };
+      break;
+    }
+
+    case 'SET_PROCESS_COUNT': {
+      const { processId, count } = action.payload;
+      newInput = {
+        ...state.input,
+        processes: state.input.processes.map(p =>
+          p.id === processId ? { ...p, count } : p
         ),
       };
       break;
@@ -112,6 +128,10 @@ function calculatorReducer(state: CalculatorState, action: CalculatorAction): Ca
 
     case 'LOAD_INPUT':
       newInput = action.payload;
+      break;
+
+    case 'RESET':
+      newInput = createDefaultInput('mid');
       break;
 
     default:
@@ -126,7 +146,6 @@ export function useCalculator() {
   const [state, dispatch] = useReducer(calculatorReducer, initialState);
   const initialized = useRef(false);
 
-  // 최초 마운트 시 localStorage에서 복원
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
@@ -137,7 +156,6 @@ export function useCalculator() {
     }
   }, []);
 
-  // 입력값 변경 시 자동 저장
   useEffect(() => {
     if (!initialized.current) return;
     saveInput(state.input);

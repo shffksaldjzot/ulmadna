@@ -2,10 +2,8 @@
 
 import { useState } from 'react';
 import type { CalculatorInput, CalculatorAction, CalculatorOutput } from '@/types/calculator';
-import { createDefaultInput } from '@/lib/calculator';
 import AreaSelector from './inputs/AreaSelector';
 import TypeSelector from './inputs/TypeSelector';
-import RegionSelector from './inputs/RegionSelector';
 import GradeSelector from './inputs/GradeSelector';
 import ProcessToggles from './inputs/ProcessToggles';
 
@@ -20,8 +18,8 @@ export default function InputPanel({ input, output, dispatch }: InputPanelProps)
 
   const handleReset = () => {
     if (confirm('입력한 내용을 모두 초기화할까요?')) {
-      localStorage.removeItem('ulmadna-calculator-input');
-      dispatch({ type: 'LOAD_INPUT', payload: createDefaultInput('mid') });
+      localStorage.removeItem('ulmadna-v3-input');
+      dispatch({ type: 'RESET' });
     }
   };
 
@@ -58,25 +56,65 @@ export default function InputPanel({ input, output, dispatch }: InputPanelProps)
               value={input.basic.housingType}
               onChange={v => dispatch({ type: 'SET_HOUSING_TYPE', payload: v })}
             />
-            <RegionSelector
-              value={input.basic.region}
-              onChange={v => dispatch({ type: 'SET_REGION', payload: v })}
-            />
             <GradeSelector
               value={input.basic.grade}
               onChange={v => dispatch({ type: 'SET_GRADE', payload: v })}
             />
+
+            {/* 시공환경 선택 */}
+            <div>
+              <p className="text-xs text-gray-500 mb-2">시공 환경</p>
+              <div className="flex gap-2">
+                {(['empty', 'occupied'] as const).map(cond => (
+                  <button
+                    key={cond}
+                    onClick={() => dispatch({ type: 'SET_LIVING_CONDITION', payload: cond })}
+                    className={`px-4 py-2 text-sm rounded-lg border transition-all ${
+                      input.basic.livingCondition === cond
+                        ? 'bg-brown text-white border-brown'
+                        : 'bg-cream text-gray-600 border-gray-200 hover:border-gold'
+                    }`}
+                  >
+                    {cond === 'empty' ? '빈집' : '거주중'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 이윤율 슬라이더 */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs text-gray-500">기업 이윤율</p>
+                <span className="text-xs font-medium text-brown">
+                  {Math.round(input.basic.marginRate * 100)}%
+                </span>
+              </div>
+              <input
+                type="range"
+                min="5"
+                max="10"
+                value={Math.round(input.basic.marginRate * 100)}
+                onChange={e => dispatch({ type: 'SET_MARGIN_RATE', payload: Number(e.target.value) / 100 })}
+                className="w-full accent-brown"
+              />
+              <div className="flex justify-between text-[10px] text-gray-300">
+                <span>5%</span>
+                <span>10%</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* 모바일: 총 금액 미리보기 (항상 보임) */}
-        {output && (
+        {/* 모바일: 총 금액 미리보기 */}
+        {output && output.total > 0 && (
           <div className="lg:hidden bg-cream rounded-xl p-4 mb-6 text-center">
             <p className="text-xs text-gray-400">예상 총 비용</p>
             <p className="text-2xl font-bold text-brown">
-              {(output.total / 10000).toLocaleString('ko-KR')}만원
+              {Math.round(output.total / 10000).toLocaleString('ko-KR')}만원
             </p>
-            <p className="text-xs text-gold">평당 {(output.perPyeong / 10000).toLocaleString('ko-KR')}만원</p>
+            <p className="text-xs text-gold">
+              평당 {Math.round(output.perPyeong / 10000).toLocaleString('ko-KR')}만원
+            </p>
           </div>
         )}
 
@@ -92,8 +130,11 @@ export default function InputPanel({ input, output, dispatch }: InputPanelProps)
             output={output}
             grade={input.basic.grade}
             onToggle={id => dispatch({ type: 'TOGGLE_PROCESS', payload: id })}
-            onFieldChange={(processId, fieldId, value) =>
-              dispatch({ type: 'SET_FIELD', payload: { processId, fieldId, value } })
+            onGradeChange={(processId, grade) =>
+              dispatch({ type: 'SET_PROCESS_GRADE', payload: { processId, grade } })
+            }
+            onCountChange={(processId, count) =>
+              dispatch({ type: 'SET_PROCESS_COUNT', payload: { processId, count } })
             }
           />
         </div>

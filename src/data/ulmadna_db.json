@@ -1,0 +1,851 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "updated": "2026-04-06",
+    "source": "셀인카페 견적서 35건 실데이터 기반 (EST-001 ~ EST-035)",
+    "note": "지역계수 전부 1.0 고정. 천장높이 2300mm 기준. 초과시 추가비용 안내.",
+    "vat": "별도",
+    "currency": "KRW"
+  },
+
+  "config": {
+    "region_coefficient": 1.0,
+    "living_condition_coefficient": {
+      "empty": 1.0,
+      "occupied": 1.1
+    },
+    "ceiling_height_base_mm": 2300,
+    "ceiling_height_surcharge_note": "천장높이 2500mm 이상일 경우 도배·목공·필름 등 추가비용 발생 가능",
+    "contingency_rate": 0.10,
+    "margin_rate_range": { "min": 0.05, "max": 0.10 },
+    "labor_default_workers": 2,
+    "labor_solo_threshold_days": 0.5
+  },
+
+  "pyeong_to_area": {
+    "description": "평형별 시공면적 환산 (도배용 벽면적, 바닥면적 등)",
+    "data": {
+      "18": { "floor_m2": 59.5, "wall_m2": 130, "ceiling_m2": 59.5 },
+      "19": { "floor_m2": 62.8, "wall_m2": 137, "ceiling_m2": 62.8 },
+      "24": { "floor_m2": 79.3, "wall_m2": 175, "ceiling_m2": 79.3 },
+      "25": { "floor_m2": 82.6, "wall_m2": 182, "ceiling_m2": 82.6 },
+      "27": { "floor_m2": 89.3, "wall_m2": 197, "ceiling_m2": 89.3 },
+      "30": { "floor_m2": 99.2, "wall_m2": 218, "ceiling_m2": 99.2 },
+      "32": { "floor_m2": 105.8, "wall_m2": 233, "ceiling_m2": 105.8 },
+      "33": { "floor_m2": 109.1, "wall_m2": 240, "ceiling_m2": 109.1 },
+      "34": { "floor_m2": 112.4, "wall_m2": 247, "ceiling_m2": 112.4 },
+      "39": { "floor_m2": 128.9, "wall_m2": 284, "ceiling_m2": 128.9 },
+      "43": { "floor_m2": 142.1, "wall_m2": 313, "ceiling_m2": 142.1 },
+      "48": { "floor_m2": 158.7, "wall_m2": 349, "ceiling_m2": 158.7 },
+      "51": { "floor_m2": 168.6, "wall_m2": 371, "ceiling_m2": 168.6 },
+      "59": { "floor_m2": 195.0, "wall_m2": 429, "ceiling_m2": 195.0 }
+    }
+  },
+
+  "labor_rates": {
+    "description": "직종별 일당 (2인 기준, 소요일 0.5일 이하시 1인 전환)",
+    "source": "EST-025, EST-035 자재/노무 분리 견적서 교차검증",
+    "data": {
+      "demolition": { "name": "철거", "daily_rate": 250000, "default_workers": 2 },
+      "plumbing": { "name": "설비/배관", "daily_rate": 300000, "default_workers": 2 },
+      "waterproof": { "name": "방수", "daily_rate": 250000, "default_workers": 1 },
+      "carpentry": { "name": "목공", "daily_rate": 350000, "default_workers": 2 },
+      "electrical": { "name": "전기", "daily_rate": 300000, "default_workers": 1 },
+      "wallpaper": { "name": "도배", "daily_rate": 300000, "default_workers": 2 },
+      "flooring": { "name": "바닥", "daily_rate_per_pyeong": 16000, "default_workers": 2 },
+      "tiling": { "name": "타일", "daily_rate": 350000, "default_workers": 2 },
+      "film": { "name": "필름", "daily_rate": 300000, "default_workers": 2 },
+      "painting": { "name": "도장", "daily_rate": 250000, "default_workers": 1 },
+      "fixture_install": { "name": "도기/악세사리 세팅", "daily_rate": 250000, "default_workers": 2 }
+    }
+  },
+
+  "processes": [
+    {
+      "id": "demolition",
+      "name": "철거",
+      "type": "B_area",
+      "options": [
+        {
+          "grade": "partial",
+          "name": "부분 철거",
+          "description": "욕실+싱크대+가구 위주",
+          "price_per_pyeong": 30000,
+          "source": "EST-033 마루철거 평당3만 + 기본철거"
+        },
+        {
+          "grade": "full",
+          "name": "올철거",
+          "description": "전체 마루+몰딩+가구+천장+욕실 철거",
+          "price_per_pyeong": 65000,
+          "source": "EST-028(48평 480만=10만/평), EST-034(33평 200만=6만/평), EST-030(27평 375만=13.9만/평 — 범위 넓음) 중앙값"
+        }
+      ],
+      "waste_disposal": {
+        "name": "폐기물 처리",
+        "options": [
+          { "grade": "basic", "name": "1~2차", "price": 500000, "source": "EST-027(50만)" },
+          { "grade": "mid", "name": "2~3차", "price": 1000000, "source": "EST-030(120만/3차), EST-034(60만/4일)" },
+          { "grade": "full", "name": "3~5차(올수리)", "price": 1600000, "source": "EST-028(160만/2차×80만), EST-035(60만/4일)" }
+        ]
+      }
+    },
+
+    {
+      "id": "wallpaper",
+      "name": "도배",
+      "type": "B_area",
+      "description": "평당 단가 × 시공면적(평). 초배+퍼티 포함 여부로 가격 차이 큼",
+      "options": [
+        {
+          "grade": "basic",
+          "name": "합지",
+          "price_per_pyeong": 30000,
+          "brand": "국산 합지",
+          "source": "EST-032A 합지 방 3만/평"
+        },
+        {
+          "grade": "mid_low",
+          "name": "실크 (개나리/로하스)",
+          "price_per_pyeong": 89000,
+          "brand": "개나리 로하스 87456",
+          "includes": "초배+기본퍼티 포함",
+          "source": "EST-033(8.9만), EST-034(베스띠 8.2만) → 개나리 기준 8.9만"
+        },
+        {
+          "grade": "mid",
+          "name": "실크 (LX 베스띠)",
+          "price_per_pyeong": 95000,
+          "brand": "LX 베스띠",
+          "includes": "인건비+부자재 포함",
+          "source": "EST-028(9.5만/평), EST-034(8.2만) → 중앙 9.5만"
+        },
+        {
+          "grade": "high",
+          "name": "디아망 (LX/L하우시스)",
+          "price_per_pyeong": 130000,
+          "brand": "LX 디아망 / L하우시스 디아망",
+          "includes": "초배+퍼티+부직포 포함",
+          "source": "EST-030(14.1만), EST-031(12.5만), EST-035(롤63,000×18롤+노무180만) → 중앙 13만"
+        }
+      ],
+      "note": "거실 실크 + 방 합지 혼합시 평당 약 7~7.5만 (EST-032A,B)"
+    },
+
+    {
+      "id": "flooring",
+      "name": "바닥",
+      "type": "B_area",
+      "description": "평당 단가 × 바닥 시공면적(평)",
+      "options": [
+        {
+          "grade": "basic",
+          "name": "장판 2.2t",
+          "price_per_pyeong": 37000,
+          "source": "EST-027(19평 70만=3.7만/평)"
+        },
+        {
+          "grade": "mid_low",
+          "name": "장판 2.7t (지아사랑에)",
+          "price_per_pyeong": 79000,
+          "brand": "지아사랑에 소프트스톤",
+          "source": "EST-033(33평 261.8만=7.9만/평)"
+        },
+        {
+          "grade": "mid",
+          "name": "장판 3.2t (KCC 화다위)",
+          "price_per_pyeong": 85000,
+          "brand": "KCC 화다위",
+          "source": "EST-034(33평 280만=8.5만/평)"
+        },
+        {
+          "grade": "mid_high",
+          "name": "강마루 (동화자연 그란데 7T)",
+          "price_per_pyeong": 108000,
+          "brand": "동화자연마루 그란데 7T",
+          "includes": "자재 92,000 + 시공 16,000",
+          "source": "EST-035 자재/노무 분리"
+        },
+        {
+          "grade": "high_low",
+          "name": "강마루 (동화 이모션)",
+          "price_per_pyeong": 130000,
+          "brand": "동화마루 이모션",
+          "source": "EST-032A"
+        },
+        {
+          "grade": "high",
+          "name": "강마루 (구정 그랜드165 / 올고다 프리미엄)",
+          "price_per_pyeong": 145000,
+          "brand": "구정마루 그랜드165 / 올고다 프리미엄",
+          "source": "EST-028(13.5만), EST-030(15.5만) → 중앙 14.5만"
+        },
+        {
+          "grade": "premium",
+          "name": "강마루 (동화 나투스진 그란데 광폭)",
+          "price_per_pyeong": 159000,
+          "brand": "동화 나투스진 그란데",
+          "source": "EST-032B(15.9만/평)"
+        }
+      ],
+      "demolition_surcharge": {
+        "name": "기존 마루 철거비",
+        "price_per_pyeong": 35000,
+        "source": "EST-032A(3.5만/평), EST-033(2.4만/평) → 상한 기준"
+      }
+    },
+
+    {
+      "id": "bathroom",
+      "name": "욕실",
+      "type": "A_item",
+      "unit": "개소",
+      "description": "아이템 적산. 등급 선택시 기본 아이템 세트 자동 구성",
+      "presets": {
+        "basic": {
+          "name": "보급형",
+          "total_per_unit": 1300000,
+          "source": "EST-027(거실욕실 257.3만이지만 타일시공비 포함, 도기만 추출시 약 130만)"
+        },
+        "mid": {
+          "name": "중급 (대림/이누스)",
+          "total_per_unit": 3000000,
+          "source": "EST-029(대림바스 실당 300만), EST-034(실당 300만)"
+        },
+        "mid_high": {
+          "name": "중상급 (아메리칸스탠다드)",
+          "total_per_unit": 4000000,
+          "source": "EST-028(실당 484만), EST-033(실당 380~400만) → 중앙 400만"
+        },
+        "high": {
+          "name": "고급 (한셈/포세린)",
+          "total_per_unit": 4500000,
+          "source": "EST-030(포세린+아메리칸 실당 450만)"
+        }
+      },
+      "items": [
+        {
+          "id": "toilet",
+          "name": "양변기",
+          "options": [
+            { "grade": "basic", "name": "무브랜드 치마형", "price": 120000, "source": "EST-027" },
+            { "grade": "mid", "name": "대림/이누스 투피스", "price": 230000, "source": "EST-032A(이누스 23만), EST-033(대림or이누스)" },
+            { "grade": "mid_high", "name": "아메리칸스탠다드 투피스", "price": 300000, "source": "EST-028" },
+            { "grade": "high", "name": "한셈 치마형 투피스", "price": 190000, "source": "EST-035" }
+          ]
+        },
+        {
+          "id": "basin",
+          "name": "세면기",
+          "options": [
+            { "grade": "basic", "name": "반다리", "price": 120000, "source": "EST-027" },
+            { "grade": "mid", "name": "대림/이누스 기본", "price": 180000, "source": "EST-033(36만/세트에서 분리)" },
+            { "grade": "mid_high", "name": "쿠세라 사각", "price": 260000, "source": "EST-028, EST-030" },
+            { "grade": "high", "name": "한셈 사각", "price": 180000, "source": "EST-035" }
+          ]
+        },
+        {
+          "id": "basin_faucet",
+          "name": "세면수전",
+          "options": [
+            { "grade": "basic", "name": "니켈 수전", "price": 30000, "source": "EST-027" },
+            { "grade": "mid", "name": "기본 무광", "price": 60000, "source": "EST-028, EST-035" },
+            { "grade": "high", "name": "수입 무광", "price": 90000, "source": "EST-035 SC-600" }
+          ]
+        },
+        {
+          "id": "shower_faucet",
+          "name": "샤워수전",
+          "options": [
+            { "grade": "basic", "name": "기본", "price": 80000, "source": "추정" },
+            { "grade": "mid", "name": "기본 무광", "price": 120000, "source": "EST-033, EST-028" },
+            { "grade": "high", "name": "수입 무광 SC-600", "price": 90000, "source": "EST-035" }
+          ]
+        },
+        {
+          "id": "accessories",
+          "name": "악세사리 세트",
+          "description": "수건걸이, 휴지걸이, 샤워기걸이 등",
+          "options": [
+            { "grade": "basic", "name": "니켈 세트", "price": 80000, "source": "EST-027" },
+            { "grade": "mid", "name": "무광 악세사리 set", "price": 200000, "source": "EST-028" },
+            { "grade": "high", "name": "SUS 무광 개별 구성", "price": 322000, "source": "EST-033, EST-035" }
+          ]
+        },
+        {
+          "id": "partition",
+          "name": "샤워 파티션",
+          "options": [
+            { "grade": "basic", "name": "유리파티션", "price": 160000, "source": "EST-027" },
+            { "grade": "mid", "name": "롱파티션", "price": 180000, "source": "EST-033" },
+            { "grade": "high", "name": "욕조+에이프런", "price": 200000, "source": "EST-035" }
+          ]
+        },
+        {
+          "id": "sliding_cabinet",
+          "name": "슬라이딩장",
+          "options": [
+            { "grade": "basic", "name": "1200×800", "price": 120000, "source": "EST-035 최저" },
+            { "grade": "mid", "name": "1200×800", "price": 140000, "source": "EST-027" },
+            { "grade": "high", "name": "1800×800 제작", "price": 160000, "source": "EST-035" }
+          ]
+        },
+        {
+          "id": "ceiling",
+          "name": "돔천장 (조명+환풍기)",
+          "options": [
+            { "grade": "basic", "name": "돔천장+조명+환풍기", "price": 260000, "source": "EST-027" },
+            { "grade": "mid", "name": "평돔+6인치2개+힘펠", "price": 300000, "source": "EST-033" },
+            { "grade": "high", "name": "SMC천장+짐벌+힘펠풀렉스", "price": 410000, "source": "EST-035(평돔13만+사이드15.9만+힘펠11만)" }
+          ]
+        },
+        {
+          "id": "zendai",
+          "name": "젠다이 (인조대리석)",
+          "options": [
+            { "grade": "basic", "name": "인조대리석", "price": 90000, "source": "EST-035" },
+            { "grade": "mid", "name": "인조대리석", "price": 144000, "source": "EST-033 거실" },
+            { "grade": "high", "name": "인조대리석 12T", "price": 168000, "source": "EST-033 안방" }
+          ]
+        },
+        {
+          "id": "tile_material",
+          "name": "타일 자재 (벽+바닥+부자재)",
+          "options": [
+            { "grade": "basic", "name": "300×600/300×300 국산", "price": 400000, "source": "EST-027 추정" },
+            { "grade": "mid", "name": "300×600/300×300 국산+부자재", "price": 690000, "source": "EST-033(688,800)" },
+            { "grade": "high", "name": "600×600 포세린", "price": 830000, "source": "EST-033 안방(828,000)" }
+          ]
+        },
+        {
+          "id": "tile_labor",
+          "name": "타일 시공 인건비",
+          "price": 350000,
+          "unit": "일",
+          "days_per_bathroom": 1.5,
+          "source": "EST-027(35만/일), EST-035(35만/일)"
+        },
+        {
+          "id": "fixture_install",
+          "name": "도기/악세사리 설치 인건비",
+          "price": 276000,
+          "unit": "실",
+          "source": "EST-033(27.6만/실)"
+        },
+        {
+          "id": "grout",
+          "name": "줄눈",
+          "price": 300000,
+          "unit": "실",
+          "source": "EST-033(30만/실)"
+        }
+      ]
+    },
+
+    {
+      "id": "kitchen",
+      "name": "주방 (싱크대)",
+      "type": "A_item",
+      "presets": {
+        "basic": { "name": "보급형 일자", "total": 1900000, "source": "EST-034" },
+        "mid": { "name": "중급 ㄱ자 (PET EO)", "total": 3500000, "source": "EST-028, EST-033" },
+        "high": { "name": "중상급 (한솔 PET 18T EO)", "total": 4500000, "source": "EST-030, EST-035" }
+      },
+      "items": [
+        {
+          "id": "sink_cabinet",
+          "name": "싱크대 상하부장",
+          "options": [
+            { "grade": "basic", "name": "무브랜드/사제", "price_per_m": 230000, "source": "EST-027(23만/자)" },
+            { "grade": "mid", "name": "PET EO도어 (예림/LX)", "price_per_m": 400000, "source": "EST-033(ㄱ자 348만/약8.7m=40만/m 추정)" },
+            { "grade": "high", "name": "한솔 PET 18T EO", "price_per_m": 650000, "source": "EST-035(65만/m)" }
+          ]
+        },
+        {
+          "id": "countertop",
+          "name": "상판 (인조대리석)",
+          "options": [
+            { "grade": "basic", "name": "기본 인조대리석", "price_per_m": 150000, "source": "추정" },
+            { "grade": "mid", "name": "LX 오로라", "price_per_m": 210000, "source": "EST-028(21만/M)" },
+            { "grade": "high", "name": "LX 오로라 비스크 12T", "price_per_m": 240000, "source": "EST-035(24만/M)" }
+          ]
+        },
+        {
+          "id": "sink_bowl",
+          "name": "싱크볼",
+          "options": [
+            { "grade": "basic", "name": "기본형", "price": 170000, "source": "EST-027" },
+            { "grade": "mid", "name": "백조 사각볼", "price": 350000, "source": "EST-034 추가공사" },
+            { "grade": "high", "name": "깜빠르테 860", "price": 400000, "source": "EST-035" }
+          ]
+        },
+        {
+          "id": "faucet",
+          "name": "싱크수전",
+          "options": [
+            { "grade": "basic", "name": "폭포수/거위목", "price": 60000, "source": "EST-027" },
+            { "grade": "mid", "name": "기본 무광 거위목", "price": 100000, "source": "추정" },
+            { "grade": "high", "name": "에떼르노 6001", "price": 140000, "source": "EST-035" }
+          ]
+        },
+        {
+          "id": "hood",
+          "name": "후드",
+          "options": [
+            { "grade": "basic", "name": "기본 후드", "price": 60000, "source": "EST-027" },
+            { "grade": "mid", "name": "하츠 하이드", "price": 130000, "source": "EST-035" },
+            { "grade": "high", "name": "하츠 스퀘어", "price": 600000, "source": "EST-028" }
+          ]
+        },
+        {
+          "id": "cooktop",
+          "name": "쿡탑",
+          "options": [
+            { "grade": "basic", "name": "3구 쿡탑", "price": 170000, "source": "EST-027" }
+          ],
+          "note": "인덕션은 소비자 직접 구매가 일반적, 전기 단독배선 별도"
+        },
+        {
+          "id": "install_labor",
+          "name": "싱크대 시공비",
+          "price": 250000,
+          "source": "EST-027"
+        }
+      ],
+      "sub_items": [
+        {
+          "id": "fridge_cabinet",
+          "name": "냉장고장",
+          "options": [
+            { "grade": "basic", "name": "보급형", "price": 750000, "source": "EST-034(키큰장+냉장고장 75만)" },
+            { "grade": "mid", "name": "3도어 595MM", "price_per_ja": 130000, "source": "EST-035(6자 78만)" },
+            { "grade": "high", "name": "냉장고장+키큰장", "price": 1680000, "source": "EST-029" }
+          ]
+        },
+        {
+          "id": "tall_cabinet",
+          "name": "키큰장",
+          "options": [
+            { "grade": "basic", "name": "보급형", "price": 750000, "source": "EST-034" },
+            { "grade": "mid", "name": "중급", "price": 1450000, "source": "EST-032A" }
+          ]
+        },
+        {
+          "id": "island",
+          "name": "아일랜드",
+          "options": [
+            { "grade": "basic", "name": "소형 D700×W1500", "price": 750000, "source": "EST-034" },
+            { "grade": "mid", "name": "중형 (예림 무광PET EO)", "price": 1500000, "source": "EST-030" },
+            { "grade": "high", "name": "대형", "price": 2900000, "source": "EST-028" }
+          ]
+        },
+        {
+          "id": "homebar",
+          "name": "홈바장",
+          "options": [
+            { "grade": "mid", "name": "기본형", "price": 2000000, "source": "EST-031" },
+            { "grade": "high", "name": "로봇청소기 수납 포함", "price": 2800000, "source": "EST-028" }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "window",
+      "name": "창호 (샷시)",
+      "type": "B_area",
+      "description": "평당 단가 × 평수. 브랜드별 차이 큼",
+      "options": [
+        {
+          "grade": "mid",
+          "name": "KCC (24~26T 로이)",
+          "price_per_pyeong": 340000,
+          "source": "EST-027(19평 575만=30만/평), EST-029(32평 1186만=37만/평), EST-034(33평 1000만=30만/평) → 중앙 34만"
+        },
+        {
+          "grade": "high",
+          "name": "LX 뷰프레임 베스트5 (24MM 로이)",
+          "price_per_pyeong": 350000,
+          "source": "EST-030(27평 950만=35만/평)"
+        },
+        {
+          "grade": "premium",
+          "name": "KCC 이맥스클립 (26T 글라스유리)",
+          "price_per_pyeong": 300000,
+          "source": "EST-034(33평 1000만=30만/평, 터닝도어 포함)"
+        }
+      ],
+      "extras": [
+        { "name": "터닝도어", "price": 700000, "source": "EST-029, EST-030 → 70만 확정" },
+        { "name": "창호 철거비", "price": 350000, "source": "EST-027" },
+        { "name": "사다리차", "price": 200000, "source": "EST-027" },
+        { "name": "방범창", "price": 250000, "source": "EST-027" }
+      ]
+    },
+
+    {
+      "id": "door",
+      "name": "방문 교체",
+      "type": "A_item",
+      "unit": "조 (문짝+문틀+하드웨어)",
+      "options": [
+        { "grade": "basic", "name": "리움/보급형", "price": 250000, "source": "EST-027(리움 25만), EST-034(인지예림 25만)" },
+        { "grade": "mid", "name": "ABS문+9MM문선+도무스+이지경첩", "price": 500000, "source": "EST-028, EST-030" },
+        { "grade": "high", "name": "예림 문짝+9MM합판문틀 제작", "price": 370000, "source": "EST-035(문짝14.5만+문틀17만+경첩핸들5.5만)" }
+      ],
+      "labor_included": true,
+      "source_note": "시공비 포함 단가. EST-028(60만/조)~EST-029(45만/조)~EST-027(25만/조) 범위"
+    },
+
+    {
+      "id": "entrance_door",
+      "name": "중문",
+      "type": "A_item",
+      "unit": "1식",
+      "options": [
+        { "grade": "basic", "name": "초슬림 3연동", "price": 800000, "source": "EST-034" },
+        { "grade": "mid", "name": "원슬라이딩 (현진/관)", "price": 1150000, "source": "EST-030(현진 115만), EST-029(120만)" },
+        { "grade": "high", "name": "철슬라이드 (이노젠즈/레브릭유리)", "price": 1500000, "source": "EST-028, EST-026" },
+        { "grade": "premium", "name": "원슬라이딩 (우드프레임+패브릭유리)", "price": 1400000, "source": "EST-031" }
+      ]
+    },
+
+    {
+      "id": "molding",
+      "name": "몰딩·걸레받이",
+      "type": "B_area",
+      "description": "m당 또는 평당 단가 적용",
+      "options": [
+        {
+          "grade": "basic",
+          "name": "3전 몰딩 + 4전 걸레받이",
+          "price_per_pyeong": 20000,
+          "source": "EST-027(33평 66.3만=2만/평), EST-033(33평 98.4만=3만/평) → 보급 2만"
+        },
+        {
+          "grade": "mid",
+          "name": "마이너스몰딩 25mm + 걸레받이 30~45mm (예림)",
+          "price_per_pyeong": 33000,
+          "source": "EST-028(48평 200만=4.2만), EST-029(32평 120만=3.8만), EST-035(33평 98.4만=3만) → 중앙 3.3만"
+        },
+        {
+          "grade": "high",
+          "name": "슬림형 몰딩 + 30mm 걸레받이",
+          "price_per_pyeong": 42000,
+          "source": "EST-028(48평 200만=4.2만/평)"
+        }
+      ]
+    },
+
+    {
+      "id": "electrical",
+      "name": "전기공사",
+      "type": "A_item",
+      "description": "범위에 따라 편차 극히 큼 (60만~350만)",
+      "presets": {
+        "basic": {
+          "name": "콘센트+스위치 교체만",
+          "total": 600000,
+          "source": "EST-034(60만 — 콘센트+스위치+감지기+인덕션만)"
+        },
+        "mid": {
+          "name": "콘센트+스위치+조명+배선 일부",
+          "total": 2350000,
+          "source": "EST-033(235.2만)"
+        },
+        "high": {
+          "name": "전체 배선+분전함+조명+인덕션+도어락+인터폰",
+          "total": 3500000,
+          "source": "EST-028(290만), EST-030(350만)"
+        }
+      },
+      "items": [
+        {
+          "id": "switch_outlet",
+          "name": "스위치·콘센트 교체",
+          "options": [
+            { "grade": "basic", "name": "진흥&나노", "price": 150000, "source": "EST-027" },
+            { "grade": "mid", "name": "베코보노", "price": 430000, "source": "EST-035" },
+            { "grade": "high", "name": "르그랑 아뻬라하이드", "price": 500000, "source": "EST-028, EST-030" }
+          ]
+        },
+        {
+          "id": "induction_line",
+          "name": "인덕션 단독배선",
+          "price": 300000,
+          "source": "EST-035"
+        },
+        {
+          "id": "downlight",
+          "name": "다운라이트 2인치",
+          "price": 6500,
+          "unit": "EA",
+          "source": "EST-035"
+        },
+        {
+          "id": "indirect_light",
+          "name": "간접조명 T5",
+          "price": 13000,
+          "unit": "M",
+          "source": "EST-035"
+        }
+      ]
+    },
+
+    {
+      "id": "lighting",
+      "name": "조명",
+      "type": "A_item",
+      "description": "전기공사에 포함되는 경우가 많음. 별도 항목일 때만",
+      "presets": {
+        "basic": {
+          "name": "기본 LED (방등+주방등+현관센서)",
+          "total": 552000,
+          "source": "EST-027"
+        },
+        "mid": {
+          "name": "매입다운라이트+직부+센서",
+          "total": 1000000,
+          "source": "EST-034"
+        },
+        "full_downlight": {
+          "name": "전체 다운라이트 시공",
+          "total": 1740000,
+          "source": "EST-027 비교견적"
+        }
+      },
+      "items": [
+        { "id": "room_light", "name": "방등 (슬림 사각등)", "price": 30000, "source": "EST-027" },
+        { "id": "sensor_light", "name": "현관 센서등", "price": 12000, "source": "EST-027" },
+        { "id": "kitchen_light", "name": "주방 일자등", "price": 30000, "source": "EST-027" },
+        { "id": "ceiling_fan", "name": "실링팬 (에어블로우 C1 52인치)", "price": 290000, "source": "EST-035" },
+        { "id": "ceiling_fan_install", "name": "실링팬 설치 (보강)", "price": 150000, "source": "EST-030, EST-032A,B" }
+      ]
+    },
+
+    {
+      "id": "film",
+      "name": "필름",
+      "type": "B_area",
+      "description": "M당 자재비 + 기공 일당. 범위에 따라 편차 큼",
+      "material_price_per_m": 13000,
+      "material_brand": "예림 발렌불랑",
+      "labor_daily_rate": 300000,
+      "source": "EST-035(자재 13,000/M, 노무 30만/일×8일)",
+      "presets": {
+        "basic": {
+          "name": "방문틀+신발장+욕실문틀",
+          "total": 580000,
+          "source": "EST-032A"
+        },
+        "mid": {
+          "name": "방문+틀+화장대+싱크대서라운드+현관",
+          "total": 1700000,
+          "source": "EST-029, EST-034"
+        },
+        "high": {
+          "name": "전체 창호+서라운드+아트월+붙박이 (현대L&C/삼성MG)",
+          "total": 3240000,
+          "source": "EST-031(320만), EST-033(324만)"
+        }
+      }
+    },
+
+    {
+      "id": "painting",
+      "name": "도장 (탄성코트)",
+      "type": "A_item",
+      "confirmed_market_price": true,
+      "options": [
+        {
+          "grade": "basic",
+          "name": "세라믹 탄성코트 1~2개소",
+          "price": 700000,
+          "source": "EST-027, 028, 029, 034 전부 70~75만 → 확정"
+        },
+        {
+          "grade": "mid",
+          "name": "바이오세라믹 2개소",
+          "price": 900000,
+          "source": "EST-030(2개소 90만)"
+        },
+        {
+          "grade": "full",
+          "name": "세라믹코트 5~6개소",
+          "price": 1050000,
+          "source": "EST-032B(5개소 105만), EST-033(6개소 84만) → 중앙 105만"
+        }
+      ],
+      "per_unit_range": "개소당 14~23만",
+      "source_note": "8건 교차검증 완료. 시장가 확정 항목"
+    },
+
+    {
+      "id": "tile",
+      "name": "타일 (현관·주방·베란다)",
+      "type": "A_item",
+      "description": "욕실 타일은 욕실 공정에 포함. 여기는 그 외 타일",
+      "items": [
+        {
+          "id": "entrance_tile",
+          "name": "현관타일 (600×600 또는 1200×600)",
+          "options": [
+            { "grade": "basic", "name": "600×600 덧방", "price": 160000, "source": "EST-027" },
+            { "grade": "mid", "name": "600×600 포세린 덧방", "price": 250000, "source": "EST-033" },
+            { "grade": "high", "name": "1200×600 포세린 3BOX", "price": 500000, "source": "EST-032B, EST-035" }
+          ]
+        },
+        {
+          "id": "kitchen_tile",
+          "name": "주방 벽타일 (300×600)",
+          "options": [
+            { "grade": "basic", "name": "300×600 덧방", "price": 272000, "source": "EST-027" },
+            { "grade": "mid", "name": "300×600 덧방", "price": 400000, "source": "EST-032B" },
+            { "grade": "high", "name": "800×800 또는 600×1200", "price": 500000, "source": "EST-035" }
+          ]
+        },
+        {
+          "id": "veranda_tile",
+          "name": "베란다 타일 (300×300)",
+          "options": [
+            { "grade": "basic", "name": "300×300 1개소", "price": 562000, "source": "EST-027" },
+            { "grade": "mid", "name": "300×300 앞뒤 베란다", "price": 1800000, "source": "EST-029" }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "furniture",
+      "name": "가구 (붙박이장·신발장)",
+      "type": "A_item",
+      "items": [
+        {
+          "id": "builtin_closet",
+          "name": "붙박이장",
+          "unit": "자(약 0.3m)",
+          "options": [
+            { "grade": "basic", "name": "무광PET 슬라이딩", "price_per_ja": 130000, "source": "EST-035(한솔 하이그로시 13만/자)" },
+            { "grade": "mid", "name": "무광PET 여닫이/슬라이딩", "price_per_ja": 150000, "source": "EST-030(15만/자)" },
+            { "grade": "high", "name": "한솔 하이그로시 여닫이 EO", "price_per_ja": 180000, "source": "EST-029(슬라이딩 18만/자)" }
+          ]
+        },
+        {
+          "id": "shoe_cabinet",
+          "name": "신발장",
+          "options": [
+            { "grade": "basic", "name": "보급형", "price": 750000, "source": "EST-027" },
+            { "grade": "mid", "name": "화이트PET 하부띄움", "price": 800000, "source": "EST-030" },
+            { "grade": "high", "name": "한솔 PET 18T EO 7자", "price": 910000, "source": "EST-035" }
+          ]
+        },
+        {
+          "id": "veranda_storage",
+          "name": "베란다 창고장",
+          "price": 480000,
+          "unit": "개소",
+          "source": "EST-033(2개소 96만)"
+        }
+      ]
+    },
+
+    {
+      "id": "aircon",
+      "name": "시스템 에어컨",
+      "type": "A_item",
+      "unit": "대",
+      "options": [
+        { "grade": "mid", "name": "삼성 기본형", "price": 1375000, "source": "EST-029(4대 550만=137.5만/대)" },
+        { "grade": "high", "name": "LG 기본형", "price": 1600000, "source": "EST-028(4대 640만=160만/대)" }
+      ],
+      "extras": [
+        { "name": "에어컨 단내림 목공", "price_per_unit": 350000, "source": "EST-028(35만/실)" },
+        { "name": "에어컨 전기작업", "price": 500000, "source": "EST-029 에어컨 목작업 분리" }
+      ],
+      "note": "시스템에어컨은 별도 발주시 300~500만 절약 가능하나 책임분리 리스크"
+    },
+
+    {
+      "id": "expansion",
+      "name": "확장공사",
+      "type": "A_item",
+      "unit": "개소",
+      "options": [
+        { "grade": "room", "name": "방 확장 (난방+미장+단열)", "price": 1000000, "source": "EST-028(100만/실)" },
+        { "grade": "living", "name": "거실 확장 (터닝도어 포함)", "price": 2000000, "source": "EST-028" },
+        { "grade": "kitchen", "name": "주방 확장", "price": 2500000, "source": "EST-028" }
+      ],
+      "extras": [
+        { "name": "외벽 e보드 단열", "price": 300000, "source": "EST-028" },
+        { "name": "확장 행위허가 + 동의서", "price": 600000, "source": "EST-028" }
+      ]
+    },
+
+    {
+      "id": "plumbing",
+      "name": "설비공사",
+      "type": "A_item",
+      "items": [
+        { "id": "distributor", "name": "분배기+가지관 교체", "price": 4300000, "source": "EST-028" },
+        { "id": "bathroom_base", "name": "욕실 기초설비 (배관+방수+조적)", "price": 300000, "unit": "실", "source": "EST-028" },
+        { "id": "masonry", "name": "조적 (젠다이)", "price": 300000, "unit": "개소", "source": "EST-034(2개소 60만)" }
+      ]
+    },
+
+    {
+      "id": "misc",
+      "name": "부대비용",
+      "type": "A_item",
+      "items": [
+        { "id": "agreement", "name": "입주민 동의서 대행", "price": 150000, "source": "EST-028(12만~30만), EST-034(15만) → 15만 기준" },
+        { "id": "elevator_protect", "name": "엘리베이터 보양", "price": 150000, "source": "EST-028, EST-030, EST-035" },
+        { "id": "elevator_fee", "name": "엘리베이터 사용료", "price": 150000, "source": "관리소 결정, EST-035" },
+        { "id": "material_transport", "name": "자재 양중", "price": 250000, "source": "EST-027" },
+        { "id": "meal", "name": "식대", "price": 200000, "source": "EST-027(20만), EST-025(1.5만/일)" },
+        { "id": "cleaning", "name": "입주청소", "price_per_pyeong": 15000, "source": "EST-028, EST-030 → 1.5만/평 확정" },
+        { "id": "handy", "name": "핸디작업", "price": 300000, "source": "EST-034" },
+        { "id": "silicone", "name": "창호 실리콘 마감", "price": 350000, "source": "EST-035" }
+      ]
+    },
+
+    {
+      "id": "art_wall",
+      "name": "아트월·TV가벽",
+      "type": "A_item",
+      "options": [
+        { "grade": "basic", "name": "TV가벽 (브라켓매립)", "price": 700000, "source": "EST-028" },
+        { "grade": "mid", "name": "TV반매립+하부띄움+선반장", "price": 270000, "source": "EST-035" },
+        { "grade": "high", "name": "현관벽면+아트월TV반매립 MDF", "price": 2000000, "source": "EST-030" }
+      ]
+    },
+
+    {
+      "id": "ceiling_work",
+      "name": "천장 공사",
+      "type": "A_item",
+      "options": [
+        { "grade": "basic", "name": "등박스 철거후 평탄화", "price": 600000, "source": "EST-030, EST-031 → 60만 확정" },
+        { "grade": "mid", "name": "거실+주방 전체 천장", "price": 2500000, "source": "EST-028" },
+        { "grade": "high", "name": "우물천장+커튼라인+라인조명", "price": 220000, "source": "EST-035" }
+      ]
+    }
+  ],
+
+  "hidden_costs": {
+    "description": "소비자가 모르는 숨은 비용 TOP 5 — 결과 화면에서 경고로 표시",
+    "items": [
+      { "name": "에어컨 추가비", "amount": 1400000, "detail": "보양+전기+앵글+도배 별도" },
+      { "name": "샷시 부가시공비", "amount": 1300000, "detail": "실측+양중+철거+통바 별도" },
+      { "name": "도배 퍼티+초배", "detail": "구축은 인건비가 자재의 3~4배" },
+      { "name": "턴키 이윤 5~10%", "detail": "같은 공사도 업체마다 마진이 다름" },
+      { "name": "폐기물 처리비", "amount": 1600000, "detail": "4~5회 × 40만원" }
+    ]
+  },
+
+  "tips": [
+    "방산시장 직접 구매 시 마루 기준 30~50만원 절약 가능",
+    "개별 시공 vs 턴키 = 견적 대비 30~50% 차이 가능",
+    "구축 올리모델링은 공사 중 추가비용 약 10~15% 발생 예상",
+    "에어컨·샷시·욕실은 별도 발주시 300~500만원 절약 가능하나 하자 책임 분리 리스크"
+  ]
+}

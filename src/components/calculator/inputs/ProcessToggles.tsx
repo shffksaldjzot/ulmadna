@@ -1,29 +1,37 @@
 'use client';
 
 import { useState } from 'react';
-import type { ProcessState, CalculatorOutput, Grade } from '@/types/calculator';
-import { ALL_PROCESSES } from '@/lib/calculator';
+import type { ProcessUserState, CalculatorOutput, Grade } from '@/types/calculator';
+import { db } from '@/lib/calculator';
 import { formatWonExact } from '@/lib/format';
-import FieldRenderer from './FieldRenderer';
 
 /**
- * v2 공정별 3단 Progressive Disclosure
+ * v3 공정별 Progressive Disclosure
  * - 공정 ON/OFF 토글 + 소계 표시
- * - Level 2: 핵심 옵션 2~4개 (탭하면 펼침)
- * - Level 3: "상세설정" 버튼 → 브랜드/모델/세부옵션
+ * - 펼침 시: 등급 선택 칩 + 개소수 조절
  */
 
 interface ProcessTogglesProps {
-  processes: ProcessState[];
+  processes: ProcessUserState[];
   output?: CalculatorOutput;
   grade: Grade;
   onToggle: (id: string) => void;
-  onFieldChange: (processId: string, fieldId: string, value: string | number | boolean) => void;
+  onGradeChange: (processId: string, grade: string) => void;
+  onCountChange: (processId: string, count: number) => void;
 }
 
-export default function ProcessToggles({ processes, output, grade, onToggle, onFieldChange }: ProcessTogglesProps) {
+// DB 등급을 한글 레이블로
+function gradeLabel(grade: string): string {
+  const labels: Record<string, string> = {
+    basic: '보급', partial: '부분', mid_low: '중저', mid: '중급',
+    mid_high: '중상', high: '고급', high_low: '중고급',
+    premium: '프리미엄', full: '전체', room: '방', living: '거실', kitchen: '주방',
+  };
+  return labels[grade] || grade;
+}
+
+export default function ProcessToggles({ processes, output, grade, onToggle, onGradeChange, onCountChange }: ProcessTogglesProps) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const [showDetailId, setShowDetailId] = useState<string | null>(null);
 
   const toggleExpand = (id: string) => {
     setExpandedIds(prev => {
@@ -35,22 +43,28 @@ export default function ProcessToggles({ processes, output, grade, onToggle, onF
 
   return (
     <div className="space-y-3">
-      {ALL_PROCESSES.map(pd => {
-        const ps = processes.find(p => p.id === pd.id);
+      {db.processes.map(dbProcess => {
+        const ps = processes.find(p => p.id === dbProcess.id);
         if (!ps) return null;
 
         const isEnabled = ps.enabled;
-        const isExpanded = expandedIds.has(pd.id);
-        const showDetail = showDetailId === pd.id;
-        const processResult = output?.processes.find(p => p.id === pd.id);
+        const isExpanded = expandedIds.has(dbProcess.id);
+        const processResult = output?.processes.find(p => p.id === dbProcess.id);
         const amount = processResult?.amount || 0;
 
-        const level2Fields = pd.fields.filter(f => f.level === 2);
-        const level3Fields = pd.fields.filter(f => f.level === 3);
+        // 사용 가능한 등급 옵션들
+        const availableGrades = dbProcess.presets
+          ? Object.keys(dbProcess.presets)
+          : dbProcess.options
+            ? [...new Set(dbProcess.options.map(o => o.grade))]
+            : [];
+
+        const isCountable = dbProcess.type === 'A_item' && dbProcess.unit;
+        const unitLabel = dbProcess.unit || '개';
 
         return (
           <div
-            key={pd.id}
+            key={dbProcess.id}
             className={`rounded-xl border transition-all ${
               isEnabled
                 ? 'border-brown/15 bg-white shadow-sm'
@@ -60,14 +74,19 @@ export default function ProcessToggles({ processes, output, grade, onToggle, onF
             {/* 공정 헤더 */}
             <div className="flex items-center justify-between px-4 py-3">
               <button
-                onClick={() => isEnabled && toggleExpand(pd.id)}
+                onClick={() => isEnabled && toggleExpand(dbProcess.id)}
                 className="flex items-center gap-2 flex-1 text-left"
               >
                 <span className={`w-2 h-2 rounded-full ${isEnabled ? 'bg-brown' : 'bg-gray-300'}`} />
                 <span className={`text-sm font-semibold ${isEnabled ? 'text-brown' : 'text-gray-400'}`}>
-                  {pd.name}
+                  {dbProcess.name}
                 </span>
-                {isEnabled && level2Fields.length > 0 && (
+                {isEnabled && isCountable && (
+                  <span className="text-[11px] text-gold font-medium">
+                    x{ps.count}{unitLabel}
+                  </span>
+                )}
+                {isEnabled && availableGrades.length > 0 && (
                   <span className="text-[10px] text-gray-300">{isExpanded ? '▲' : '▼'}</span>
                 )}
               </button>
@@ -77,10 +96,9 @@ export default function ProcessToggles({ processes, output, grade, onToggle, onF
                 )}
                 <button
                   onClick={() => {
-                    onToggle(pd.id);
-                    // A3: 활성화 시 자동 펼침
+                    onToggle(dbProcess.id);
                     if (!isEnabled) {
-                      setExpandedIds(prev => new Set(prev).add(pd.id));
+                      setExpandedIds(prev => new Set(prev).add(dbProcess.id));
                     }
                   }}
                   className={`w-9 h-5 rounded-full transition-colors ${isEnabled ? 'bg-brown' : 'bg-gray-300'}`}
@@ -92,61 +110,67 @@ export default function ProcessToggles({ processes, output, grade, onToggle, onF
               </div>
             </div>
 
-            {/* 2단계: 핵심 옵션 (공정 펼침 시) */}
-            {isEnabled && isExpanded && level2Fields.length > 0 && (
-              <div className="px-4 pb-3 border-t border-gray-50 pt-3">
-                {level2Fields.map(field => (
-                  <FieldRenderer
-                    key={field.id}
-                    field={field}
-                    value={ps.fields[field.id]}
-                    grade={grade}
-                    onChange={(fieldId, value) => onFieldChange(pd.id, fieldId, value)}
-                  />
-                ))}
+            {/* 펼침: 등급 선택 + 개소수 */}
+            {isEnabled && isExpanded && (
+              <div className="px-4 pb-3 border-t border-gray-50 pt-3 space-y-3">
+                {/* 등급 선택 칩 */}
+                {availableGrades.length > 1 && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1.5">등급 선택</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {availableGrades.map(g => {
+                        const preset = dbProcess.presets?.[g];
+                        const option = dbProcess.options?.find(o => o.grade === g);
+                        const label = preset?.name || option?.name || gradeLabel(g);
 
-                {/* 3단계: 상세설정 버튼 */}
-                {level3Fields.length > 0 && (
-                  <div className="mt-3">
-                    <button
-                      onClick={() => setShowDetailId(showDetail ? null : pd.id)}
-                      className={`w-full py-2 px-3 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1 ${
-                        showDetail
-                          ? 'bg-gold/10 text-gold border border-gold/30'
-                          : 'bg-cream text-brown/60 border border-brown/10 hover:border-gold/30 hover:text-gold'
-                      }`}
-                    >
-                      {showDetail ? '상세설정 접기 ▲' : `상세설정 열기 ▼ (브랜드·모델 ${level3Fields.length}개 항목)`}
-                    </button>
-
-                    {showDetail && (
-                      <div className="mt-2 pl-2 border-l-2 border-gold/20 space-y-0.5">
-                        {level3Fields.map(field => (
-                          <FieldRenderer
-                            key={field.id}
-                            field={field}
-                            value={ps.fields[field.id]}
-                            grade={grade}
-                            onChange={(fieldId, value) => onFieldChange(pd.id, fieldId, value)}
-                          />
-                        ))}
-                      </div>
-                    )}
+                        return (
+                          <button
+                            key={g}
+                            onClick={() => onGradeChange(dbProcess.id, g)}
+                            className={`px-3 py-1.5 text-xs rounded-full border transition-all ${
+                              ps.selectedGrade === g
+                                ? 'bg-brown text-white border-brown'
+                                : 'bg-cream text-gray-600 border-gray-200 hover:border-gold'
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
-              </div>
-            )}
 
-            {/* 경고 표시 */}
-            {isEnabled && pd.fields.some(f => f.warning) && (
-              <div className="px-4 pb-2">
-                {pd.fields
-                  .filter(f => f.warning && ps.fields[f.id]?.value === 0)
-                  .map(f => (
-                    <p key={f.id} className="text-[11px] text-danger bg-danger/5 rounded px-2 py-1">
-                      ⚠️ {f.warning}
-                    </p>
-                  ))}
+                {/* 개소수 조절 (A타입) */}
+                {isCountable && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-500">{unitLabel} 수</span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => ps.count > 0 && onCountChange(dbProcess.id, ps.count - 1)}
+                        className="w-7 h-7 rounded-full border border-gray-200 text-gray-400 text-sm flex items-center justify-center hover:border-gold"
+                      >
+                        -
+                      </button>
+                      <span className="w-8 text-center text-sm font-medium text-brown">
+                        {ps.count}
+                      </span>
+                      <button
+                        onClick={() => onCountChange(dbProcess.id, ps.count + 1)}
+                        className="w-7 h-7 rounded-full border border-gray-200 text-gray-400 text-sm flex items-center justify-center hover:border-gold"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 선택된 옵션 정보 */}
+                {processResult?.selectedOption && (
+                  <p className="text-[11px] text-gray-400">
+                    {processResult.selectedOption}
+                  </p>
+                )}
               </div>
             )}
           </div>

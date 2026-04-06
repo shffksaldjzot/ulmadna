@@ -7,11 +7,8 @@
 import type { CalculatorInput, CalculatorOutput } from '@/types/calculator';
 import { formatWonExact, formatPerPyeong, formatWon, formatPercent } from './format';
 
-const REGION_LABELS: Record<string, string> = {
-  seoul: '서울', gyeonggi: '경기·인천', metro: '지방광역시', others: '기타 지방',
-};
 const HOUSING_LABELS: Record<string, string> = {
-  new: '신축 입주', old10: '구축 10년 미만', old20: '구축 20년 이상',
+  new: '신축 입주', old20: '구축 리모델링',
 };
 const GRADE_LABELS: Record<string, string> = {
   basic: '기본(가성비)', mid: '중급(대중적)', premium: '고급(프리미엄)',
@@ -36,7 +33,7 @@ export async function generatePdf(input: CalculatorInput, output: CalculatorOutp
   doc.setFontSize(10);
   doc.setTextColor(100, 100, 100);
   doc.text(
-    `${input.basic.area}평 | ${HOUSING_LABELS[input.basic.housingType]} | ${REGION_LABELS[input.basic.region]} | ${GRADE_LABELS[input.basic.grade]}`,
+    `${input.basic.area}평 | ${HOUSING_LABELS[input.basic.housingType]} | ${GRADE_LABELS[input.basic.grade]}`,
     margin, y
   );
   y += 10;

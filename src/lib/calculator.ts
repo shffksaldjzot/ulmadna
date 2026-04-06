@@ -1,179 +1,229 @@
 /**
- * v2 계산 엔진 — 옵션별 price 합산 × 수량 × 계수
- * Design Ref: v2 §4 — 코드와 데이터 완전 분리
+ * 얼마드나 v3 계산 엔진 — ulmadna_db.json 기반 하이브리드 적산
  *
- * 공정별 금액 = Σ(선택 옵션 price) × 수량 × 지역계수 × 유형계수
- * 총 소계 = Σ(ON 공정)
- * 예비비 = 소계 × 예비비율(5~15%)
- * 총 예산 = 소계 + 예비비
+ * A타입 (개수 적산): 아이템별 단가 합산 × 개소수
+ * B타입 (면적 품셈): 평당 단가 × 평수
+ *
+ * 총액 = Σ(각 공정) × 거주환경계수 + 이윤 + 예비비
  */
 
 import type {
   CalculatorInput,
   CalculatorOutput,
   ProcessResult,
-  ProcessState,
-  ProcessData,
-  ProcessField,
-  FieldValue,
-  HiddenCost,
-  Grade,
+  ProcessUserState,
   BasicCondition,
+  Grade,
+  HiddenCost,
+  SavingTip,
+  DBProcess,
+  DBOption,
+  UlmadnaDB,
+  GRADE_MAP,
 } from '@/types/calculator';
 import { evaluateRationality } from './rationality';
-import coefficientsRaw from '@/data/coefficients.json';
-import categoriesRaw from '@/data/categories.json';
-import gradesRaw from '@/data/grades.json';
+import dbRaw from '@/data/ulmadna_db.json';
 
-// 24개 공정 JSON 동적 로드
-import demolition from '@/data/items/demolition.json';
-import plumbing from '@/data/items/plumbing.json';
-import waterproof from '@/data/items/waterproof.json';
-import windowData from '@/data/items/window.json';
-import woodwork from '@/data/items/woodwork.json';
-import electrical from '@/data/items/electrical.json';
-import intercom from '@/data/items/intercom.json';
-import lighting from '@/data/items/lighting.json';
-import wallpaper from '@/data/items/wallpaper.json';
-import flooring from '@/data/items/flooring.json';
-import tile from '@/data/items/tile.json';
-import bathroom from '@/data/items/bathroom.json';
-import kitchen from '@/data/items/kitchen.json';
-import furniture from '@/data/items/furniture.json';
-import film from '@/data/items/film.json';
-import paint from '@/data/items/paint.json';
-import aircon from '@/data/items/aircon.json';
-import middoor from '@/data/items/middoor.json';
-import frontdoor from '@/data/items/frontdoor.json';
-import boiler from '@/data/items/boiler.json';
-import expansion from '@/data/items/expansion.json';
-import overhead from '@/data/items/overhead.json';
-import curtain from '@/data/items/curtain.json';
-import cleaning from '@/data/items/cleaning.json';
+const db = dbRaw as unknown as UlmadnaDB;
 
-const ALL_PROCESSES: ProcessData[] = [
-  demolition, plumbing, waterproof, windowData, woodwork, electrical,
-  intercom, lighting, wallpaper, flooring, tile, bathroom,
-  kitchen, furniture, film, paint, aircon, middoor,
-  frontdoor, boiler, expansion, overhead, curtain, cleaning,
-] as ProcessData[];
-
-const processMap = new Map<string, ProcessData>();
-ALL_PROCESSES.forEach(p => processMap.set(p.id, p));
-
-const coefficients = coefficientsRaw as {
-  region: Record<string, number>;
-  housingType: Record<string, number>;
-  ceilingHeight: Record<string, number>;
+// ─── 등급 매핑: UI 3등급 → DB 세분화 등급 ───
+const GRADE_MAPPING: Record<Grade, string[]> = {
+  basic: ['basic', 'partial'],
+  mid: ['mid', 'mid_low', 'mid_high', 'full'],
+  premium: ['high', 'high_low', 'premium'],
 };
 
-const grades = gradesRaw as Record<string, { contingencyRate: number }>;
+// DB 등급에서 가장 가까운 옵션 찾기
+function findBestOption(options: DBOption[], uiGrade: Grade): DBOption | null {
+  if (!options || options.length === 0) return null;
 
-// ─── 필드 금액 계산 ───
-function calculateFieldAmount(
-  field: ProcessField,
-  fieldValue: FieldValue | undefined,
-  area: number
-): number {
-  if (!fieldValue) return 0;
-  const val = fieldValue.value;
+  const targetGrades = GRADE_MAPPING[uiGrade];
 
-  switch (field.input) {
-    case 'radio': {
-      if (!field.options) return 0;
-      const selected = field.options.find(o => o.id === val);
-      if (!selected) return 0;
-      const price = selected.price;
-      if (field.multiplier) return price * area;
-      return price;
-    }
-    case 'toggle': {
-      if (val !== true) return 0;
-      const price = field.price || 0;
-      if (field.multiplier) return price * area;
-      return price;
-    }
-    case 'stepper': {
-      const count = typeof val === 'number' ? val : 0;
-      const price = field.price || 0;
-      return price * count;
-    }
-    case 'checkbox': {
-      if (val !== true) return 0;
-      const price = field.price || 0;
-      if (field.multiplier) return price * area;
-      return price;
-    }
-    default:
-      return 0;
+  // 1순위: 정확히 매칭되는 등급
+  for (const g of targetGrades) {
+    const found = options.find(o => o.grade === g);
+    if (found) return found;
   }
+
+  // 2순위: 가장 가까운 등급 (mid면 mid_low → mid_high 순)
+  // fallback: 첫 번째 옵션
+  if (uiGrade === 'basic') return options[0];
+  if (uiGrade === 'premium') return options[options.length - 1];
+  return options[Math.floor(options.length / 2)];
 }
 
-// ─── 공정별 금액 계산 ───
-function calculateProcess(
-  processState: ProcessState,
-  processData: ProcessData,
-  basic: BasicCondition
-): ProcessResult {
-  const regionCoeff = coefficients.region[basic.region] || 1;
-  const housingCoeff = coefficients.housingType[basic.housingType] || 1;
-  const globalMultiplier = regionCoeff * housingCoeff;
+// ─── B타입 공정 금액 계산 (면적 품셈) ───
+function calculateBArea(process: DBProcess, grade: Grade, area: number): { amount: number; optionName: string; breakdown: { label: string; amount: number }[] } {
+  const breakdown: { label: string; amount: number }[] = [];
+  let total = 0;
+  let optionName = '';
 
-  const fieldBreakdown: { label: string; amount: number }[] = [];
-  let processTotal = 0;
-
-  for (const field of processData.fields) {
-    if (field.auto) continue; // 자동 필드는 별도 처리 없음 (가격에 이미 포함)
-    const fv = processState.fields[field.id];
-    const rawAmount = calculateFieldAmount(field, fv, basic.area);
-    const amount = Math.round(rawAmount * globalMultiplier);
-
-    if (amount > 0) {
-      fieldBreakdown.push({ label: field.label, amount });
-      processTotal += amount;
+  if (process.options && process.options.length > 0) {
+    const option = findBestOption(process.options, grade);
+    if (option) {
+      optionName = option.name;
+      if (option.price_per_pyeong) {
+        const amount = option.price_per_pyeong * area;
+        total += amount;
+        breakdown.push({ label: `${option.name} (${option.price_per_pyeong.toLocaleString()}원/평 × ${area}평)`, amount });
+      } else if (option.price) {
+        total += option.price;
+        breakdown.push({ label: option.name, amount: option.price });
+      }
     }
   }
 
-  return {
-    id: processData.id,
-    name: processData.name,
-    amount: processTotal,
-    percentage: 0,
-    fieldBreakdown,
+  // 폐기물 처리 (철거 공정)
+  if (process.waste_disposal) {
+    const wasteOption = findBestOption(process.waste_disposal.options, grade);
+    if (wasteOption && wasteOption.price) {
+      total += wasteOption.price;
+      breakdown.push({ label: `폐기물 처리 (${wasteOption.name})`, amount: wasteOption.price });
+    }
+  }
+
+  return { amount: Math.round(total), optionName, breakdown };
+}
+
+// ─── A타입 공정 금액 계산 (개수 적산) ───
+function calculateAItem(process: DBProcess, grade: Grade, count: number, area: number): { amount: number; optionName: string; breakdown: { label: string; amount: number }[] } {
+  const breakdown: { label: string; amount: number }[] = [];
+  let total = 0;
+  let optionName = '';
+
+  // 프리셋이 있으면 프리셋 사용 (Level 1/2)
+  if (process.presets) {
+    const targetGrades = GRADE_MAPPING[grade];
+    let preset = null;
+    for (const g of targetGrades) {
+      if (process.presets[g]) {
+        preset = process.presets[g];
+        break;
+      }
+    }
+
+    if (preset) {
+      optionName = preset.name;
+      const unitPrice = preset.total_per_unit || preset.total || 0;
+      const amount = unitPrice * (preset.total_per_unit ? count : 1);
+      total = amount;
+      breakdown.push({
+        label: `${preset.name}${preset.total_per_unit ? ` × ${count}개소` : ''}`,
+        amount
+      });
+      return { amount: Math.round(total), optionName, breakdown };
+    }
+  }
+
+  // 옵션이 있으면 옵션 사용
+  if (process.options && process.options.length > 0) {
+    const option = findBestOption(process.options, grade);
+    if (option) {
+      optionName = option.name;
+      const price = option.price || 0;
+      const amount = price * count;
+      total = amount;
+      breakdown.push({
+        label: `${option.name} × ${count}${process.unit || '개'}`,
+        amount
+      });
+    }
+  }
+
+  // sub_items (주방 부속품 등) — Level 3용이므로 기본 계산에서는 제외
+
+  return { amount: Math.round(total), optionName, breakdown };
+}
+
+// ─── 공정별 기본 개소수 ───
+function getDefaultCount(processId: string, area: number, housingType: string): number {
+  const counts: Record<string, number> = {
+    bathroom: 2,
+    door: area >= 39 ? 6 : area >= 30 ? 5 : 4,
+    entrance_door: 1,
+    aircon: area >= 39 ? 5 : area >= 30 ? 4 : 3,
+    lighting: 1,
+    electrical: 1,
+    painting: 2,
+    furniture: 1,
+    art_wall: 1,
+    ceiling_work: 1,
+    expansion: 0,
+    plumbing: 1,
+    misc: 1,
   };
+  return counts[processId] || 1;
 }
 
-// ─── 숨은 비용 계산 (데이터가 각 공정 JSON에 통합됨) ───
-function calculateHiddenCosts(): HiddenCost[] {
-  return [];
+// ─── 공정 기본 ON/OFF ───
+function getDefaultEnabled(processId: string, housingType: string): boolean {
+  // 신축입주시 기본 OFF인 공정
+  const newOnlyOff = ['demolition', 'window', 'expansion', 'plumbing', 'ceiling_work'];
+  if (housingType === 'new' && newOnlyOff.includes(processId)) return false;
+
+  // 기본 OFF 공정
+  const defaultOff = ['expansion', 'art_wall', 'ceiling_work', 'plumbing'];
+  if (defaultOff.includes(processId)) return false;
+
+  return true;
 }
 
-// ─── 경고 수집 ───
-function collectWarnings(processes: ProcessState[]): string[] {
-  const warnings: string[] = [];
+// ─── 숨은 비용 계산 ───
+function calculateHiddenCosts(enabledProcessIds: string[]): HiddenCost[] {
+  const costs: HiddenCost[] = [];
 
-  const waterproofState = processes.find(p => p.id === 'waterproof');
-  if (waterproofState?.enabled) {
-    const count = waterproofState.fields['bathroom_waterproof']?.value;
-    if (count === 0) {
-      warnings.push('욕실 방수를 빼면 1~2년 후 누수 하자 위험이 높습니다');
+  for (const item of db.hidden_costs.items) {
+    if (item.amount) {
+      costs.push({
+        category: item.name,
+        items: [{ label: item.detail, amount: item.amount }],
+        total: item.amount,
+      });
     }
   }
 
-  return warnings;
+  return costs;
+}
+
+// ─── 절약 팁 ───
+function calculateSavingTips(enabledProcessIds: string[]): SavingTip[] {
+  return db.tips.map(tip => ({
+    text: tip,
+    saving: 0,
+  }));
 }
 
 // ─── 메인 계산 함수 ───
 export function calculate(input: CalculatorInput): CalculatorOutput {
+  const { basic } = input;
   const results: ProcessResult[] = [];
+  const livingCoeff = db.config.living_condition_coefficient[basic.livingCondition] || 1;
 
   for (const ps of input.processes) {
     if (!ps.enabled) continue;
-    const pd = processMap.get(ps.id);
-    if (!pd) continue;
-    const result = calculateProcess(ps, pd, input.basic);
-    if (result.amount > 0) {
-      results.push(result);
+
+    const process = db.processes.find(p => p.id === ps.id);
+    if (!process) continue;
+
+    let calcResult;
+    if (process.type === 'B_area') {
+      calcResult = calculateBArea(process, basic.grade, basic.area);
+    } else {
+      calcResult = calculateAItem(process, basic.grade, ps.count, basic.area);
+    }
+
+    if (calcResult.amount > 0) {
+      // 거주환경 계수 적용
+      const adjustedAmount = Math.round(calcResult.amount * livingCoeff);
+
+      results.push({
+        id: process.id,
+        name: process.name,
+        amount: adjustedAmount,
+        percentage: 0,
+        selectedOption: calcResult.optionName,
+        fieldBreakdown: calcResult.breakdown,
+      });
     }
   }
 
@@ -189,17 +239,28 @@ export function calculate(input: CalculatorInput): CalculatorOutput {
     });
   }
 
-  const contingencyRate = input.basic.contingencyRate;
-  const contingency = Math.round(subtotal * contingencyRate);
-  const total = subtotal + contingency;
-  const perPyeong = input.basic.area > 0 ? Math.round(total / input.basic.area) : 0;
+  // 이윤
+  const marginRate = basic.marginRate;
+  const margin = Math.round(subtotal * marginRate);
 
-  const hiddenCosts = calculateHiddenCosts();
-  const warnings = collectWarnings(input.processes);
-  const rationality = evaluateRationality(perPyeong, input.basic.grade);
+  // 예비비
+  const contingencyRate = basic.contingencyRate;
+  const afterMargin = subtotal + margin;
+  const contingency = Math.round(afterMargin * contingencyRate);
+
+  const total = afterMargin + contingency;
+  const perPyeong = basic.area > 0 ? Math.round(total / basic.area) : 0;
+
+  const enabledIds = input.processes.filter(p => p.enabled).map(p => p.id);
+  const hiddenCosts = calculateHiddenCosts(enabledIds);
+  const savingTips = calculateSavingTips(enabledIds);
+  const rationality = evaluateRationality(perPyeong, basic.grade);
+  const warnings = collectWarnings(input);
 
   return {
     subtotal,
+    margin,
+    marginRate,
     contingency,
     contingencyRate,
     total,
@@ -207,114 +268,94 @@ export function calculate(input: CalculatorInput): CalculatorOutput {
     processes: results,
     hiddenCosts,
     rationality,
-    savingTips: [], // Phase 3에서 개선
+    savingTips,
     warnings,
   };
 }
 
-// ─── 등급 기반 초기 상태 생성 ───
+// ─── 경고 수집 ───
+function collectWarnings(input: CalculatorInput): string[] {
+  const warnings: string[] = [];
+
+  const bathroom = input.processes.find(p => p.id === 'bathroom');
+  if (bathroom?.enabled && bathroom.count >= 2) {
+    warnings.push('욕실 2개소 이상 시 설비/방수 공사비가 추가될 수 있습니다');
+  }
+
+  if (input.basic.housingType === 'old20') {
+    warnings.push('구축 리모델링은 공사 중 추가비용 약 10~15% 발생 예상');
+  }
+
+  return warnings;
+}
+
+// ─── 초기 상태 생성 ───
 export function createDefaultInput(grade: Grade = 'mid'): CalculatorInput {
-  const gradeData = grades[grade];
-
-  const processes: ProcessState[] = ALL_PROCESSES.map(pd => {
-    const fields: Record<string, FieldValue> = {};
-
-    for (const field of pd.fields) {
-      let defaultValue: string | number | boolean;
-
-      switch (field.input) {
-        case 'radio':
-          // 등급에 맞는 기본값 찾기
-          defaultValue = field.options?.find(o => o.defaultGrade[grade])?.id
-            || field.options?.[0]?.id || '';
-          break;
-        case 'stepper':
-          defaultValue = field.default ?? field.min ?? 0;
-          break;
-        case 'toggle':
-          defaultValue = true;
-          break;
-        case 'checkbox':
-          defaultValue = false;
-          break;
-        default:
-          defaultValue = '';
-      }
-
-      fields[field.id] = { value: defaultValue, customized: false };
-    }
-
-    return {
-      id: pd.id,
-      enabled: false, // 첫 접속 시 전부 OFF → 겁먹지 않게
-      fields,
-    };
-  });
+  const processes: ProcessUserState[] = db.processes.map(p => ({
+    id: p.id,
+    enabled: false, // 첫 접속 시 전부 OFF
+    selectedGrade: grade === 'basic' ? 'basic' : grade === 'premium' ? 'high' : 'mid',
+    count: getDefaultCount(p.id, 33, 'old20'),
+  }));
 
   return {
     basic: {
-      area: 0, // 첫 접속 시 미선택 상태
-      housingType: 'old10',
-      region: 'seoul',
+      area: 0,
+      housingType: 'old20',
+      livingCondition: 'empty',
       grade,
-      contingencyRate: gradeData?.contingencyRate || 0.10,
+      contingencyRate: db.config.contingency_rate,
+      marginRate: db.config.margin_rate_range.min,
     },
     processes,
   };
 }
 
-// ─── 등급 변경 시 비커스텀 필드 일괄 업데이트 ───
+// ─── 등급 변경 ───
 export function applyGradeChange(input: CalculatorInput, newGrade: Grade): CalculatorInput {
-  const gradeData = grades[newGrade];
-
-  const newProcesses = input.processes.map(ps => {
-    const pd = processMap.get(ps.id);
-    if (!pd) return ps;
-
-    const newFields: Record<string, FieldValue> = {};
-    for (const field of pd.fields) {
-      const existing = ps.fields[field.id];
-
-      // 사용자가 커스텀한 필드는 유지
-      if (existing?.customized) {
-        newFields[field.id] = existing;
-        continue;
-      }
-
-      // 등급 기본값으로 재설정
-      let defaultValue: string | number | boolean;
-      switch (field.input) {
-        case 'radio':
-          defaultValue = field.options?.find(o => o.defaultGrade[newGrade])?.id
-            || field.options?.[0]?.id || '';
-          break;
-        case 'stepper':
-          defaultValue = field.default ?? field.min ?? 0;
-          break;
-        case 'toggle':
-          defaultValue = true;
-          break;
-        case 'checkbox':
-          defaultValue = false;
-          break;
-        default:
-          defaultValue = '';
-      }
-
-      newFields[field.id] = { value: defaultValue, customized: false };
-    }
-
-    return { ...ps, fields: newFields };
-  });
+  const dbGrade = newGrade === 'basic' ? 'basic' : newGrade === 'premium' ? 'high' : 'mid';
 
   return {
-    basic: {
-      ...input.basic,
-      grade: newGrade,
-      contingencyRate: gradeData?.contingencyRate || 0.10,
-    },
-    processes: newProcesses,
+    basic: { ...input.basic, grade: newGrade },
+    processes: input.processes.map(ps => ({
+      ...ps,
+      selectedGrade: dbGrade,
+    })),
   };
 }
 
-export { ALL_PROCESSES, processMap, categoriesRaw as categories };
+// ─── 평수 변경 시 개소수 자동 조정 ───
+export function applyAreaChange(input: CalculatorInput, newArea: number): CalculatorInput {
+  return {
+    basic: { ...input.basic, area: newArea },
+    processes: input.processes.map(ps => ({
+      ...ps,
+      count: getDefaultCount(ps.id, newArea, input.basic.housingType),
+    })),
+  };
+}
+
+// ─── 유형 변경 시 ON/OFF 자동 조정 ───
+export function applyHousingTypeChange(input: CalculatorInput, newType: 'new' | 'old20'): CalculatorInput {
+  return {
+    basic: { ...input.basic, housingType: newType },
+    processes: input.processes.map(ps => ({
+      ...ps,
+      enabled: input.basic.area > 0 ? getDefaultEnabled(ps.id, newType) : false,
+    })),
+  };
+}
+
+// ─── 전체 공정 ON (평수+유형 선택 후 호출) ───
+export function enableDefaultProcesses(input: CalculatorInput): CalculatorInput {
+  return {
+    ...input,
+    processes: input.processes.map(ps => ({
+      ...ps,
+      enabled: getDefaultEnabled(ps.id, input.basic.housingType),
+      count: getDefaultCount(ps.id, input.basic.area, input.basic.housingType),
+    })),
+  };
+}
+
+export { db };
