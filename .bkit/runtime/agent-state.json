@@ -1,25 +1,14 @@
 {
   "version": "1.0",
-  "enabled": true,
+  "enabled": false,
   "teamName": "",
   "feature": "ulmadna",
   "pdcaPhase": "do",
   "orchestrationPattern": "leader",
   "ctoAgent": "opus",
   "startedAt": "2026-04-06T02:03:52.263Z",
-  "lastUpdated": "2026-04-06T02:04:47.135Z",
-  "teammates": [
-    {
-      "name": "adbbd7e89b4b349ec",
-      "role": "general-purpose",
-      "model": "sonnet",
-      "status": "completed",
-      "currentTask": null,
-      "taskId": null,
-      "startedAt": "2026-04-06T02:03:52.266Z",
-      "lastActivityAt": "2026-04-06T02:04:47.127Z"
-    }
-  ],
+  "lastUpdated": "2026-04-06T02:06:33.860Z",
+  "teammates": [],
   "progress": {
     "totalTasks": 0,
     "completedTasks": 0,

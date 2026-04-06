@@ -24,7 +24,8 @@
       "WebFetch(domain:aptsize.calculate.co.kr)",
       "WebFetch(domain:best79.com)",
       "WebFetch(domain:v.daum.net)",
-      "WebFetch(domain:mint-latte.com)"
+      "WebFetch(domain:mint-latte.com)",
+      "Bash(npm ls:*)"
     ]
   }
 }
