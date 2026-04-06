@@ -9,7 +9,7 @@ export async function POST(req: Request) {
   }
 
   const response = NextResponse.json({ success: true });
-  response.cookies.set('admin-auth', adminPassword, {
+  response.cookies.set('admin-auth', 'authenticated', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
