@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import type { CalculatorInput, CalculatorOutput, CalculatorAction } from '@/types/calculator';
 import { formatPerPyeong, formatWonExact, formatPercent } from '@/lib/format';
 import PdfDownload from './actions/PdfDownload';
@@ -23,6 +24,7 @@ const HOUSING_LABELS: Record<string, string> = {
 };
 
 export default function ResultPanel({ input, output, dispatch }: ResultPanelProps) {
+  const [showAll, setShowAll] = useState(false);
   const rColor = output.rationality.level === 'good' ? 'text-safe' : output.rationality.level === 'normal' ? 'text-amber' : 'text-danger';
   const rBg = output.rationality.level === 'good' ? 'bg-safe/10' : output.rationality.level === 'normal' ? 'bg-amber/10' : 'bg-danger/10';
 
@@ -84,7 +86,7 @@ export default function ResultPanel({ input, output, dispatch }: ResultPanelProp
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
           <h3 className="text-xs font-bold text-brown mb-3">공정별 비용 비중</h3>
           <div className="space-y-2.5">
-            {output.processes.slice(0, 8).map(p => (
+            {(showAll ? output.processes : output.processes.slice(0, 8)).map(p => (
               <div key={p.id} className="flex items-center gap-3">
                 <span className="text-xs text-gray-500 w-20 shrink-0 truncate">{p.name}</span>
                 <div className="flex-1 bg-gray-100 rounded-full h-2">
@@ -98,7 +100,12 @@ export default function ResultPanel({ input, output, dispatch }: ResultPanelProp
               </div>
             ))}
             {output.processes.length > 8 && (
-              <p className="text-[10px] text-gray-300 text-center">외 {output.processes.length - 8}개 공정</p>
+              <button
+                onClick={() => setShowAll(!showAll)}
+                className="w-full text-center text-xs text-gold hover:text-brown py-1.5 transition-colors"
+              >
+                {showAll ? '접기 ▲' : `더보기 ▼ (+${output.processes.length - 8}개 공정)`}
+              </button>
             )}
           </div>
         </div>
