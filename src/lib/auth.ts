@@ -7,7 +7,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Kakao({
       clientId: (process.env.KAKAO_CLIENT_ID || '').trim(),
-      clientSecret: (process.env.KAKAO_CLIENT_SECRET || '').trim(),
+      clientSecret: (process.env.KAKAO_CLIENT_SECRET || 'dummy').trim(),
+      client: {
+        token_endpoint_auth_method: 'none',
+      },
     }),
   ],
   pages: {
