@@ -28,15 +28,24 @@ export default function SaveEstimate({ input, output, title = '' }: SaveEstimate
       });
 
       if (res.status === 401) {
-        if (confirm('카카오로 간편 로그인하면 저장할 수 있어요. 3초면 끝나요.\n\n로그인하시겠어요?')) {
+        if (confirm('로그인이 필요해요. 카카오로 간편 로그인하시겠어요?')) {
           window.location.href = '/login';
         }
         return;
       }
 
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(`저장 실패: ${err.error || res.status}`);
+        return;
+      }
+
       if (res.ok) {
         setSaved(true);
+        alert('견적이 저장되었어요! "내 견적서" 메뉴에서 확인할 수 있어요.');
         setTimeout(() => setSaved(false), 2000);
+      } else {
+        alert('저장에 실패했어요. 다시 시도해주세요.');
       }
     } catch {
       alert('저장 중 문제가 생겼어요. 다시 시도해주세요.');
