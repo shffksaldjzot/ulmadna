@@ -31,9 +31,15 @@ export async function generateExcel(input: CalculatorInput, output: CalculatorOu
     ...output.processes.map(p => [p.name, p.amount, p.percentage]),
     [],
     ['소계', output.subtotal],
-    ['예비비 (15%)', output.contingency],
+    [`예비비 (${Math.round(output.contingencyRate * 100)}%)`, output.contingency],
     ['총 예상 비용', output.total],
     ['평당 단가', output.perPyeong],
+    [],
+    ['[참고 안내]'],
+    ['본 견적은 시장 평균 기반의 참고용 예상 금액입니다.'],
+    ['실제 비용은 현장 상황, 자재 수급, 지역에 따라 달라질 수 있습니다.'],
+    ['반드시 인테리어 전문 업체와 상의 후 최종 견적을 확정하세요.'],
+    ['ulmadna.com · 2025~2026 시장 평균 기반 참고용'],
   ];
   const ws1 = XLSX.utils.aoa_to_sheet(sheet1Data);
   ws1['!cols'] = [{ wch: 18 }, { wch: 15 }, { wch: 10 }, { wch: 20 }];

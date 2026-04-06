@@ -16,7 +16,15 @@
       "Bash(ls -la \"C:/Users/addmim/Desktop/도토리스튜디오/4.인테리어/ulmadna\"/image*)",
       "Bash(ls -lt \"C:/Users/addmim/Desktop/도토리스튜디오/4.인테리어/ulmadna\"/Screenshot*)",
       "Bash(npm i:*)",
-      "Bash(vercel:*)"
+      "Bash(vercel:*)",
+      "Bash(openssl rand:*)",
+      "WebSearch",
+      "WebFetch(domain:www.khan.co.kr)",
+      "WebFetch(domain:namu.wiki)",
+      "WebFetch(domain:aptsize.calculate.co.kr)",
+      "WebFetch(domain:best79.com)",
+      "WebFetch(domain:v.daum.net)",
+      "WebFetch(domain:mint-latte.com)"
     ]
   }
 }

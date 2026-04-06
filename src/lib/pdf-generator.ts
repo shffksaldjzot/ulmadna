@@ -127,11 +127,13 @@ export async function generatePdf(input: CalculatorInput, output: CalculatorOutp
     y += 3;
   }
 
-  // 푸터
+  // 면책 + 푸터
   doc.setFontSize(7);
   doc.setTextColor(180, 180, 180);
-  doc.text('2025~2026 시장 평균 기반 · 조달청 적산 교차 검증 예정', margin, 282);
-  doc.text('본 견적은 참고용 예상 금액이며, 실제 시공비는 현장 실측에 따라 달라질 수 있습니다.', margin, 286);
+  doc.text('[참고 안내] 본 견적은 시장 평균 기반의 참고용 예상 금액입니다.', margin, 276);
+  doc.text('실제 비용은 현장 상황, 자재 수급, 지역에 따라 달라질 수 있습니다.', margin, 280);
+  doc.text('반드시 인테리어 전문 업체와 상의 후 최종 견적을 확정하세요.', margin, 284);
+  doc.text('ulmadna.com · 2025~2026 시장 평균 기반', margin, 290);
   doc.text('ulmadna.com', pageWidth - margin - 20, 286);
 
   doc.save(`얼마드나_견적_${input.basic.area}평_${GRADE_LABELS[input.basic.grade]}.pdf`);
