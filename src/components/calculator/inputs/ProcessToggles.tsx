@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, forwardRef, useImperativeHandle } from 'react';
 import type { ProcessUserState, CalculatorOutput, CalculatorAction, DBProcess, DBOption, DBItem } from '@/types/calculator';
 import { db } from '@/lib/calculator';
 import { formatWonExact } from '@/lib/format';
@@ -255,8 +255,16 @@ function ItemRenderer({ item, ps, processId, dispatch }: {
 // ═══════════════════════════════════════
 // 메인 컴포넌트
 // ═══════════════════════════════════════
-export default function ProcessToggles({ processes, output, dispatch }: Props) {
+const ProcessToggles = forwardRef<{ expandAll: () => void; collapseAll: () => void }, Props>(
+  function ProcessToggles({ processes, output, dispatch }, ref) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  const allProcessIds = db.processes.map(p => p.id);
+
+  useImperativeHandle(ref, () => ({
+    expandAll: () => setExpandedIds(new Set(allProcessIds)),
+    collapseAll: () => setExpandedIds(new Set()),
+  }));
 
   const toggle = (id: string) => {
     setExpandedIds(prev => {
@@ -404,4 +412,6 @@ export default function ProcessToggles({ processes, output, dispatch }: Props) {
       })}
     </div>
   );
-}
+});
+
+export default ProcessToggles;

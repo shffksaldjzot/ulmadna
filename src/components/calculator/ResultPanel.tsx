@@ -7,7 +7,6 @@ import PdfDownload from './actions/PdfDownload';
 import ExcelDownload from './actions/ExcelDownload';
 import KakaoShare from './actions/KakaoShare';
 import SaveEstimate from './actions/SaveEstimate';
-import HiddenCosts from './results/HiddenCosts';
 import ContingencySelector from './results/ContingencySelector';
 
 interface ResultPanelProps {
@@ -25,6 +24,7 @@ const HOUSING_LABELS: Record<string, string> = {
 
 export default function ResultPanel({ input, output, dispatch }: ResultPanelProps) {
   const [showAll, setShowAll] = useState(false);
+  const [title, setTitle] = useState('');
   const rColor = output.rationality.level === 'good' ? 'text-safe' : output.rationality.level === 'normal' ? 'text-amber' : 'text-danger';
   const rBg = output.rationality.level === 'good' ? 'bg-safe/10' : output.rationality.level === 'normal' ? 'bg-amber/10' : 'bg-danger/10';
 
@@ -35,8 +35,10 @@ export default function ResultPanel({ input, output, dispatch }: ResultPanelProp
       {/* 빈 상태 안내 */}
       {isEmpty && (
         <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 text-center">
-          <div className="w-16 h-16 rounded-full bg-cream mx-auto mb-4 flex items-center justify-center text-2xl">
-            🏠
+          <div className="w-16 h-16 rounded-2xl bg-cream mx-auto mb-4 flex items-center justify-center">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-gold">
+              <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </div>
           <h3 className="text-lg font-bold text-brown mb-2">견적을 시작해보세요</h3>
           <p className="text-sm text-gray-400 leading-relaxed">
@@ -47,23 +49,30 @@ export default function ResultPanel({ input, output, dispatch }: ResultPanelProp
         </div>
       )}
 
-      {/* 견적 카드 — 결과가 있을 때만 */}
+      {/* 견적 제목 입력 */}
+      {!isEmpty && (
+        <input
+          type="text"
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          placeholder={`예: ${input.basic.area}평 거실 리모델링 A안`}
+          maxLength={30}
+          className="w-full px-4 py-3 text-sm rounded-2xl border border-gray-200 bg-white focus:border-gold focus:outline-none placeholder:text-gray-300"
+        />
+      )}
+
+      {/* 견적 카드 */}
       {!isEmpty && <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-        <div className="flex items-center justify-between mb-1">
-          <p className="text-[10px] text-gold tracking-widest">실시간 견적 결과</p>
-          <div className="w-12 h-12 rounded-full bg-brown text-white flex items-center justify-center text-[10px] font-bold leading-tight text-center">
-            견적<br/>서
-          </div>
-        </div>
+        <p className="text-[10px] text-gold tracking-widest mb-1">실시간 견적 결과</p>
         <p className="text-xs text-gray-400 mb-4">
           {input.basic.area}평 · {HOUSING_LABELS[input.basic.housingType]} · {GRADE_LABELS[input.basic.grade]}
         </p>
 
         <p className="text-3xl lg:text-4xl font-bold text-brown tracking-tight">
-          ₩{output.total.toLocaleString('ko-KR')}
+          {Math.round(output.total / 10000).toLocaleString()}만원
         </p>
         <p className="text-sm text-gray-400 mt-1">
-          예비비 {Math.round(output.contingencyRate * 100)}% 포함 · 평당 {formatPerPyeong(output.perPyeong)}
+          평당 {formatPerPyeong(output.perPyeong)}
         </p>
 
         {/* 예비비 조정 */}
@@ -111,28 +120,26 @@ export default function ResultPanel({ input, output, dispatch }: ResultPanelProp
         </div>
       )}
 
-      {/* 숨은 비용: 상세보기로 통합됨 */}
-
       {/* 다운로드/공유 */}
       {!isEmpty && (
         <div className="grid grid-cols-2 gap-2">
           <PdfDownload input={input} output={output} />
           <ExcelDownload input={input} output={output} />
           <KakaoShare input={input} output={output} />
-          <SaveEstimate input={input} output={output} />
+          <SaveEstimate input={input} output={output} title={title} />
         </div>
       )}
 
       {/* 면책 + 출처 */}
-      <div className="bg-cream rounded-lg p-3 space-y-1">
-        <p className="text-[10px] text-gray-400 text-center">
-          ⚠ 본 견적은 시장 평균 기반의 <strong>참고용 예상 금액</strong>입니다.
+      <div className="bg-cream rounded-2xl p-4 space-y-1.5">
+        <p className="text-xs text-gray-500 text-center">
+          본 견적은 시장 평균 기반의 <strong>참고용 예상 금액</strong>입니다.
         </p>
-        <p className="text-[10px] text-gray-300 text-center">
+        <p className="text-xs text-gray-400 text-center leading-relaxed">
           실제 비용은 현장 상황 · 자재 수급 · 지역에 따라 달라질 수 있습니다.
           반드시 인테리어 전문 업체와 상의하세요.
         </p>
-        <p className="text-[10px] text-gray-300 text-center">
+        <p className="text-[11px] text-gray-300 text-center">
           2025~2026 시장 평균 기반
         </p>
       </div>

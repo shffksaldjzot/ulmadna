@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import type { CalculatorInput, CalculatorAction, CalculatorOutput } from '@/types/calculator';
 import AreaSelector from './inputs/AreaSelector';
 import TypeSelector from './inputs/TypeSelector';
@@ -15,6 +15,8 @@ interface InputPanelProps {
 
 export default function InputPanel({ input, output, dispatch }: InputPanelProps) {
   const [showBasic, setShowBasic] = useState(true);
+  const [allExpanded, setAllExpanded] = useState(false);
+  const togglesRef = useRef<{ expandAll: () => void; collapseAll: () => void }>(null);
 
   const handleReset = () => {
     if (confirm('입력한 내용을 모두 초기화할까요?')) {
@@ -23,11 +25,28 @@ export default function InputPanel({ input, output, dispatch }: InputPanelProps)
     }
   };
 
+  const handleToggleAll = () => {
+    if (allExpanded) {
+      togglesRef.current?.collapseAll();
+    } else {
+      togglesRef.current?.expandAll();
+    }
+    setAllExpanded(!allExpanded);
+  };
+
   return (
-    <div className="bg-white border-r border-gray-100">
+    <div className="bg-white border-r border-gray-100 lg:rounded-2xl lg:m-2 lg:border lg:shadow-sm">
       <div className="p-4 lg:p-8">
-        {/* 상단: 초기화 버튼 */}
-        <div className="flex justify-end mb-4">
+        {/* Step 01 + 초기화 같은 라인 */}
+        <div className="flex items-center justify-between mb-4 lg:mb-6">
+          <button
+            onClick={() => setShowBasic(!showBasic)}
+            className="flex items-center gap-2"
+          >
+            <span className="text-[10px] text-gold tracking-widest font-medium">Step 01.</span>
+            <span className="text-base font-bold text-brown">기본 공간 정보</span>
+            <span className="text-xs text-gray-300 lg:hidden">{showBasic ? '▲' : '▼'}</span>
+          </button>
           <button
             onClick={handleReset}
             className="text-xs text-gray-400 hover:text-danger border border-gray-200 hover:border-danger/30 px-3 py-1.5 rounded-lg transition-colors"
@@ -36,18 +55,9 @@ export default function InputPanel({ input, output, dispatch }: InputPanelProps)
           </button>
         </div>
 
-        {/* Step 01. 기본 공간 정보 */}
-        <div className="mb-8">
-          <button
-            onClick={() => setShowBasic(!showBasic)}
-            className="flex items-center gap-2 mb-4 lg:mb-6"
-          >
-            <span className="text-[10px] text-gold tracking-widest font-medium">Step 01.</span>
-            <span className="text-base font-bold text-brown">기본 공간 정보</span>
-            <span className="text-xs text-gray-300 lg:hidden">{showBasic ? '▲' : '▼'}</span>
-          </button>
-
-          <div className={`space-y-5 ${showBasic ? '' : 'hidden'} lg:block`}>
+        {/* 기본 공간 정보 */}
+        <div className={`mb-8 ${showBasic ? '' : 'hidden'} lg:block`}>
+          <div className="space-y-5">
             <AreaSelector
               value={input.basic.area}
               onChange={v => dispatch({ type: 'SET_AREA', payload: v })}
@@ -101,14 +111,23 @@ export default function InputPanel({ input, output, dispatch }: InputPanelProps)
           </div>
         )}
 
-        {/* Step 02. 공정 세부 선택 */}
+        {/* Step 02 + 모두펼치기/접기 */}
         <div>
-          <div className="flex items-center gap-2 mb-4 lg:mb-6">
-            <span className="text-[10px] text-gold tracking-widest font-medium">Step 02.</span>
-            <span className="text-base font-bold text-brown">공정 세부 선택</span>
+          <div className="flex items-center justify-between mb-4 lg:mb-6">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-gold tracking-widest font-medium">Step 02.</span>
+              <span className="text-base font-bold text-brown">공정 세부 선택</span>
+            </div>
+            <button
+              onClick={handleToggleAll}
+              className="text-[11px] text-gray-400 hover:text-gold transition-colors"
+            >
+              {allExpanded ? '모두 접기' : '모두 펼치기'}
+            </button>
           </div>
 
           <ProcessToggles
+            ref={togglesRef}
             processes={input.processes}
             output={output}
             dispatch={dispatch}
