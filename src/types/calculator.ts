@@ -1,17 +1,15 @@
 /**
- * 얼마드나 v3 타입 시스템
- * ulmadna_db.json 기반 하이브리드 적산 (A타입: 개수, B타입: 면적)
+ * 얼마드나 v4 타입 시스템
+ * ulmadna_db.json 기반 아이템별 적산 (개별 자재 선택)
  */
 
 // ─── 기본 조건 ───
 export type Grade = 'basic' | 'mid' | 'premium';
 export type HousingType = 'under10' | 'ten20' | 'over20';
-export type LivingCondition = 'empty' | 'occupied';
 
 export interface BasicCondition {
   area: number;           // 평수
   housingType: HousingType;
-  livingCondition: LivingCondition;
   grade: Grade;
   contingencyRate: number; // 0.10 고정
   marginRate: number;      // 0.00 ~ 0.10
@@ -63,12 +61,21 @@ export interface DBItem {
   unit?: string;
   days_per_bathroom?: number;
   source?: string;
+  price_per_pyeong?: number;
+  note?: string;
 }
 
 export interface DBPreset {
   name: string;
   total?: number;
   total_per_unit?: number;
+  source?: string;
+}
+
+export interface DBExtra {
+  name: string;
+  price?: number;
+  price_per_unit?: number;
   source?: string;
 }
 
@@ -82,7 +89,7 @@ export interface DBProcess {
   items?: DBItem[];
   presets?: Record<string, DBPreset>;
   waste_disposal?: { name: string; options: DBOption[] };
-  extras?: { name: string; price: number; source?: string }[];
+  extras?: DBExtra[];
   sub_items?: DBItem[];
   labor_included?: boolean;
   note?: string;
@@ -90,6 +97,7 @@ export interface DBProcess {
   material_price_per_m?: number;
   material_brand?: string;
   labor_daily_rate?: number;
+  demolition_surcharge?: { name: string; price_per_pyeong: number; source?: string };
 }
 
 export interface DBHiddenCost {
@@ -108,13 +116,18 @@ export interface UlmadnaDB {
   tips: string[];
 }
 
-// ─── 사용자 입력 상태 ───
+// ─── 사용자 입력 상태 (v4: 아이템별 선택) ───
 export interface ProcessUserState {
   id: string;
   enabled: boolean;
-  selectedGrade: string;    // DB의 grade 문자열
-  count: number;            // A타입 개소수 (욕실 2개, 방문 5개 등)
-  selectedOptionId?: string; // 특정 옵션 선택시
+  count: number;                          // 공정 수량 (욕실 2개소, 방문 5조 등)
+  itemSelections: Record<string, string>; // itemId -> selected option grade key
+  itemToggles: Record<string, boolean>;   // itemId -> on/off (단일 가격 아이템)
+  itemCounts: Record<string, number>;     // itemId -> 수량 (stepper 아이템)
+  dimensions: Record<string, number>;     // key -> value in meters (e.g. sink_length: 3.5)
+  ceilingIncluded?: boolean;              // 도배: 천정 포함?
+  demolitionIncluded?: boolean;           // 바닥: 기존 마루 철거 포함?
+  extraToggles?: Record<string, boolean>; // extra name -> on/off
 }
 
 export interface CalculatorInput {
@@ -169,12 +182,17 @@ export interface CalculatorOutput {
 export type CalculatorAction =
   | { type: 'SET_AREA'; payload: number }
   | { type: 'SET_HOUSING_TYPE'; payload: HousingType }
-  | { type: 'SET_LIVING_CONDITION'; payload: LivingCondition }
   | { type: 'SET_GRADE'; payload: Grade }
   | { type: 'SET_CONTINGENCY_RATE'; payload: number }
   | { type: 'SET_MARGIN_RATE'; payload: number }
   | { type: 'TOGGLE_PROCESS'; payload: string }
-  | { type: 'SET_PROCESS_GRADE'; payload: { processId: string; grade: string } }
   | { type: 'SET_PROCESS_COUNT'; payload: { processId: string; count: number } }
+  | { type: 'SET_ITEM_SELECTION'; payload: { processId: string; itemId: string; grade: string } }
+  | { type: 'SET_ITEM_TOGGLE'; payload: { processId: string; itemId: string; enabled: boolean } }
+  | { type: 'SET_ITEM_COUNT'; payload: { processId: string; itemId: string; count: number } }
+  | { type: 'SET_DIMENSION'; payload: { processId: string; key: string; value: number } }
+  | { type: 'SET_CEILING_INCLUDED'; payload: { processId: string; included: boolean } }
+  | { type: 'SET_DEMOLITION_INCLUDED'; payload: { processId: string; included: boolean } }
+  | { type: 'SET_EXTRA_TOGGLE'; payload: { processId: string; extraName: string; enabled: boolean } }
   | { type: 'LOAD_INPUT'; payload: CalculatorInput }
   | { type: 'RESET' };

@@ -18,7 +18,7 @@ export default function InputPanel({ input, output, dispatch }: InputPanelProps)
 
   const handleReset = () => {
     if (confirm('입력한 내용을 모두 초기화할까요?')) {
-      localStorage.removeItem('ulmadna-v3-input');
+      localStorage.removeItem('ulmadna-v4-input');
       dispatch({ type: 'RESET' });
     }
   };
@@ -60,26 +60,6 @@ export default function InputPanel({ input, output, dispatch }: InputPanelProps)
               value={input.basic.grade}
               onChange={v => dispatch({ type: 'SET_GRADE', payload: v })}
             />
-
-            {/* 시공환경 선택 */}
-            <div>
-              <p className="text-xs text-gray-500 mb-2">시공 환경</p>
-              <div className="flex gap-2">
-                {(['empty', 'occupied'] as const).map(cond => (
-                  <button
-                    key={cond}
-                    onClick={() => dispatch({ type: 'SET_LIVING_CONDITION', payload: cond })}
-                    className={`px-4 py-2 text-sm rounded-lg border transition-all ${
-                      input.basic.livingCondition === cond
-                        ? 'bg-brown text-white border-brown'
-                        : 'bg-cream text-gray-600 border-gray-200 hover:border-gold'
-                    }`}
-                  >
-                    {cond === 'empty' ? '빈집' : '거주중'}
-                  </button>
-                ))}
-              </div>
-            </div>
 
             {/* 이윤율 선택 */}
             <div>
@@ -131,14 +111,7 @@ export default function InputPanel({ input, output, dispatch }: InputPanelProps)
           <ProcessToggles
             processes={input.processes}
             output={output}
-            grade={input.basic.grade}
-            onToggle={id => dispatch({ type: 'TOGGLE_PROCESS', payload: id })}
-            onGradeChange={(processId, grade) =>
-              dispatch({ type: 'SET_PROCESS_GRADE', payload: { processId, grade } })
-            }
-            onCountChange={(processId, count) =>
-              dispatch({ type: 'SET_PROCESS_COUNT', payload: { processId, count } })
-            }
+            dispatch={dispatch}
           />
         </div>
       </div>

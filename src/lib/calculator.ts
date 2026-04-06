@@ -1,10 +1,10 @@
 /**
- * 얼마드나 v3 계산 엔진 — ulmadna_db.json 기반 하이브리드 적산
+ * 얼마드나 v4 계산 엔진 — 아이템별 적산
  *
- * A타입 (개수 적산): 아이템별 단가 합산 × 개소수
- * B타입 (면적 품셈): 평당 단가 × 평수
+ * 각 공정 내 아이템별로 자재/옵션을 개별 선택하고
+ * 선택된 옵션 가격을 합산하여 총액을 산출합니다.
  *
- * 총액 = Σ(각 공정) × 거주환경계수 + 이윤 + 예비비
+ * 총액 = Σ(각 공정 아이템 합산) × 연식계수 + 이윤 + 예비비
  */
 
 import type {
@@ -12,15 +12,14 @@ import type {
   CalculatorOutput,
   ProcessResult,
   ProcessUserState,
-  BasicCondition,
   Grade,
   HiddenCost,
   SavingTip,
   DBProcess,
   DBOption,
+  DBItem,
   UlmadnaDB,
   HousingType,
-  GRADE_MAP,
 } from '@/types/calculator';
 import { evaluateRationality } from './rationality';
 import dbRaw from '@/data/ulmadna_db.json';
@@ -34,126 +33,33 @@ const GRADE_MAPPING: Record<Grade, string[]> = {
   premium: ['high', 'high_low', 'premium'],
 };
 
-// DB selectedGrade → UI Grade 변환
-function gradeFromSelected(selectedGrade: string): Grade {
-  if (['basic', 'partial'].includes(selectedGrade)) return 'basic';
-  if (['high', 'high_low', 'premium'].includes(selectedGrade)) return 'premium';
-  return 'mid';
-}
-
-// DB 등급에서 가장 가까운 옵션 찾기
-function findBestOption(options: DBOption[], uiGrade: Grade, selectedGrade?: string): DBOption | null {
-  if (!options || options.length === 0) return null;
-
-  // 1순위: 공정별 selectedGrade 직접 매칭
-  if (selectedGrade) {
-    const exact = options.find(o => o.grade === selectedGrade);
-    if (exact) return exact;
-  }
-
+// UI 등급에서 DB 옵션 중 가장 적합한 grade key 찾기
+function findDefaultGradeKey(options: DBOption[], uiGrade: Grade): string {
   const targetGrades = GRADE_MAPPING[uiGrade];
-
-  // 2순위: UI 등급 매칭
   for (const g of targetGrades) {
     const found = options.find(o => o.grade === g);
-    if (found) return found;
+    if (found) return found.grade;
   }
-
   // fallback
-  if (uiGrade === 'basic') return options[0];
-  if (uiGrade === 'premium') return options[options.length - 1];
-  return options[Math.floor(options.length / 2)];
+  if (uiGrade === 'basic') return options[0]?.grade || 'basic';
+  if (uiGrade === 'premium') return options[options.length - 1]?.grade || 'high';
+  return options[Math.floor(options.length / 2)]?.grade || 'mid';
 }
 
-// ─── B타입 공정 금액 계산 (면적 품셈) ───
-function calculateBArea(process: DBProcess, grade: Grade, area: number, selectedGrade?: string): { amount: number; optionName: string; breakdown: { label: string; amount: number }[] } {
-  const breakdown: { label: string; amount: number }[] = [];
-  let total = 0;
-  let optionName = '';
-
-  if (process.options && process.options.length > 0) {
-    const option = findBestOption(process.options, grade, selectedGrade);
-    if (option) {
-      optionName = option.name;
-      if (option.price_per_pyeong) {
-        const amount = option.price_per_pyeong * area;
-        total += amount;
-        breakdown.push({ label: `${option.name} (${option.price_per_pyeong.toLocaleString()}원/평 × ${area}평)`, amount });
-      } else if (option.price) {
-        total += option.price;
-        breakdown.push({ label: option.name, amount: option.price });
-      }
-    }
-  }
-
-  // 폐기물 처리 (철거 공정)
-  if (process.waste_disposal) {
-    const wasteOption = findBestOption(process.waste_disposal.options, grade, selectedGrade);
-    if (wasteOption && wasteOption.price) {
-      total += wasteOption.price;
-      breakdown.push({ label: `폐기물 처리 (${wasteOption.name})`, amount: wasteOption.price });
-    }
-  }
-
-  return { amount: Math.round(total), optionName, breakdown };
+// 옵션 배열에서 grade key로 찾기
+function findOptionByGrade(options: DBOption[], gradeKey: string): DBOption | null {
+  return options.find(o => o.grade === gradeKey) || options[0] || null;
 }
 
-// ─── A타입 공정 금액 계산 (개수 적산) ───
-function calculateAItem(process: DBProcess, grade: Grade, count: number, area: number, selectedGrade?: string): { amount: number; optionName: string; breakdown: { label: string; amount: number }[] } {
-  const breakdown: { label: string; amount: number }[] = [];
-  let total = 0;
-  let optionName = '';
-
-  // 프리셋이 있으면 프리셋 사용
-  if (process.presets) {
-    // 1순위: selectedGrade 직접 매칭
-    let preset = selectedGrade && process.presets[selectedGrade] ? process.presets[selectedGrade] : null;
-    // 2순위: UI 등급 매칭
-    if (!preset) {
-      const targetGrades = GRADE_MAPPING[grade];
-      for (const g of targetGrades) {
-        if (process.presets[g]) {
-          preset = process.presets[g];
-          break;
-        }
-      }
-    }
-
-    if (preset) {
-      optionName = preset.name;
-      const unitPrice = preset.total_per_unit || preset.total || 0;
-      const amount = unitPrice * (preset.total_per_unit ? count : 1);
-      total = amount;
-      breakdown.push({
-        label: `${preset.name}${preset.total_per_unit ? ` × ${count}개소` : ''}`,
-        amount
-      });
-      return { amount: Math.round(total), optionName, breakdown };
-    }
-  }
-
-  // 옵션이 있으면 옵션 사용
-  if (process.options && process.options.length > 0) {
-    const option = findBestOption(process.options, grade, selectedGrade);
-    if (option) {
-      optionName = option.name;
-      const price = option.price || 0;
-      const amount = price * count;
-      total = amount;
-      breakdown.push({
-        label: `${option.name} × ${count}${process.unit || '개'}`,
-        amount
-      });
-    }
-  }
-
-  // sub_items (주방 부속품 등) — Level 3용이므로 기본 계산에서는 제외
-
-  return { amount: Math.round(total), optionName, breakdown };
-}
+// ─── 연식별 계수 ───
+const HOUSING_COEFFICIENTS: Record<string, number> = {
+  under10: 0.8,
+  ten20: 0.9,
+  over20: 1.0,
+};
 
 // ─── 공정별 기본 개소수 ───
-function getDefaultCount(processId: string, area: number, housingType: string): number {
+function getDefaultCount(processId: string, area: number, _housingType: string): number {
   const counts: Record<string, number> = {
     bathroom: 2,
     door: area >= 39 ? 6 : area >= 30 ? 5 : 4,
@@ -161,7 +67,7 @@ function getDefaultCount(processId: string, area: number, housingType: string): 
     aircon: area >= 39 ? 5 : area >= 30 ? 4 : 3,
     lighting: 1,
     electrical: 1,
-    painting: 2,
+    painting: 1,
     furniture: 1,
     art_wall: 1,
     ceiling_work: 1,
@@ -172,34 +78,366 @@ function getDefaultCount(processId: string, area: number, housingType: string): 
   return counts[processId] || 1;
 }
 
-// ─── 연식별 계수 ───
-const HOUSING_COEFFICIENTS: Record<string, number> = {
-  under10: 0.8,
-  ten20: 0.9,
-  over20: 1.0,
-};
-
 // ─── 공정 기본 ON/OFF ───
 function getDefaultEnabled(processId: string, housingType: string): boolean {
-  // 10년 미만: 철거·창호·확장·설비·천장 OFF
   const under10Off = ['demolition', 'window', 'expansion', 'plumbing', 'ceiling_work'];
   if (housingType === 'under10' && under10Off.includes(processId)) return false;
 
-  // 10~20년: 확장·천장 OFF
   const ten20Off = ['expansion', 'ceiling_work'];
   if (housingType === 'ten20' && ten20Off.includes(processId)) return false;
 
-  // 기본 OFF 공정 (모든 연식)
   const defaultOff = ['expansion', 'art_wall', 'ceiling_work'];
   if (defaultOff.includes(processId)) return false;
 
   return true;
 }
 
-// ─── 숨은 비용 계산 ───
-function calculateHiddenCosts(enabledProcessIds: string[]): HiddenCost[] {
-  const costs: HiddenCost[] = [];
+// ─── 아이템별 기본 선택 생성 ───
+function createItemDefaults(process: DBProcess, uiGrade: Grade): {
+  itemSelections: Record<string, string>;
+  itemToggles: Record<string, boolean>;
+  itemCounts: Record<string, number>;
+  dimensions: Record<string, number>;
+  extraToggles: Record<string, boolean>;
+} {
+  const itemSelections: Record<string, string> = {};
+  const itemToggles: Record<string, boolean> = {};
+  const itemCounts: Record<string, number> = {};
+  const dimensions: Record<string, number> = {};
+  const extraToggles: Record<string, boolean> = {};
 
+  // Process-level options (B_area or A_item with options)
+  if (process.options && process.options.length > 0) {
+    itemSelections['__process__'] = findDefaultGradeKey(process.options, uiGrade);
+  }
+
+  // Waste disposal
+  if (process.waste_disposal?.options) {
+    itemSelections['__waste__'] = findDefaultGradeKey(process.waste_disposal.options, uiGrade);
+  }
+
+  // Items
+  if (process.items) {
+    for (const item of process.items) {
+      if (item.options && item.options.length > 0) {
+        // Item with options -> dropdown
+        itemSelections[item.id] = findDefaultGradeKey(item.options, uiGrade);
+      } else if (item.price !== undefined && !item.unit) {
+        // Single price item with no unit -> toggle ON by default
+        itemToggles[item.id] = true;
+      } else if (item.price !== undefined && item.unit) {
+        // Item with unit -> toggle ON, count based on unit
+        itemToggles[item.id] = true;
+        if (item.unit === 'EA' || item.unit === 'M') {
+          itemCounts[item.id] = item.unit === 'EA' ? 10 : 20; // sensible defaults
+        }
+      }
+    }
+  }
+
+  // Sub items (kitchen extras) -> OFF by default
+  if (process.sub_items) {
+    for (const item of process.sub_items) {
+      itemToggles[item.id] = false;
+      if (item.options && item.options.length > 0) {
+        itemSelections[item.id] = findDefaultGradeKey(item.options, uiGrade);
+      }
+    }
+  }
+
+  // Kitchen sink length default
+  if (process.id === 'kitchen') {
+    dimensions['sink_length'] = 3.5;
+  }
+
+  // Furniture builtin closet default size (자 units)
+  if (process.id === 'furniture') {
+    dimensions['builtin_closet_ja'] = 12; // 12자 default
+  }
+
+  // Extras -> OFF by default
+  if (process.extras) {
+    for (const extra of process.extras) {
+      extraToggles[extra.name] = false;
+    }
+  }
+
+  return { itemSelections, itemToggles, itemCounts, dimensions, extraToggles };
+}
+
+// ─── 공정별 금액 계산 (v4: 아이템별 적산) ───
+function calculateProcess(
+  process: DBProcess,
+  ps: ProcessUserState,
+  area: number,
+): { amount: number; optionName: string; breakdown: { label: string; amount: number }[] } {
+  const breakdown: { label: string; amount: number }[] = [];
+  let total = 0;
+  const optionNames: string[] = [];
+
+  if (process.type === 'B_area') {
+    // ── B_area: process-level options with price_per_pyeong ──
+    if (process.options && process.options.length > 0) {
+      const gradeKey = ps.itemSelections['__process__'] || process.options[0].grade;
+      const option = findOptionByGrade(process.options, gradeKey);
+      if (option) {
+        optionNames.push(option.name);
+        if (option.price_per_pyeong) {
+          const amt = option.price_per_pyeong * area;
+          total += amt;
+          breakdown.push({
+            label: `${option.name} (${option.price_per_pyeong.toLocaleString()}원/평 × ${area}평)`,
+            amount: amt,
+          });
+        } else if (option.price) {
+          total += option.price;
+          breakdown.push({ label: option.name, amount: option.price });
+        }
+      }
+    }
+
+    // Wallpaper: ceiling included
+    if (process.id === 'wallpaper' && ps.ceilingIncluded) {
+      const gradeKey = ps.itemSelections['__process__'] || '';
+      const option = process.options ? findOptionByGrade(process.options, gradeKey) : null;
+      if (option?.price_per_pyeong) {
+        // Ceiling area is approximately same as floor area
+        const ceilingArea = Math.round(area * 0.3); // roughly 30% of total pyeong for ceiling
+        const amt = option.price_per_pyeong * ceilingArea;
+        total += amt;
+        breakdown.push({
+          label: `천정 도배 (${option.price_per_pyeong.toLocaleString()}원/평 × ${ceilingArea}평)`,
+          amount: amt,
+        });
+      }
+    }
+
+    // Flooring: demolition included
+    if (process.id === 'flooring' && ps.demolitionIncluded) {
+      const demolitionPrice = 35000;
+      const amt = demolitionPrice * area;
+      total += amt;
+      breakdown.push({
+        label: `기존 마루 철거 (35,000원/평 × ${area}평)`,
+        amount: amt,
+      });
+    }
+
+    // Waste disposal (demolition)
+    if (process.waste_disposal) {
+      const wasteGradeKey = ps.itemSelections['__waste__'] || process.waste_disposal.options[0]?.grade;
+      const wasteOption = findOptionByGrade(process.waste_disposal.options, wasteGradeKey);
+      if (wasteOption?.price) {
+        total += wasteOption.price;
+        breakdown.push({ label: `폐기물 처리 (${wasteOption.name})`, amount: wasteOption.price });
+      }
+    }
+  } else {
+    // ── A_item: item-level calculation ──
+
+    // Process-level options (painting, door, entrance_door, aircon, expansion, art_wall, ceiling_work)
+    if (process.options && process.options.length > 0 && !process.items?.length) {
+      const gradeKey = ps.itemSelections['__process__'] || process.options[0].grade;
+      const option = findOptionByGrade(process.options, gradeKey);
+      if (option) {
+        optionNames.push(option.name);
+        const price = option.price || 0;
+        const count = ps.count;
+        const amt = price * count;
+        total += amt;
+        const unitLabel = process.unit || '개';
+        breakdown.push({
+          label: `${option.name}${count > 1 ? ` × ${count}${unitLabel}` : ''}`,
+          amount: amt,
+        });
+      }
+    }
+
+    // Items array
+    if (process.items && process.items.length > 0) {
+      // If process has both options AND items (e.g. electrical, lighting),
+      // use item-level calculation instead of process-level options
+      const hasProcessOptionsAndItems = process.options && process.options.length > 0 && process.items.length > 0;
+
+      for (const item of process.items) {
+        if (item.options && item.options.length > 0) {
+          // Item with options -> use selected grade from dropdown
+          const gradeKey = ps.itemSelections[item.id] || item.options[0].grade;
+          const option = findOptionByGrade(item.options, gradeKey);
+          if (option) {
+            let amt = 0;
+            if (option.price_per_m !== undefined) {
+              // price_per_m -> multiply by dimension
+              const dimKey = item.id === 'sink_cabinet' || item.id === 'countertop' ? 'sink_length' : `${item.id}_length`;
+              const dimValue = ps.dimensions[dimKey] || 3.5;
+              amt = option.price_per_m * dimValue;
+              breakdown.push({
+                label: `${item.name} · ${option.name} (${(option.price_per_m / 10000).toFixed(0)}만/m × ${dimValue}m)`,
+                amount: amt,
+              });
+            } else if (option.price_per_ja !== undefined) {
+              // price_per_ja -> multiply by ja dimension
+              const dimKey = `${item.id}_ja`;
+              const dimValue = ps.dimensions[dimKey] || 12;
+              amt = option.price_per_ja * dimValue;
+              breakdown.push({
+                label: `${item.name} · ${option.name} (${(option.price_per_ja / 10000).toFixed(1)}만/자 × ${dimValue}자)`,
+                amount: amt,
+              });
+            } else if (option.price !== undefined) {
+              // For bathroom items, multiply by process count
+              if (process.id === 'bathroom') {
+                amt = option.price * ps.count;
+                breakdown.push({
+                  label: `${item.name} · ${option.name}${ps.count > 1 ? ` × ${ps.count}` : ''}`,
+                  amount: amt,
+                });
+              } else {
+                amt = option.price;
+                breakdown.push({
+                  label: `${item.name} · ${option.name}`,
+                  amount: amt,
+                });
+              }
+            }
+            total += amt;
+          }
+        } else if (item.price !== undefined) {
+          // Fixed price item
+          const isToggled = ps.itemToggles[item.id] !== false; // default on unless explicitly off
+          if (!isToggled) continue;
+
+          let amt = 0;
+          if (item.unit === 'EA' || item.unit === 'M') {
+            // Stepper item
+            const count = ps.itemCounts[item.id] || 0;
+            amt = item.price * count;
+            if (amt > 0) {
+              breakdown.push({
+                label: `${item.name} × ${count}${item.unit}`,
+                amount: amt,
+              });
+            }
+          } else if (item.unit === '실' || item.unit === '개소') {
+            // Per-unit items (bathroom: tile_labor, fixture_install, grout, etc.)
+            const count = process.id === 'bathroom' ? ps.count : 1;
+            if (item.days_per_bathroom) {
+              amt = item.price * item.days_per_bathroom * count;
+              breakdown.push({
+                label: `${item.name} (${item.days_per_bathroom}일 × ${count}개소)`,
+                amount: amt,
+              });
+            } else {
+              amt = item.price * count;
+              breakdown.push({
+                label: `${item.name}${count > 1 ? ` × ${count}${item.unit}` : ''}`,
+                amount: amt,
+              });
+            }
+          } else if (item.price_per_pyeong) {
+            // price_per_pyeong (e.g. misc cleaning)
+            amt = item.price_per_pyeong * area;
+            breakdown.push({
+              label: `${item.name} (${(item.price_per_pyeong / 10000).toFixed(1)}만/평 × ${area}평)`,
+              amount: amt,
+            });
+          } else if (item.unit === '일') {
+            // Daily rate items
+            const count = process.id === 'bathroom' ? ps.count : 1;
+            const days = item.days_per_bathroom || 1;
+            amt = item.price * days * count;
+            breakdown.push({
+              label: `${item.name} (${days}일 × ${count}개소)`,
+              amount: amt,
+            });
+          } else {
+            // Simple fixed price
+            amt = item.price;
+            breakdown.push({ label: item.name, amount: amt });
+          }
+          total += amt;
+        }
+      }
+
+      // If we had process options AND items, skip process-level (already handled in items loop)
+      if (hasProcessOptionsAndItems) {
+        // Already computed via items, remove process-level entry if any
+      }
+    }
+
+    // Sub items (kitchen extras)
+    if (process.sub_items) {
+      for (const item of process.sub_items) {
+        const isToggled = ps.itemToggles[item.id] === true;
+        if (!isToggled) continue;
+
+        if (item.options && item.options.length > 0) {
+          const gradeKey = ps.itemSelections[item.id] || item.options[0].grade;
+          const option = findOptionByGrade(item.options, gradeKey);
+          if (option) {
+            let amt = 0;
+            if (option.price_per_ja !== undefined) {
+              const dimKey = `${item.id}_ja`;
+              const dimValue = ps.dimensions[dimKey] || 6;
+              amt = option.price_per_ja * dimValue;
+              breakdown.push({
+                label: `${item.name} · ${option.name} (${dimValue}자)`,
+                amount: amt,
+              });
+            } else if (option.price !== undefined) {
+              amt = option.price;
+              breakdown.push({ label: `${item.name} · ${option.name}`, amount: amt });
+            }
+            total += amt;
+          }
+        }
+      }
+    }
+  }
+
+  // Extras
+  if (process.extras) {
+    for (const extra of process.extras) {
+      const isToggled = ps.extraToggles?.[extra.name] === true;
+      if (!isToggled) continue;
+
+      const price = extra.price || 0;
+      const pricePerUnit = extra.price_per_unit || 0;
+      let amt = 0;
+
+      if (pricePerUnit > 0) {
+        amt = pricePerUnit * ps.count;
+        breakdown.push({ label: `${extra.name} × ${ps.count}`, amount: amt });
+      } else {
+        amt = price;
+        breakdown.push({ label: extra.name, amount: amt });
+      }
+      total += amt;
+    }
+  }
+
+  // Handle misc items with price_per_pyeong (cleaning)
+  if (process.id === 'misc' && process.items) {
+    // Check for cleaning which has price_per_pyeong in DB
+    for (const item of process.items) {
+      if (item.id === 'cleaning' && (item as unknown as { price_per_pyeong?: number }).price_per_pyeong) {
+        // Already handled above via the item.price path;
+        // but cleaning has price_per_pyeong in DB, handle specially
+        // This is handled below in the override
+      }
+    }
+  }
+
+  return {
+    amount: Math.round(total),
+    optionName: optionNames.join(', ') || (breakdown.length > 0 ? breakdown[0].label.split(' ·')[0] : ''),
+    breakdown,
+  };
+}
+
+// ─── 숨은 비용 계산 ───
+function calculateHiddenCosts(_enabledProcessIds: string[]): HiddenCost[] {
+  const costs: HiddenCost[] = [];
   for (const item of db.hidden_costs.items) {
     if (item.amount) {
       costs.push({
@@ -209,23 +447,18 @@ function calculateHiddenCosts(enabledProcessIds: string[]): HiddenCost[] {
       });
     }
   }
-
   return costs;
 }
 
 // ─── 절약 팁 ───
-function calculateSavingTips(enabledProcessIds: string[]): SavingTip[] {
-  return db.tips.map(tip => ({
-    text: tip,
-    saving: 0,
-  }));
+function calculateSavingTips(_enabledProcessIds: string[]): SavingTip[] {
+  return db.tips.map(tip => ({ text: tip, saving: 0 }));
 }
 
 // ─── 메인 계산 함수 ───
 export function calculate(input: CalculatorInput): CalculatorOutput {
   const { basic } = input;
   const results: ProcessResult[] = [];
-  const livingCoeff = db.config.living_condition_coefficient[basic.livingCondition] || 1;
   const housingCoeff = HOUSING_COEFFICIENTS[basic.housingType] || 1;
 
   for (const ps of input.processes) {
@@ -234,18 +467,10 @@ export function calculate(input: CalculatorInput): CalculatorOutput {
     const process = db.processes.find(p => p.id === ps.id);
     if (!process) continue;
 
-    // 공정별 selectedGrade 기반 계산
-    const processGrade = gradeFromSelected(ps.selectedGrade);
-    let calcResult;
-    if (process.type === 'B_area') {
-      calcResult = calculateBArea(process, processGrade, basic.area, ps.selectedGrade);
-    } else {
-      calcResult = calculateAItem(process, processGrade, ps.count, basic.area, ps.selectedGrade);
-    }
+    const calcResult = calculateProcess(process, ps, basic.area);
 
     if (calcResult.amount > 0) {
-      // 거주환경 + 연식 계수 적용
-      const adjustedAmount = Math.round(calcResult.amount * livingCoeff * housingCoeff);
+      const adjustedAmount = Math.round(calcResult.amount * housingCoeff);
 
       results.push({
         id: process.id,
@@ -258,23 +483,18 @@ export function calculate(input: CalculatorInput): CalculatorOutput {
     }
   }
 
-  // 금액 큰 순 정렬
   results.sort((a, b) => b.amount - a.amount);
 
   const subtotal = results.reduce((sum, r) => sum + r.amount, 0);
 
-  // 비중 계산
   if (subtotal > 0) {
     results.forEach(r => {
       r.percentage = Math.round((r.amount / subtotal) * 1000) / 10;
     });
   }
 
-  // 이윤
   const marginRate = basic.marginRate;
   const margin = Math.round(subtotal * marginRate);
-
-  // 예비비
   const contingencyRate = basic.contingencyRate;
   const afterMargin = subtotal + margin;
   const contingency = Math.round(afterMargin * contingencyRate);
@@ -322,18 +542,20 @@ function collectWarnings(input: CalculatorInput): string[] {
 
 // ─── 초기 상태 생성 ───
 export function createDefaultInput(grade: Grade = 'mid'): CalculatorInput {
-  const processes: ProcessUserState[] = db.processes.map(p => ({
-    id: p.id,
-    enabled: false, // 첫 접속 시 전부 OFF
-    selectedGrade: grade === 'basic' ? 'basic' : grade === 'premium' ? 'high' : 'mid',
-    count: getDefaultCount(p.id, 33, 'old20'),
-  }));
+  const processes: ProcessUserState[] = db.processes.map(p => {
+    const defaults = createItemDefaults(p, grade);
+    return {
+      id: p.id,
+      enabled: false,
+      count: getDefaultCount(p.id, 33, 'over20'),
+      ...defaults,
+    };
+  });
 
   return {
     basic: {
       area: 0,
       housingType: 'over20',
-      livingCondition: 'empty',
       grade,
       contingencyRate: db.config.contingency_rate,
       marginRate: db.config.margin_rate_range.min,
@@ -342,16 +564,20 @@ export function createDefaultInput(grade: Grade = 'mid'): CalculatorInput {
   };
 }
 
-// ─── 등급 변경 ───
+// ─── 등급 변경: 모든 아이템 선택을 새 등급 기본값으로 리셋 ───
 export function applyGradeChange(input: CalculatorInput, newGrade: Grade): CalculatorInput {
-  const dbGrade = newGrade === 'basic' ? 'basic' : newGrade === 'premium' ? 'high' : 'mid';
-
   return {
     basic: { ...input.basic, grade: newGrade },
-    processes: input.processes.map(ps => ({
-      ...ps,
-      selectedGrade: dbGrade,
-    })),
+    processes: input.processes.map(ps => {
+      const process = db.processes.find(p => p.id === ps.id);
+      if (!process) return ps;
+      const defaults = createItemDefaults(process, newGrade);
+      return {
+        ...ps,
+        itemSelections: defaults.itemSelections,
+        // Keep toggles, counts, dimensions, extras as-is (user customization)
+      };
+    }),
   };
 }
 

@@ -55,12 +55,15 @@ export default function GradeSelector({ value, onChange }: GradeSelectorProps) {
             <div className={`text-xs mt-0.5 ${value === opt.value ? 'text-cream/80' : 'text-gray-500'}`}>
               {opt.desc}
             </div>
-            <div className={`text-[10px] mt-1 ${value === opt.value ? 'text-cream/60' : 'text-gray-300'}`}>
+            <div className={`text-xs mt-1 ${value === opt.value ? 'text-cream/60' : 'text-gray-400'}`}>
               {opt.examples}
             </div>
           </button>
         ))}
       </div>
+      <p className="text-[10px] text-gray-400 mt-2 leading-relaxed">
+        등급을 선택하면 모든 공정의 기본 자재가 설정됩니다. 공정별로 개별 변경도 가능해요.
+      </p>
     </div>
   );
 }

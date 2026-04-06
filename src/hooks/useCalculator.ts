@@ -1,6 +1,6 @@
 /**
- * v3 계산기 상태 관리 훅
- * - ulmadna_db.json 기반 하이브리드 적산
+ * v4 계산기 상태 관리 훅
+ * - 아이템별 개별 선택 지원
  * - 등급/평수/유형 변경 → 자동 재계산
  * - localStorage 자동 저장/복원
  */
@@ -18,7 +18,7 @@ import {
   enableDefaultProcesses,
 } from '@/lib/calculator';
 
-const STORAGE_KEY = 'ulmadna-v3-input';
+const STORAGE_KEY = 'ulmadna-v4-input';
 
 interface CalculatorState {
   input: CalculatorInput;
@@ -30,7 +30,12 @@ function loadSavedInput(): CalculatorInput | null {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) return null;
-    return JSON.parse(saved) as CalculatorInput;
+    const parsed = JSON.parse(saved) as CalculatorInput;
+    // Validate v4 structure: check first process has itemSelections
+    if (parsed.processes?.[0] && !('itemSelections' in parsed.processes[0])) {
+      return null; // old v3 format, discard
+    }
+    return parsed;
   } catch {
     return null;
   }
@@ -59,7 +64,6 @@ function calculatorReducer(state: CalculatorState, action: CalculatorAction): Ca
   switch (action.type) {
     case 'SET_AREA': {
       newInput = applyAreaChange(state.input, action.payload);
-      // 평수 처음 선택 시 공정 자동 활성화
       if (state.input.basic.area === 0 && action.payload > 0) {
         newInput = enableDefaultProcesses(newInput);
       }
@@ -68,13 +72,6 @@ function calculatorReducer(state: CalculatorState, action: CalculatorAction): Ca
 
     case 'SET_HOUSING_TYPE':
       newInput = applyHousingTypeChange(state.input, action.payload);
-      break;
-
-    case 'SET_LIVING_CONDITION':
-      newInput = {
-        ...state.input,
-        basic: { ...state.input.basic, livingCondition: action.payload },
-      };
       break;
 
     case 'SET_GRADE':
@@ -104,23 +101,99 @@ function calculatorReducer(state: CalculatorState, action: CalculatorAction): Ca
       };
       break;
 
-    case 'SET_PROCESS_GRADE': {
-      const { processId, grade } = action.payload;
-      newInput = {
-        ...state.input,
-        processes: state.input.processes.map(p =>
-          p.id === processId ? { ...p, selectedGrade: grade } : p
-        ),
-      };
-      break;
-    }
-
     case 'SET_PROCESS_COUNT': {
       const { processId, count } = action.payload;
       newInput = {
         ...state.input,
         processes: state.input.processes.map(p =>
           p.id === processId ? { ...p, count } : p
+        ),
+      };
+      break;
+    }
+
+    case 'SET_ITEM_SELECTION': {
+      const { processId, itemId, grade } = action.payload;
+      newInput = {
+        ...state.input,
+        processes: state.input.processes.map(p =>
+          p.id === processId
+            ? { ...p, itemSelections: { ...p.itemSelections, [itemId]: grade } }
+            : p
+        ),
+      };
+      break;
+    }
+
+    case 'SET_ITEM_TOGGLE': {
+      const { processId, itemId, enabled } = action.payload;
+      newInput = {
+        ...state.input,
+        processes: state.input.processes.map(p =>
+          p.id === processId
+            ? { ...p, itemToggles: { ...p.itemToggles, [itemId]: enabled } }
+            : p
+        ),
+      };
+      break;
+    }
+
+    case 'SET_ITEM_COUNT': {
+      const { processId, itemId, count } = action.payload;
+      newInput = {
+        ...state.input,
+        processes: state.input.processes.map(p =>
+          p.id === processId
+            ? { ...p, itemCounts: { ...p.itemCounts, [itemId]: count } }
+            : p
+        ),
+      };
+      break;
+    }
+
+    case 'SET_DIMENSION': {
+      const { processId, key, value } = action.payload;
+      newInput = {
+        ...state.input,
+        processes: state.input.processes.map(p =>
+          p.id === processId
+            ? { ...p, dimensions: { ...p.dimensions, [key]: value } }
+            : p
+        ),
+      };
+      break;
+    }
+
+    case 'SET_CEILING_INCLUDED': {
+      const { processId, included } = action.payload;
+      newInput = {
+        ...state.input,
+        processes: state.input.processes.map(p =>
+          p.id === processId ? { ...p, ceilingIncluded: included } : p
+        ),
+      };
+      break;
+    }
+
+    case 'SET_DEMOLITION_INCLUDED': {
+      const { processId, included } = action.payload;
+      newInput = {
+        ...state.input,
+        processes: state.input.processes.map(p =>
+          p.id === processId ? { ...p, demolitionIncluded: included } : p
+        ),
+      };
+      break;
+    }
+
+    case 'SET_EXTRA_TOGGLE': {
+      const { processId, extraName, enabled } = action.payload;
+      newInput = {
+        ...state.input,
+        processes: state.input.processes.map(p =>
+          p.id === processId
+            ? { ...p, extraToggles: { ...p.extraToggles, [extraName]: enabled } }
+            : p
         ),
       };
       break;

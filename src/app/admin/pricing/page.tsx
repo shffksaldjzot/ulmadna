@@ -209,7 +209,7 @@ function ProcessCard({ process }: { process: DBProcess }) {
                   {process.extras.map((extra, i) => (
                     <tr key={i} className="border-t border-gray-50">
                       <td className="px-3 py-1.5 text-gray-700">{extra.name}</td>
-                      <td className="px-3 py-1.5 text-right font-mono text-brown">{formatRawWon(extra.price)}원</td>
+                      <td className="px-3 py-1.5 text-right font-mono text-brown">{formatRawWon(extra.price || extra.price_per_unit || 0)}원</td>
                     </tr>
                   ))}
                 </tbody>
