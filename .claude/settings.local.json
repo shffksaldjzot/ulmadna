@@ -25,7 +25,13 @@
       "WebFetch(domain:best79.com)",
       "WebFetch(domain:v.daum.net)",
       "WebFetch(domain:mint-latte.com)",
-      "Bash(npm ls:*)"
+      "Bash(npm ls:*)",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('src/data/items/electrical.json','utf8'\\)\\); console.log\\('electrical.json OK'\\)\")",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('src/data/items/aircon.json','utf8'\\)\\); console.log\\('aircon.json OK'\\)\")",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('src/data/items/window.json','utf8'\\)\\); console.log\\('window.json OK'\\)\")",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('src/data/items/woodwork.json','utf8'\\)\\); console.log\\('woodwork.json OK'\\)\")",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('src/data/items/tile.json','utf8'\\)\\); console.log\\('tile.json OK'\\)\")",
+      "Bash(npx tsc:*)"
     ]
   }
 }

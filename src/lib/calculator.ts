@@ -143,104 +143,9 @@ function calculateProcess(
   };
 }
 
-// ─── 숨은 비용 계산 ───
-function calculateHiddenCosts(processes: ProcessState[]): HiddenCost[] {
-  const costs: HiddenCost[] = [];
-
-  // 에어컨 (시스템에어컨 선택 시)
-  const airconState = processes.find(p => p.id === 'aircon');
-  if (airconState?.enabled) {
-    const type = airconState.fields['type']?.value;
-    if (type === 'system') {
-      costs.push({
-        category: '에어컨',
-        items: [
-          { label: '보양비', amount: 600000 },
-          { label: '전기공사', amount: 300000 },
-          { label: '앵글 설치', amount: 200000 },
-          { label: '스킬도배(단내림 부분)', amount: 300000 },
-          { label: '난간 설치(필요 시)', amount: 100000 },
-        ],
-        total: 1500000,
-      });
-    }
-  }
-
-  // 창호/샷시 (전체교체 선택 시)
-  const windowState = processes.find(p => p.id === 'window');
-  if (windowState?.enabled) {
-    const scope = windowState.fields['scope']?.value;
-    if (scope === 'full') {
-      costs.push({
-        category: '창호(샷시)',
-        items: [
-          { label: '실측비', amount: 330000 },
-          { label: '양중비', amount: 330000 },
-          { label: '철거비', amount: 330000 },
-          { label: '통바', amount: 330000 },
-        ],
-        total: 1320000,
-      });
-    }
-  }
-
-  // 타일 (욕실/주방 타일 선택 시)
-  const tileState = processes.find(p => p.id === 'tile');
-  if (tileState?.enabled) {
-    costs.push({
-      category: '타일',
-      items: [
-        { label: '타일 양중비', amount: 265000 },
-        { label: '부자재(모래/시멘트/본드)', amount: 250000 },
-      ],
-      total: 515000,
-    });
-  }
-
-  // 부대비용 (대부분 자동 발생)
-  const overheadState = processes.find(p => p.id === 'overhead');
-  if (overheadState?.enabled) {
-    costs.push({
-      category: '부대비용',
-      items: [
-        { label: '엘리베이터 사용료(관리실 규정)', amount: 200000 },
-        { label: '사다리차(필요 시)', amount: 250000 },
-        { label: '자재 양중비', amount: 650000 },
-      ],
-      total: 1100000,
-    });
-  }
-
-  // 목공 (자동 발생 비용)
-  const woodworkState = processes.find(p => p.id === 'woodwork');
-  if (woodworkState?.enabled) {
-    costs.push({
-      category: '목공',
-      items: [
-        { label: '장비대/공구손료', amount: 180000 },
-        { label: '운송비', amount: 30000 },
-      ],
-      total: 210000,
-    });
-  }
-
-  // 확장공사 (선택 시)
-  const expansionState = processes.find(p => p.id === 'expansion');
-  if (expansionState?.enabled) {
-    const count = expansionState.fields['count']?.value;
-    if (typeof count === 'number' && count > 0) {
-      costs.push({
-        category: '확장공사',
-        items: [
-          { label: '확장 허가비용(관할 구청)', amount: 0 },
-          { label: '스프링클러 이동(필요 시)', amount: 300000 },
-        ],
-        total: 300000,
-      });
-    }
-  }
-
-  return costs.filter(c => c.total > 0);
+// ─── 숨은 비용 계산 (데이터가 각 공정 JSON에 통합됨) ───
+function calculateHiddenCosts(): HiddenCost[] {
+  return [];
 }
 
 // ─── 경고 수집 ───
@@ -289,7 +194,7 @@ export function calculate(input: CalculatorInput): CalculatorOutput {
   const total = subtotal + contingency;
   const perPyeong = input.basic.area > 0 ? Math.round(total / input.basic.area) : 0;
 
-  const hiddenCosts = calculateHiddenCosts(input.processes);
+  const hiddenCosts = calculateHiddenCosts();
   const warnings = collectWarnings(input.processes);
   const rationality = evaluateRationality(perPyeong, input.basic.grade);
 

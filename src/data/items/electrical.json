@@ -13,7 +13,7 @@
       "options": [
         { "id": "nano", "label": "나노 스위치", "price": 4000, "defaultGrade": { "basic": true, "mid": true, "premium": false } },
         { "id": "appella", "label": "아펠라 스위치", "price": 10000, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
-        { "id": "jung", "label": "정 스위치", "price": 60000, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+        { "id": "jung", "label": "융 LS990 (유럽형)", "price": 60000, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
       ],
       "multiplier": true
     },
@@ -62,7 +62,7 @@
     },
     {
       "id": "jung_box_upgrade",
-      "label": "정 박스 업그레이드",
+      "label": "융 박스 업그레이드",
       "input": "stepper",
       "level": 3,
       "min": 0,

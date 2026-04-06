@@ -146,6 +146,20 @@
       "input": "toggle",
       "level": 3,
       "price": 200000
+    },
+    {
+      "id": "tool_fee",
+      "label": "장비대/공구손료",
+      "input": "toggle",
+      "level": 3,
+      "price": 180000
+    },
+    {
+      "id": "transport_fee",
+      "label": "운송비",
+      "input": "toggle",
+      "level": 3,
+      "price": 30000
     }
   ]
 }

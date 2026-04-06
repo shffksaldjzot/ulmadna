@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import type { ProcessField, FieldValue, Grade } from '@/types/calculator';
 
 interface FieldRendererProps {
@@ -7,6 +8,26 @@ interface FieldRendererProps {
   value: FieldValue | undefined;
   grade: Grade;
   onChange: (fieldId: string, value: string | number | boolean) => void;
+}
+
+function DescriptionTooltip({ description }: { description: string }) {
+  const [show, setShow] = useState(false);
+
+  return (
+    <>
+      <button
+        onClick={() => setShow(!show)}
+        className="w-4 h-4 rounded-full bg-gray-200 text-gray-500 text-[10px] flex-shrink-0 flex items-center justify-center hover:bg-gold hover:text-white transition-colors"
+      >
+        ?
+      </button>
+      {show && (
+        <div className="mt-1 bg-cream rounded-lg p-2 text-[11px] text-gray-500 leading-relaxed w-full">
+          {description}
+        </div>
+      )}
+    </>
+  );
 }
 
 /**
@@ -20,7 +41,10 @@ export default function FieldRenderer({ field, value, onChange }: FieldRendererP
     case 'radio':
       return (
         <div className="mb-2">
-          <p className="text-xs text-gray-500 mb-1.5">{field.label}</p>
+          <div className="flex items-center gap-1 mb-1.5">
+            <p className="text-xs text-gray-500">{field.label}</p>
+            {field.description && <DescriptionTooltip description={field.description} />}
+          </div>
           <div className="flex flex-wrap gap-1.5">
             {field.options?.map(opt => (
               <button
@@ -48,86 +72,95 @@ export default function FieldRenderer({ field, value, onChange }: FieldRendererP
 
     case 'toggle':
       return (
-        <div className="flex items-center justify-between py-1.5">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-600">{field.label}</span>
-            {field.price && field.price > 0 && (
-              <span className="text-[10px] text-gray-300">
-                {(field.price / 10000).toFixed(0)}만
-              </span>
-            )}
+        <div className="py-1.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-600">{field.label}</span>
+              {field.description && <DescriptionTooltip description={field.description} />}
+              {field.price && field.price > 0 && (
+                <span className="text-[10px] text-gray-300">
+                  {(field.price / 10000).toFixed(0)}만
+                </span>
+              )}
+            </div>
+            <button
+              onClick={() => onChange(field.id, !currentValue)}
+              className={`w-9 h-5 rounded-full transition-colors ${
+                currentValue ? 'bg-brown' : 'bg-gray-300'
+              }`}
+            >
+              <div className={`w-4 h-4 bg-white rounded-full shadow mt-0.5 transition-transform ${
+                currentValue ? 'translate-x-4 ml-0.5' : 'ml-0.5'
+              }`} />
+            </button>
           </div>
-          <button
-            onClick={() => onChange(field.id, !currentValue)}
-            className={`w-9 h-5 rounded-full transition-colors ${
-              currentValue ? 'bg-brown' : 'bg-gray-300'
-            }`}
-          >
-            <div className={`w-4 h-4 bg-white rounded-full shadow mt-0.5 transition-transform ${
-              currentValue ? 'translate-x-4 ml-0.5' : 'ml-0.5'
-            }`} />
-          </button>
         </div>
       );
 
     case 'stepper':
       return (
-        <div className="flex items-center justify-between py-1.5">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-600">{field.label}</span>
-            {field.price && field.price > 0 && (
-              <span className="text-[10px] text-gray-300">
-                {(field.price / 10000).toFixed(0)}만/개
+        <div className="py-1.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-600">{field.label}</span>
+              {field.description && <DescriptionTooltip description={field.description} />}
+              {field.price && field.price > 0 && (
+                <span className="text-[10px] text-gray-300">
+                  {(field.price / 10000).toFixed(0)}만/개
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => {
+                  const cur = typeof currentValue === 'number' ? currentValue : field.default || 0;
+                  if (cur > (field.min ?? 0)) onChange(field.id, cur - 1);
+                }}
+                className="w-7 h-7 rounded-full border border-gray-200 text-gray-400 text-sm flex items-center justify-center hover:border-gold"
+              >
+                −
+              </button>
+              <span className="w-8 text-center text-sm font-medium text-brown">
+                {typeof currentValue === 'number' ? currentValue : field.default || 0}
               </span>
-            )}
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => {
-                const cur = typeof currentValue === 'number' ? currentValue : field.default || 0;
-                if (cur > (field.min ?? 0)) onChange(field.id, cur - 1);
-              }}
-              className="w-7 h-7 rounded-full border border-gray-200 text-gray-400 text-sm flex items-center justify-center hover:border-gold"
-            >
-              −
-            </button>
-            <span className="w-8 text-center text-sm font-medium text-brown">
-              {typeof currentValue === 'number' ? currentValue : field.default || 0}
-            </span>
-            <button
-              onClick={() => {
-                const cur = typeof currentValue === 'number' ? currentValue : field.default || 0;
-                if (cur < (field.max ?? 99)) onChange(field.id, cur + 1);
-              }}
-              className="w-7 h-7 rounded-full border border-gray-200 text-gray-400 text-sm flex items-center justify-center hover:border-gold"
-            >
-              +
-            </button>
+              <button
+                onClick={() => {
+                  const cur = typeof currentValue === 'number' ? currentValue : field.default || 0;
+                  if (cur < (field.max ?? 99)) onChange(field.id, cur + 1);
+                }}
+                className="w-7 h-7 rounded-full border border-gray-200 text-gray-400 text-sm flex items-center justify-center hover:border-gold"
+              >
+                +
+              </button>
+            </div>
           </div>
         </div>
       );
 
     case 'checkbox':
       return (
-        <div className="flex items-center justify-between py-1.5">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-600">{field.label}</span>
-            {field.price && field.price > 0 && (
-              <span className="text-[10px] text-gray-300">
-                {(field.price / 10000).toFixed(0)}만
-              </span>
-            )}
+        <div className="py-1.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-600">{field.label}</span>
+              {field.description && <DescriptionTooltip description={field.description} />}
+              {field.price && field.price > 0 && (
+                <span className="text-[10px] text-gray-300">
+                  {(field.price / 10000).toFixed(0)}만
+                </span>
+              )}
+            </div>
+            <button
+              onClick={() => onChange(field.id, !currentValue)}
+              className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+                currentValue
+                  ? 'bg-brown border-brown text-white'
+                  : 'border-gray-300 hover:border-gold'
+              }`}
+            >
+              {currentValue && <span className="text-[10px]">✓</span>}
+            </button>
           </div>
-          <button
-            onClick={() => onChange(field.id, !currentValue)}
-            className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
-              currentValue
-                ? 'bg-brown border-brown text-white'
-                : 'border-gray-300 hover:border-gold'
-            }`}
-          >
-            {currentValue && <span className="text-[10px]">✓</span>}
-          </button>
         </div>
       );
 

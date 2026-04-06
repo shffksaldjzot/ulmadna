@@ -98,11 +98,17 @@
     },
     {
       "id": "tile_transport",
-      "label": "타일 운반비",
+      "label": "타일 양중비",
       "input": "toggle",
       "level": 3,
-      "price": 265000,
-      "auto": true
+      "price": 265000
+    },
+    {
+      "id": "tile_supplies",
+      "label": "부자재(모래/시멘트/본드)",
+      "input": "toggle",
+      "level": 3,
+      "price": 250000
     }
   ]
 }

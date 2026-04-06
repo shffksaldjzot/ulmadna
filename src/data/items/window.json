@@ -61,12 +61,32 @@
       "multiplier": true
     },
     {
-      "id": "hidden_cost",
-      "label": "실측비+양중비+철거비+통바",
+      "id": "survey_fee",
+      "label": "실측비",
       "input": "toggle",
       "level": 3,
-      "price": 1320000,
-      "auto": true
+      "price": 330000
+    },
+    {
+      "id": "transport_fee",
+      "label": "양중비",
+      "input": "toggle",
+      "level": 3,
+      "price": 330000
+    },
+    {
+      "id": "demolition_fee",
+      "label": "철거비",
+      "input": "toggle",
+      "level": 3,
+      "price": 330000
+    },
+    {
+      "id": "tongba",
+      "label": "통바",
+      "input": "toggle",
+      "level": 3,
+      "price": 330000
     }
   ]
 }

@@ -41,49 +41,39 @@
       "dependsOn": "type"
     },
     {
-      "id": "protection",
-      "label": "에어컨 양중/보양",
+      "id": "protection_fee",
+      "label": "보양비",
       "input": "toggle",
       "level": 3,
-      "price": 600000,
-      "auto": true,
-      "dependsOn": "type"
+      "price": 600000
     },
     {
-      "id": "electrical",
-      "label": "에어컨 전기공사",
+      "id": "electrical_work",
+      "label": "전기공사",
       "input": "toggle",
       "level": 3,
-      "price": 300000,
-      "auto": true,
-      "dependsOn": "type"
+      "price": 300000
     },
     {
-      "id": "angle",
+      "id": "angle_install",
       "label": "앵글 설치",
       "input": "toggle",
       "level": 3,
-      "price": 200000,
-      "auto": true,
-      "dependsOn": "type"
+      "price": 200000
     },
     {
       "id": "skill_wallpaper",
-      "label": "에어컨 도배 보수",
+      "label": "스킬도배(단내림)",
       "input": "toggle",
       "level": 3,
-      "price": 300000,
-      "auto": true,
-      "dependsOn": "type"
+      "price": 300000
     },
     {
       "id": "railing",
-      "label": "난간 작업",
+      "label": "난간 설치",
       "input": "toggle",
       "level": 3,
-      "price": 100000,
-      "auto": true,
-      "dependsOn": "type"
+      "price": 100000
     }
   ]
 }

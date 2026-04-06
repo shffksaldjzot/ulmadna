@@ -35,6 +35,7 @@ export interface ProcessField {
   auto?: boolean;
   dependsOn?: string;
   warning?: string;
+  description?: string;
 }
 
 export interface ProcessData {

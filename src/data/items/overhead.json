@@ -79,18 +79,17 @@
     },
     {
       "id": "ladder_truck",
-      "label": "사다리차",
+      "label": "사다리차(필요 시)",
       "input": "toggle",
-      "level": 2,
+      "level": 3,
       "price": 250000
     },
     {
       "id": "material_transport",
-      "label": "자재 운반비",
+      "label": "자재 양중비",
       "input": "toggle",
-      "level": 2,
-      "price": 650000,
-      "auto": true
+      "level": 3,
+      "price": 650000
     }
   ]
 }
