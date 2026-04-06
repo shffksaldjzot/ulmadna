@@ -18,7 +18,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       token: {
         url: 'https://kauth.kakao.com/oauth/token',
-        async request({ params, provider }) {
+        async request({ params, provider }: any) {
           const body = new URLSearchParams({
             grant_type: 'authorization_code',
             client_id: kakaoClientId,
