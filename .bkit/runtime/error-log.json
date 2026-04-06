@@ -7,5 +7,14 @@
     "agentId": null,
     "agentType": null,
     "message": ""
+  },
+  {
+    "timestamp": "2026-04-06T08:17:38.689Z",
+    "errorType": "unknown",
+    "category": "unknown",
+    "severity": "low",
+    "agentId": null,
+    "agentType": null,
+    "message": ""
   }
 ]
