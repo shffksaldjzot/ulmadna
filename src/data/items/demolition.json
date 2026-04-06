@@ -1,0 +1,82 @@
+{
+  "id": "demolition",
+  "name": "철거",
+  "order": 1,
+  "version": "1.0",
+  "defaultOn": true,
+  "fields": [
+    {
+      "id": "demolition_scope",
+      "label": "철거 범위",
+      "input": "radio",
+      "level": 2,
+      "options": [
+        { "id": "partial", "label": "부분 철거", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "full", "label": "전체 철거", "price": 0, "defaultGrade": { "basic": false, "mid": true, "premium": true } }
+      ]
+    },
+    {
+      "id": "floor_material",
+      "label": "바닥재 철거",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "jangpan", "label": "장판", "price": 20000, "defaultGrade": { "basic": true, "mid": true, "premium": false } },
+        { "id": "maru_plywood", "label": "마루(합판)", "price": 35000, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "maru_mdf", "label": "마루(MDF)", "price": 55000, "defaultGrade": { "basic": false, "mid": false, "premium": true } },
+        { "id": "tile", "label": "타일", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ],
+      "multiplier": true
+    },
+    {
+      "id": "bathroom_demo",
+      "label": "욕실 철거",
+      "input": "stepper",
+      "level": 3,
+      "min": 0,
+      "max": 3,
+      "default": 2,
+      "price": 900000,
+      "multiplier": true
+    },
+    {
+      "id": "kitchen_demo",
+      "label": "주방 철거",
+      "input": "toggle",
+      "level": 3,
+      "price": 500000
+    },
+    {
+      "id": "furniture_demo",
+      "label": "붙박이장 철거",
+      "input": "toggle",
+      "level": 3,
+      "price": 300000
+    },
+    {
+      "id": "gas_pipe",
+      "label": "가스배관 철거",
+      "input": "toggle",
+      "level": 3,
+      "price": 150000
+    },
+    {
+      "id": "mold_removal",
+      "label": "곰팡이 제거",
+      "input": "toggle",
+      "level": 3,
+      "price": 300000
+    },
+    {
+      "id": "waste_disposal",
+      "label": "폐기물 처리",
+      "input": "stepper",
+      "level": 3,
+      "min": 1,
+      "max": 5,
+      "default": 2,
+      "price": 400000,
+      "multiplier": true
+    }
+  ]
+}

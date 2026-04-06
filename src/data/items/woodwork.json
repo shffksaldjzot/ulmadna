@@ -1,0 +1,151 @@
+{
+  "id": "woodwork",
+  "name": "목공",
+  "order": 5,
+  "version": "1.0",
+  "defaultOn": true,
+  "fields": [
+    {
+      "id": "ceiling",
+      "label": "천장 작업",
+      "input": "radio",
+      "level": 2,
+      "options": [
+        { "id": "keep", "label": "기존 유지", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "coffered", "label": "우물천장", "price": 650000, "defaultGrade": { "basic": false, "mid": false, "premium": true } },
+        { "id": "flatten", "label": "평천장", "price": 240000, "defaultGrade": { "basic": false, "mid": true, "premium": false } }
+      ]
+    },
+    {
+      "id": "molding",
+      "label": "몰딩",
+      "input": "radio",
+      "level": 2,
+      "options": [
+        { "id": "pvc", "label": "PVC 몰딩", "price": 1500, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "mdf", "label": "MDF 몰딩", "price": 3000, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "minus", "label": "마이너스 몰딩", "price": 4000, "defaultGrade": { "basic": false, "mid": false, "premium": true } },
+        { "id": "none", "label": "몰딩 없음", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ],
+      "multiplier": true
+    },
+    {
+      "id": "door_count",
+      "label": "방문 개수",
+      "input": "stepper",
+      "level": 2,
+      "min": 0,
+      "max": 6,
+      "default": 5,
+      "price": 0,
+      "multiplier": true
+    },
+    {
+      "id": "aircon_lowering",
+      "label": "에어컨 배관 하강",
+      "input": "stepper",
+      "level": 2,
+      "min": 0,
+      "max": 3,
+      "default": 0,
+      "price": 600000,
+      "multiplier": true
+    },
+    {
+      "id": "tv_recess",
+      "label": "TV 매립",
+      "input": "toggle",
+      "level": 3,
+      "price": 460000
+    },
+    {
+      "id": "ceiling_molding",
+      "label": "천장 몰딩 종류",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "pvc", "label": "PVC", "price": 1500, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "mdf", "label": "MDF", "price": 3000, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "minus", "label": "마이너스", "price": 4000, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ],
+      "multiplier": true
+    },
+    {
+      "id": "baseboard",
+      "label": "걸레받이 종류",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "pvc", "label": "PVC", "price": 1500, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "mdf", "label": "MDF", "price": 3000, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "minus", "label": "마이너스", "price": 4000, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ],
+      "multiplier": true
+    },
+    {
+      "id": "door_brand",
+      "label": "방문 브랜드",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "abs", "label": "ABS 도어", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "youngrim", "label": "영림 도어", "price": 170000, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "lx", "label": "LX 도어", "price": 290000, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ],
+      "multiplier": true
+    },
+    {
+      "id": "door_frame",
+      "label": "문틀 교체",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "keep", "label": "기존 유지", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "9mm", "label": "9mm 덧씌우기", "price": 37500, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "full", "label": "전체 교체", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ],
+      "multiplier": true
+    },
+    {
+      "id": "partition",
+      "label": "파티션/벽체",
+      "input": "stepper",
+      "level": 3,
+      "min": 0,
+      "max": 3,
+      "default": 0,
+      "price": 0,
+      "multiplier": true
+    },
+    {
+      "id": "partition_method",
+      "label": "벽체 공법",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "wood", "label": "목재 벽체", "price": 400000, "defaultGrade": { "basic": true, "mid": true, "premium": false } },
+        { "id": "lgs", "label": "경량 스틸", "price": 550000, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ],
+      "multiplier": true,
+      "dependsOn": "partition"
+    },
+    {
+      "id": "artwall",
+      "label": "아트월",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "none", "label": "없음", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "plaster", "label": "석고 아트월", "price": 1200000, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "tile", "label": "타일 아트월", "price": 1500000, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ]
+    },
+    {
+      "id": "insulation_wall",
+      "label": "단열벽 보강",
+      "input": "toggle",
+      "level": 3,
+      "price": 200000
+    }
+  ]
+}

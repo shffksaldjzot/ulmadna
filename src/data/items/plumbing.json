@@ -1,0 +1,67 @@
+{
+  "id": "plumbing",
+  "name": "설비/배관",
+  "order": 2,
+  "version": "1.0",
+  "defaultOn": true,
+  "fields": [
+    {
+      "id": "scope",
+      "label": "배관 범위",
+      "input": "radio",
+      "level": 2,
+      "options": [
+        { "id": "basic", "label": "기본 배관", "price": 300000, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "nipple_only", "label": "니플 교체만", "price": 150000, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "bathroom_included", "label": "욕실 포함", "price": 0, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "full", "label": "전체 배관", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ]
+    },
+    {
+      "id": "basic_plumbing",
+      "label": "기본 설비",
+      "input": "toggle",
+      "level": 3,
+      "price": 300000
+    },
+    {
+      "id": "bathroom_pipe_move",
+      "label": "욕실 배관 이동",
+      "input": "stepper",
+      "level": 3,
+      "min": 0,
+      "max": 2,
+      "default": 0,
+      "price": 900000,
+      "multiplier": true
+    },
+    {
+      "id": "kitchen_pipe",
+      "label": "주방 배관",
+      "input": "toggle",
+      "level": 3,
+      "price": 250000
+    },
+    {
+      "id": "laundry_pipe",
+      "label": "세탁기 배관",
+      "input": "toggle",
+      "level": 3,
+      "price": 550000
+    },
+    {
+      "id": "laundry_vibration",
+      "label": "세탁기 방진",
+      "input": "toggle",
+      "level": 3,
+      "price": 380000
+    },
+    {
+      "id": "gas_pipe",
+      "label": "가스 배관",
+      "input": "toggle",
+      "level": 3,
+      "price": 200000
+    }
+  ]
+}

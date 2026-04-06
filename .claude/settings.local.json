@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(bkit:pdca)",
+      "Bash(npx next:*)",
+      "Bash(npm install:*)",
+      "Bash(npx kill-port:*)",
+      "Bash(taskkill //F //FI \"WINDOWTITLE eq node*\")",
+      "Bash(netstat -ano)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/)",
+      "Bash(node -e ':*)",
+      "Bash(python -m json.tool demolition.json)",
+      "Bash(node -e \"const fs=require\\('fs'\\); const files=fs.readdirSync\\('.'\\).filter\\(f=>f.endsWith\\('.json'\\)\\); let ok=0,fail=0; files.forEach\\(f=>{try{JSON.parse\\(fs.readFileSync\\(f,'utf8'\\)\\);ok++;console.log\\('OK:',f\\)}catch\\(e\\){fail++;console.log\\('FAIL:',f,e.message\\)}}\\); console.log\\(ok+' OK,',fail+' FAIL'\\)\")",
+      "Bash(ls -la *.json)",
+      "Bash(node -e 'try { const d = require\\('\\\\''./__TRACKED_VAR__'\\\\''\\); console.log\\('\\\\''✅'\\\\'', d.id, '\\\\''-'\\\\'', d.name, '\\\\''\\('\\\\'' + \\(d.fields?.length || 0\\) + '\\\\'' fields\\)'\\\\''\\); } catch\\(e\\) { console.log\\('\\\\''❌'\\\\'', '\\\\''__TRACKED_VAR__'\\\\'', e.message\\); }')",
+      "Bash(ls -la \"C:/Users/addmim/Desktop/도토리스튜디오/4.인테리어/ulmadna\"/image*)",
+      "Bash(ls -lt \"C:/Users/addmim/Desktop/도토리스튜디오/4.인테리어/ulmadna\"/Screenshot*)",
+      "Bash(npm i:*)",
+      "Bash(vercel:*)"
+    ]
+  }
+}

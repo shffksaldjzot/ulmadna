@@ -1,0 +1,59 @@
+{
+  "id": "intercom",
+  "name": "인터폰/도어락",
+  "order": 7,
+  "version": "1.0",
+  "defaultOn": true,
+  "fields": [
+    {
+      "id": "scope",
+      "label": "인터폰/도어락 범위",
+      "input": "radio",
+      "level": 2,
+      "options": [
+        { "id": "none", "label": "교체 안함", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "doorlock_only", "label": "도어락만", "price": 0, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "set", "label": "세트 교체", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ]
+    },
+    {
+      "id": "doorlock_type",
+      "label": "도어락 종류",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "number", "label": "번호키", "price": 130000, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "card", "label": "카드키", "price": 200000, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "fingerprint", "label": "지문인식", "price": 320000, "defaultGrade": { "basic": false, "mid": false, "premium": true } },
+        { "id": "pushpull", "label": "푸시풀", "price": 400000, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ],
+      "dependsOn": "scope"
+    },
+    {
+      "id": "doorlock_install",
+      "label": "도어락 설치비",
+      "input": "toggle",
+      "level": 3,
+      "price": 75000,
+      "auto": true,
+      "dependsOn": "scope"
+    },
+    {
+      "id": "videophone",
+      "label": "비디오폰",
+      "input": "toggle",
+      "level": 3,
+      "price": 250000,
+      "dependsOn": "scope"
+    },
+    {
+      "id": "videophone_install",
+      "label": "비디오폰 설치비",
+      "input": "toggle",
+      "level": 3,
+      "price": 125000,
+      "auto": true,
+      "dependsOn": "videophone"
+    }
+  ]
+}

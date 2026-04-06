@@ -1,0 +1,126 @@
+{
+  "id": "furniture",
+  "name": "가구",
+  "order": 14,
+  "version": "1.0",
+  "defaultOn": true,
+  "fields": [
+    {
+      "id": "closet",
+      "label": "붙박이장",
+      "input": "stepper",
+      "level": 2,
+      "min": 0,
+      "max": 4,
+      "default": 2,
+      "price": 0,
+      "multiplier": true
+    },
+    {
+      "id": "shoe_cabinet",
+      "label": "신발장",
+      "input": "checkbox",
+      "level": 2,
+      "price": 0
+    },
+    {
+      "id": "dressroom",
+      "label": "드레스룸",
+      "input": "checkbox",
+      "level": 2,
+      "price": 0
+    },
+    {
+      "id": "living_cabinet",
+      "label": "거실장",
+      "input": "checkbox",
+      "level": 2,
+      "price": 700000
+    },
+    {
+      "id": "closet_scope",
+      "label": "붙박이장 범위",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "door_only", "label": "도어만 교체", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "new", "label": "새로 제작", "price": 0, "defaultGrade": { "basic": false, "mid": true, "premium": true } }
+      ],
+      "dependsOn": "closet"
+    },
+    {
+      "id": "closet_door_brand",
+      "label": "붙박이장 도어 브랜드",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "youngrim", "label": "영림", "price": 170000, "defaultGrade": { "basic": true, "mid": true, "premium": false } },
+        { "id": "yerim_pet", "label": "예림 PET", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "lx", "label": "LX", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ],
+      "multiplier": true,
+      "dependsOn": "closet"
+    },
+    {
+      "id": "shoe_type",
+      "label": "신발장 종류",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "basic", "label": "기본형", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "bottom_open", "label": "하부 오픈형", "price": 700000, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "sensor", "label": "센서등 포함", "price": 800000, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ],
+      "dependsOn": "shoe_cabinet"
+    },
+    {
+      "id": "dressroom_type",
+      "label": "드레스룸 종류",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "system_hanger", "label": "시스템 행거", "price": 600000, "defaultGrade": { "basic": true, "mid": true, "premium": false } },
+        { "id": "closet_hanger", "label": "붙박이 행거", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "walkin", "label": "워크인", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ],
+      "dependsOn": "dressroom"
+    },
+    {
+      "id": "balcony_storage",
+      "label": "발코니 다용도장",
+      "input": "stepper",
+      "level": 3,
+      "min": 0,
+      "max": 3,
+      "default": 0,
+      "price": 685000,
+      "multiplier": true
+    },
+    {
+      "id": "storage_door",
+      "label": "다용도 도어",
+      "input": "stepper",
+      "level": 3,
+      "min": 0,
+      "max": 3,
+      "default": 0,
+      "price": 80000,
+      "multiplier": true,
+      "dependsOn": "balcony_storage"
+    },
+    {
+      "id": "boiler_door",
+      "label": "보일러실 도어",
+      "input": "toggle",
+      "level": 3,
+      "price": 200000
+    },
+    {
+      "id": "vanity",
+      "label": "화장대",
+      "input": "toggle",
+      "level": 3,
+      "price": 910000
+    }
+  ]
+}

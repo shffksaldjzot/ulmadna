@@ -1,0 +1,781 @@
+{
+  "version": "3.0",
+  "lastUpdated": "2026-04-06T00:15:41.506Z",
+  "activeFeatures": [
+    "ulmadna",
+    "inputs",
+    "calculator",
+    "results",
+    "actions",
+    "estimates",
+    "layout",
+    "admin",
+    "pricing",
+    "banners",
+    "partners",
+    "settings"
+  ],
+  "primaryFeature": "ulmadna",
+  "features": {
+    "ulmadna": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-04-05T10:52:03.330Z",
+        "lastUpdated": "2026-04-06T00:15:41.504Z"
+      },
+      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\lib\\pdf-generator.ts"
+    },
+    "inputs": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-04-05T10:59:19.754Z",
+        "lastUpdated": "2026-04-06T00:11:30.572Z"
+      },
+      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\components\\calculator\\inputs\\AreaSelector.tsx"
+    },
+    "calculator": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-04-05T11:01:09.780Z",
+        "lastUpdated": "2026-04-06T00:15:13.509Z"
+      },
+      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\components\\calculator\\ResultPanel.tsx"
+    },
+    "results": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-04-05T11:01:24.261Z",
+        "lastUpdated": "2026-04-06T00:14:43.368Z"
+      },
+      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\components\\calculator\\results\\ContingencySelector.tsx"
+    },
+    "actions": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-04-05T11:25:24.350Z",
+        "lastUpdated": "2026-04-05T23:58:40.493Z"
+      },
+      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\components\\calculator\\actions\\KakaoShare.tsx"
+    },
+    "estimates": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-04-05T11:33:01.328Z",
+        "lastUpdated": "2026-04-05T11:35:37.599Z"
+      },
+      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\app\\api\\estimates\\route.ts"
+    },
+    "layout": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-04-05T11:34:11.481Z",
+        "lastUpdated": "2026-04-05T11:34:11.481Z"
+      },
+      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\components\\layout\\Analytics.tsx"
+    },
+    "admin": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-04-05T11:53:19.259Z",
+        "lastUpdated": "2026-04-05T11:53:53.034Z"
+      },
+      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\app\\admin\\page.tsx"
+    },
+    "pricing": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-04-05T11:54:17.905Z",
+        "lastUpdated": "2026-04-05T11:54:17.905Z"
+      },
+      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\app\\admin\\pricing\\page.tsx"
+    },
+    "banners": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-04-05T11:54:38.872Z",
+        "lastUpdated": "2026-04-05T11:54:38.872Z"
+      },
+      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\app\\admin\\banners\\page.tsx"
+    },
+    "partners": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-04-05T11:54:53.718Z",
+        "lastUpdated": "2026-04-05T11:54:53.718Z"
+      },
+      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\app\\admin\\partners\\page.tsx"
+    },
+    "settings": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-04-05T11:55:14.483Z",
+        "lastUpdated": "2026-04-05T11:55:14.483Z"
+      },
+      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\app\\admin\\settings\\page.tsx"
+    }
+  },
+  "pipeline": {
+    "currentPhase": 1,
+    "level": "Dynamic",
+    "phaseHistory": []
+  },
+  "session": {
+    "startedAt": "2026-04-05T10:02:32.426Z",
+    "onboardingCompleted": false,
+    "lastActivity": "2026-04-06T00:15:41.506Z"
+  },
+  "history": [
+    {
+      "timestamp": "2026-04-05T10:52:03.389Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T10:52:21.005Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T10:52:55.937Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T10:53:34.190Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T10:54:06.558Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T10:54:20.559Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T10:55:12.585Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T10:59:19.756Z",
+      "feature": "inputs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T10:59:28.951Z",
+      "feature": "inputs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T10:59:39.391Z",
+      "feature": "inputs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T10:59:52.793Z",
+      "feature": "inputs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:00:01.298Z",
+      "feature": "inputs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:00:57.285Z",
+      "feature": "inputs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:01:09.782Z",
+      "feature": "calculator",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:01:24.263Z",
+      "feature": "results",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:01:36.464Z",
+      "feature": "results",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:01:46.061Z",
+      "feature": "results",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:01:58.479Z",
+      "feature": "results",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:02:08.505Z",
+      "feature": "results",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:02:21.053Z",
+      "feature": "results",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:02:37.768Z",
+      "feature": "calculator",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:02:51.637Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:03:53.213Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:05:56.218Z",
+      "feature": "results",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:06:14.886Z",
+      "feature": "results",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:06:36.343Z",
+      "feature": "results",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:07:05.207Z",
+      "feature": "results",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:24:32.661Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:25:01.223Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:25:15.315Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:25:24.351Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:25:30.483Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:25:43.358Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:25:57.632Z",
+      "feature": "calculator",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:32:37.897Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:32:42.868Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:33:01.329Z",
+      "feature": "estimates",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:33:06.600Z",
+      "feature": "estimates",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:33:18.136Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:33:27.280Z",
+      "feature": "calculator",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:33:33.121Z",
+      "feature": "calculator",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:34:00.800Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:34:05.235Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:34:11.483Z",
+      "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:34:19.786Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:34:23.794Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:34:57.425Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:35:06.727Z",
+      "feature": "estimates",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:35:12.682Z",
+      "feature": "estimates",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:35:37.601Z",
+      "feature": "estimates",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:38:05.544Z",
+      "feature": "inputs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:38:54.520Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:39:13.345Z",
+      "feature": "calculator",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:39:41.173Z",
+      "feature": "calculator",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:52:32.516Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:52:37.497Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:53:19.260Z",
+      "feature": "admin",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:53:53.035Z",
+      "feature": "admin",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:54:17.906Z",
+      "feature": "pricing",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:54:38.874Z",
+      "feature": "banners",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:54:53.720Z",
+      "feature": "partners",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:55:14.485Z",
+      "feature": "settings",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:55:38.155Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:55:46.370Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T11:55:52.245Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T23:54:02.684Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T23:54:50.852Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T23:55:00.796Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T23:55:17.066Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T23:58:40.495Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T23:58:45.437Z",
+      "feature": "calculator",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T23:58:52.794Z",
+      "feature": "calculator",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T23:58:57.954Z",
+      "feature": "calculator",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T23:59:06.146Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T23:59:11.584Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T23:59:16.331Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T23:59:21.291Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T23:59:31.513Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T23:59:40.370Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-05T23:59:48.345Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T00:00:25.471Z",
+      "feature": "calculator",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T00:00:42.663Z",
+      "feature": "inputs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T00:00:48.124Z",
+      "feature": "inputs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T00:01:06.044Z",
+      "feature": "inputs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T00:01:11.200Z",
+      "feature": "inputs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T00:01:21.877Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T00:02:11.861Z",
+      "feature": "results",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T00:10:41.504Z",
+      "feature": "inputs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T00:11:08.102Z",
+      "feature": "inputs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T00:11:20.951Z",
+      "feature": "calculator",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T00:11:30.573Z",
+      "feature": "inputs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T00:14:32.329Z",
+      "feature": "results",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T00:14:43.370Z",
+      "feature": "results",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T00:15:13.512Z",
+      "feature": "calculator",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T00:15:27.575Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T00:15:41.505Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    }
+  ],
+  "stateMachine": {
+    "defaultWorkflow": "default",
+    "activeWorkflows": {},
+    "totalTransitions": 0
+  },
+  "automation": {
+    "globalLevel": 2,
+    "trustScore": 40,
+    "pendingApprovals": 0,
+    "lastGateResult": null
+  },
+  "team": {
+    "enabled": true,
+    "stateFile": ".bkit/runtime/agent-state.json",
+    "eventsFile": ".bkit/runtime/agent-events.jsonl"
+  }
+}

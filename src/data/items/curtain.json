@@ -1,0 +1,103 @@
+{
+  "id": "curtain",
+  "name": "커튼/블라인드",
+  "order": 23,
+  "version": "1.0",
+  "defaultOn": true,
+  "fields": [
+    {
+      "id": "type",
+      "label": "커튼 종류",
+      "input": "radio",
+      "level": 2,
+      "options": [
+        { "id": "none", "label": "설치 안함", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "blind", "label": "블라인드", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "curtain", "label": "커튼", "price": 0, "defaultGrade": { "basic": false, "mid": true, "premium": true } },
+        { "id": "mixed", "label": "혼합", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ]
+    },
+    {
+      "id": "living",
+      "label": "거실 커튼",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "combi", "label": "콤비 블라인드", "price": 40000, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "roll", "label": "롤스크린", "price": 65000, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "honeycomb", "label": "허니콤", "price": 115000, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "linen", "label": "린넨 커튼", "price": 115000, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "blackout", "label": "암막 커튼", "price": 150000, "defaultGrade": { "basic": false, "mid": false, "premium": true } },
+        { "id": "wood_blind", "label": "우드 블라인드", "price": 275000, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ],
+      "dependsOn": "type"
+    },
+    {
+      "id": "living_lining",
+      "label": "거실 안감",
+      "input": "checkbox",
+      "level": 3,
+      "price": 75000,
+      "dependsOn": "type"
+    },
+    {
+      "id": "bedroom",
+      "label": "침실 커튼",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "combi", "label": "콤비 블라인드", "price": 40000, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "roll", "label": "롤스크린", "price": 65000, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "honeycomb", "label": "허니콤", "price": 115000, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "linen", "label": "린넨 커튼", "price": 115000, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "blackout", "label": "암막 커튼", "price": 150000, "defaultGrade": { "basic": false, "mid": false, "premium": true } },
+        { "id": "wood_blind", "label": "우드 블라인드", "price": 275000, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ],
+      "multiplier": true,
+      "dependsOn": "type"
+    },
+    {
+      "id": "room_count",
+      "label": "방 개수",
+      "input": "stepper",
+      "level": 3,
+      "min": 1,
+      "max": 4,
+      "default": 3,
+      "price": 0,
+      "multiplier": true,
+      "dependsOn": "type"
+    },
+    {
+      "id": "balcony_rollscreen",
+      "label": "발코니 롤스크린",
+      "input": "stepper",
+      "level": 3,
+      "min": 0,
+      "max": 4,
+      "default": 0,
+      "price": 40000,
+      "multiplier": true
+    },
+    {
+      "id": "electric_upgrade",
+      "label": "전동 업그레이드",
+      "input": "checkbox",
+      "level": 3,
+      "price": 150000,
+      "multiplier": true
+    },
+    {
+      "id": "install_fee",
+      "label": "설치비",
+      "input": "stepper",
+      "level": 3,
+      "min": 0,
+      "max": 10,
+      "default": 0,
+      "price": 40000,
+      "multiplier": true,
+      "auto": true
+    }
+  ]
+}

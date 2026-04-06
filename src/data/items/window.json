@@ -1,0 +1,72 @@
+{
+  "id": "window",
+  "name": "창호/샷시",
+  "order": 4,
+  "version": "1.0",
+  "defaultOn": true,
+  "fields": [
+    {
+      "id": "scope",
+      "label": "창호 범위",
+      "input": "radio",
+      "level": 2,
+      "options": [
+        { "id": "none", "label": "교체 안함", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "inner_only", "label": "내창만 교체", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "full", "label": "전체 교체", "price": 0, "defaultGrade": { "basic": false, "mid": true, "premium": true } }
+      ]
+    },
+    {
+      "id": "turning_door",
+      "label": "여닫이 창문",
+      "input": "stepper",
+      "level": 2,
+      "min": 0,
+      "max": 3,
+      "default": 1,
+      "price": 0,
+      "multiplier": true
+    },
+    {
+      "id": "brand",
+      "label": "창호 브랜드",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "kcc", "label": "KCC", "price": 0, "defaultGrade": { "basic": true, "mid": true, "premium": false } },
+        { "id": "lx", "label": "LX", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ]
+    },
+    {
+      "id": "glass",
+      "label": "유리 종류",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "normal", "label": "일반 유리", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "loe", "label": "로이 유리", "price": 0, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "triple", "label": "삼중 유리", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ]
+    },
+    {
+      "id": "turning_type",
+      "label": "여닫이 종류",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "domestic_pvc", "label": "국산 PVC", "price": 370000, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "mid_wrapping", "label": "중급 래핑", "price": 650000, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "german", "label": "독일산", "price": 1100000, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ],
+      "multiplier": true
+    },
+    {
+      "id": "hidden_cost",
+      "label": "실측비+양중비+철거비+통바",
+      "input": "toggle",
+      "level": 3,
+      "price": 1320000,
+      "auto": true
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "basic": {
+    "label": "기본 (가성비)",
+    "description": "가성비 있게 · 깔끔하면 충분해요",
+    "concept": "국산 보급형. 원룸/빌라/단기거주. 최소 비용.",
+    "contingencyRate": 0.10
+  },
+  "mid": {
+    "label": "중급 (대중적)",
+    "description": "적당히 좋은 걸로 · 대부분 이 정도 해요",
+    "concept": "대림/LX/영림 등 국산 중견. 대부분의 30평대 아파트.",
+    "contingencyRate": 0.10
+  },
+  "premium": {
+    "label": "고급 (프리미엄)",
+    "description": "제대로 한 번 · 오래 살 집이니까요",
+    "concept": "아메리칸스탠다드/수입/브랜드. 하이엔드 리모델링.",
+    "contingencyRate": 0.15
+  }
+}

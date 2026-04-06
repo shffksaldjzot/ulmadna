@@ -1,0 +1,45 @@
+{
+  "id": "frontdoor",
+  "name": "현관문",
+  "order": 19,
+  "version": "1.0",
+  "defaultOn": true,
+  "fields": [
+    {
+      "id": "scope",
+      "label": "현관문 범위",
+      "input": "radio",
+      "level": 2,
+      "options": [
+        { "id": "none", "label": "교체 안함", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "reform_inside", "label": "실내면 리폼", "price": 230000, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "reform_both", "label": "양면 리폼", "price": 425000, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "new", "label": "신규 교체", "price": 1150000, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ]
+    },
+    {
+      "id": "lock_kd2000",
+      "label": "KD2000 잠금장치",
+      "input": "checkbox",
+      "level": 3,
+      "price": 14500,
+      "dependsOn": "scope"
+    },
+    {
+      "id": "doorstopper",
+      "label": "도어스토퍼",
+      "input": "checkbox",
+      "level": 3,
+      "price": 6500,
+      "dependsOn": "scope"
+    },
+    {
+      "id": "doorcloser",
+      "label": "도어클로저",
+      "input": "checkbox",
+      "level": 3,
+      "price": 32000,
+      "dependsOn": "scope"
+    }
+  ]
+}

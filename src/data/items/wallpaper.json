@@ -1,0 +1,89 @@
+{
+  "id": "wallpaper",
+  "name": "도배",
+  "order": 9,
+  "version": "1.0",
+  "defaultOn": true,
+  "fields": [
+    {
+      "id": "type",
+      "label": "벽지 종류",
+      "input": "radio",
+      "level": 2,
+      "options": [
+        { "id": "hapji", "label": "합지", "price": 5000, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "silk", "label": "실크", "price": 11000, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "primo", "label": "프리모", "price": 14000, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "diamang", "label": "디아망", "price": 18000, "defaultGrade": { "basic": false, "mid": false, "premium": true } },
+        { "id": "imported", "label": "수입 벽지", "price": 25000, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "paint", "label": "페인트", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ],
+      "multiplier": true
+    },
+    {
+      "id": "prep",
+      "label": "벽면 처리",
+      "input": "radio",
+      "level": 2,
+      "options": [
+        { "id": "basic", "label": "기본 처리", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "putty", "label": "퍼티 처리", "price": 250000, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "putty_chobal", "label": "퍼티+초배", "price": 500000, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ]
+    },
+    {
+      "id": "ceiling",
+      "label": "천장 도배",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "same", "label": "벽지와 동일", "price": 0, "defaultGrade": { "basic": true, "mid": true, "premium": false } },
+        { "id": "white_silk", "label": "백색 실크", "price": 10000, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "diamang", "label": "디아망", "price": 18000, "defaultGrade": { "basic": false, "mid": false, "premium": true } },
+        { "id": "paint", "label": "페인트", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ],
+      "multiplier": true
+    },
+    {
+      "id": "putty",
+      "label": "퍼티 시공",
+      "input": "toggle",
+      "level": 3,
+      "price": 250000,
+      "auto": true,
+      "dependsOn": "prep"
+    },
+    {
+      "id": "chobal",
+      "label": "초배 시공",
+      "input": "toggle",
+      "level": 3,
+      "price": 250000,
+      "auto": true,
+      "dependsOn": "prep"
+    },
+    {
+      "id": "labor",
+      "label": "도배 인건비",
+      "input": "toggle",
+      "level": 3,
+      "price": 28000,
+      "multiplier": true,
+      "auto": true
+    },
+    {
+      "id": "paint_brand",
+      "label": "페인트 브랜드",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "kcc", "label": "KCC 숲으로", "price": 11000, "defaultGrade": { "basic": true, "mid": true, "premium": false } },
+        { "id": "benjamin", "label": "벤자민무어", "price": 42500, "defaultGrade": { "basic": false, "mid": false, "premium": true } },
+        { "id": "dunedward", "label": "던에드워드", "price": 37500, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "valpaints", "label": "발파인트", "price": 65000, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ],
+      "multiplier": true,
+      "dependsOn": "type"
+    }
+  ]
+}

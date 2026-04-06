@@ -1,0 +1,40 @@
+{
+  "id": "expansion",
+  "name": "확장공사",
+  "order": 21,
+  "version": "1.0",
+  "defaultOn": false,
+  "fields": [
+    {
+      "id": "count",
+      "label": "확장 개소",
+      "input": "stepper",
+      "level": 2,
+      "min": 0,
+      "max": 3,
+      "default": 0,
+      "price": 1100000,
+      "multiplier": true
+    },
+    {
+      "id": "woodwork_per_unit",
+      "label": "확장 목공비(개소당)",
+      "input": "toggle",
+      "level": 3,
+      "price": 550000,
+      "auto": true,
+      "multiplier": true,
+      "dependsOn": "count"
+    },
+    {
+      "id": "plumbing_per_unit",
+      "label": "확장 설비비(개소당)",
+      "input": "toggle",
+      "level": 3,
+      "price": 550000,
+      "auto": true,
+      "multiplier": true,
+      "dependsOn": "count"
+    }
+  ]
+}

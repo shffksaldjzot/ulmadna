@@ -1,0 +1,108 @@
+{
+  "id": "tile",
+  "name": "타일",
+  "order": 11,
+  "version": "1.0",
+  "defaultOn": true,
+  "fields": [
+    {
+      "id": "bathroom_count",
+      "label": "욕실 타일 수량",
+      "input": "stepper",
+      "level": 2,
+      "min": 1,
+      "max": 2,
+      "default": 2,
+      "price": 0,
+      "multiplier": true
+    },
+    {
+      "id": "kitchen_wall",
+      "label": "주방 벽 타일",
+      "input": "toggle",
+      "level": 2,
+      "price": 0
+    },
+    {
+      "id": "entrance",
+      "label": "현관 타일",
+      "input": "toggle",
+      "level": 2,
+      "price": 0
+    },
+    {
+      "id": "bathroom_wall_size",
+      "label": "욕실 벽타일 크기",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "300x600", "label": "300x600", "price": 0, "defaultGrade": { "basic": true, "mid": true, "premium": false } },
+        { "id": "600x600", "label": "600x600", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "1200x600", "label": "1200x600", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ]
+    },
+    {
+      "id": "floor_size",
+      "label": "바닥타일 크기",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "300x300", "label": "300x300", "price": 0, "defaultGrade": { "basic": true, "mid": true, "premium": false } },
+        { "id": "600x600", "label": "600x600", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ]
+    },
+    {
+      "id": "kitchen_size",
+      "label": "주방 타일 크기",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "600x600", "label": "600x600", "price": 0, "defaultGrade": { "basic": true, "mid": true, "premium": false } },
+        { "id": "800x800", "label": "800x800", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ],
+      "dependsOn": "kitchen_wall"
+    },
+    {
+      "id": "origin",
+      "label": "타일 원산지",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "domestic_oem", "label": "국산 OEM", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "domestic", "label": "국산 브랜드", "price": 0, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "imported", "label": "수입 타일", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ]
+    },
+    {
+      "id": "balcony_tile",
+      "label": "발코니 타일",
+      "input": "stepper",
+      "level": 3,
+      "min": 0,
+      "max": 4,
+      "default": 0,
+      "price": 900000,
+      "multiplier": true
+    },
+    {
+      "id": "grout",
+      "label": "줄눈 종류",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "cement", "label": "시멘트 줄눈", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "adex", "label": "아덱스 줄눈", "price": 19000, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "epoxy", "label": "에폭시 줄눈", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": true } },
+        { "id": "no_grout", "label": "무줄눈", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ]
+    },
+    {
+      "id": "tile_transport",
+      "label": "타일 운반비",
+      "input": "toggle",
+      "level": 3,
+      "price": 265000,
+      "auto": true
+    }
+  ]
+}

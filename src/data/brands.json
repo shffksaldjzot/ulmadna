@@ -1,0 +1,1056 @@
+{
+  "도배": {
+    "합지벽지 (자재)": {
+      "basic": "LX Z:IN, 신한",
+      "mid": "-",
+      "premium": "-"
+    },
+    "실크벽지 (자재)": {
+      "basic": "-",
+      "mid": "LX Z:IN 베스띠",
+      "premium": "LX Z:IN 지아패브릭"
+    },
+    "수입벽지 (자재)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "뮤럴즈, 콜앤선"
+    },
+    "도배 시공비 (합지)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "도배 시공비 (실크)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "도배 시공비 (수입)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "도배 올 시공 (30평)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    }
+  },
+  "바닥": {
+    "강화마루 (자재)": {
+      "basic": "동화 클릭S",
+      "mid": "-",
+      "premium": "-"
+    },
+    "강마루 6T (자재)": {
+      "basic": "-",
+      "mid": "LX 강그린수퍼",
+      "premium": "-"
+    },
+    "강마루 7.5T (자재)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "동화 나투스진 그란데"
+    },
+    "원목마루 (자재)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "동화/구정마루"
+    },
+    "장판 (자재)": {
+      "basic": "LX하우시스",
+      "mid": "LX하우시스",
+      "premium": "-"
+    },
+    "데코타일 (자재)": {
+      "basic": "LX하우시스",
+      "mid": "LX하우시스",
+      "premium": "-"
+    },
+    "헤링본 시공 추가비": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "바닥 시공비": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    }
+  },
+  "타일": {
+    "세라믹 벽타일 (자재)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "포세린 타일 (자재)": {
+      "basic": "-",
+      "mid": "국산 포세린",
+      "premium": "-"
+    },
+    "포세린 타일 고급 (자재)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "이태리 수입"
+    },
+    "포세린 대형 (자재)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "수입 대형"
+    },
+    "타일 시공비": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    }
+  },
+  "주방(싱크대)": {
+    "사제 싱크대 (MMA상판)": {
+      "basic": "공장 맞춤",
+      "mid": "-",
+      "premium": "-"
+    },
+    "사제 싱크대 (엔지니어드스톤)": {
+      "basic": "-",
+      "mid": "칸스톤 등",
+      "premium": "-"
+    },
+    "브랜드 싱크대": {
+      "basic": "-",
+      "mid": "한샘 프라이",
+      "premium": "한샘 키친바흐"
+    },
+    "상판만 교체 (인조대리석)": {
+      "basic": "LG하이막스",
+      "mid": "-",
+      "premium": "-"
+    },
+    "상판만 교체 (엔지니어드스톤)": {
+      "basic": "-",
+      "mid": "칸스톤",
+      "premium": "-"
+    },
+    "주방 벽타일": {
+      "basic": "국산 세라믹",
+      "mid": "국산 포세린",
+      "premium": "수입 타일"
+    },
+    "빌트인 쿡탑+후드": {
+      "basic": "쿠쿠/린나이",
+      "mid": "보쉬/일렉트로룩스",
+      "premium": "밀레/가게나우"
+    }
+  },
+  "욕실": {
+    "양변기": {
+      "basic": "대림바스",
+      "mid": "대림바스 프리미엄",
+      "premium": "TOTO/듀라빗"
+    },
+    "세면기 (반다리)": {
+      "basic": "대림바스",
+      "mid": "대림바스",
+      "premium": "TOTO/듀라빗"
+    },
+    "샤워수전 세트": {
+      "basic": "대림바스",
+      "mid": "대림바스",
+      "premium": "한스그로에/그로에"
+    },
+    "욕실장 (상부)": {
+      "basic": "카비원",
+      "mid": "대림바스",
+      "premium": "히든바스"
+    },
+    "방수공사": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "욕실 전체 리모델링": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    }
+  },
+  "조명": {
+    "LED 다운라이트 3인치": {
+      "basic": "번개표/장수램프",
+      "mid": "비츠조명/쓰리온",
+      "premium": "필립스"
+    },
+    "LED 다운라이트 6인치": {
+      "basic": "번개표/장수램프",
+      "mid": "비츠조명",
+      "premium": "필립스/오스람"
+    },
+    "LED 거실등": {
+      "basic": "번개표",
+      "mid": "비츠조명",
+      "premium": "프로라이팅"
+    },
+    "LED 방등": {
+      "basic": "번개표",
+      "mid": "비츠조명",
+      "premium": "프로라이팅"
+    },
+    "간접조명 (LED바)": {
+      "basic": "-",
+      "mid": "조명나라",
+      "premium": "-"
+    },
+    "조명 배선 시공비": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    }
+  },
+  "전기": {
+    "콘센트 이동/추가": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "스위치 교체": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "분전반 교체": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "전체 전기공사 (30평)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    }
+  },
+  "목공": {
+    "천장 평탄화": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "몰딩": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "걸레받이": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "문틀+문짝 교체": {
+      "basic": "영림/쌍바이오",
+      "mid": "영림 몰딩도어",
+      "premium": "갤러리도어"
+    },
+    "가벽 설치": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "아트월": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    }
+  },
+  "도장(페인트)": {
+    "벽면 도장": {
+      "basic": "노루/삼화",
+      "mid": "벤자민무어 울트라",
+      "premium": "파로우앤볼"
+    },
+    "천장 도장": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "전체 도장 (30평)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    }
+  },
+  "설비(배관)": {
+    "급수배관 교체": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "난방배관 교체": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "욕실 배관 이동": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    }
+  },
+  "기타": {
+    "중문": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "붙박이장": {
+      "basic": "사제",
+      "mid": "한샘",
+      "premium": "일룸/리바트"
+    },
+    "신발장": {
+      "basic": "사제",
+      "mid": "-",
+      "premium": "-"
+    },
+    "필름 시공": {
+      "basic": "LX하우시스",
+      "mid": "LX하우시스",
+      "premium": "3M/벨리니"
+    },
+    "창호(샷시) 교체": {
+      "basic": "KCC/한화",
+      "mid": "LX하우시스",
+      "premium": "YKK"
+    },
+    "커튼/블라인드": {
+      "basic": "-",
+      "mid": "헌터더글라스",
+      "premium": "-"
+    }
+  },
+  "철거": {
+    "전체 철거": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "부분 철거": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "욕실 철거": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "폐기물 처리": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    }
+  },
+  "보일러/에어컨": {
+    "보일러 교체 (일반)": {
+      "basic": "경동나비엔",
+      "mid": "린나이",
+      "premium": "-"
+    },
+    "보일러 교체 (고급)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "경동나비엔 프리미엄"
+    },
+    "시스템에어컨 (3개소)": {
+      "basic": "-",
+      "mid": "LG/삼성",
+      "premium": "LG 오브제"
+    },
+    "시스템에어컨 (5개소)": {
+      "basic": "-",
+      "mid": "LG/삼성",
+      "premium": "-"
+    },
+    "벽걸이 에어컨": {
+      "basic": "LG/삼성",
+      "mid": "-",
+      "premium": "-"
+    },
+    "에어컨 매립배관": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    }
+  },
+  "부대비용": {
+    "보양": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "준공청소": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "입주청소": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "감리비": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    }
+  },
+  "주방(냉장고장)": {
+    "냉장고장 공간확보 (칸막이 제거)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "냉장고장 리폼 (수납 틈새장)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "냉장고장 리폼 (밥솥+레인지장)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "냉장고장 신규 제작 (사제)": {
+      "basic": "공장 맞춤",
+      "mid": "주문제작",
+      "premium": "한샘/리바트"
+    },
+    "냉장고 상부장만": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "김치냉장고장 (스탠드형)": {
+      "basic": "공장 맞춤",
+      "mid": "-",
+      "premium": "-"
+    }
+  },
+  "창호(샷시)": {
+    "PVC 단창 (외창)": {
+      "basic": "3군(노메이커)",
+      "mid": "2군(영림/PNS)",
+      "premium": "1군(KCC/한화)"
+    },
+    "PVC 이중창 (외창)": {
+      "basic": "3군(노메이커)",
+      "mid": "2군(영림/PNS)",
+      "premium": "1군(LX하우시스)"
+    },
+    "PVC 이중창 (내창)": {
+      "basic": "3군",
+      "mid": "2군",
+      "premium": "1군(LX하우시스)"
+    },
+    "시스템창호": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "YKK/슈코/에이스"
+    },
+    "로이유리 업그레이드": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "래핑(필름) 추가": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "24평 전체 교체 (참고)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "30평 전체 교체 (참고)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "34평 전체 교체 (참고)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    }
+  },
+  "터닝도어": {
+    "국산 PVC 터닝도어": {
+      "basic": "국산 OEM",
+      "mid": "-",
+      "premium": "-"
+    },
+    "PVC 터닝도어 (중급)": {
+      "basic": "-",
+      "mid": "KCC/한화/이건",
+      "premium": "-"
+    },
+    "독일 시스템 터닝도어": {
+      "basic": "-",
+      "mid": "알루플라스트",
+      "premium": "-"
+    },
+    "독일 시스템 터닝도어 (프리미엄)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "알루플라스트"
+    },
+    "LX Z:IN 파워세이브 터닝도어": {
+      "basic": "-",
+      "mid": "LX Z:IN",
+      "premium": "LX Z:IN"
+    },
+    "한샘 터닝도어": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "한샘"
+    },
+    "터닝도어 시공비": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    }
+  },
+  "바닥(포세린타일)": {
+    "포세린 600×600 (자재)": {
+      "basic": "국산 OEM",
+      "mid": "국산 중급",
+      "premium": "이태리 수입"
+    },
+    "포세린 600×1200 (자재)": {
+      "basic": "-",
+      "mid": "국산",
+      "premium": "수입"
+    },
+    "폴리싱 타일 (자재)": {
+      "basic": "국산",
+      "mid": "-",
+      "premium": "-"
+    },
+    "포세린 바닥 시공비": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "대형타일 시공비 추가": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "바닥 타설/레벨링": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "양중비": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "30평 거실 포세린 (참고)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    }
+  },
+  "장판(상세)": {
+    "뉴청맥 1.8T (자재+시공)": {
+      "basic": "LX하우시스",
+      "mid": "-",
+      "premium": "-"
+    },
+    "은행목 2.0T (자재+시공)": {
+      "basic": "LX하우시스",
+      "mid": "-",
+      "premium": "-"
+    },
+    "지아자연애 2.2T (자재+시공)": {
+      "basic": "-",
+      "mid": "LX하우시스",
+      "premium": "-"
+    },
+    "지아사랑애 2.7T (자재+시공)": {
+      "basic": "-",
+      "mid": "LX하우시스",
+      "premium": "-"
+    },
+    "지아사랑애 3.2T (자재+시공)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "LX하우시스"
+    },
+    "지아소리잠 4.5T (자재+시공)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "LX하우시스"
+    },
+    "엑스컴포트 5.0T (자재+시공)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "LX하우시스"
+    },
+    "헤링본 장판 추가비": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "15평 장판 (참고)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "25평 장판 (참고)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "34평 장판 (참고)": {
+      "basic": "-",
+      "mid": "-",
+      "premium": "-"
+    },
+    "KCC 장판": {
+      "basic": "-",
+      "mid": "KCC",
+      "premium": "-"
+    },
+    "현대(한화) 장판": {
+      "basic": "-",
+      "mid": "한화 L&C",
+      "premium": "-"
+    }
+  },
+  "욕실 도기(양변기)": {
+    "대림 CC-766 보급형": {
+      "basic": "대림바스",
+      "mid": null,
+      "premium": null
+    },
+    "대림 CC-768/CC-750": {
+      "basic": "대림바스",
+      "mid": null,
+      "premium": null
+    },
+    "대림 CC-730 치마형": {
+      "basic": "대림바스",
+      "mid": null,
+      "premium": null
+    },
+    "대림 바스플랜 PC-9022": {
+      "basic": "대림바스플랜",
+      "mid": null,
+      "premium": null
+    },
+    "크린스 투피스": {
+      "basic": "크린스",
+      "mid": null,
+      "premium": null
+    },
+    "이누스(INUS) 투피스": {
+      "basic": "이누스",
+      "mid": null,
+      "premium": null
+    },
+    "아메리칸스탠다드 초이스": {
+      "basic": null,
+      "mid": "아메리칸스탠다드",
+      "premium": null
+    },
+    "아메리칸스탠다드 웨이브라운드": {
+      "basic": null,
+      "mid": "아메리칸스탠다드",
+      "premium": null
+    },
+    "아메리칸스탠다드 시그니처": {
+      "basic": null,
+      "mid": "아메리칸스탠다드",
+      "premium": null
+    },
+    "대림 CC-214": {
+      "basic": "대림바스",
+      "mid": null,
+      "premium": null
+    },
+    "대림 CC-259/CC-260": {
+      "basic": "대림바스",
+      "mid": null,
+      "premium": null
+    },
+    "대림 CC-267": {
+      "basic": "대림바스",
+      "mid": null,
+      "premium": null
+    },
+    "대림 CC-270G1": {
+      "basic": "대림바스",
+      "mid": null,
+      "premium": null
+    },
+    "대림 바스플랜 PC-7010": {
+      "basic": "대림바스플랜",
+      "mid": null,
+      "premium": null
+    },
+    "이누스 IW700": {
+      "basic": null,
+      "mid": "이누스",
+      "premium": null
+    },
+    "이누스 글라쎄 프리미엄": {
+      "basic": null,
+      "mid": "이누스",
+      "premium": null
+    },
+    "대림 DST-650/660": {
+      "basic": null,
+      "mid": "대림바스",
+      "premium": null
+    },
+    "대림 DST-700": {
+      "basic": null,
+      "mid": "대림바스",
+      "premium": null
+    },
+    "대림 DST-800/900": {
+      "basic": null,
+      "mid": "대림바스",
+      "premium": null
+    },
+    "아메리칸스탠다드 플랫": {
+      "basic": null,
+      "mid": "아메리칸스탠다드",
+      "premium": null
+    },
+    "아메리칸스탠다드 플랫라운드": {
+      "basic": null,
+      "mid": "아메리칸스탠다드",
+      "premium": null
+    },
+    "아메리칸스탠다드 플랫 블랙": {
+      "basic": null,
+      "mid": "아메리칸스탠다드",
+      "premium": null
+    }
+  },
+  "욕실 도기(세면기)": {
+    "대림 일반 세면기": {
+      "basic": "대림바스",
+      "mid": null,
+      "premium": null
+    },
+    "대림 CL-384": {
+      "basic": "대림바스",
+      "mid": null,
+      "premium": null
+    },
+    "크린스 세면기": {
+      "basic": "크린스",
+      "mid": null,
+      "premium": null
+    },
+    "아메리칸스탠다드 플랫내츄럴R": {
+      "basic": null,
+      "mid": "아메리칸스탠다드",
+      "premium": null
+    },
+    "아메리칸스탠다드 웨이브S": {
+      "basic": null,
+      "mid": "아메리칸스탠다드",
+      "premium": null
+    },
+    "아메리칸스탠다드 아카시아": {
+      "basic": null,
+      "mid": "아메리칸스탠다드",
+      "premium": null
+    }
+  },
+  "욕실 수전": {
+    "대림 세면수전 기본": {
+      "basic": "대림바스",
+      "mid": null,
+      "premium": null
+    },
+    "대림 샤워수전 기본": {
+      "basic": "대림바스",
+      "mid": null,
+      "premium": null
+    },
+    "대림 슬라이드바 S4114": {
+      "basic": "대림바스",
+      "mid": null,
+      "premium": null
+    },
+    "아메리칸스탠다드 액티브 샤워": {
+      "basic": null,
+      "mid": "아메리칸스탠다드",
+      "premium": null
+    },
+    "아메리칸스탠다드 플랫라운드 세면": {
+      "basic": null,
+      "mid": "아메리칸스탠다드",
+      "premium": null
+    },
+    "아메리칸스탠다드 코너스톤 샤워욕조": {
+      "basic": null,
+      "mid": "아메리칸스탠다드",
+      "premium": null
+    },
+    "아메리칸스탠다드 레인샤워": {
+      "basic": null,
+      "mid": "아메리칸스탠다드",
+      "premium": null
+    },
+    "라우체 비조 원홀수전": {
+      "basic": null,
+      "mid": "라우체",
+      "premium": null
+    }
+  },
+  "욕실 악세사리": {
+    "기본 5종 세트": {
+      "basic": "국산 일반",
+      "mid": null,
+      "premium": null
+    },
+    "무광니켈 5종 세트": {
+      "basic": "국산 중급",
+      "mid": null,
+      "premium": null
+    },
+    "무광골드 5종 세트": {
+      "basic": null,
+      "mid": "국산/수입",
+      "premium": null
+    },
+    "아메리칸스탠다드 악세사리": {
+      "basic": null,
+      "mid": "아메리칸스탠다드",
+      "premium": null
+    },
+    "AMES 악세사리 세트": {
+      "basic": "AMES",
+      "mid": null,
+      "premium": null
+    },
+    "엘리지앙 악세사리 세트": {
+      "basic": null,
+      "mid": "엘리지앙",
+      "premium": null
+    }
+  },
+  "욕실 기타자재": {
+    "슬라이딩 상부장(거울장)": {
+      "basic": "대원 등",
+      "mid": null,
+      "premium": null
+    },
+    "젠다이(선반)": {
+      "basic": "신흥 등",
+      "mid": null,
+      "premium": null
+    },
+    "환풍기": {
+      "basic": "힘펠",
+      "mid": null,
+      "premium": null
+    },
+    "욕실배수유가": {
+      "basic": "성광 등",
+      "mid": null,
+      "premium": null
+    }
+  },
+  "욕실 1개소 총액(참고)": {
+    "기본(도기교체만)": {
+      "basic": "크린스/대림보급",
+      "mid": null,
+      "premium": null
+    },
+    "중급(전체리모델링)": {
+      "basic": null,
+      "mid": "대림/이누스",
+      "premium": null
+    },
+    "고급(전체리모델링)": {
+      "basic": null,
+      "mid": "아메리칸스탠다드",
+      "premium": null
+    }
+  },
+  "천장 마감재": {
+    "SMC 천장재 (평판)": {
+      "basic": "극동씨앤씨 등",
+      "mid": null,
+      "premium": null
+    },
+    "GI 금속 천장재 (준불연)": {
+      "basic": "DMC 등",
+      "mid": null,
+      "premium": null
+    },
+    "STS 스텐레스 천장재 (불연)": {
+      "basic": "STC 등",
+      "mid": null,
+      "premium": null
+    },
+    "천장 몰딩 (MDF 래핑)": {
+      "basic": "영림 등",
+      "mid": null,
+      "premium": null
+    },
+    "걸레받이 (MDF 래핑)": {
+      "basic": "영림 등",
+      "mid": null,
+      "premium": null
+    },
+    "실링팬 (루씨에어 등)": {
+      "basic": "루씨에어 등",
+      "mid": null,
+      "premium": null
+    }
+  },
+  "유럽형 스위치/콘센트": {
+    "나노(국산 기본)": {
+      "basic": "나노전기",
+      "mid": null,
+      "premium": null
+    },
+    "르그랑 아펠라": {
+      "basic": "르그랑(아남)",
+      "mid": null,
+      "premium": null
+    },
+    "르그랑 비보(VIVO)": {
+      "basic": "르그랑",
+      "mid": null,
+      "premium": null
+    },
+    "르그랑 아테오": {
+      "basic": "르그랑",
+      "mid": null,
+      "premium": null
+    },
+    "리옹(국산 융타입)": {
+      "basic": "리옹",
+      "mid": null,
+      "premium": null
+    },
+    "융(JUNG) LS990 듀로플라스틱": {
+      "basic": "JUNG",
+      "mid": null,
+      "premium": null
+    },
+    "융(JUNG) LS990 퓨어매트": {
+      "basic": "JUNG",
+      "mid": null,
+      "premium": null
+    }
+  },
+  "스페셜 페인트/도장": {
+    "KCC 바이오세라믹 탄성코트": {
+      "basic": "KCC",
+      "mid": null,
+      "premium": null
+    },
+    "벤자민무어": {
+      "basic": "Benjamin Moore",
+      "mid": null,
+      "premium": null
+    },
+    "던에드워드": {
+      "basic": "Dunn-Edwards",
+      "mid": null,
+      "premium": null
+    },
+    "발페인트(Farrow&Ball)": {
+      "basic": "Farrow&Ball",
+      "mid": null,
+      "premium": null
+    }
+  },
+  "인터폰/도어락": {
+    "비디오폰(코콤/삼성 기본)": {
+      "basic": "코콤/삼성",
+      "mid": null,
+      "premium": null
+    },
+    "삼성 비디오폰 352번": {
+      "basic": "삼성",
+      "mid": null,
+      "premium": null
+    },
+    "도어락 번호형(보조키)": {
+      "basic": "게이트맨 등",
+      "mid": null,
+      "premium": null
+    },
+    "도어락 푸시풀형": {
+      "basic": "SHS-P710 등",
+      "mid": null,
+      "premium": null
+    }
+  },
+  "싱크대 하드웨어(블럼 Blum)": {
+    "블럼(Blum) 클립탑 경첩 블루모션": {
+      "basic": "Blum(오스트리아)",
+      "mid": null,
+      "premium": null
+    },
+    "블럼(Blum) 탠덤박스 서랍레일": {
+      "basic": "Blum",
+      "mid": null,
+      "premium": null
+    }
+  },
+  "싱크볼/주방수전": {
+    "사각 싱크볼(백조 780)": {
+      "basic": "백조",
+      "mid": null,
+      "premium": null
+    },
+    "하츠 기본": {
+      "basic": "하츠",
+      "mid": null,
+      "premium": null
+    },
+    "라우체 비조 원홀 니켈": {
+      "basic": "라우체",
+      "mid": null,
+      "premium": null
+    },
+    "그로헤(수입)": {
+      "basic": "그로헤",
+      "mid": null,
+      "premium": null
+    }
+  },
+  "실링팬+보강": {
+    "비브르디(국산)": {
+      "basic": "비브르디",
+      "mid": null,
+      "premium": null
+    },
+    "루씨에어 코타라ROD": {
+      "basic": "루씨에어",
+      "mid": null,
+      "premium": null
+    },
+    "루씨에어 안방용": {
+      "basic": "루씨에어",
+      "mid": null,
+      "premium": null
+    },
+    "루씨에어 거실용": {
+      "basic": "루씨에어",
+      "mid": null,
+      "premium": null
+    }
+  }
+}

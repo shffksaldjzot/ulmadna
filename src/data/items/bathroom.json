@@ -1,0 +1,203 @@
+{
+  "id": "bathroom",
+  "name": "욕실 도기/설비",
+  "order": 12,
+  "version": "1.0",
+  "defaultOn": true,
+  "fields": [
+    {
+      "id": "toilet",
+      "label": "양변기 등급",
+      "input": "radio",
+      "level": 2,
+      "options": [
+        { "id": "budget", "label": "보급형", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "mid_daelim", "label": "중급(대림)", "price": 0, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "premium", "label": "프리미엄", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ]
+    },
+    {
+      "id": "faucet",
+      "label": "수전 등급",
+      "input": "radio",
+      "level": 2,
+      "options": [
+        { "id": "basic", "label": "기본 수전", "price": 0, "defaultGrade": { "basic": true, "mid": true, "premium": false } },
+        { "id": "matte", "label": "무광 수전", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": true } },
+        { "id": "imported", "label": "수입 수전", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ]
+    },
+    {
+      "id": "ceiling",
+      "label": "욕실 천장",
+      "input": "radio",
+      "level": 2,
+      "options": [
+        { "id": "smc", "label": "SMC 천장", "price": 300000, "defaultGrade": { "basic": true, "mid": true, "premium": false } },
+        { "id": "metal", "label": "메탈 천장", "price": 400000, "defaultGrade": { "basic": false, "mid": false, "premium": true } },
+        { "id": "plaster", "label": "석고 천장", "price": 500000, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ],
+      "multiplier": true
+    },
+    {
+      "id": "count",
+      "label": "욕실 수",
+      "input": "stepper",
+      "level": 2,
+      "min": 1,
+      "max": 3,
+      "default": 2,
+      "price": 0,
+      "multiplier": true
+    },
+    {
+      "id": "toilet_type",
+      "label": "양변기 종류",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "twopiece", "label": "투피스", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "onepiece", "label": "원피스", "price": 0, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "bidet", "label": "비데 일체형", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ]
+    },
+    {
+      "id": "toilet_brand",
+      "label": "양변기 브랜드",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "clings", "label": "클링스", "price": 150000, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "daelim", "label": "대림바스", "price": 250000, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "inus", "label": "이누스", "price": 200000, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "american_std", "label": "아메리칸스탠다드", "price": 370000, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ],
+      "multiplier": true
+    },
+    {
+      "id": "basin_brand",
+      "label": "세면대 브랜드",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "clings", "label": "클링스", "price": 100000, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "daelim", "label": "대림바스", "price": 180000, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "inus", "label": "이누스", "price": 150000, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "american_std", "label": "아메리칸스탠다드", "price": 280000, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ],
+      "multiplier": true
+    },
+    {
+      "id": "basin_faucet",
+      "label": "세면대 수전",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "basic", "label": "기본", "price": 60000, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "mid", "label": "중급", "price": 120000, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "premium", "label": "프리미엄", "price": 190000, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ],
+      "multiplier": true
+    },
+    {
+      "id": "shower_faucet",
+      "label": "샤워 수전",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "basic", "label": "기본", "price": 80000, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "mid", "label": "중급", "price": 200000, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "premium", "label": "프리미엄", "price": 350000, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "imported", "label": "수입산", "price": 450000, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ],
+      "multiplier": true
+    },
+    {
+      "id": "ceiling_smc",
+      "label": "SMC 천장 시공",
+      "input": "toggle",
+      "level": 3,
+      "price": 300000,
+      "auto": true,
+      "multiplier": true,
+      "dependsOn": "ceiling"
+    },
+    {
+      "id": "ceiling_metal",
+      "label": "메탈 천장 시공",
+      "input": "toggle",
+      "level": 3,
+      "price": 400000,
+      "auto": true,
+      "dependsOn": "ceiling"
+    },
+    {
+      "id": "ceiling_plaster",
+      "label": "석고 천장 시공",
+      "input": "toggle",
+      "level": 3,
+      "price": 500000,
+      "auto": true,
+      "dependsOn": "ceiling"
+    },
+    {
+      "id": "accessories",
+      "label": "욕실 액세서리",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "chrome", "label": "크롬", "price": 20000, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "matte_nickel", "label": "무광 니켈", "price": 70000, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "matte_gold", "label": "무광 골드", "price": 100000, "defaultGrade": { "basic": false, "mid": false, "premium": true } },
+        { "id": "american_std", "label": "아메리칸스탠다드", "price": 150000, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ],
+      "multiplier": true
+    },
+    {
+      "id": "shower_partition",
+      "label": "샤워 파티션",
+      "input": "checkbox",
+      "level": 3,
+      "price": 270000
+    },
+    {
+      "id": "sliding_cabinet",
+      "label": "슬라이딩 수납장",
+      "input": "checkbox",
+      "level": 3,
+      "price": 200000
+    },
+    {
+      "id": "jendai",
+      "label": "젠다이",
+      "input": "checkbox",
+      "level": 3,
+      "price": 82000
+    },
+    {
+      "id": "corner_shelf",
+      "label": "코너 선반",
+      "input": "stepper",
+      "level": 3,
+      "min": 0,
+      "max": 3,
+      "default": 0,
+      "price": 27000,
+      "multiplier": true
+    },
+    {
+      "id": "ventilator",
+      "label": "환풍기",
+      "input": "checkbox",
+      "level": 3,
+      "price": 40000
+    },
+    {
+      "id": "slide_bar",
+      "label": "슬라이드바",
+      "input": "checkbox",
+      "level": 3,
+      "price": 70000
+    }
+  ]
+}

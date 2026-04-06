@@ -1,0 +1,89 @@
+{
+  "id": "aircon",
+  "name": "에어컨",
+  "order": 17,
+  "version": "1.0",
+  "defaultOn": false,
+  "fields": [
+    {
+      "id": "type",
+      "label": "에어컨 종류",
+      "input": "radio",
+      "level": 2,
+      "options": [
+        { "id": "none", "label": "설치 안함", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "wall", "label": "벽걸이", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "system", "label": "시스템 에어컨", "price": 0, "defaultGrade": { "basic": false, "mid": true, "premium": true } }
+      ]
+    },
+    {
+      "id": "count",
+      "label": "실내기 대수",
+      "input": "stepper",
+      "level": 2,
+      "min": 2,
+      "max": 5,
+      "default": 3,
+      "price": 0,
+      "multiplier": true,
+      "dependsOn": "type"
+    },
+    {
+      "id": "brand",
+      "label": "에어컨 브랜드",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "samsung", "label": "삼성", "price": 4400000, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "lg_basic", "label": "LG 기본", "price": 4700000, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "lg_premium", "label": "LG 프리미엄", "price": 4900000, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ],
+      "dependsOn": "type"
+    },
+    {
+      "id": "protection",
+      "label": "에어컨 양중/보양",
+      "input": "toggle",
+      "level": 3,
+      "price": 600000,
+      "auto": true,
+      "dependsOn": "type"
+    },
+    {
+      "id": "electrical",
+      "label": "에어컨 전기공사",
+      "input": "toggle",
+      "level": 3,
+      "price": 300000,
+      "auto": true,
+      "dependsOn": "type"
+    },
+    {
+      "id": "angle",
+      "label": "앵글 설치",
+      "input": "toggle",
+      "level": 3,
+      "price": 200000,
+      "auto": true,
+      "dependsOn": "type"
+    },
+    {
+      "id": "skill_wallpaper",
+      "label": "에어컨 도배 보수",
+      "input": "toggle",
+      "level": 3,
+      "price": 300000,
+      "auto": true,
+      "dependsOn": "type"
+    },
+    {
+      "id": "railing",
+      "label": "난간 작업",
+      "input": "toggle",
+      "level": 3,
+      "price": 100000,
+      "auto": true,
+      "dependsOn": "type"
+    }
+  ]
+}

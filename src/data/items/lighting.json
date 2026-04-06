@@ -1,0 +1,142 @@
+{
+  "id": "lighting",
+  "name": "조명",
+  "order": 8,
+  "version": "1.0",
+  "defaultOn": true,
+  "fields": [
+    {
+      "id": "scope",
+      "label": "조명 범위",
+      "input": "radio",
+      "level": 2,
+      "options": [
+        { "id": "full", "label": "전체 교체", "price": 0, "defaultGrade": { "basic": false, "mid": true, "premium": true } },
+        { "id": "partial", "label": "부분 교체", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "none", "label": "교체 안함", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ]
+    },
+    {
+      "id": "ceiling_fan",
+      "label": "실링팬",
+      "input": "stepper",
+      "level": 2,
+      "min": 0,
+      "max": 4,
+      "default": 0,
+      "price": 0,
+      "multiplier": true
+    },
+    {
+      "id": "living_room",
+      "label": "거실 조명",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "edge_led", "label": "엣지 LED", "price": 60000, "defaultGrade": { "basic": true, "mid": true, "premium": false } },
+        { "id": "downlight", "label": "다운라이트", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": true } },
+        { "id": "ceiling_fan", "label": "실링팬 조명", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ]
+    },
+    {
+      "id": "room_light",
+      "label": "방 조명",
+      "input": "stepper",
+      "level": 3,
+      "min": 2,
+      "max": 4,
+      "default": 3,
+      "price": 50000,
+      "multiplier": true
+    },
+    {
+      "id": "recessed",
+      "label": "매입등",
+      "input": "stepper",
+      "level": 3,
+      "min": 0,
+      "max": 20,
+      "default": 0,
+      "price": 8500,
+      "multiplier": true
+    },
+    {
+      "id": "indirect_t5",
+      "label": "간접조명 T5",
+      "input": "stepper",
+      "level": 3,
+      "min": 0,
+      "max": 5,
+      "default": 0,
+      "price": 11000,
+      "multiplier": true
+    },
+    {
+      "id": "curtain_box_indirect",
+      "label": "커튼박스 간접조명",
+      "input": "toggle",
+      "level": 3,
+      "price": 160000
+    },
+    {
+      "id": "sink_indirect",
+      "label": "싱크대 간접조명",
+      "input": "toggle",
+      "level": 3,
+      "price": 120000
+    },
+    {
+      "id": "fan_brand",
+      "label": "실링팬 브랜드",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "sove", "label": "소브", "price": 130000, "defaultGrade": { "basic": true, "mid": true, "premium": false } },
+        { "id": "airblow", "label": "에어블로우", "price": 400000, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "vivrdi", "label": "비브르디", "price": 400000, "defaultGrade": { "basic": false, "mid": false, "premium": true } },
+        { "id": "lucyair", "label": "루시에어", "price": 500000, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ],
+      "multiplier": true,
+      "dependsOn": "ceiling_fan"
+    },
+    {
+      "id": "fan_ceiling_reinforce",
+      "label": "실링팬 천장 보강",
+      "input": "stepper",
+      "level": 3,
+      "min": 0,
+      "max": 4,
+      "default": 0,
+      "price": 250000,
+      "multiplier": true,
+      "auto": true,
+      "dependsOn": "ceiling_fan"
+    },
+    {
+      "id": "fan_install",
+      "label": "실링팬 설치비",
+      "input": "stepper",
+      "level": 3,
+      "min": 0,
+      "max": 4,
+      "default": 0,
+      "price": 30000,
+      "multiplier": true,
+      "auto": true,
+      "dependsOn": "ceiling_fan"
+    },
+    {
+      "id": "fan_power",
+      "label": "실링팬 전기공사",
+      "input": "stepper",
+      "level": 3,
+      "min": 0,
+      "max": 4,
+      "default": 0,
+      "price": 75000,
+      "multiplier": true,
+      "auto": true,
+      "dependsOn": "ceiling_fan"
+    }
+  ]
+}

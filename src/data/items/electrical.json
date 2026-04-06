@@ -1,0 +1,77 @@
+{
+  "id": "electrical",
+  "name": "전기",
+  "order": 6,
+  "version": "1.0",
+  "defaultOn": true,
+  "fields": [
+    {
+      "id": "switch_brand",
+      "label": "스위치 브랜드",
+      "input": "radio",
+      "level": 2,
+      "options": [
+        { "id": "nano", "label": "나노 스위치", "price": 4000, "defaultGrade": { "basic": true, "mid": true, "premium": false } },
+        { "id": "appella", "label": "아펠라 스위치", "price": 10000, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "jung", "label": "정 스위치", "price": 60000, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ],
+      "multiplier": true
+    },
+    {
+      "id": "outlet_add",
+      "label": "콘센트 추가",
+      "input": "stepper",
+      "level": 2,
+      "min": 0,
+      "max": 5,
+      "default": 0,
+      "price": 100000,
+      "multiplier": true
+    },
+    {
+      "id": "panel",
+      "label": "분전반 교체",
+      "input": "toggle",
+      "level": 3,
+      "price": 200000
+    },
+    {
+      "id": "breaker",
+      "label": "차단기 교체",
+      "input": "toggle",
+      "level": 3,
+      "price": 250000
+    },
+    {
+      "id": "induction_line",
+      "label": "인덕션 전용선",
+      "input": "toggle",
+      "level": 3,
+      "price": 200000
+    },
+    {
+      "id": "fire_detector",
+      "label": "화재감지기",
+      "input": "stepper",
+      "level": 3,
+      "min": 0,
+      "max": 8,
+      "default": 0,
+      "price": 8000,
+      "multiplier": true
+    },
+    {
+      "id": "jung_box_upgrade",
+      "label": "정 박스 업그레이드",
+      "input": "stepper",
+      "level": 3,
+      "min": 0,
+      "max": 20,
+      "default": 0,
+      "price": 12500,
+      "multiplier": true,
+      "auto": true,
+      "dependsOn": "switch_brand"
+    }
+  ]
+}

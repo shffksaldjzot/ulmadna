@@ -1,0 +1,39 @@
+{
+  "id": "waterproof",
+  "name": "방수",
+  "order": 3,
+  "version": "1.0",
+  "defaultOn": true,
+  "fields": [
+    {
+      "id": "bathroom_waterproof",
+      "label": "욕실 방수",
+      "input": "stepper",
+      "level": 2,
+      "min": 0,
+      "max": 3,
+      "default": 2,
+      "price": 0,
+      "multiplier": true,
+      "warning": "욕실 방수를 빼면 누수 하자 위험이 높습니다"
+    },
+    {
+      "id": "method",
+      "label": "방수 공법",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "liquid", "label": "액체 방수", "price": 200000, "defaultGrade": { "basic": true, "mid": true, "premium": false } },
+        { "id": "membrane", "label": "시트 방수", "price": 400000, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ],
+      "multiplier": true
+    },
+    {
+      "id": "balcony",
+      "label": "발코니 방수",
+      "input": "toggle",
+      "level": 3,
+      "price": 250000
+    }
+  ]
+}

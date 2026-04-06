@@ -1,0 +1,51 @@
+{
+  "id": "flooring",
+  "name": "바닥재",
+  "order": 10,
+  "version": "1.0",
+  "defaultOn": true,
+  "fields": [
+    {
+      "id": "type",
+      "label": "바닥재 종류",
+      "input": "radio",
+      "level": 2,
+      "options": [
+        { "id": "jangpan", "label": "장판", "price": 0, "defaultGrade": { "basic": true, "mid": true, "premium": false } },
+        { "id": "kangmaru", "label": "강마루", "price": 134000, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "kanghwa", "label": "강화마루", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "wonmok", "label": "원목마루", "price": 250000, "defaultGrade": { "basic": false, "mid": false, "premium": true } },
+        { "id": "porcelain", "label": "포세린타일", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ],
+      "multiplier": true
+    },
+    {
+      "id": "jangpan_thickness",
+      "label": "장판 두께",
+      "input": "radio",
+      "level": 2,
+      "options": [
+        { "id": "1.8t", "label": "1.8T", "price": 25000, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "2.2t", "label": "2.2T", "price": 52500, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "3.2t", "label": "3.2T", "price": 73500, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "4.5t", "label": "4.5T", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "5.0t", "label": "5.0T", "price": 175000, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ],
+      "multiplier": true,
+      "dependsOn": "type"
+    },
+    {
+      "id": "brand",
+      "label": "브랜드",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "lx", "label": "LX하우시스", "price": 0, "defaultGrade": { "basic": false, "mid": true, "premium": true } },
+        { "id": "kcc", "label": "KCC", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "donghwa", "label": "동화자연마루", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "nova", "label": "노바마루", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "gujeong", "label": "구정마루", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ]
+    }
+  ]
+}

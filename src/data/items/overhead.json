@@ -1,0 +1,96 @@
+{
+  "id": "overhead",
+  "name": "부대비용",
+  "order": 22,
+  "version": "1.0",
+  "defaultOn": true,
+  "fields": [
+    {
+      "id": "elevator_protection",
+      "label": "엘리베이터 보양",
+      "input": "toggle",
+      "level": 2,
+      "price": 250000,
+      "auto": true
+    },
+    {
+      "id": "corridor_protection",
+      "label": "복도 보양",
+      "input": "toggle",
+      "level": 2,
+      "price": 150000,
+      "auto": true
+    },
+    {
+      "id": "floor_protection",
+      "label": "세대 바닥 보양",
+      "input": "toggle",
+      "level": 2,
+      "price": 500000,
+      "auto": true
+    },
+    {
+      "id": "elevator_fee",
+      "label": "엘리베이터 사용료",
+      "input": "stepper",
+      "level": 3,
+      "min": 1,
+      "max": 60,
+      "default": 30,
+      "price": 11000,
+      "multiplier": true,
+      "auto": true
+    },
+    {
+      "id": "elevator_protection_weekly",
+      "label": "엘리베이터 보양 주간비",
+      "input": "stepper",
+      "level": 3,
+      "min": 1,
+      "max": 8,
+      "default": 4,
+      "price": 50000,
+      "multiplier": true,
+      "auto": true
+    },
+    {
+      "id": "resident_consent",
+      "label": "입주민 동의비",
+      "input": "toggle",
+      "level": 2,
+      "price": 225000,
+      "auto": true
+    },
+    {
+      "id": "silicone",
+      "label": "실리콘 시공",
+      "input": "toggle",
+      "level": 2,
+      "price": 300000,
+      "auto": true
+    },
+    {
+      "id": "warranty",
+      "label": "하자보증",
+      "input": "toggle",
+      "level": 2,
+      "price": 20000,
+      "auto": true
+    },
+    {
+      "id": "ladder_truck",
+      "label": "사다리차",
+      "input": "toggle",
+      "level": 2,
+      "price": 250000
+    },
+    {
+      "id": "material_transport",
+      "label": "자재 운반비",
+      "input": "toggle",
+      "level": 2,
+      "price": 650000,
+      "auto": true
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "id": "middoor",
+  "name": "중문",
+  "order": 18,
+  "version": "1.0",
+  "defaultOn": true,
+  "fields": [
+    {
+      "id": "type",
+      "label": "중문 종류",
+      "input": "radio",
+      "level": 2,
+      "options": [
+        { "id": "none", "label": "설치 안함", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "3way", "label": "3연동", "price": 800000, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "4way", "label": "4연동", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "one_sliding", "label": "외여닫이", "price": 1330000, "defaultGrade": { "basic": false, "mid": false, "premium": true } },
+        { "id": "custom", "label": "맞춤 제작", "price": 2000000, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ]
+    },
+    {
+      "id": "partition_wall",
+      "label": "중문 벽체",
+      "input": "toggle",
+      "level": 3,
+      "price": 500000,
+      "dependsOn": "type"
+    }
+  ]
+}

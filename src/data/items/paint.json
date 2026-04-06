@@ -1,0 +1,47 @@
+{
+  "id": "paint",
+  "name": "도장",
+  "order": 16,
+  "version": "1.0",
+  "defaultOn": true,
+  "fields": [
+    {
+      "id": "balcony",
+      "label": "발코니 도장",
+      "input": "stepper",
+      "level": 2,
+      "min": 0,
+      "max": 4,
+      "default": 2,
+      "price": 0,
+      "multiplier": true
+    },
+    {
+      "id": "material",
+      "label": "도장 재료",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "kcc_bio", "label": "KCC 숲으로", "price": 11000, "defaultGrade": { "basic": true, "mid": true, "premium": false } },
+        { "id": "benjamin", "label": "벤자민무어", "price": 42500, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ],
+      "multiplier": true
+    },
+    {
+      "id": "primer",
+      "label": "프라이머",
+      "input": "toggle",
+      "level": 3,
+      "price": 68000,
+      "auto": true
+    },
+    {
+      "id": "supplies",
+      "label": "도장 부자재",
+      "input": "toggle",
+      "level": 3,
+      "price": 60000,
+      "auto": true
+    }
+  ]
+}

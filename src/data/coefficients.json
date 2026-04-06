@@ -1,0 +1,19 @@
+{
+  "region": {
+    "seoul": 1,
+    "gyeonggi": 1,
+    "metro": 1,
+    "others": 1
+  },
+  "housingType": {
+    "new": 0.7,
+    "old10": 0.9,
+    "old20": 1
+  },
+  "ceilingHeight": {
+    "2300": 1,
+    "2400": 1.05,
+    "2500": 1.1,
+    "2700": 1.15
+  }
+}

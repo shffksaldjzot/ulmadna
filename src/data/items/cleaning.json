@@ -1,0 +1,53 @@
+{
+  "id": "cleaning",
+  "name": "입주청소",
+  "order": 24,
+  "version": "1.0",
+  "defaultOn": true,
+  "fields": [
+    {
+      "id": "scope",
+      "label": "청소 범위",
+      "input": "radio",
+      "level": 2,
+      "options": [
+        { "id": "basic", "label": "기본 청소", "price": 19500, "defaultGrade": { "basic": true, "mid": true, "premium": false } },
+        { "id": "premium", "label": "프리미엄 청소", "price": 30000, "defaultGrade": { "basic": false, "mid": false, "premium": true } },
+        { "id": "none", "label": "청소 안함", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ],
+      "multiplier": true
+    },
+    {
+      "id": "bakeout",
+      "label": "베이크아웃",
+      "input": "checkbox",
+      "level": 3,
+      "price": 400000
+    },
+    {
+      "id": "nano_bathroom",
+      "label": "나노 코팅(욕실)",
+      "input": "stepper",
+      "level": 3,
+      "min": 0,
+      "max": 3,
+      "default": 0,
+      "price": 200000,
+      "multiplier": true
+    },
+    {
+      "id": "nano_full",
+      "label": "나노 코팅(전체)",
+      "input": "checkbox",
+      "level": 3,
+      "price": 400000
+    },
+    {
+      "id": "photocatalyst",
+      "label": "광촉매 시공",
+      "input": "checkbox",
+      "level": 3,
+      "price": 600000
+    }
+  ]
+}

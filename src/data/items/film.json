@@ -1,0 +1,78 @@
+{
+  "id": "film",
+  "name": "필름",
+  "order": 15,
+  "version": "1.0",
+  "defaultOn": true,
+  "fields": [
+    {
+      "id": "scope",
+      "label": "필름 범위",
+      "input": "radio",
+      "level": 2,
+      "options": [
+        { "id": "full", "label": "전체 시공", "price": 0, "defaultGrade": { "basic": false, "mid": true, "premium": true } },
+        { "id": "partial", "label": "부분 시공", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "none", "label": "시공 안함", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ]
+    },
+    {
+      "id": "window_film",
+      "label": "창호 필름",
+      "input": "checkbox",
+      "level": 3,
+      "price": 0
+    },
+    {
+      "id": "doorframe",
+      "label": "문틀 필름",
+      "input": "stepper",
+      "level": 3,
+      "min": 3,
+      "max": 6,
+      "default": 5,
+      "price": 0,
+      "multiplier": true
+    },
+    {
+      "id": "front_door",
+      "label": "현관문 필름",
+      "input": "checkbox",
+      "level": 3,
+      "price": 0
+    },
+    {
+      "id": "shoe_cabinet",
+      "label": "신발장 필름",
+      "input": "checkbox",
+      "level": 3,
+      "price": 0
+    },
+    {
+      "id": "sink",
+      "label": "싱크대 필름",
+      "input": "checkbox",
+      "level": 3,
+      "price": 0
+    },
+    {
+      "id": "closet",
+      "label": "붙박이장 필름",
+      "input": "checkbox",
+      "level": 3,
+      "price": 0
+    },
+    {
+      "id": "brand",
+      "label": "필름 브랜드",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "domestic", "label": "국산", "price": 9500, "defaultGrade": { "basic": true, "mid": true, "premium": false } },
+        { "id": "lx", "label": "LX", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": true } },
+        { "id": "youngrim", "label": "영림", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ],
+      "multiplier": true
+    }
+  ]
+}

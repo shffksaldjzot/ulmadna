@@ -1,0 +1,115 @@
+{
+  "id": "kitchen",
+  "name": "주방",
+  "order": 13,
+  "version": "1.0",
+  "defaultOn": true,
+  "fields": [
+    {
+      "id": "sink",
+      "label": "싱크대 범위",
+      "input": "radio",
+      "level": 2,
+      "options": [
+        { "id": "reform", "label": "리폼", "price": 600000, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "lower_replace", "label": "하부장 교체", "price": 0, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "full_replace", "label": "전체 교체", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": true } },
+        { "id": "brand_lx", "label": "LX 브랜드", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ]
+    },
+    {
+      "id": "fridge_cabinet",
+      "label": "냉장고장",
+      "input": "toggle",
+      "level": 2,
+      "price": 580000
+    },
+    {
+      "id": "tall_cabinet",
+      "label": "톨장",
+      "input": "toggle",
+      "level": 2,
+      "price": 700000
+    },
+    {
+      "id": "lower_length",
+      "label": "하부장 길이(m)",
+      "input": "stepper",
+      "level": 3,
+      "min": 3,
+      "max": 8,
+      "default": 4,
+      "price": 225000,
+      "multiplier": true
+    },
+    {
+      "id": "material",
+      "label": "싱크대 소재",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "eo", "label": "EO 도장", "price": 0, "defaultGrade": { "basic": true, "mid": true, "premium": false } },
+        { "id": "pet", "label": "PET", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ]
+    },
+    {
+      "id": "countertop",
+      "label": "상판",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "mma_included", "label": "MMA(기본 포함)", "price": 0, "defaultGrade": { "basic": true, "mid": true, "premium": false } },
+        { "id": "engineered", "label": "엔지니어드스톤", "price": 400000, "defaultGrade": { "basic": false, "mid": false, "premium": true } },
+        { "id": "ceramic", "label": "세라믹", "price": 750000, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ]
+    },
+    {
+      "id": "sink_bowl",
+      "label": "싱크볼",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "basic_steel", "label": "기본 스틸", "price": 125000, "defaultGrade": { "basic": true, "mid": true, "premium": false } },
+        { "id": "square", "label": "사각 싱크볼", "price": 350000, "defaultGrade": { "basic": false, "mid": false, "premium": true } },
+        { "id": "smc", "label": "SMC 싱크볼", "price": 400000, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ]
+    },
+    {
+      "id": "faucet",
+      "label": "주방 수전",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "basic", "label": "기본", "price": 65000, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "hatz", "label": "하츠", "price": 90000, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "matte", "label": "무광", "price": 200000, "defaultGrade": { "basic": false, "mid": false, "premium": true } },
+        { "id": "rauche", "label": "라우체", "price": 530000, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
+      ]
+    },
+    {
+      "id": "hood",
+      "label": "후드",
+      "input": "radio",
+      "level": 3,
+      "options": [
+        { "id": "basic", "label": "기본 후드", "price": 100000, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "hidden", "label": "히든 후드", "price": 200000, "defaultGrade": { "basic": false, "mid": true, "premium": false } },
+        { "id": "recessed", "label": "매립 후드", "price": 300000, "defaultGrade": { "basic": false, "mid": false, "premium": true } }
+      ]
+    },
+    {
+      "id": "island",
+      "label": "아일랜드",
+      "input": "toggle",
+      "level": 3,
+      "price": 1400000
+    },
+    {
+      "id": "blum",
+      "label": "블룸 경첩/레일",
+      "input": "toggle",
+      "level": 3,
+      "price": 800000
+    }
+  ]
+}
