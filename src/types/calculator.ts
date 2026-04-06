@@ -14,7 +14,7 @@ export interface BasicCondition {
   livingCondition: LivingCondition;
   grade: Grade;
   contingencyRate: number; // 0.10 고정
-  marginRate: number;      // 0.05 ~ 0.10
+  marginRate: number;      // 0.00 ~ 0.10
 }
 
 // ─── 등급 매핑 (DB의 세분화 → UI 3등급) ───

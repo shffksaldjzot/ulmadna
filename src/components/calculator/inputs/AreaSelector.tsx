@@ -2,15 +2,14 @@
 
 import { useState } from 'react';
 
-// 국민평형 기준: 전용면적(㎡) → 평 환산
 const PRESET_AREAS = [
-  { pyeong: 18, sqm: 59, label: '18평', sub: '59㎡' },
-  { pyeong: 24, sqm: 79, label: '24평', sub: '79㎡' },
-  { pyeong: 25, sqm: 84, label: '25평', sub: '84㎡ 국평' },
-  { pyeong: 30, sqm: 99, label: '30평', sub: '99㎡' },
-  { pyeong: 34, sqm: 114, label: '34평', sub: '114㎡' },
-  { pyeong: 40, sqm: 132, label: '40평', sub: '132㎡' },
-  { pyeong: 45, sqm: 151, label: '45평', sub: '151㎡' },
+  { pyeong: 18, sqm: 59, label: '18평', sub: '59㎡', badge: null },
+  { pyeong: 24, sqm: 79, label: '24평', sub: '79㎡', badge: null },
+  { pyeong: 25, sqm: 84, label: '25평', sub: '84㎡', badge: '국평' },
+  { pyeong: 30, sqm: 99, label: '30평', sub: '99㎡', badge: null },
+  { pyeong: 34, sqm: 114, label: '34평', sub: '114㎡', badge: null },
+  { pyeong: 40, sqm: 132, label: '40평', sub: '132㎡', badge: null },
+  { pyeong: 45, sqm: 151, label: '45평', sub: '151㎡', badge: null },
 ];
 
 interface AreaSelectorProps {
@@ -31,12 +30,17 @@ export default function AreaSelector({ value, onChange }: AreaSelectorProps) {
           <button
             key={area.pyeong}
             onClick={() => { setIsCustom(false); onChange(area.pyeong); }}
-            className={`px-3 py-2 rounded-lg text-center transition-all min-w-[70px]
+            className={`relative px-3 py-2 rounded-lg text-center transition-all min-w-[70px]
               ${value === area.pyeong && !isCustom
                 ? 'bg-brown text-white shadow-md'
                 : 'bg-white text-gray-700 border border-gray-200 hover:border-gold'
               }`}
           >
+            {area.badge && (
+              <span className="absolute -top-2 -right-1 bg-gold text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-none">
+                {area.badge}
+              </span>
+            )}
             <div className="text-sm font-medium">{area.label}</div>
             <div className={`text-[10px] ${value === area.pyeong && !isCustom ? 'text-cream/70' : 'text-gray-400'}`}>
               {area.sub}
@@ -70,7 +74,7 @@ export default function AreaSelector({ value, onChange }: AreaSelectorProps) {
           />
           <span className="text-sm text-gray-500">평 (10~80)</span>
           {value > 0 && (
-            <span className="text-xs text-gray-400">≈ {Math.round(value * 3.3)}㎡</span>
+            <span className="text-xs text-gray-400">≈ {(value * 3.306).toFixed(1)}㎡</span>
           )}
         </div>
       )}

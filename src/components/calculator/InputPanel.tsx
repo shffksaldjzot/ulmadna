@@ -81,26 +81,29 @@ export default function InputPanel({ input, output, dispatch }: InputPanelProps)
               </div>
             </div>
 
-            {/* 이윤율 슬라이더 */}
+            {/* 이윤율 선택 */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs text-gray-500">기업 이윤율</p>
-                <span className="text-xs font-medium text-brown">
-                  {Math.round(input.basic.marginRate * 100)}%
-                </span>
+              <p className="text-xs text-gray-500 mb-2">기업 이윤율</p>
+              <div className="flex gap-1.5">
+                {[0, 3, 5, 7, 10].map(rate => (
+                  <button
+                    key={rate}
+                    onClick={() => dispatch({ type: 'SET_MARGIN_RATE', payload: rate / 100 })}
+                    className={`flex-1 py-2 rounded-lg text-center transition-all text-sm font-medium ${
+                      Math.round(input.basic.marginRate * 100) === rate
+                        ? 'bg-brown text-white shadow-sm'
+                        : 'bg-white text-gray-500 border border-gray-200 hover:border-gold'
+                    }`}
+                  >
+                    {rate}%
+                  </button>
+                ))}
               </div>
-              <input
-                type="range"
-                min="5"
-                max="10"
-                value={Math.round(input.basic.marginRate * 100)}
-                onChange={e => dispatch({ type: 'SET_MARGIN_RATE', payload: Number(e.target.value) / 100 })}
-                className="w-full accent-brown"
-              />
-              <div className="flex justify-between text-[10px] text-gray-300">
-                <span>5%</span>
-                <span>10%</span>
-              </div>
+              <p className="text-[10px] text-gray-300 mt-1.5">
+                {input.basic.marginRate === 0 ? '직영 시공 (이윤 없음)' :
+                 input.basic.marginRate <= 0.05 ? '일반적인 수준' :
+                 '턴키/올인원 업체 수준'}
+              </p>
             </div>
           </div>
         </div>

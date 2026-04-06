@@ -61,15 +61,15 @@ export default function Home() {
       </section>
 
       {/* ───── 메인: 입력 (55~60%) + 결과 (40~45%) ───── */}
-      <main className="max-w-[1400px] mx-auto">
+      <main className="max-w-[1400px] mx-auto overflow-hidden">
         <div className="flex flex-col lg:flex-row">
-          {/* 좌측: 입력 패널 (55~60%) */}
-          <div className="lg:w-[58%]">
+          {/* 좌측: 입력 패널 — 고정 너비 */}
+          <div className="w-full lg:w-[58%] min-w-0 overflow-hidden">
             <InputPanel input={state.input} output={state.output} dispatch={dispatch} />
           </div>
 
-          {/* 우측: 결과 패널 (40~45%) — sticky */}
-          <div className="lg:w-[42%] lg:sticky lg:top-[52px] lg:h-[calc(100vh-52px)] lg:overflow-y-auto">
+          {/* 우측: 결과 패널 — 고정 너비, sticky */}
+          <div className="w-full lg:w-[42%] min-w-0 overflow-hidden lg:sticky lg:top-[52px] lg:h-[calc(100vh-52px)] lg:overflow-y-auto">
             <ResultPanel input={state.input} output={state.output} dispatch={dispatch} />
           </div>
         </div>

@@ -9,7 +9,24 @@ import { formatWonExact } from '@/lib/format';
  * v3 공정별 Progressive Disclosure
  * - 공정 ON/OFF 토글 + 소계 표시
  * - 펼침 시: 등급 선택 칩 + 개소수 조절
+ * - 관련 공정 그룹핑 (목공류 등)
  */
+
+// 공정 카테고리 그룹
+const PROCESS_GROUPS: { label: string; ids: string[] }[] = [
+  { label: '철거·기초', ids: ['demolition'] },
+  { label: '도배·바닥', ids: ['wallpaper', 'flooring'] },
+  { label: '욕실', ids: ['bathroom'] },
+  { label: '주방', ids: ['kitchen'] },
+  { label: '창호', ids: ['window'] },
+  { label: '목공', ids: ['door', 'entrance_door', 'molding', 'art_wall', 'ceiling_work'] },
+  { label: '전기·조명', ids: ['electrical', 'lighting'] },
+  { label: '도장·필름', ids: ['painting', 'film'] },
+  { label: '타일', ids: ['tile'] },
+  { label: '가구', ids: ['furniture'] },
+  { label: '에어컨', ids: ['aircon'] },
+  { label: '기타', ids: ['expansion', 'plumbing', 'misc'] },
+];
 
 interface ProcessTogglesProps {
   processes: ProcessUserState[];
@@ -53,8 +70,19 @@ export default function ProcessToggles({ processes, output, grade, onToggle, onG
   };
 
   return (
-    <div className="space-y-3">
-      {db.processes.map(dbProcess => {
+    <div className="space-y-6">
+      {PROCESS_GROUPS.map(group => {
+        const groupProcesses = group.ids
+          .map(id => db.processes.find(p => p.id === id))
+          .filter(Boolean) as typeof db.processes;
+
+        if (groupProcesses.length === 0) return null;
+
+        return (
+          <div key={group.label}>
+            <p className="text-[10px] text-gold tracking-widest font-medium mb-2 px-1">{group.label}</p>
+            <div className="space-y-2">
+              {groupProcesses.map(dbProcess => {
         const ps = processes.find(p => p.id === dbProcess.id);
         if (!ps) return null;
 
@@ -232,6 +260,10 @@ export default function ProcessToggles({ processes, output, grade, onToggle, onG
                 )}
               </div>
             )}
+          </div>
+        );
+              })}
+            </div>
           </div>
         );
       })}

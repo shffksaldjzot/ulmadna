@@ -104,8 +104,7 @@ export default function ResultPanel({ input, output, dispatch }: ResultPanelProp
         </div>
       )}
 
-      {/* 숨은 비용 알림 */}
-      {!isEmpty && <HiddenCosts costs={output.hiddenCosts} warnings={output.warnings} />}
+      {/* 숨은 비용: 상세보기로 통합됨 */}
 
       {/* 다운로드/공유 */}
       {!isEmpty && (
