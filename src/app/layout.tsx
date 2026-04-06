@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     description: "회원가입·전화번호 없이 바로 사용. 평형·자재·공정 선택하면 예상 견적이 나와요.",
     url: "https://ulmadna.com",
     siteName: "얼마드나",
-    images: [{ url: "/og-icon.png", width: 512, height: 512 }],
+    images: [{ url: "/opengraph-image", width: 1200, height: 630 }],
     locale: "ko_KR",
     type: "website",
   },
