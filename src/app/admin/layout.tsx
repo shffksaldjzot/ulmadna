@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 
 const NAV_ITEMS = [
   { href: '/admin', label: '대시보드', icon: '📊' },
+  { href: '/admin/users', label: '사용자 관리', icon: '👤' },
   { href: '/admin/pricing', label: '단가 관리', icon: '💰' },
   { href: '/admin/banners', label: '배너 광고', icon: '🖼' },
   { href: '/admin/partners', label: '파트너 관리', icon: '🤝' },

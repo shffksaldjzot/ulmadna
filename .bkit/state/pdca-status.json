@@ -1,6 +1,6 @@
 {
   "version": "3.0",
-  "lastUpdated": "2026-04-06T10:16:09.141Z",
+  "lastUpdated": "2026-04-06T10:18:53.514Z",
   "activeFeatures": [
     "ulmadna",
     "inputs",
@@ -21,7 +21,9 @@
     "sponsor",
     "preview",
     "login",
-    "my-estimates"
+    "my-estimates",
+    "admin-users",
+    "users"
   ],
   "primaryFeature": "ulmadna",
   "features": {
@@ -125,7 +127,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-04-05T11:53:19.259Z",
-        "lastUpdated": "2026-04-06T07:37:49.865Z"
+        "lastUpdated": "2026-04-06T10:17:55.953Z"
       },
       "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\app\\admin\\layout.tsx"
     },
@@ -284,6 +286,32 @@
         "lastUpdated": "2026-04-06T10:15:01.500Z"
       },
       "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\app\\my-estimates\\page.tsx"
+    },
+    "admin-users": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-04-06T10:18:29.949Z",
+        "lastUpdated": "2026-04-06T10:18:29.949Z"
+      },
+      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\app\\api\\admin-users\\route.ts"
+    },
+    "users": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-04-06T10:18:53.513Z",
+        "lastUpdated": "2026-04-06T10:18:53.513Z"
+      },
+      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\app\\admin\\users\\page.tsx"
     }
   },
   "pipeline": {
@@ -294,7 +322,7 @@
   "session": {
     "startedAt": "2026-04-05T10:02:32.426Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-04-06T10:16:09.141Z"
+    "lastActivity": "2026-04-06T10:18:53.514Z"
   },
   "history": [
     {
@@ -1830,6 +1858,24 @@
     {
       "timestamp": "2026-04-06T10:16:09.141Z",
       "feature": "calculator",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T10:17:55.954Z",
+      "feature": "admin",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T10:18:29.951Z",
+      "feature": "admin-users",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T10:18:53.514Z",
+      "feature": "users",
       "phase": "do",
       "action": "updated"
     }
