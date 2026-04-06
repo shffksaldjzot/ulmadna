@@ -6,7 +6,8 @@ export function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/admin')) {
     const authCookie = request.cookies.get('admin-auth');
 
-    if (authCookie?.value !== 'authenticated') {
+    const token = process.env.NEXTAUTH_SECRET || 'fallback-token';
+    if (authCookie?.value !== token) {
       // 로그인 페이지로 리다이렉트
       const loginUrl = new URL('/admin-login', request.url);
       loginUrl.searchParams.set('from', request.nextUrl.pathname);

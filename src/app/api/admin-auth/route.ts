@@ -8,8 +8,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid' }, { status: 401 });
   }
 
+  const token = process.env.NEXTAUTH_SECRET || 'fallback-token';
   const response = NextResponse.json({ success: true });
-  response.cookies.set('admin-auth', 'authenticated', {
+  response.cookies.set('admin-auth', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
