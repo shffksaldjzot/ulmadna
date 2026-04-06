@@ -511,9 +511,9 @@
       "unit": "1식",
       "options": [
         { "grade": "basic", "name": "초슬림 3연동", "price": 800000, "source": "EST-034" },
-        { "grade": "mid", "name": "원슬라이딩 (현진)", "price": 1150000, "source": "EST-030(현진 115만), EST-029(120만)" },
-        { "grade": "high", "name": "원슬라이딩 (이노센즈/유리프레임)", "price": 1500000, "source": "EST-028, EST-026" },
-        { "grade": "premium", "name": "원슬라이딩 (우드프레임+패브릭유리)", "price": 1400000, "source": "EST-031" }
+        { "grade": "mid", "name": "원슬라이딩 (아이지도어/영림)", "price": 1150000, "source": "EST-030(115만), EST-029(120만)" },
+        { "grade": "high", "name": "원슬라이딩 (이노핸즈/스틸프레임)", "price": 1500000, "source": "EST-028, EST-026" },
+        { "grade": "premium", "name": "원슬라이딩 (우드프레임+플루트유리)", "price": 1400000, "source": "EST-031" }
       ]
     },
 

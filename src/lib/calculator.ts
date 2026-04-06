@@ -202,7 +202,7 @@ function calculateProcess(
       const option = process.options ? findOptionByGrade(process.options, gradeKey) : null;
       if (option?.price_per_pyeong) {
         // Ceiling area is approximately same as floor area
-        const ceilingArea = Math.round(area * 0.3); // roughly 30% of total pyeong for ceiling
+        const ceilingArea = Math.round(area * 0.4); // 벽 대비 약 40% 추가 (시장 조사 기반)
         const amt = option.price_per_pyeong * ceilingArea;
         total += amt;
         breakdown.push({
