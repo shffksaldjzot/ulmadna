@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 const PRESET_AREAS = [
   { pyeong: 18, sqm: 59, label: '18평', sub: '59㎡', badge: null },
@@ -18,9 +18,27 @@ interface AreaSelectorProps {
 }
 
 export default function AreaSelector({ value, onChange }: AreaSelectorProps) {
-  const [isCustom, setIsCustom] = useState(
-    !PRESET_AREAS.some(a => a.pyeong === value) && value > 0
-  );
+  const isPreset = PRESET_AREAS.some(a => a.pyeong === value);
+  const [editing, setEditing] = useState(false);
+  const [customValue, setCustomValue] = useState(value > 0 && !isPreset ? String(value) : '');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [editing]);
+
+  const handleCustomSubmit = () => {
+    const v = parseInt(customValue) || 0;
+    if (v >= 10 && v <= 80) {
+      onChange(v);
+    }
+    setEditing(false);
+  };
+
+  const showCustom = !isPreset && value > 0;
 
   return (
     <div>
@@ -29,9 +47,9 @@ export default function AreaSelector({ value, onChange }: AreaSelectorProps) {
         {PRESET_AREAS.map(area => (
           <button
             key={area.pyeong}
-            onClick={() => { setIsCustom(false); onChange(area.pyeong); }}
+            onClick={() => { setEditing(false); onChange(area.pyeong); }}
             className={`relative px-3 py-2 rounded-lg text-center transition-all min-w-[70px]
-              ${value === area.pyeong && !isCustom
+              ${value === area.pyeong && !editing
                 ? 'bg-brown text-white shadow-md'
                 : 'bg-white text-gray-700 border border-gray-200 hover:border-gold'
               }`}
@@ -42,42 +60,45 @@ export default function AreaSelector({ value, onChange }: AreaSelectorProps) {
               </span>
             )}
             <div className="text-sm font-medium">{area.label}</div>
-            <div className={`text-[10px] ${value === area.pyeong && !isCustom ? 'text-cream/70' : 'text-gray-400'}`}>
+            <div className={`text-[10px] ${value === area.pyeong && !editing ? 'text-cream/70' : 'text-gray-400'}`}>
               {area.sub}
             </div>
           </button>
         ))}
-        <button
-          onClick={() => setIsCustom(true)}
-          className={`px-3 py-2 rounded-lg text-sm font-medium transition-all min-w-[70px]
-            ${isCustom
-              ? 'bg-brown text-white shadow-md'
-              : 'bg-white text-gray-700 border border-gray-200 hover:border-gold'
-            }`}
-        >
-          직접입력
-        </button>
+
+        {/* 직접입력: 인라인 변환 */}
+        {editing ? (
+          <div className="flex items-center gap-1 px-2 py-1.5 rounded-lg border-2 border-gold bg-white min-w-[85px]">
+            <input
+              ref={inputRef}
+              type="number"
+              min={10}
+              max={80}
+              value={customValue}
+              onChange={e => setCustomValue(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleCustomSubmit(); if (e.key === 'Escape') setEditing(false); }}
+              onBlur={handleCustomSubmit}
+              className="w-12 text-sm font-medium text-brown text-center outline-none bg-transparent"
+              placeholder="평"
+            />
+            <span className="text-xs text-gray-400">평</span>
+          </div>
+        ) : (
+          <button
+            onClick={() => { setEditing(true); setCustomValue(showCustom ? String(value) : ''); }}
+            className={`px-3 py-2 rounded-lg text-center transition-all min-w-[70px]
+              ${showCustom
+                ? 'bg-brown text-white shadow-md'
+                : 'bg-white text-gray-700 border border-gray-200 hover:border-gold'
+              }`}
+          >
+            <div className="text-sm font-medium">{showCustom ? `${value}평` : '직접입력'}</div>
+            {showCustom && (
+              <div className="text-[10px] text-cream/70">≈{(value * 3.306).toFixed(0)}㎡</div>
+            )}
+          </button>
+        )}
       </div>
-      {isCustom && (
-        <div className="mt-2 flex items-center gap-2">
-          <input
-            type="number"
-            min={10}
-            max={80}
-            value={value || ''}
-            onChange={e => {
-              const v = parseInt(e.target.value) || 0;
-              onChange(Math.min(80, Math.max(0, v)));
-            }}
-            className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center text-sm focus:border-gold focus:outline-none"
-            placeholder="평"
-          />
-          <span className="text-sm text-gray-500">평 (10~80)</span>
-          {value > 0 && (
-            <span className="text-xs text-gray-400">≈ {(value * 3.306).toFixed(1)}㎡</span>
-          )}
-        </div>
-      )}
     </div>
   );
 }

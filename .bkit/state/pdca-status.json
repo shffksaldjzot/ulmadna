@@ -1,6 +1,6 @@
 {
   "version": "3.0",
-  "lastUpdated": "2026-04-06T07:54:39.402Z",
+  "lastUpdated": "2026-04-06T08:07:40.228Z",
   "activeFeatures": [
     "ulmadna",
     "inputs",
@@ -33,9 +33,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-04-05T10:52:03.330Z",
-        "lastUpdated": "2026-04-06T07:53:26.690Z"
+        "lastUpdated": "2026-04-06T08:07:18.214Z"
       },
-      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\app\\page.tsx"
+      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\lib\\calculator.ts"
     },
     "inputs": {
       "phase": "do",
@@ -46,9 +46,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-04-05T10:59:19.754Z",
-        "lastUpdated": "2026-04-06T07:54:39.400Z"
+        "lastUpdated": "2026-04-06T08:07:40.227Z"
       },
-      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\components\\calculator\\inputs\\ProcessToggles.tsx"
+      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\components\\calculator\\inputs\\AreaSelector.tsx"
     },
     "calculator": {
       "phase": "do",
@@ -280,7 +280,7 @@
   "session": {
     "startedAt": "2026-04-05T10:02:32.426Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-04-06T07:54:39.402Z"
+    "lastActivity": "2026-04-06T08:07:40.228Z"
   },
   "history": [
     {
@@ -1557,6 +1557,72 @@
     },
     {
       "timestamp": "2026-04-06T07:54:39.402Z",
+      "feature": "inputs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T08:05:28.870Z",
+      "feature": "inputs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T08:06:05.219Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T08:06:13.055Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T08:06:26.434Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T08:06:38.342Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T08:06:46.504Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T08:06:56.888Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T08:07:02.447Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T08:07:08.700Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T08:07:18.215Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T08:07:40.228Z",
       "feature": "inputs",
       "phase": "do",
       "action": "updated"

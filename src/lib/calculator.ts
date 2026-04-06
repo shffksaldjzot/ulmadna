@@ -34,33 +34,45 @@ const GRADE_MAPPING: Record<Grade, string[]> = {
   premium: ['high', 'high_low', 'premium'],
 };
 
+// DB selectedGrade → UI Grade 변환
+function gradeFromSelected(selectedGrade: string): Grade {
+  if (['basic', 'partial'].includes(selectedGrade)) return 'basic';
+  if (['high', 'high_low', 'premium'].includes(selectedGrade)) return 'premium';
+  return 'mid';
+}
+
 // DB 등급에서 가장 가까운 옵션 찾기
-function findBestOption(options: DBOption[], uiGrade: Grade): DBOption | null {
+function findBestOption(options: DBOption[], uiGrade: Grade, selectedGrade?: string): DBOption | null {
   if (!options || options.length === 0) return null;
+
+  // 1순위: 공정별 selectedGrade 직접 매칭
+  if (selectedGrade) {
+    const exact = options.find(o => o.grade === selectedGrade);
+    if (exact) return exact;
+  }
 
   const targetGrades = GRADE_MAPPING[uiGrade];
 
-  // 1순위: 정확히 매칭되는 등급
+  // 2순위: UI 등급 매칭
   for (const g of targetGrades) {
     const found = options.find(o => o.grade === g);
     if (found) return found;
   }
 
-  // 2순위: 가장 가까운 등급 (mid면 mid_low → mid_high 순)
-  // fallback: 첫 번째 옵션
+  // fallback
   if (uiGrade === 'basic') return options[0];
   if (uiGrade === 'premium') return options[options.length - 1];
   return options[Math.floor(options.length / 2)];
 }
 
 // ─── B타입 공정 금액 계산 (면적 품셈) ───
-function calculateBArea(process: DBProcess, grade: Grade, area: number): { amount: number; optionName: string; breakdown: { label: string; amount: number }[] } {
+function calculateBArea(process: DBProcess, grade: Grade, area: number, selectedGrade?: string): { amount: number; optionName: string; breakdown: { label: string; amount: number }[] } {
   const breakdown: { label: string; amount: number }[] = [];
   let total = 0;
   let optionName = '';
 
   if (process.options && process.options.length > 0) {
-    const option = findBestOption(process.options, grade);
+    const option = findBestOption(process.options, grade, selectedGrade);
     if (option) {
       optionName = option.name;
       if (option.price_per_pyeong) {
@@ -76,7 +88,7 @@ function calculateBArea(process: DBProcess, grade: Grade, area: number): { amoun
 
   // 폐기물 처리 (철거 공정)
   if (process.waste_disposal) {
-    const wasteOption = findBestOption(process.waste_disposal.options, grade);
+    const wasteOption = findBestOption(process.waste_disposal.options, grade, selectedGrade);
     if (wasteOption && wasteOption.price) {
       total += wasteOption.price;
       breakdown.push({ label: `폐기물 처리 (${wasteOption.name})`, amount: wasteOption.price });
@@ -87,19 +99,23 @@ function calculateBArea(process: DBProcess, grade: Grade, area: number): { amoun
 }
 
 // ─── A타입 공정 금액 계산 (개수 적산) ───
-function calculateAItem(process: DBProcess, grade: Grade, count: number, area: number): { amount: number; optionName: string; breakdown: { label: string; amount: number }[] } {
+function calculateAItem(process: DBProcess, grade: Grade, count: number, area: number, selectedGrade?: string): { amount: number; optionName: string; breakdown: { label: string; amount: number }[] } {
   const breakdown: { label: string; amount: number }[] = [];
   let total = 0;
   let optionName = '';
 
-  // 프리셋이 있으면 프리셋 사용 (Level 1/2)
+  // 프리셋이 있으면 프리셋 사용
   if (process.presets) {
-    const targetGrades = GRADE_MAPPING[grade];
-    let preset = null;
-    for (const g of targetGrades) {
-      if (process.presets[g]) {
-        preset = process.presets[g];
-        break;
+    // 1순위: selectedGrade 직접 매칭
+    let preset = selectedGrade && process.presets[selectedGrade] ? process.presets[selectedGrade] : null;
+    // 2순위: UI 등급 매칭
+    if (!preset) {
+      const targetGrades = GRADE_MAPPING[grade];
+      for (const g of targetGrades) {
+        if (process.presets[g]) {
+          preset = process.presets[g];
+          break;
+        }
       }
     }
 
@@ -118,7 +134,7 @@ function calculateAItem(process: DBProcess, grade: Grade, count: number, area: n
 
   // 옵션이 있으면 옵션 사용
   if (process.options && process.options.length > 0) {
-    const option = findBestOption(process.options, grade);
+    const option = findBestOption(process.options, grade, selectedGrade);
     if (option) {
       optionName = option.name;
       const price = option.price || 0;
@@ -218,11 +234,13 @@ export function calculate(input: CalculatorInput): CalculatorOutput {
     const process = db.processes.find(p => p.id === ps.id);
     if (!process) continue;
 
+    // 공정별 selectedGrade 기반 계산
+    const processGrade = gradeFromSelected(ps.selectedGrade);
     let calcResult;
     if (process.type === 'B_area') {
-      calcResult = calculateBArea(process, basic.grade, basic.area);
+      calcResult = calculateBArea(process, processGrade, basic.area, ps.selectedGrade);
     } else {
-      calcResult = calculateAItem(process, basic.grade, ps.count, basic.area);
+      calcResult = calculateAItem(process, processGrade, ps.count, basic.area, ps.selectedGrade);
     }
 
     if (calcResult.amount > 0) {
