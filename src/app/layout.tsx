@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Analytics from "@/components/layout/Analytics";
+import AuthProvider from "@/components/layout/AuthProvider";
 
 export const metadata: Metadata = {
   title: "얼마드나 — 무료 인테리어 견적 계산기 | 회원가입 없이 바로 사용",
@@ -33,7 +34,9 @@ export default function RootLayout({
   return (
     <html lang="ko" className="h-full antialiased">
       <body className="min-h-full flex flex-col" style={{ fontFamily: "'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
         <Analytics />
       </body>
     </html>

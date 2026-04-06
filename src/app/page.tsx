@@ -1,11 +1,13 @@
 'use client';
 
 import Image from 'next/image';
+import { useSession, signOut } from 'next-auth/react';
 import { useCalculator } from '@/hooks/useCalculator';
 import InputPanel from '@/components/calculator/InputPanel';
 import ResultPanel from '@/components/calculator/ResultPanel';
 
 export default function Home() {
+  const { data: session } = useSession();
   const { state, dispatch } = useCalculator();
 
   return (
@@ -29,15 +31,37 @@ export default function Home() {
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="hidden sm:block text-xs text-gray-400">
-              완전 무료 · 개인정보 없음
-            </span>
-            <button
-              onClick={() => window.location.href = '/login'}
-              className="text-xs text-gray-500 hover:text-brown border border-gray-200 px-4 py-2 rounded-full transition-colors"
-            >
-              로그인
-            </button>
+            {session?.user ? (
+              <>
+                <a
+                  href="/my-estimates"
+                  className="text-xs text-gray-500 hover:text-brown border border-gray-200 px-4 py-2 rounded-full transition-colors"
+                >
+                  내 견적서
+                </a>
+                <button
+                  onClick={() => signOut({ callbackUrl: '/' })}
+                  className="text-xs text-gray-400 hover:text-brown transition-colors"
+                >
+                  로그아웃
+                </button>
+                <span className="text-xs text-brown font-medium">
+                  {session.user.name}님
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="hidden sm:block text-xs text-gray-400">
+                  완전 무료 · 개인정보 없음
+                </span>
+                <button
+                  onClick={() => window.location.href = '/login'}
+                  className="text-xs text-gray-500 hover:text-brown border border-gray-200 px-4 py-2 rounded-full transition-colors"
+                >
+                  로그인
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>
