@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
 const NAV_ITEMS = [
@@ -19,9 +20,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* 사이드바 */}
       <aside className="w-56 bg-brown text-cream min-h-screen flex-shrink-0">
         <div className="p-5">
-          <Link href="/admin" className="block">
-            <h1 className="text-lg font-bold">얼마드나</h1>
-            <p className="text-[10px] text-cream/50 mt-0.5">관리자</p>
+          <Link href="/admin" className="flex items-center gap-3">
+            <Image
+              src="/ulmadna_icon.png"
+              alt="얼마드나"
+              width={36}
+              height={36}
+              className="rounded-lg"
+            />
+            <div>
+              <h1 className="text-lg font-bold">얼마드나</h1>
+              <p className="text-[10px] text-cream/50">관리자</p>
+            </div>
           </Link>
         </div>
         <nav className="mt-4">
