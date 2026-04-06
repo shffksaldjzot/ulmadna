@@ -186,6 +186,13 @@
           "price_per_pyeong": 159000,
           "brand": "동화 나투스진 그란데",
           "source": "EST-032B(15.9만/평)"
+        },
+        {
+          "grade": "tile",
+          "name": "포세린 타일 (거실/주방)",
+          "price_per_pyeong": 200000,
+          "brand": "600×600 포세린",
+          "source": "시장 평균 추정"
         }
       ],
       "demolition_surcharge": {
@@ -504,8 +511,8 @@
       "unit": "1식",
       "options": [
         { "grade": "basic", "name": "초슬림 3연동", "price": 800000, "source": "EST-034" },
-        { "grade": "mid", "name": "원슬라이딩 (현진/관)", "price": 1150000, "source": "EST-030(현진 115만), EST-029(120만)" },
-        { "grade": "high", "name": "철슬라이드 (이노젠즈/레브릭유리)", "price": 1500000, "source": "EST-028, EST-026" },
+        { "grade": "mid", "name": "원슬라이딩 (현진)", "price": 1150000, "source": "EST-030(현진 115만), EST-029(120만)" },
+        { "grade": "high", "name": "원슬라이딩 (이노센즈/유리프레임)", "price": 1500000, "source": "EST-028, EST-026" },
         { "grade": "premium", "name": "원슬라이딩 (우드프레임+패브릭유리)", "price": 1400000, "source": "EST-031" }
       ]
     },
@@ -615,9 +622,9 @@
         }
       },
       "items": [
-        { "id": "room_light", "name": "방등 (슬림 사각등)", "price": 30000, "source": "EST-027" },
-        { "id": "sensor_light", "name": "현관 센서등", "price": 12000, "source": "EST-027" },
-        { "id": "kitchen_light", "name": "주방 일자등", "price": 30000, "source": "EST-027" },
+        { "id": "room_light", "name": "방등 (슬림 사각등)", "price": 30000, "unit": "EA", "source": "EST-027" },
+        { "id": "sensor_light", "name": "현관 센서등", "price": 12000, "unit": "EA", "source": "EST-027" },
+        { "id": "kitchen_light", "name": "주방 일자등", "price": 30000, "unit": "EA", "source": "EST-027" },
         { "id": "ceiling_fan", "name": "실링팬 (에어블로우 C1 52인치)", "price": 290000, "source": "EST-035" },
         { "id": "ceiling_fan_install", "name": "실링팬 설치 (보강)", "price": 150000, "source": "EST-030, EST-032A,B" }
       ]
@@ -725,10 +732,11 @@
           "name": "붙박이장",
           "unit": "자(약 0.3m)",
           "options": [
-            { "grade": "basic", "name": "무광PET 슬라이딩", "price_per_ja": 130000, "source": "EST-035(한솔 하이그로시 13만/자)" },
-            { "grade": "mid", "name": "무광PET 여닫이/슬라이딩", "price_per_ja": 150000, "source": "EST-030(15만/자)" },
-            { "grade": "high", "name": "한솔 하이그로시 여닫이 EO", "price_per_ja": 180000, "source": "EST-029(슬라이딩 18만/자)" }
-          ]
+            { "grade": "basic", "name": "무광PET 여닫이", "price_per_ja": 130000, "source": "EST-035" },
+            { "grade": "mid", "name": "무광PET 여닫이", "price_per_ja": 150000, "source": "EST-030" },
+            { "grade": "high", "name": "한솔 하이그로시 여닫이 EO", "price_per_ja": 180000, "source": "EST-029" }
+          ],
+          "note": "슬라이딩 도어 선택 시 +40만원 (하드웨어 부속비)"
         },
         {
           "id": "shoe_cabinet",
@@ -814,7 +822,7 @@
       "type": "A_item",
       "options": [
         { "grade": "basic", "name": "TV가벽 (브라켓매립)", "price": 700000, "source": "EST-028" },
-        { "grade": "mid", "name": "TV반매립+하부띄움+선반장", "price": 270000, "source": "EST-035" },
+        { "grade": "mid", "name": "TV반매립+하부띄움+선반장", "price": 1500000, "source": "EST-035" },
         { "grade": "high", "name": "현관벽면+아트월TV반매립 MDF", "price": 2000000, "source": "EST-030" }
       ]
     },
@@ -826,7 +834,7 @@
       "options": [
         { "grade": "basic", "name": "등박스 철거후 평탄화", "price": 600000, "source": "EST-030, EST-031 → 60만 확정" },
         { "grade": "mid", "name": "거실+주방 전체 천장", "price": 2500000, "source": "EST-028" },
-        { "grade": "high", "name": "우물천장+커튼라인+라인조명", "price": 220000, "source": "EST-035" }
+        { "grade": "high", "name": "우물천장+커튼라인+라인조명", "price": 2200000, "source": "EST-035" }
       ]
     }
   ],

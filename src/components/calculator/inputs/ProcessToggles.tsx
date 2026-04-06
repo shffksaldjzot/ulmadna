@@ -120,25 +120,35 @@ function Stepper({ value, onChange, label, unit, min = 0 }: {
 }
 
 // ═══════════════════════════════════════
-// 드롭다운 (5개 이상 옵션)
+// 세로 라디오 리스트 (5개 이상 또는 긴 옵션명)
 // ═══════════════════════════════════════
-function Dropdown({ options, selected, onChange, label }: {
+function RadioList({ options, selected, onChange, label }: {
   options: DBOption[]; selected: string; onChange: (g: string) => void; label?: string;
 }) {
   return (
     <div className="mb-2">
-      {label && <p className="text-[11px] text-gray-500 mb-1">{label}</p>}
-      <select
-        value={selected}
-        onChange={e => onChange(e.target.value)}
-        className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-gray-200 bg-white text-gray-700 focus:border-gold outline-none"
-      >
+      {label && <p className="text-[11px] text-gray-500 mb-1.5">{label}</p>}
+      <div className="flex flex-col gap-1">
         {options.map(opt => (
-          <option key={opt.grade} value={opt.grade}>
-            {opt.name} · {fmtPriceUnit(opt)}
-          </option>
+          <button
+            key={opt.grade}
+            onClick={() => onChange(opt.grade)}
+            className={`flex items-center gap-2 px-2.5 py-1.5 text-xs text-left rounded-lg border transition-all ${
+              selected === opt.grade
+                ? 'bg-brown/5 border-brown/30 text-brown font-medium'
+                : 'bg-white border-gray-100 text-gray-600 hover:border-gold/50'
+            }`}
+          >
+            <span className={`w-3.5 h-3.5 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
+              selected === opt.grade ? 'border-brown' : 'border-gray-300'
+            }`}>
+              {selected === opt.grade && <span className="w-1.5 h-1.5 rounded-full bg-brown" />}
+            </span>
+            <span>{opt.name}</span>
+            <span className="ml-auto opacity-60 flex-shrink-0">{fmtPriceUnit(opt)}</span>
+          </button>
         ))}
-      </select>
+      </div>
     </div>
   );
 }
@@ -164,15 +174,18 @@ function DimInput({ value, onChange, label, unit }: {
 }
 
 // ═══════════════════════════════════════
-// 옵션 자동 선택: 라디오 vs 드롭다운
+// 옵션 자동 선택: 가로 칩 vs 세로 리스트
 // ═══════════════════════════════════════
 function OptionSelector({ options, selected, onChange, label }: {
   options: DBOption[]; selected: string; onChange: (g: string) => void; label?: string;
 }) {
-  if (options.length <= 4) {
-    return <RadioChips options={options} selected={selected} onChange={onChange} label={label} />;
+  // 옵션명이 15자 이상이면 세로 리스트
+  const hasLongName = options.some(o => o.name.length > 15);
+  // 5개 이상이거나 긴 이름이 있으면 세로 리스트
+  if (options.length >= 5 || hasLongName) {
+    return <RadioList options={options} selected={selected} onChange={onChange} label={label} />;
   }
-  return <Dropdown options={options} selected={selected} onChange={onChange} label={label} />;
+  return <RadioChips options={options} selected={selected} onChange={onChange} label={label} />;
 }
 
 // ═══════════════════════════════════════
