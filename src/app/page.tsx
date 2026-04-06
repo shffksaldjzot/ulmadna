@@ -77,20 +77,30 @@ export default function Home() {
 
       {/* 절약 팁 섹션 제거됨 */}
 
-      {/* ───── 파트너 배너 ───── */}
-      <section className="bg-cream py-8 px-4 lg:px-8">
-        <p className="text-center text-[10px] text-gray-300 tracking-wider mb-4">
-          이 서비스는 파트너 브랜드의 후원으로 무료 운영됩니다
-        </p>
-        <div className="max-w-[1400px] mx-auto flex justify-center gap-4">
-          <div className="w-[320px] h-[90px] bg-gray-50 rounded-xl border border-dashed border-gray-200 flex items-center justify-center text-xs text-gray-300">
-            파트너 배너
-          </div>
-          <div className="hidden md:flex w-[320px] h-[90px] bg-gray-50 rounded-xl border border-dashed border-gray-200 items-center justify-center text-xs text-gray-300">
-            파트너 배너
+      {/* 모바일 하단 플로팅 바 — 총액 항상 표시 */}
+      {state.output.total > 0 && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] px-4 py-3">
+          <div className="flex items-center justify-between max-w-[600px] mx-auto">
+            <div>
+              <p className="text-[10px] text-gray-400">예상 총 비용</p>
+              <p className="text-xl font-bold text-brown">
+                {Math.round(state.output.total / 10000).toLocaleString()}만원
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] text-gray-400">평당</p>
+              <p className="text-sm font-semibold text-gold">
+                {Math.round(state.output.perPyeong / 10000).toLocaleString()}만원
+              </p>
+            </div>
           </div>
         </div>
-      </section>
+      )}
+
+      {/* 모바일 플로팅 바 높이만큼 여백 */}
+      {state.output.total > 0 && <div className="lg:hidden h-16" />}
+
+      {/* 파트너 배너: 실제 스폰서 등록 전까지 숨김 */}
 
       {/* ───── 브랜드 스토리 + 통계 ───── */}
       <section className="bg-cream py-16 px-4 lg:px-8">
@@ -134,7 +144,7 @@ export default function Home() {
       </section>
 
       {/* ───── 푸터 ───── */}
-      <footer className="bg-brown text-cream/60 py-10 px-4 lg:px-8">
+      <footer className="bg-brown text-cream/80 py-10 px-4 lg:px-8">
         <div className="max-w-[1400px] mx-auto">
           <div className="flex flex-col md:flex-row justify-between gap-8">
             <div>

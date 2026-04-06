@@ -2,27 +2,27 @@
 
 import type { Grade } from '@/types/calculator';
 
-const OPTIONS: { value: Grade; label: string; desc: string; detail: string; examples: string }[] = [
+const OPTIONS: { value: Grade; label: string; desc: string; priceRange: string; examples: string }[] = [
   {
     value: 'basic',
     label: '기본 (가성비)',
     desc: '깔끔하게, 비용은 최소로',
-    detail: '원룸·빌라·전세 단기 거주에 적합',
+    priceRange: '평당 60~120만원',
     examples: '합지벽지 · 장판 · 국산 보급형 도기',
   },
   {
     value: 'mid',
     label: '중급 (대중적)',
     desc: '대부분의 아파트가 이 정도 해요',
-    detail: '30평대 아파트 표준 리모델링 수준',
-    examples: '실크벽지 · 강마루 · 대림 도기 · 영림 도어',
+    priceRange: '평당 100~180만원',
+    examples: '실크벽지 · 강마루 · 대림 도기',
   },
   {
     value: 'premium',
     label: '고급 (프리미엄)',
     desc: '인테리어 디자인 사무실 급',
-    detail: '하이엔드 리모델링 · 수입 자재 · 브랜드',
-    examples: '수입벽지 · 원목마루 · 아메리칸스탠다드 · LX',
+    priceRange: '평당 150~300만원',
+    examples: '수입벽지 · 원목마루 · 아메리칸스탠다드',
   },
 ];
 
@@ -42,16 +42,18 @@ export default function GradeSelector({ value, onChange }: GradeSelectorProps) {
             onClick={() => onChange(opt.value)}
             className={`w-full px-4 py-3 rounded-lg text-left transition-all
               ${value === opt.value
-                ? 'bg-brown text-white shadow-md ring-2 ring-gold'
+                ? 'bg-brown text-white shadow-md ring-2 ring-gold/40'
                 : 'bg-white text-gray-700 border border-gray-200 hover:border-gold'
               }`}
           >
-            <div className="text-sm font-semibold">{opt.label}</div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold">{opt.label}</span>
+              <span className={`text-xs font-medium ${value === opt.value ? 'text-gold' : 'text-gold/70'}`}>
+                {opt.priceRange}
+              </span>
+            </div>
             <div className={`text-xs mt-0.5 ${value === opt.value ? 'text-cream/80' : 'text-gray-500'}`}>
               {opt.desc}
-            </div>
-            <div className={`text-[10px] mt-0.5 ${value === opt.value ? 'text-gold' : 'text-gray-400'}`}>
-              {opt.detail}
             </div>
             <div className={`text-[10px] mt-1 ${value === opt.value ? 'text-cream/60' : 'text-gray-300'}`}>
               {opt.examples}
