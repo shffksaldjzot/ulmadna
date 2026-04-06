@@ -416,6 +416,13 @@ function calculateProcess(
     }
   }
 
+  // Furniture: sliding door surcharge (+400,000원)
+  if (process.id === 'furniture' && ps.extraToggles?.['sliding_door'] === true) {
+    const slidingAmt = 400000;
+    total += slidingAmt;
+    breakdown.push({ label: '슬라이딩 도어 변경 (하드웨어 부속비)', amount: slidingAmt });
+  }
+
   // Handle misc items with price_per_pyeong (cleaning)
   if (process.id === 'misc' && process.items) {
     // Check for cleaning which has price_per_pyeong in DB

@@ -19,6 +19,7 @@ import {
 } from '@/lib/calculator';
 
 const STORAGE_KEY = 'ulmadna-v4-input';
+const HISTORY_KEY = 'ulmadna-history';
 
 interface CalculatorState {
   input: CalculatorInput;
@@ -45,6 +46,39 @@ function saveInput(input: CalculatorInput) {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(input));
+  } catch {
+    // ignore
+  }
+}
+
+export interface HistorySnapshot {
+  timestamp: number;
+  area: number;
+  grade: string;
+  housingType: string;
+  total: number;
+  perPyeong: number;
+  processes: { id: string; name: string; amount: number }[];
+}
+
+function saveHistory(output: CalculatorOutput, input: CalculatorInput) {
+  if (typeof window === 'undefined') return;
+  if (output.total <= 0) return;
+  try {
+    const existing: HistorySnapshot[] = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    const snapshot: HistorySnapshot = {
+      timestamp: Date.now(),
+      area: input.basic.area,
+      grade: input.basic.grade,
+      housingType: input.basic.housingType,
+      total: output.total,
+      perPyeong: output.perPyeong,
+      processes: output.processes.map(p => ({ id: p.id, name: p.name, amount: p.amount })),
+    };
+    // Keep only last 3, avoid duplicates within 5 seconds
+    const filtered = existing.filter(h => Math.abs(h.timestamp - snapshot.timestamp) > 5000);
+    const updated = [snapshot, ...filtered].slice(0, 3);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
   } catch {
     // ignore
   }
@@ -232,7 +266,8 @@ export function useCalculator() {
   useEffect(() => {
     if (!initialized.current) return;
     saveInput(state.input);
-  }, [state.input]);
+    saveHistory(state.output, state.input);
+  }, [state.input, state.output]);
 
   return { state, dispatch };
 }

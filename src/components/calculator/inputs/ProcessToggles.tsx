@@ -361,7 +361,20 @@ const ProcessToggles = forwardRef<{ expandAll: () => void; collapseAll: () => vo
 
                         {/* 아이템들 */}
                         {proc.items && proc.items.map(item => (
-                          <ItemRenderer key={item.id} item={item} ps={ps} processId={proc.id} dispatch={dispatch} />
+                          <div key={item.id}>
+                            <ItemRenderer item={item} ps={ps} processId={proc.id} dispatch={dispatch} />
+                            {/* 붙박이장 슬라이딩 도어 옵션 */}
+                            {proc.id === 'furniture' && item.id === 'builtin_closet' && (
+                              <div className="ml-1 mt-1">
+                                <Toggle
+                                  checked={ps.extraToggles?.['sliding_door'] || false}
+                                  label="슬라이딩 도어로 변경"
+                                  price="+40만"
+                                  onChange={v => dispatch({ type: 'SET_EXTRA_TOGGLE', payload: { processId: 'furniture', extraName: 'sliding_door', enabled: v } })}
+                                />
+                              </div>
+                            )}
+                          </div>
                         ))}
 
                         {/* 서브 아이템 (주방 부속 등) */}
