@@ -2,6 +2,7 @@ import NextAuth from 'next-auth';
 import Kakao from 'next-auth/providers/kakao';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true,
   providers: [
     Kakao({
       clientId: process.env.KAKAO_CLIENT_ID || '',
