@@ -19,6 +19,7 @@ import type {
   DBProcess,
   DBOption,
   UlmadnaDB,
+  HousingType,
   GRADE_MAP,
 } from '@/types/calculator';
 import { evaluateRationality } from './rationality';
@@ -155,14 +156,25 @@ function getDefaultCount(processId: string, area: number, housingType: string): 
   return counts[processId] || 1;
 }
 
+// ─── 연식별 계수 ───
+const HOUSING_COEFFICIENTS: Record<string, number> = {
+  under10: 0.8,
+  ten20: 0.9,
+  over20: 1.0,
+};
+
 // ─── 공정 기본 ON/OFF ───
 function getDefaultEnabled(processId: string, housingType: string): boolean {
-  // 신축입주시 기본 OFF인 공정
-  const newOnlyOff = ['demolition', 'window', 'expansion', 'plumbing', 'ceiling_work'];
-  if (housingType === 'new' && newOnlyOff.includes(processId)) return false;
+  // 10년 미만: 철거·창호·확장·설비·천장 OFF
+  const under10Off = ['demolition', 'window', 'expansion', 'plumbing', 'ceiling_work'];
+  if (housingType === 'under10' && under10Off.includes(processId)) return false;
 
-  // 기본 OFF 공정
-  const defaultOff = ['expansion', 'art_wall', 'ceiling_work', 'plumbing'];
+  // 10~20년: 확장·천장 OFF
+  const ten20Off = ['expansion', 'ceiling_work'];
+  if (housingType === 'ten20' && ten20Off.includes(processId)) return false;
+
+  // 기본 OFF 공정 (모든 연식)
+  const defaultOff = ['expansion', 'art_wall', 'ceiling_work'];
   if (defaultOff.includes(processId)) return false;
 
   return true;
@@ -198,6 +210,7 @@ export function calculate(input: CalculatorInput): CalculatorOutput {
   const { basic } = input;
   const results: ProcessResult[] = [];
   const livingCoeff = db.config.living_condition_coefficient[basic.livingCondition] || 1;
+  const housingCoeff = HOUSING_COEFFICIENTS[basic.housingType] || 1;
 
   for (const ps of input.processes) {
     if (!ps.enabled) continue;
@@ -213,8 +226,8 @@ export function calculate(input: CalculatorInput): CalculatorOutput {
     }
 
     if (calcResult.amount > 0) {
-      // 거주환경 계수 적용
-      const adjustedAmount = Math.round(calcResult.amount * livingCoeff);
+      // 거주환경 + 연식 계수 적용
+      const adjustedAmount = Math.round(calcResult.amount * livingCoeff * housingCoeff);
 
       results.push({
         id: process.id,
@@ -282,8 +295,8 @@ function collectWarnings(input: CalculatorInput): string[] {
     warnings.push('욕실 2개소 이상 시 설비/방수 공사비가 추가될 수 있습니다');
   }
 
-  if (input.basic.housingType === 'old20') {
-    warnings.push('구축 리모델링은 공사 중 추가비용 약 10~15% 발생 예상');
+  if (input.basic.housingType === 'over20') {
+    warnings.push('20년 이상 된 집은 공사 중 추가비용 약 10~15% 발생할 수 있어요');
   }
 
   return warnings;
@@ -301,7 +314,7 @@ export function createDefaultInput(grade: Grade = 'mid'): CalculatorInput {
   return {
     basic: {
       area: 0,
-      housingType: 'old20',
+      housingType: 'over20',
       livingCondition: 'empty',
       grade,
       contingencyRate: db.config.contingency_rate,
@@ -336,7 +349,7 @@ export function applyAreaChange(input: CalculatorInput, newArea: number): Calcul
 }
 
 // ─── 유형 변경 시 ON/OFF 자동 조정 ───
-export function applyHousingTypeChange(input: CalculatorInput, newType: 'new' | 'old20'): CalculatorInput {
+export function applyHousingTypeChange(input: CalculatorInput, newType: HousingType): CalculatorInput {
   return {
     basic: { ...input.basic, housingType: newType },
     processes: input.processes.map(ps => ({

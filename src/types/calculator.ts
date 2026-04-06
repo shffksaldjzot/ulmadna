@@ -5,7 +5,7 @@
 
 // ─── 기본 조건 ───
 export type Grade = 'basic' | 'mid' | 'premium';
-export type HousingType = 'new' | 'old20';
+export type HousingType = 'under10' | 'ten20' | 'over20';
 export type LivingCondition = 'empty' | 'occupied';
 
 export interface BasicCondition {

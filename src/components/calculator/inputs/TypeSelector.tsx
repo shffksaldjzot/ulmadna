@@ -3,8 +3,9 @@
 import type { HousingType } from '@/types/calculator';
 
 const OPTIONS: { value: HousingType; label: string; desc: string }[] = [
-  { value: 'new', label: '신축 입주', desc: '새 아파트 입주' },
-  { value: 'old20', label: '구축 리모델링', desc: '전면 리모델링' },
+  { value: 'under10', label: '10년 미만', desc: '부분 교체 위주' },
+  { value: 'ten20', label: '10~20년', desc: '주요 설비 교체' },
+  { value: 'over20', label: '20년 이상', desc: '전면 리모델링' },
 ];
 
 interface TypeSelectorProps {
@@ -15,7 +16,7 @@ interface TypeSelectorProps {
 export default function TypeSelector({ value, onChange }: TypeSelectorProps) {
   return (
     <div>
-      <h3 className="text-sm font-semibold text-brown mb-2">집 상태가 어떤가요?</h3>
+      <h3 className="text-sm font-semibold text-brown mb-2">우리 집 연식이 어떻게 되나요?</h3>
       <div className="flex gap-2">
         {OPTIONS.map(opt => (
           <button
