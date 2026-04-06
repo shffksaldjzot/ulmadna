@@ -11,8 +11,8 @@
       "input": "radio",
       "level": 2,
       "options": [
-        { "id": "partial", "label": "부분 철거", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
-        { "id": "full", "label": "전체 철거", "price": 0, "defaultGrade": { "basic": false, "mid": true, "premium": true } }
+        { "id": "partial", "label": "부분 철거", "price": 800000, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "full", "label": "전체 철거", "price": 2300000, "defaultGrade": { "basic": false, "mid": true, "premium": true } }
       ]
     },
     {

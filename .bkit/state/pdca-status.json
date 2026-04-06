@@ -1,6 +1,6 @@
 {
   "version": "3.0",
-  "lastUpdated": "2026-04-06T01:37:54.113Z",
+  "lastUpdated": "2026-04-06T02:03:31.853Z",
   "activeFeatures": [
     "ulmadna",
     "inputs",
@@ -30,9 +30,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-04-05T10:52:03.330Z",
-        "lastUpdated": "2026-04-06T01:37:54.111Z"
+        "lastUpdated": "2026-04-06T01:47:42.731Z"
       },
-      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\app\\layout.tsx"
+      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\hooks\\useCalculator.ts"
     },
     "inputs": {
       "phase": "do",
@@ -43,9 +43,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-04-05T10:59:19.754Z",
-        "lastUpdated": "2026-04-06T01:09:26.643Z"
+        "lastUpdated": "2026-04-06T02:03:31.851Z"
       },
-      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\components\\calculator\\inputs\\GradeSelector.tsx"
+      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\components\\calculator\\inputs\\ProcessToggles.tsx"
     },
     "calculator": {
       "phase": "do",
@@ -56,9 +56,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-04-05T11:01:09.780Z",
-        "lastUpdated": "2026-04-06T01:19:40.717Z"
+        "lastUpdated": "2026-04-06T02:02:00.858Z"
       },
-      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\components\\calculator\\ResultPanel.tsx"
+      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\components\\calculator\\InputPanel.tsx"
     },
     "results": {
       "phase": "do",
@@ -82,9 +82,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-04-05T11:25:24.350Z",
-        "lastUpdated": "2026-04-05T23:58:40.493Z"
+        "lastUpdated": "2026-04-06T02:02:20.583Z"
       },
-      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\components\\calculator\\actions\\KakaoShare.tsx"
+      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\components\\calculator\\actions\\SaveEstimate.tsx"
     },
     "estimates": {
       "phase": "do",
@@ -238,7 +238,7 @@
   "session": {
     "startedAt": "2026-04-05T10:02:32.426Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-04-06T01:37:54.113Z"
+    "lastActivity": "2026-04-06T02:03:31.853Z"
   },
   "history": [
     {
@@ -1042,6 +1042,60 @@
     {
       "timestamp": "2026-04-06T01:37:54.113Z",
       "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T01:47:16.220Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T01:47:42.732Z",
+      "feature": "ulmadna",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T02:02:00.859Z",
+      "feature": "calculator",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T02:02:20.584Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T02:02:37.618Z",
+      "feature": "inputs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T02:02:45.623Z",
+      "feature": "inputs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T02:02:53.163Z",
+      "feature": "inputs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T02:03:05.020Z",
+      "feature": "inputs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T02:03:31.853Z",
+      "feature": "inputs",
       "phase": "do",
       "action": "updated"
     }

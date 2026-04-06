@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { CalculatorInput, CalculatorAction, CalculatorOutput } from '@/types/calculator';
+import { createDefaultInput } from '@/lib/calculator';
 import AreaSelector from './inputs/AreaSelector';
 import TypeSelector from './inputs/TypeSelector';
 import RegionSelector from './inputs/RegionSelector';
@@ -17,9 +18,26 @@ interface InputPanelProps {
 export default function InputPanel({ input, output, dispatch }: InputPanelProps) {
   const [showBasic, setShowBasic] = useState(true);
 
+  const handleReset = () => {
+    if (confirm('입력한 내용을 모두 초기화할까요?')) {
+      localStorage.removeItem('ulmadna-calculator-input');
+      dispatch({ type: 'LOAD_INPUT', payload: createDefaultInput('mid') });
+    }
+  };
+
   return (
     <div className="bg-white border-r border-gray-100">
       <div className="p-4 lg:p-8">
+        {/* 상단: 초기화 버튼 */}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={handleReset}
+            className="text-xs text-gray-400 hover:text-danger border border-gray-200 hover:border-danger/30 px-3 py-1.5 rounded-lg transition-colors"
+          >
+            초기화
+          </button>
+        </div>
+
         {/* Step 01. 기본 공간 정보 */}
         <div className="mb-8">
           <button

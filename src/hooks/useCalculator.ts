@@ -1,19 +1,41 @@
 /**
  * v2 계산기 상태 관리 훅
- * Design Ref: v2 §3 — 3단 Progressive Disclosure
  * - 등급 변경 → 비커스텀 필드 일괄 업데이트
  * - 개별 필드 변경 → customized = true
+ * - localStorage 자동 저장/복원 → 재방문 시 이전 입력값 유지
  */
 
 'use client';
 
-import { useReducer } from 'react';
+import { useReducer, useEffect, useRef } from 'react';
 import type { CalculatorInput, CalculatorOutput, CalculatorAction } from '@/types/calculator';
 import { calculate, createDefaultInput, applyGradeChange } from '@/lib/calculator';
+
+const STORAGE_KEY = 'ulmadna-calculator-input';
 
 interface CalculatorState {
   input: CalculatorInput;
   output: CalculatorOutput;
+}
+
+function loadSavedInput(): CalculatorInput | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return null;
+    return JSON.parse(saved) as CalculatorInput;
+  } catch {
+    return null;
+  }
+}
+
+function saveInput(input: CalculatorInput) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(input));
+  } catch {
+    // localStorage 용량 초과 등 무시
+  }
 }
 
 const defaultInput = createDefaultInput('mid');
@@ -50,7 +72,6 @@ function calculatorReducer(state: CalculatorState, action: CalculatorAction): Ca
       break;
 
     case 'SET_GRADE':
-      // 등급 변경 → 비커스텀 필드 일괄 변경
       newInput = applyGradeChange(state.input, action.payload);
       break;
 
@@ -103,5 +124,24 @@ function calculatorReducer(state: CalculatorState, action: CalculatorAction): Ca
 
 export function useCalculator() {
   const [state, dispatch] = useReducer(calculatorReducer, initialState);
+  const initialized = useRef(false);
+
+  // 최초 마운트 시 localStorage에서 복원
+  useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+
+    const saved = loadSavedInput();
+    if (saved) {
+      dispatch({ type: 'LOAD_INPUT', payload: saved });
+    }
+  }, []);
+
+  // 입력값 변경 시 자동 저장
+  useEffect(() => {
+    if (!initialized.current) return;
+    saveInput(state.input);
+  }, [state.input]);
+
   return { state, dispatch };
 }

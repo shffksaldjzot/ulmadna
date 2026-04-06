@@ -12,8 +12,8 @@
       "level": 2,
       "options": [
         { "id": "none", "label": "설치 안함", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
-        { "id": "wall", "label": "벽걸이", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
-        { "id": "system", "label": "시스템 에어컨", "price": 0, "defaultGrade": { "basic": false, "mid": true, "premium": true } }
+        { "id": "wall", "label": "벽걸이", "price": 600000, "defaultGrade": { "basic": false, "mid": false, "premium": false } },
+        { "id": "system", "label": "시스템 에어컨", "price": 4200000, "defaultGrade": { "basic": false, "mid": true, "premium": true } }
       ]
     },
     {

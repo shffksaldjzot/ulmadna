@@ -11,8 +11,8 @@
       "input": "radio",
       "level": 2,
       "options": [
-        { "id": "full", "label": "전체 교체", "price": 0, "defaultGrade": { "basic": false, "mid": true, "premium": true } },
-        { "id": "partial", "label": "부분 교체", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "full", "label": "전체 교체", "price": 880000, "defaultGrade": { "basic": false, "mid": true, "premium": true } },
+        { "id": "partial", "label": "부분 교체", "price": 350000, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
         { "id": "none", "label": "교체 안함", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
       ]
     },

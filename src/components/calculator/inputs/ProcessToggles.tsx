@@ -22,8 +22,16 @@ interface ProcessTogglesProps {
 }
 
 export default function ProcessToggles({ processes, output, grade, onToggle, onFieldChange }: ProcessTogglesProps) {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [showDetailId, setShowDetailId] = useState<string | null>(null);
+
+  const toggleExpand = (id: string) => {
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
 
   return (
     <div className="space-y-3">
@@ -32,7 +40,7 @@ export default function ProcessToggles({ processes, output, grade, onToggle, onF
         if (!ps) return null;
 
         const isEnabled = ps.enabled;
-        const isExpanded = expandedId === pd.id;
+        const isExpanded = expandedIds.has(pd.id);
         const showDetail = showDetailId === pd.id;
         const processResult = output?.processes.find(p => p.id === pd.id);
         const amount = processResult?.amount || 0;
@@ -52,7 +60,7 @@ export default function ProcessToggles({ processes, output, grade, onToggle, onF
             {/* 공정 헤더 */}
             <div className="flex items-center justify-between px-4 py-3">
               <button
-                onClick={() => isEnabled && setExpandedId(isExpanded ? null : pd.id)}
+                onClick={() => isEnabled && toggleExpand(pd.id)}
                 className="flex items-center gap-2 flex-1 text-left"
               >
                 <span className={`w-2 h-2 rounded-full ${isEnabled ? 'bg-brown' : 'bg-gray-300'}`} />
@@ -68,7 +76,13 @@ export default function ProcessToggles({ processes, output, grade, onToggle, onF
                   <span className="text-sm font-bold text-gold">{formatWonExact(amount)}</span>
                 )}
                 <button
-                  onClick={() => onToggle(pd.id)}
+                  onClick={() => {
+                    onToggle(pd.id);
+                    // A3: 활성화 시 자동 펼침
+                    if (!isEnabled) {
+                      setExpandedIds(prev => new Set(prev).add(pd.id));
+                    }
+                  }}
                   className={`w-9 h-5 rounded-full transition-colors ${isEnabled ? 'bg-brown' : 'bg-gray-300'}`}
                 >
                   <div className={`w-4 h-4 bg-white rounded-full shadow mt-0.5 transition-transform ${
@@ -93,12 +107,16 @@ export default function ProcessToggles({ processes, output, grade, onToggle, onF
 
                 {/* 3단계: 상세설정 버튼 */}
                 {level3Fields.length > 0 && (
-                  <div className="mt-2">
+                  <div className="mt-3">
                     <button
                       onClick={() => setShowDetailId(showDetail ? null : pd.id)}
-                      className="text-[11px] text-gold hover:text-brown transition-colors"
+                      className={`w-full py-2 px-3 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1 ${
+                        showDetail
+                          ? 'bg-gold/10 text-gold border border-gold/30'
+                          : 'bg-cream text-brown/60 border border-brown/10 hover:border-gold/30 hover:text-gold'
+                      }`}
                     >
-                      {showDetail ? '상세설정 접기 ▲' : `상세설정 ▸ (${level3Fields.length}개 항목)`}
+                      {showDetail ? '상세설정 접기 ▲' : `상세설정 열기 ▼ (브랜드·모델 ${level3Fields.length}개 항목)`}
                     </button>
 
                     {showDetail && (

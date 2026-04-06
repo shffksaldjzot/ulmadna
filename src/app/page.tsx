@@ -14,13 +14,16 @@ export default function Home() {
       <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-[1400px] mx-auto px-4 lg:px-8 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Image
-              src="/ulmadna_logo.png"
-              alt="얼마드나"
-              width={130}
-              height={44}
-              priority
-            />
+            <a href="/">
+              <Image
+                src="/ulmadna_logo.png"
+                alt="얼마드나"
+                width={130}
+                height={44}
+                priority
+                className="cursor-pointer"
+              />
+            </a>
             <span className="hidden md:inline-block text-[10px] text-gray-400 border border-gray-200 rounded-full px-3 py-1">
               완전 무료 · 회원가입 없음 · 전화번호 없음
             </span>

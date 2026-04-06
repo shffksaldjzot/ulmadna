@@ -11,8 +11,8 @@
       "input": "radio",
       "level": 2,
       "options": [
-        { "id": "full", "label": "전체 시공", "price": 0, "defaultGrade": { "basic": false, "mid": true, "premium": true } },
-        { "id": "partial", "label": "부분 시공", "price": 0, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
+        { "id": "full", "label": "전체 시공", "price": 1500000, "defaultGrade": { "basic": false, "mid": true, "premium": true } },
+        { "id": "partial", "label": "부분 시공", "price": 300000, "defaultGrade": { "basic": true, "mid": false, "premium": false } },
         { "id": "none", "label": "시공 안함", "price": 0, "defaultGrade": { "basic": false, "mid": false, "premium": false } }
       ]
     },
