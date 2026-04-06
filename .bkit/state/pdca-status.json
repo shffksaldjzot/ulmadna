@@ -1,6 +1,6 @@
 {
   "version": "3.0",
-  "lastUpdated": "2026-04-06T02:09:12.244Z",
+  "lastUpdated": "2026-04-06T02:24:12.693Z",
   "activeFeatures": [
     "ulmadna",
     "inputs",
@@ -18,7 +18,8 @@
     "admin-auth",
     "terms",
     "privacy",
-    "sponsor"
+    "sponsor",
+    "preview"
   ],
   "primaryFeature": "ulmadna",
   "features": {
@@ -239,9 +240,22 @@
       "documents": {},
       "timestamps": {
         "started": "2026-04-06T02:09:12.243Z",
-        "lastUpdated": "2026-04-06T02:09:12.243Z"
+        "lastUpdated": "2026-04-06T02:24:12.692Z"
       },
       "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\app\\sponsor\\page.tsx"
+    },
+    "preview": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-04-06T02:23:38.443Z",
+        "lastUpdated": "2026-04-06T02:23:38.443Z"
+      },
+      "lastFile": "C:\\Users\\addmim\\Desktop\\도토리스튜디오\\4.인테리어\\ulmadna\\src\\app\\sponsor\\preview\\page.tsx"
     }
   },
   "pipeline": {
@@ -252,7 +266,7 @@
   "session": {
     "startedAt": "2026-04-05T10:02:32.426Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-04-06T02:09:12.244Z"
+    "lastActivity": "2026-04-06T02:24:12.693Z"
   },
   "history": [
     {
@@ -1115,6 +1129,18 @@
     },
     {
       "timestamp": "2026-04-06T02:09:12.244Z",
+      "feature": "sponsor",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T02:23:38.461Z",
+      "feature": "preview",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-04-06T02:24:12.693Z",
       "feature": "sponsor",
       "phase": "do",
       "action": "updated"

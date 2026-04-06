@@ -141,6 +141,12 @@ export default function SponsorPage() {
             >
               광고 상품 보기
             </a>
+            <a
+              href="/sponsor/preview"
+              className="text-sm text-gold border border-gold px-6 py-3 rounded-full hover:bg-gold/5 transition-colors"
+            >
+              실제 적용 미리보기 →
+            </a>
           </div>
         </div>
       </section>
