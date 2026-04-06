@@ -7,6 +7,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Kakao({
       clientId: (process.env.KAKAO_CLIENT_ID || '').trim(),
       clientSecret: (process.env.KAKAO_CLIENT_SECRET || '').trim(),
+      checks: ['state'],
     }),
   ],
   pages: {
