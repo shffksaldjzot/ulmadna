@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Analytics from "@/components/layout/Analytics";
 import AuthProvider from "@/components/layout/AuthProvider";
+// Vercel Web Analytics — 방문자 경로(유입 채널/페이지/디바이스) 추적용. GA와 별도로 동작
+import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "얼마드나 — 무료 인테리어 견적 계산기 | 회원가입 없이 바로 사용",
@@ -37,7 +39,10 @@ export default function RootLayout({
         <AuthProvider>
           {children}
         </AuthProvider>
+        {/* GA(NEXT_PUBLIC_GA_ID 있을 때만) */}
         <Analytics />
+        {/* Vercel Web Analytics — 유입 경로 추적용 */}
+        <VercelAnalytics />
       </body>
     </html>
   );
