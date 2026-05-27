@@ -5,6 +5,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { useCalculator } from '@/hooks/useCalculator';
 import InputPanel from '@/components/calculator/InputPanel';
 import ResultPanel from '@/components/calculator/ResultPanel';
+import AdSlot from '@/components/ads/AdSlot';
 
 export default function Home() {
   const { data: session } = useSession();
@@ -83,6 +84,9 @@ export default function Home() {
 {/* 인테리어 이미지 제거됨 */}
         </div>
       </section>
+
+      {/* AD-H: 히어로 ↔ 계산기 사이 (v2 명세 §4). 현재 house ad 플레이스홀더 노출 */}
+      <AdSlot id="AD-H" />
 
       {/* ───── 메인: 입력 (55~60%) + 결과 (40~45%) ───── */}
       <main className="max-w-[1400px] mx-auto overflow-hidden">
@@ -166,6 +170,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* AD-F: 신뢰 섹션 ↔ 푸터 사이 (v2 명세 §4). 광고주 0명 — 현재 collapse */}
+      <AdSlot id="AD-F" />
 
       {/* ───── 푸터 ───── */}
       <footer className="bg-brown text-cream/80 py-10 px-4 lg:px-8">

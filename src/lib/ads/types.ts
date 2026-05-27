@@ -35,6 +35,10 @@ export interface AdSlotSize {
   width: number;
   height: number;
   responsive?: boolean;
+  // 향후 PC 전용 규격(예: 728×90) 추가 시 채울 필드.
+  //  - 미설정 시 모바일 규격(width/height)을 PC에서도 그대로 가운데 정렬해 노출.
+  //  - AdSlot 컴포넌트에서 lg: prefix Tailwind 클래스로 분기 추가 시 활성화.
+  desktop?: { width: number; height: number };
 }
 
 // 슬롯 결정 결과 — provider가 폴백 체인 적용 후 반환

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, forwardRef, useImperativeHandle } from 'react';
+import { useState, forwardRef, useImperativeHandle, Fragment } from 'react';
 import type { ProcessUserState, CalculatorOutput, CalculatorAction, DBProcess, DBOption, DBItem } from '@/types/calculator';
+import AdSlot from '@/components/ads/AdSlot';
 import { db } from '@/lib/calculator';
 import { formatWonExact } from '@/lib/format';
 
@@ -276,14 +277,16 @@ const ProcessToggles = forwardRef<{ expandAll: () => void; collapseAll: () => vo
 
   return (
     <div className="space-y-6 max-w-full">
-      {PROCESS_GROUPS.map(group => {
+      {PROCESS_GROUPS.map((group, groupIdx) => {
         const groupProcesses = group.ids
           .map(id => db.processes.find(p => p.id === id))
           .filter(Boolean) as DBProcess[];
         if (groupProcesses.length === 0) return null;
 
         return (
-          <div key={group.label}>
+          // Fragment로 묶어 group 카드 묶음 + AD-P 슬롯을 형제로 배치 (v2 명세 §6 동적 슬롯)
+          <Fragment key={group.label}>
+          <div>
             <p className="text-[10px] text-gold tracking-widest font-medium mb-2 px-1">{group.label}</p>
             <div className="space-y-2">
               {groupProcesses.map(proc => {
@@ -421,6 +424,9 @@ const ProcessToggles = forwardRef<{ expandAll: () => void; collapseAll: () => vo
               })}
             </div>
           </div>
+          {/* AD-P: 바로 위 공정에 대응하는 단종업체 광고 (v2 명세 §6.2). 캡 4 초과 시 collapse */}
+          <AdSlot id="AD-P" processGroup={group.label} adPPageIndex={groupIdx} />
+          </Fragment>
         );
       })}
     </div>

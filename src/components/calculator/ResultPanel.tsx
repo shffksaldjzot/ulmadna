@@ -9,6 +9,7 @@ import ExcelDownload from './actions/ExcelDownload';
 import KakaoShare from './actions/KakaoShare';
 import SaveEstimate from './actions/SaveEstimate';
 import ContingencySelector from './results/ContingencySelector';
+import AdSlot from '@/components/ads/AdSlot';
 
 interface ResultPanelProps {
   input: CalculatorInput;
@@ -123,6 +124,10 @@ export default function ResultPanel({ input, output, dispatch }: ResultPanelProp
           </div>
         </div>
       )}
+
+      {/* AD-R: 공정별 비용 비중 카드 바깥, 결과 버튼 그리드 직전 (v2 명세 §4)
+          - 그래프 "더보기" 펼침/접힘과 무관 (카드 형제이므로 카드 안 들어감) */}
+      {!isEmpty && <AdSlot id="AD-R" />}
 
       {/* 다운로드/공유 */}
       {!isEmpty && (
