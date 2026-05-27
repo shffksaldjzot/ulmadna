@@ -2,10 +2,23 @@ import { NextResponse } from 'next/server';
 import { getSupabase } from '@/lib/supabase';
 
 export async function GET(req: Request) {
-  // 어드민 인증 확인
-  const cookie = req.headers.get('cookie') || '';
-  const adminAuth = cookie.split(';').find(c => c.trim().startsWith('admin-auth='));
-  if (!adminAuth) {
+  // 환경변수 검증 — 미설정 시 인증 자체가 불가능하므로 500.
+  // (예전엔 'fallback-token' 폴백 + 쿠키 존재만 체크 → 우회 가능했음 → 수정)
+  const sessionToken = process.env.NEXTAUTH_SECRET;
+  if (!sessionToken) {
+    console.error('[admin-users] NEXTAUTH_SECRET 미설정');
+    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
+  }
+
+  // 어드민 인증 확인 — 쿠키 값이 sessionToken과 정확히 일치해야 통과
+  const cookieHeader = req.headers.get('cookie') || '';
+  const adminAuthCookie = cookieHeader
+    .split(';')
+    .map(c => c.trim())
+    .find(c => c.startsWith('admin-auth='));
+  const cookieValue = adminAuthCookie?.slice('admin-auth='.length);
+
+  if (!cookieValue || cookieValue !== sessionToken) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
