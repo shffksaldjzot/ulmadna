@@ -66,8 +66,9 @@ export default function ResultPanel({ input, output, dispatch }: ResultPanelProp
         />
       )}
 
-      {/* 견적 카드 */}
-      {!isEmpty && <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+      {/* 견적 카드
+          * id="result-card": 하단 고정바 숨김 판정용 IntersectionObserver 타겟 (v2 명세 §7.2) */}
+      {!isEmpty && <div id="result-card" className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
         <p className="text-[10px] text-gold tracking-widest mb-1">실시간 견적 결과</p>
         <p className="text-xs text-gray-400 mb-4">
           {input.basic.area}평 · {HOUSING_LABELS[input.basic.housingType]} · {GRADE_LABELS[input.basic.grade]}

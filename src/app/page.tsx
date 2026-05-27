@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useCalculator } from '@/hooks/useCalculator';
 import InputPanel from '@/components/calculator/InputPanel';
@@ -10,6 +11,24 @@ import AdSlot from '@/components/ads/AdSlot';
 export default function Home() {
   const { data: session } = useSession();
   const { state, dispatch } = useCalculator();
+
+  // 결과 카드 가시성 추적 — 결과부 도달 시 모바일 하단 고정바 숨김 (v2 명세 §7.2)
+  // ResultPanel.tsx의 #result-card 견적 카드가 뷰포트 10% 이상 보이면 hide, 위로 가면 다시 show
+  const [isResultVisible, setIsResultVisible] = useState(false);
+
+  useEffect(() => {
+    const target = document.getElementById('result-card');
+    if (!target) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsResultVisible(entry.isIntersecting),
+      { threshold: 0.1 }
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [state.output.total]); // 결과 카드가 새로 mount될 때(첫 견적 입력 시점)마다 재연결
+
+  // 맨위로(↑) 버튼 — 부드러운 스크롤 (v2 명세 §2.4 · §7.1)
+  const scrollTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   return (
     <>
@@ -105,28 +124,39 @@ export default function Home() {
 
       {/* 절약 팁 섹션 제거됨 */}
 
-      {/* 모바일 하단 플로팅 바 — 총액 항상 표시 */}
-      {state.output.total > 0 && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] px-4 py-3">
-          <div className="flex items-center justify-between max-w-[600px] mx-auto">
-            <div>
-              <p className="text-[10px] text-gray-400">예상 총 비용</p>
-              <p className="text-xl font-bold text-brown">
+      {/* 모바일 하단 고정바 — 1줄 압축 + 결과부 도달 시 숨김 (v2 명세 §7.1 · §7.2)
+          * 표시 조건: 견적 있고(total>0) AND 결과 카드 미노출(스크롤이 입력부에 있음)
+          * 라벨/평당가는 작게(10~11px), 금액(text-lg)만 큰 글씨로 가독성 유지
+          * 우측 ↑ 버튼은 페이지 최상단으로 부드럽게 이동 (§2.4) */}
+      {state.output.total > 0 && !isResultVisible && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] px-4 py-2.5">
+          <div className="flex items-center justify-between gap-3 max-w-[600px] mx-auto">
+            {/* 좌측: 라벨(작게) + 금액(큰 글씨) 인라인 배치 */}
+            <div className="flex items-baseline gap-1.5 min-w-0">
+              <span className="text-[10px] text-gray-400 shrink-0">예상 총 비용</span>
+              <span className="text-lg font-bold text-brown truncate">
                 {Math.round(state.output.total / 10000).toLocaleString()}만원
-              </p>
+              </span>
             </div>
-            <div className="text-right">
-              <p className="text-[10px] text-gray-400">평당</p>
-              <p className="text-sm font-semibold text-gold">
-                {Math.round(state.output.perPyeong / 10000).toLocaleString()}만원
-              </p>
+            {/* 우측: 평당가 + 맨위로(↑) 버튼 */}
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-[11px] text-gold font-medium">
+                평당 {Math.round(state.output.perPyeong / 10000).toLocaleString()}만
+              </span>
+              <button
+                onClick={scrollTop}
+                aria-label="맨 위로"
+                className="w-8 h-8 rounded-full bg-cream hover:bg-gold/10 text-brown flex items-center justify-center transition-colors text-sm"
+              >
+                ↑
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 모바일 플로팅 바 높이만큼 여백 */}
-      {state.output.total > 0 && <div className="lg:hidden h-16" />}
+      {/* 모바일 하단바 높이만큼 여백 — 하단바 노출 중에만 (compact 1줄 기준 ~52px) */}
+      {state.output.total > 0 && !isResultVisible && <div className="lg:hidden h-14" />}
 
       {/* 파트너 배너: 실제 스폰서 등록 전까지 숨김 */}
 
@@ -174,8 +204,10 @@ export default function Home() {
       {/* AD-F: 신뢰 섹션 ↔ 푸터 사이 (v2 명세 §4). 광고주 0명 — 현재 collapse */}
       <AdSlot id="AD-F" />
 
-      {/* ───── 푸터 ───── */}
-      <footer className="bg-brown text-cream/80 py-10 px-4 lg:px-8">
+      {/* ───── 푸터 ─────
+          * pb-14 (모바일): 하단 고정바(~52px) 노출 시 푸터 마지막 텍스트 가림 방지 (Phase 5)
+          * lg:pb-10: 데스크탑은 기존 py-10 유지 (하단바가 모바일 전용이므로) */}
+      <footer className="bg-brown text-cream/80 pt-10 pb-14 lg:pb-10 px-4 lg:px-8">
         <div className="max-w-[1400px] mx-auto">
           <div className="flex flex-col md:flex-row justify-between gap-8">
             <div>

@@ -98,20 +98,8 @@ export default function InputPanel({ input, output, dispatch }: InputPanelProps)
           </div>
         </div>
 
-        {/* 모바일: 총 금액 미리보기 */}
-        {output && output.total > 0 && (
-          <div className="lg:hidden bg-cream rounded-xl p-4 mb-6 text-center">
-            <p className="text-xs text-gray-400">예상 총 비용</p>
-            <p className="text-2xl font-bold text-brown">
-              {Math.round(output.total / 10000).toLocaleString('ko-KR')}만원
-            </p>
-            <p className="text-xs text-gold">
-              평당 {Math.round(output.perPyeong / 10000).toLocaleString('ko-KR')}만원
-            </p>
-          </div>
-        )}
-
-        {/* Step 02 + 모두펼치기/접기 */}
+        {/* Step 02 + 모두펼치기/접기
+            * (Phase 5: 모바일 총액 미리보기 카드 제거 — 하단 고정바가 역할 흡수, v2 명세 §7) */}
         <div>
           <div className="flex items-center justify-between mb-4 lg:mb-6">
             <div className="flex items-center gap-2">
