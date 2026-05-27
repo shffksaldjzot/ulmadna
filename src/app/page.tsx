@@ -153,11 +153,11 @@ export default function Home() {
         {/* 통계 */}
         <div className="max-w-[1400px] mx-auto mt-12 flex justify-center gap-12 lg:gap-20">
           <div className="text-center">
-            <p className="text-3xl font-bold text-brown">35건+</p>
+            <p className="text-3xl font-bold text-brown">1,000건+</p>
             <p className="text-xs text-gray-400 mt-1">실제 견적서 분석</p>
           </div>
           <div className="text-center">
-            <p className="text-3xl font-bold text-brown">19개</p>
+            <p className="text-3xl font-bold text-brown">1,000건+</p>
             <p className="text-xs text-gray-400 mt-1">세부 공정 데이터</p>
           </div>
           <div className="text-center">
