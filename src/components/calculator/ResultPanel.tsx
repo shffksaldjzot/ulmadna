@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import type { CalculatorInput, CalculatorOutput, CalculatorAction } from '@/types/calculator';
 import { formatPerPyeong, formatWonExact, formatPercent } from '@/lib/format';
 import type { HistorySnapshot } from '@/hooks/useCalculator';
@@ -27,6 +27,8 @@ const HOUSING_LABELS: Record<string, string> = {
 export default function ResultPanel({ input, output, dispatch }: ResultPanelProps) {
   const [showAll, setShowAll] = useState(false);
   const [title, setTitle] = useState('');
+  // SaveEstimate에서 "제목 입력 필요" alert 뜬 직후 자동 focus 이동을 위해 ref 보유
+  const titleInputRef = useRef<HTMLInputElement>(null);
   const [showCompare, setShowCompare] = useState(false);
   const [history, setHistory] = useState<HistorySnapshot[]>([]);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
@@ -54,9 +56,11 @@ export default function ResultPanel({ input, output, dispatch }: ResultPanelProp
         </div>
       )}
 
-      {/* 견적 제목 입력 */}
+      {/* 견적 제목 입력
+          * ref: SaveEstimate가 제목 빈 채로 저장 시도 시 alert 후 자동 focus 이동 (UX) */}
       {!isEmpty && (
         <input
+          ref={titleInputRef}
           type="text"
           value={title}
           onChange={e => setTitle(e.target.value)}
@@ -136,7 +140,12 @@ export default function ResultPanel({ input, output, dispatch }: ResultPanelProp
           <PdfDownload input={input} output={output} />
           <ExcelDownload input={input} output={output} />
           <KakaoShare input={input} output={output} />
-          <SaveEstimate input={input} output={output} title={title} />
+          <SaveEstimate
+            input={input}
+            output={output}
+            title={title}
+            onTitleRequired={() => titleInputRef.current?.focus()}
+          />
         </div>
       )}
 

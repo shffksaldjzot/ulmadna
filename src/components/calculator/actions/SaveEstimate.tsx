@@ -7,15 +7,19 @@ interface SaveEstimateProps {
   input: CalculatorInput;
   output: CalculatorOutput;
   title?: string;
+  /** 제목이 비어 alert가 뜬 직후 호출 — 부모가 title input으로 focus 이동시키는 용도 */
+  onTitleRequired?: () => void;
 }
 
-export default function SaveEstimate({ input, output, title = '' }: SaveEstimateProps) {
+export default function SaveEstimate({ input, output, title = '', onTitleRequired }: SaveEstimateProps) {
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const handleSave = async () => {
     if (!title.trim()) {
       alert('견적서 제목을 입력해주세요.');
+      // alert는 동기 모달이라 닫힌 직후 실행됨 → 부모가 title input에 focus 이동
+      onTitleRequired?.();
       return;
     }
 
