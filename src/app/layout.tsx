@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Script from "next/script";
 import AuthProvider from "@/components/layout/AuthProvider";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
@@ -41,16 +40,12 @@ export default function RootLayout({
         <AuthProvider>
           {children}
         </AuthProvider>
-        {/* GA4 — 레이아웃(서버)에서 직접 주입. gtag 로드 + page_view 전송 */}
+        {/* GA4 — 순수 script 태그(브라우저 즉시 실행). next/script afterInteractive가
+            인라인 실행 안 하는 문제 회피. React 19가 script 호이스팅 지원. */}
         {GA_ID && (
           <>
-            <Script
-              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-              strategy="afterInteractive"
-            />
-            <Script
-              id="ga-init"
-              strategy="afterInteractive"
+            <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} />
+            <script
               dangerouslySetInnerHTML={{
                 __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}');`,
               }}
