@@ -22,6 +22,7 @@ export interface FaqItem {
 }
 
 export interface PostMeta {
+  postNo: number | null; // 글 번호 (텔레그램에서 "N번 글" 지칭용)
   slug: string;
   title: string;
   description: string;
@@ -40,6 +41,7 @@ function readMeta(file: string): PostMeta {
   const raw = fs.readFileSync(path.join(BLOG_DIR, file), "utf8");
   const { data } = matter(raw);
   return {
+    postNo: typeof data.postNo === "number" ? data.postNo : null,
     slug,
     title: data.title ?? slug,
     description: data.description ?? "",
@@ -95,6 +97,7 @@ export async function getPost(slug: string): Promise<Post | null> {
     : [];
 
   return {
+    postNo: typeof data.postNo === "number" ? data.postNo : null,
     slug,
     title: data.title ?? slug,
     description: data.description ?? "",

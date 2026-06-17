@@ -48,7 +48,9 @@ export default function BlogIndex() {
                   {p.tags.length > 0 && <span className="blog-card-tag">{p.tags[0]}</span>}
                   <h2>{p.title}</h2>
                   <p className="blog-card-desc">{p.description}</p>
-                  <span className="blog-card-date">{fmtDate(p.date)}</span>
+                  <span className="blog-card-date">
+                    {p.postNo != null && <b>No.{p.postNo}</b>} {fmtDate(p.date)}
+                  </span>
                 </div>
               </Link>
             ))}

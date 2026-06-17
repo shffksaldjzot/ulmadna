@@ -90,7 +90,10 @@ export default async function BlogPost({
             </div>
           )}
           <h1>{post.title}</h1>
-          <p className="blog-post-meta">{fmtDate(post.date)}</p>
+          <p className="blog-post-meta">
+            {post.postNo != null && <>No.{post.postNo} · </>}
+            {fmtDate(post.date)}
+          </p>
         </header>
 
         {post.thumbnail && (
