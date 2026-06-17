@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Analytics from "@/components/layout/Analytics";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import AuthProvider from "@/components/layout/AuthProvider";
 // Vercel Web Analytics — 방문자 경로(유입 채널/페이지/디바이스) 추적용. GA와 별도로 동작
 import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
@@ -39,8 +39,10 @@ export default function RootLayout({
         <AuthProvider>
           {children}
         </AuthProvider>
-        {/* GA(NEXT_PUBLIC_GA_ID 있을 때만) */}
-        <Analytics />
+        {/* GA4 — Next.js 공식 컴포넌트(@next/third-parties). page_view 자동 전송 */}
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+        )}
         {/* Vercel Web Analytics — 유입 경로 추적용 */}
         <VercelAnalytics />
       </body>
