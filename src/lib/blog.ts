@@ -58,7 +58,13 @@ export function getAllPostMeta(): PostMeta[] {
     .readdirSync(BLOG_DIR)
     .filter((f) => f.endsWith(".md"))
     .map(readMeta)
-    .sort((a, b) => (a.date < b.date ? 1 : -1));
+    .sort((a, b) => {
+      // 글 번호 큰 게(최신) 위로. 번호 없으면 날짜 최신순.
+      if (a.postNo != null && b.postNo != null) return b.postNo - a.postNo;
+      if (a.postNo != null) return -1;
+      if (b.postNo != null) return 1;
+      return a.date < b.date ? 1 : -1;
+    });
 }
 
 /** 정적 생성용 slug 목록 */
