@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import AuthProvider from "@/components/layout/AuthProvider";
 
-const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
+// env 값에 줄바꿈/공백이 붙는 경우가 있어 trim (GA ID 깨짐 방지)
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID?.trim();
 // Vercel Web Analytics — 방문자 경로(유입 채널/페이지/디바이스) 추적용. GA와 별도로 동작
 import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
 
