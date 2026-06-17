@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560" role="img" aria-label="34평 인테리어 공사 순서와 기간">
+  <rect width="960" height="560" fill="#FBF7F1"/>
+  <text x="40" y="56" fill="#5C3A1E" font-family="Pretendard, sans-serif" font-size="30" font-weight="800">34평 인테리어 공사 순서와 기간</text>
+  <text x="40" y="88" fill="#9b8579" font-family="Pretendard, sans-serif" font-size="17">전체 올수리 기준 약 4~6주 (공정 일부는 겹쳐서 진행)</text>
+
+  <g font-family="Pretendard, sans-serif" font-size="20" font-weight="600">
+    <!-- step rows: label(left) + duration bar -->
+    <text x="40" y="146" fill="#3d2512">1. 철거</text>
+    <rect x="300" y="128" width="120" height="26" rx="6" fill="#5C3A1E"/>
+    <text x="436" y="146" fill="#8a6440" font-size="16" font-weight="700">2~5일</text>
+
+    <text x="40" y="190" fill="#3d2512">2. 설비(배관·전기)</text>
+    <rect x="300" y="172" width="100" height="26" rx="6" fill="#6b4424"/>
+    <text x="416" y="190" fill="#8a6440" font-size="16" font-weight="700">2~4일</text>
+
+    <text x="40" y="234" fill="#3d2512">3. 목공</text>
+    <rect x="300" y="216" width="170" height="26" rx="6" fill="#7a5230"/>
+    <text x="486" y="234" fill="#8a6440" font-size="16" font-weight="700">3~7일</text>
+
+    <text x="40" y="278" fill="#3d2512">4. 욕실·타일</text>
+    <rect x="300" y="260" width="130" height="26" rx="6" fill="#89603a"/>
+    <text x="446" y="278" fill="#8a6440" font-size="16" font-weight="700">3~5일</text>
+
+    <text x="40" y="322" fill="#3d2512">5. 샷시·창호</text>
+    <rect x="300" y="304" width="70" height="26" rx="6" fill="#946338"/>
+    <text x="386" y="322" fill="#8a6440" font-size="16" font-weight="700">1~2일</text>
+
+    <text x="40" y="366" fill="#3d2512">6. 주방·가구</text>
+    <rect x="300" y="348" width="100" height="26" rx="6" fill="#a87a45"/>
+    <text x="416" y="366" fill="#8a6440" font-size="16" font-weight="700">2~4일</text>
+
+    <text x="40" y="410" fill="#3d2512">7. 바닥(마루)</text>
+    <rect x="300" y="392" width="80" height="26" rx="6" fill="#bb9159"/>
+    <text x="396" y="410" fill="#8a6440" font-size="16" font-weight="700">2~3일</text>
+
+    <text x="40" y="454" fill="#3d2512">8. 도배·도장</text>
+    <rect x="300" y="436" width="100" height="26" rx="6" fill="#c9a673"/>
+    <text x="416" y="454" fill="#8a6440" font-size="16" font-weight="700">2~4일</text>
+
+    <text x="40" y="498" fill="#3d2512">9. 조명·마무리</text>
+    <rect x="300" y="480" width="60" height="26" rx="6" fill="#d6b88a"/>
+    <text x="376" y="498" fill="#8a6440" font-size="16" font-weight="700">1~2일</text>
+
+    <text x="40" y="542" fill="#3d2512">10. 입주청소</text>
+    <rect x="300" y="524" width="55" height="26" rx="6" fill="#e2cba6"/>
+    <text x="371" y="542" fill="#8a6440" font-size="16" font-weight="700">1~2일</text>
+  </g>
+</svg>

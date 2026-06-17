@@ -51,6 +51,12 @@ export default function Home() {
             </span>
           </div>
           <div className="flex items-center gap-3">
+            <a
+              href="/blog"
+              className="text-xs font-semibold text-gray-600 hover:text-brown border border-gray-200 px-4 py-2 rounded-full transition-colors"
+            >
+              블로그
+            </a>
             {session?.user ? (
               <>
                 <a

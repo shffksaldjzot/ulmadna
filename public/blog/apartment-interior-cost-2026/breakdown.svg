@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="520" viewBox="0 0 960 520" role="img" aria-label="공정별 비용 비중">
+  <rect width="960" height="520" fill="#FBF7F1"/>
+  <text x="40" y="58" fill="#5C3A1E" font-family="Pretendard, sans-serif" font-size="30" font-weight="800">34평 중급 기준 · 공정별 비용 비중</text>
+
+  <!-- rows -->
+  <g font-family="Pretendard, sans-serif" font-size="22" font-weight="600">
+    <text x="40" y="128" fill="#3d2512">주방·가구</text>
+    <rect x="200" y="108" width="380" height="28" rx="6" fill="#5C3A1E"/>
+    <text x="600" y="128" fill="#8a6440" font-weight="700">22%</text>
+
+    <text x="40" y="188" fill="#3d2512">욕실·타일</text>
+    <rect x="200" y="168" width="300" height="28" rx="6" fill="#7a5230"/>
+    <text x="520" y="188" fill="#8a6440" font-weight="700">17%</text>
+
+    <text x="40" y="248" fill="#3d2512">바닥·마루</text>
+    <rect x="200" y="228" width="250" height="28" rx="6" fill="#946338"/>
+    <text x="470" y="248" fill="#8a6440" font-weight="700">14%</text>
+
+    <text x="40" y="308" fill="#3d2512">도배·페인트</text>
+    <rect x="200" y="288" width="210" height="28" rx="6" fill="#a87a45"/>
+    <text x="430" y="308" fill="#8a6440" font-weight="700">12%</text>
+
+    <text x="40" y="368" fill="#3d2512">샷시·창호</text>
+    <rect x="200" y="348" width="200" height="28" rx="6" fill="#bb9159"/>
+    <text x="420" y="368" fill="#8a6440" font-weight="700">11%</text>
+
+    <text x="40" y="428" fill="#3d2512">기타 공정</text>
+    <rect x="200" y="408" width="430" height="28" rx="6" fill="#d0b48a"/>
+    <text x="650" y="428" fill="#8a6440" font-weight="700">24%</text>
+  </g>
+  <text x="40" y="492" fill="#9b8579" font-family="Pretendard, sans-serif" font-size="17">※ 평균 비중 예시 — 자재 등급·평형·구조에 따라 달라집니다.</text>
+</svg>

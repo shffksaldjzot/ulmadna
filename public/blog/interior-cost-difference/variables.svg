@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="500" viewBox="0 0 960 500" role="img" aria-label="가격을 가르는 5대 변수">
+  <rect width="960" height="500" fill="#FBF7F1"/>
+  <text x="40" y="56" fill="#5C3A1E" font-family="Pretendard, sans-serif" font-size="30" font-weight="800">같은 34평, 가격을 가르는 5대 변수</text>
+  <text x="40" y="86" fill="#9b8579" font-family="Pretendard, sans-serif" font-size="17">각 변수가 더해질 때 늘어나는 비용 폭(대략)</text>
+
+  <g font-family="Pretendard, sans-serif" font-size="20" font-weight="600">
+    <text x="40" y="146" fill="#3d2512">① 공사 범위</text>
+    <rect x="280" y="126" width="560" height="28" rx="6" fill="#5C3A1E"/>
+    <text x="852" y="146" fill="#8a6440" font-size="15" font-weight="700">최대</text>
+
+    <text x="40" y="206" fill="#3d2512">② 자재 등급</text>
+    <rect x="280" y="186" width="360" height="28" rx="6" fill="#7a5230"/>
+    <text x="652" y="206" fill="#8a6440" font-size="15" font-weight="700">~1,000만+</text>
+
+    <text x="40" y="266" fill="#3d2512">③ 샷시 교체</text>
+    <rect x="280" y="246" width="300" height="28" rx="6" fill="#946338"/>
+    <text x="592" y="266" fill="#8a6440" font-size="15" font-weight="700">500~1,200만</text>
+
+    <text x="40" y="326" fill="#3d2512">④ 목공·구조변경</text>
+    <rect x="280" y="306" width="320" height="28" rx="6" fill="#a87a45"/>
+    <text x="612" y="326" fill="#8a6440" font-size="15" font-weight="700">수백~1,000만+</text>
+
+    <text x="40" y="386" fill="#3d2512">⑤ 욕실 개수·등급</text>
+    <rect x="280" y="366" width="260" height="28" rx="6" fill="#c9a673"/>
+    <text x="552" y="386" fill="#8a6440" font-size="15" font-weight="700">600만+</text>
+  </g>
+  <text x="40" y="456" fill="#9b8579" font-family="Pretendard, sans-serif" font-size="16">※ 이 다섯이 겹치면 같은 34평도 4천만원 → 1억으로 벌어집니다.</text>
+</svg>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="34평 아파트 인테리어 비용">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5C3A1E"/>
+      <stop offset="1" stop-color="#3d2512"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="1050" cy="120" r="220" fill="#ffffff" opacity="0.05"/>
+  <circle cx="160" cy="560" r="160" fill="#ffffff" opacity="0.04"/>
+  <text x="90" y="250" fill="#E9B872" font-family="Pretendard, sans-serif" font-size="34" font-weight="700">얼마드나 · 인테리어 정보</text>
+  <text x="90" y="345" fill="#ffffff" font-family="Pretendard, sans-serif" font-size="78" font-weight="800">34평 아파트</text>
+  <text x="90" y="445" fill="#ffffff" font-family="Pretendard, sans-serif" font-size="78" font-weight="800">인테리어 비용 총정리</text>
+  <text x="90" y="535" fill="#d9c7b5" font-family="Pretendard, sans-serif" font-size="32" font-weight="500">2026년 기준 · 공정별 단가와 평균 견적</text>
+</svg>

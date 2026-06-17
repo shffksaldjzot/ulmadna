@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="같은 34평인데 왜 비용이 다를까">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5C3A1E"/>
+      <stop offset="1" stop-color="#3d2512"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="1060" cy="500" r="240" fill="#ffffff" opacity="0.05"/>
+  <text x="90" y="200" fill="#E9B872" font-family="Pretendard, sans-serif" font-size="32" font-weight="700">얼마드나 · 인테리어 정보</text>
+  <text x="90" y="300" fill="#ffffff" font-family="Pretendard, sans-serif" font-size="72" font-weight="800">같은 34평인데</text>
+  <text x="90" y="392" fill="#ffffff" font-family="Pretendard, sans-serif" font-size="72" font-weight="800">왜 <tspan fill="#E9B872">4천만원</tspan> vs <tspan fill="#E9B872">1억</tspan>?</text>
+  <text x="90" y="476" fill="#d9c7b5" font-family="Pretendard, sans-serif" font-size="30" font-weight="500">인테리어 비용 차이를 가르는 5가지 진짜 이유</text>
+</svg>
