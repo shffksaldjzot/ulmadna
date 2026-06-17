@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getPost, getAllSlugs } from "@/lib/blog";
 import { BlogHeader } from "@/components/blog/BlogHeader";
 import { SiteFooter } from "@/components/blog/SiteFooter";
+import { PostEngagement } from "@/components/blog/PostEngagement";
 import "../blog.css";
 
 const SITE = "https://ulmadna.com";
@@ -104,6 +105,8 @@ export default async function BlogPost({
         )}
 
         <div className="blog-body" dangerouslySetInnerHTML={{ __html: post.html }} />
+
+        <PostEngagement slug={post.slug} />
 
         {post.faq.length > 0 && (
           <section className="blog-faq">
