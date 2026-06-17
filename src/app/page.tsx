@@ -175,7 +175,7 @@ export default function Home() {
               실제 견적 데이터로<br />만든 계산기
             </h2>
             <p className="text-sm text-gray-500 leading-relaxed">
-              인테리어 커뮤니티에서 수집한 실제 견적서 데이터를 분석하여
+              실제 인테리어 현장에서 수집한 견적서 데이터를 분석하여
               공정별 시장 평균 단가를 산출했습니다.
               무료이고, 개인정보를 받지 않고, 숫자의 근거를
               투명하게 공개합니다.
