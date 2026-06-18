@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="520" viewBox="0 0 960 520" role="img" aria-label="인테리어 업체 거르는 5가지 위험 신호">
+  <rect width="960" height="520" fill="#FBF7F1"/>
+  <text x="40" y="56" fill="#5C3A1E" font-family="Pretendard, sans-serif" font-size="30" font-weight="800">이런 곳은 거른다 — 5가지 위험 신호</text>
+  <text x="40" y="86" fill="#9b8579" font-family="Pretendard, sans-serif" font-size="17">1인·무면허·신생 업체에서 자주 나오는 신호들</text>
+
+  <g font-family="Pretendard, sans-serif">
+    <g>
+      <circle cx="58" cy="142" r="16" fill="#b23a2e"/>
+      <text x="58" y="149" fill="#fff" font-size="20" font-weight="800" text-anchor="middle">1</text>
+      <text x="90" y="140" fill="#3d2512" font-size="21" font-weight="700">계약서·사업자등록을 꺼린다</text>
+      <text x="90" y="166" fill="#8a6440" font-size="16">"믿고 하시면 돼요"로 서면을 미룬다 → 분쟁 때 근거 0</text>
+    </g>
+    <g>
+      <circle cx="58" cy="216" r="16" fill="#b23a2e"/>
+      <text x="58" y="223" fill="#fff" font-size="20" font-weight="800" text-anchor="middle">2</text>
+      <text x="90" y="214" fill="#3d2512" font-size="21" font-weight="700">견적서가 '일식(1식)'으로 뭉뚱그려져 있다</text>
+      <text x="90" y="240" fill="#8a6440" font-size="16">자재 등급·규격·공정 단가가 안 적혀 비교 자체가 불가</text>
+    </g>
+    <g>
+      <circle cx="58" cy="290" r="16" fill="#b23a2e"/>
+      <text x="58" y="297" fill="#fff" font-size="20" font-weight="800" text-anchor="middle">3</text>
+      <text x="90" y="288" fill="#3d2512" font-size="21" font-weight="700">평면도·범위를 줘도 대략 견적을 못 낸다</text>
+      <text x="90" y="314" fill="#8a6440" font-size="16">시공 경험이 얕다는 신호. 실측만 잡고 시간 끄는 경우도</text>
+    </g>
+    <g>
+      <circle cx="58" cy="364" r="16" fill="#b23a2e"/>
+      <text x="58" y="371" fill="#fff" font-size="20" font-weight="800" text-anchor="middle">4</text>
+      <text x="90" y="362" fill="#3d2512" font-size="21" font-weight="700">유독 싸거나, 한 항목만 유독 비싸다</text>
+      <text x="90" y="388" fill="#8a6440" font-size="16">최저가 미끼 후 추가금, 또는 특정 자재에 마진 몰기</text>
+    </g>
+    <g>
+      <circle cx="58" cy="438" r="16" fill="#b23a2e"/>
+      <text x="58" y="445" fill="#fff" font-size="20" font-weight="800" text-anchor="middle">5</text>
+      <text x="90" y="436" fill="#3d2512" font-size="21" font-weight="700">상담이 성의 없고 '쎄한' 느낌이 든다</text>
+      <text x="90" y="462" fill="#8a6440" font-size="16">준비 없이 와서 즉흥 검색, 연락 두절 — 시공 중에도 반복</text>
+    </g>
+  </g>
+  <text x="40" y="502" fill="#9b8579" font-family="Pretendard, sans-serif" font-size="16">※ 면허 유무보다 '책임질 구조인가'가 핵심. 하나라도 걸리면 다시 보세요.</text>
+</svg>
