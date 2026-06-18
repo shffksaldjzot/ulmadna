@@ -81,6 +81,10 @@
 .blog-toc a:hover{color:var(--accent);text-decoration:underline;}
 .blog-body h2{scroll-margin-top:70px;} /* 앵커 이동 시 헤더 가림 방지 */
 
+/* ---- 광고(애드센스) ---- */
+.blog-ad{margin:34px 0;display:flex;justify-content:center;min-height:90px;overflow:hidden;}
+.blog-ad .adsbygoogle{width:100%;}
+
 /* ---- 관련글 ---- */
 .blog-related{margin-top:50px;padding-top:32px;border-top:1px solid var(--beige-200);}
 .blog-related>h2{font-size:20px;font-weight:800;color:var(--brown-700);margin-bottom:18px;letter-spacing:-0.02em;}

@@ -53,6 +53,13 @@ export default function RootLayout({
             />
           </>
         )}
+        {/* Google AdSense 로더 — 사이트 소유권 확인 + 광고 게재 토대.
+            Auto Ads는 AdSense 대시보드에서 ON, 수동 광고단위는 AdsenseUnit 컴포넌트로. */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9736248258361709"
+          crossOrigin="anonymous"
+        />
         {/* Vercel Web Analytics — 유입 경로 추적용 */}
         <VercelAnalytics />
       </body>

@@ -5,6 +5,8 @@ import { getPost, getAllSlugs, getAllPostMeta } from "@/lib/blog";
 import { BlogHeader } from "@/components/blog/BlogHeader";
 import { SiteFooter } from "@/components/blog/SiteFooter";
 import { PostEngagement } from "@/components/blog/PostEngagement";
+import { AdsenseUnit } from "@/components/ads/AdsenseUnit";
+import { ADSENSE_SLOTS } from "@/lib/ads/adsense";
 import "../blog.css";
 
 const SITE = "https://ulmadna.com";
@@ -126,6 +128,12 @@ export default async function BlogPost({
         )}
 
         <div className="blog-body" dangerouslySetInnerHTML={{ __html: post.html }} />
+
+        {ADSENSE_SLOTS.blogInArticle && (
+          <div className="blog-ad">
+            <AdsenseUnit slot={ADSENSE_SLOTS.blogInArticle} />
+          </div>
+        )}
 
         <PostEngagement slug={post.slug} />
 

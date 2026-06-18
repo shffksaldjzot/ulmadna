@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getAllPostMeta } from "@/lib/blog";
 import { BlogHeader } from "@/components/blog/BlogHeader";
 import { SiteFooter } from "@/components/blog/SiteFooter";
+import { AdsenseUnit } from "@/components/ads/AdsenseUnit";
+import { ADSENSE_SLOTS } from "@/lib/ads/adsense";
 import "./blog.css";
 
 export const metadata: Metadata = {
@@ -75,6 +77,12 @@ export default function BlogIndex() {
                     </div>
                   </Link>
                 ))}
+              </div>
+            )}
+
+            {ADSENSE_SLOTS.blogList && (
+              <div className="blog-ad">
+                <AdsenseUnit slot={ADSENSE_SLOTS.blogList} />
               </div>
             )}
           </>
