@@ -20,8 +20,19 @@ interface HouseAdContent {
 //  - 객체 = 실제 자사 콘텐츠 렌더
 // AD-P, AD-F는 house ad 대상 아님 (collapse 정책, §5.3)
 const HOUSE_AD_CONTENT: Record<'AD-H' | 'AD-R', HouseAdContent | null> = {
-  'AD-H': null, // ← 집사 작성 예정: 히어로 직후, 신뢰/가치 메시지
-  'AD-R': null, // ← 집사 작성 예정: 결과부, 사용 팁 + 광고 문의 안내
+  // 애드센스 승인 전까지 블로그 홍보로 채움 (슬롯ID 입력 시 애드센스가 우선 노출)
+  'AD-H': {
+    title: '인테리어 비용, 더 알고 싶다면?',
+    body: '공정별 단가·후기·호구 안 당하는 법까지, 소비자 편에서 정리한 인테리어 정보.',
+    cta: '블로그에서 보기',
+    href: '/blog',
+  },
+  'AD-R': {
+    title: '받은 견적, 적정한지 헷갈린다면',
+    body: '업체 고르는 법·견적서 보는 법을 블로그에 정리해뒀어요.',
+    cta: '인테리어 정보 보기',
+    href: '/blog',
+  },
 };
 
 interface HouseAdRendererProps {
