@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" role="img" aria-label="공간별 타일 시공비 범위 막대그래프">
+  <rect width="720" height="360" fill="#faf7f4"/>
+  <text x="24" y="40" font-size="20" font-weight="700" fill="#2b2b2b">공간별 타일 시공비 (자재+공임, 설비 제외)</text>
+  <text x="24" y="62" font-size="13" fill="#8a8175">단위: 만원 · 후기/현장 견적 기준, 현장 상태에 따라 변동</text>
+
+  <!-- gridlines -->
+  <g stroke="#e7ddd3" stroke-width="1">
+    <line x1="160" y1="80" x2="160" y2="300"/>
+    <line x1="260" y1="80" x2="260" y2="300"/>
+    <line x1="360" y1="80" x2="360" y2="300"/>
+    <line x1="460" y1="80" x2="460" y2="300"/>
+    <line x1="560" y1="80" x2="560" y2="300"/>
+    <line x1="660" y1="80" x2="660" y2="300"/>
+  </g>
+  <g font-size="11" fill="#a89e92" text-anchor="middle">
+    <text x="160" y="318">0</text>
+    <text x="260" y="318">50</text>
+    <text x="360" y="318">100</text>
+    <text x="460" y="318">150</text>
+    <text x="560" y="318">200</text>
+    <text x="660" y="318">250</text>
+  </g>
+
+  <!-- bars: y rows -->
+  <g font-size="13" fill="#3a3a3a" text-anchor="end">
+    <text x="148" y="105">현관(1200×600)</text>
+    <text x="148" y="145">주방 벽</text>
+    <text x="148" y="185">베란다 바닥</text>
+    <text x="148" y="225">화장실 덧방</text>
+    <text x="148" y="265">화장실 철거+방수</text>
+  </g>
+
+  <g>
+    <!-- 현관 15~30 -->
+    <rect x="190" y="92" width="30" height="20" rx="4" fill="#d98b6a"/>
+    <text x="226" y="107" font-size="11" fill="#6b5d52">15~30</text>
+    <!-- 주방 15~40 -->
+    <rect x="190" y="132" width="50" height="20" rx="4" fill="#d98b6a"/>
+    <text x="246" y="147" font-size="11" fill="#6b5d52">15~40</text>
+    <!-- 베란다 30~80 -->
+    <rect x="220" y="172" width="100" height="20" rx="4" fill="#cf7a55"/>
+    <text x="326" y="187" font-size="11" fill="#6b5d52">30~80</text>
+    <!-- 화장실 덧방 45~120 -->
+    <rect x="250" y="212" width="150" height="20" rx="4" fill="#c0653f"/>
+    <text x="406" y="227" font-size="11" fill="#6b5d52">45~120</text>
+    <!-- 화장실 철거+방수 80~250 -->
+    <rect x="320" y="252" width="340" height="20" rx="4" fill="#a84e2c"/>
+    <text x="652" y="267" font-size="11" fill="#fbeee7" text-anchor="end">80~250</text>
+  </g>
+
+  <text x="24" y="346" font-size="12" fill="#8a8175">※ 변기·세면대·수전까지 바꾸는 욕실 전체 리모델링은 별도(보급형 250만~ / 호텔형 500만~).</text>
+</svg>
