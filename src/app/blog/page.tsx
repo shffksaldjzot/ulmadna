@@ -43,14 +43,13 @@ export default function BlogIndex() {
                   ) : (
                     <span className="blog-card-noimg">얼마드나</span>
                   )}
+                  {p.postNo != null && <span className="blog-card-no">No.{p.postNo}</span>}
                 </div>
                 <div className="blog-card-body">
                   {p.tags.length > 0 && <span className="blog-card-tag">{p.tags[0]}</span>}
                   <h2>{p.title}</h2>
                   <p className="blog-card-desc">{p.description}</p>
-                  <span className="blog-card-date">
-                    {p.postNo != null && <b>No.{p.postNo}</b>} {fmtDate(p.date)}
-                  </span>
+                  <span className="blog-card-date">{fmtDate(p.date)}</span>
                 </div>
               </Link>
             ))}

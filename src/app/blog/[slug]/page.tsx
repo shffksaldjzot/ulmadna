@@ -85,8 +85,8 @@ export default async function BlogPost({
         <header className="blog-post-head">
           {post.tags.length > 0 && (
             <div className="blog-post-tags">
-              {post.tags.map((t) => (
-                <span key={t} className="blog-card-tag">{t}</span>
+              {post.tags.slice(0, 3).map((t) => (
+                <span key={t} className="blog-post-tag">{t}</span>
               ))}
             </div>
           )}
