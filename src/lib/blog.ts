@@ -31,9 +31,16 @@ export interface PostMeta {
   tags: string[];
 }
 
+export interface Heading {
+  id: string;
+  text: string;
+}
+
 export interface Post extends PostMeta {
   html: string;
   faq: FaqItem[];
+  headings: Heading[]; // 목차(H2)
+  readingTime: number; // 예상 읽기 시간(분)
 }
 
 function readMeta(file: string): PostMeta {
@@ -91,11 +98,24 @@ export async function getPost(slug: string): Promise<Post | null> {
     .use(rehypeStringify)
     .process(content);
 
-  // 표는 모바일 가로 스크롤을 위해 래퍼로 감싼다 + 외부 링크는 새 탭(이탈 방지)
-  const html = String(processed)
+  // H2에 id 부여 + 목차 수집 (앵커용, 인덱스 기반 안정 id)
+  const headings: Heading[] = [];
+  let html = String(processed).replace(/<h2>([\s\S]*?)<\/h2>/g, (_m, inner) => {
+    const text = String(inner).replace(/<[^>]+>/g, "").trim();
+    const id = `h-${headings.length}`;
+    headings.push({ id, text });
+    return `<h2 id="${id}">${inner}</h2>`;
+  });
+
+  // 표는 모바일 가로 스크롤 래퍼 + 외부 링크는 새 탭(이탈 방지)
+  html = html
     .replace(/<table>/g, '<div class="blog-table-wrap"><table>')
     .replace(/<\/table>/g, "</table></div>")
     .replace(/<a href="(https?:\/\/[^"]*)"/g, '<a href="$1" target="_blank" rel="noopener noreferrer"');
+
+  // 읽기 시간 — 공백 제외 글자수 / 450자(분)
+  const plainLen = content.replace(/\s+/g, "").length;
+  const readingTime = Math.max(1, Math.round(plainLen / 450));
 
   const faq: FaqItem[] = Array.isArray(data.faq)
     ? data.faq
@@ -113,5 +133,7 @@ export async function getPost(slug: string): Promise<Post | null> {
     tags: Array.isArray(data.tags) ? data.tags : [],
     html,
     faq,
+    headings,
+    readingTime,
   };
 }

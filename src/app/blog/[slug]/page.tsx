@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPost, getAllSlugs } from "@/lib/blog";
+import { getPost, getAllSlugs, getAllPostMeta } from "@/lib/blog";
 import { BlogHeader } from "@/components/blog/BlogHeader";
 import { SiteFooter } from "@/components/blog/SiteFooter";
 import { PostEngagement } from "@/components/blog/PostEngagement";
@@ -50,6 +50,14 @@ export default async function BlogPost({
   const post = await getPost(slug);
   if (!post) notFound();
 
+  // 관련글 — 공유 태그 많은 순, 없으면 최신, 최대 3
+  const related = getAllPostMeta()
+    .filter((p) => p.slug !== post.slug)
+    .map((p) => ({ p, shared: p.tags.filter((t) => post.tags.includes(t)).length }))
+    .sort((a, b) => b.shared - a.shared || (a.p.date < b.p.date ? 1 : -1))
+    .slice(0, 3)
+    .map((x) => x.p);
+
   const articleLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -93,7 +101,7 @@ export default async function BlogPost({
           <h1>{post.title}</h1>
           <p className="blog-post-meta">
             {post.postNo != null && <>No.{post.postNo} · </>}
-            {fmtDate(post.date)}
+            {fmtDate(post.date)} · 읽기 {post.readingTime}분
           </p>
         </header>
 
@@ -102,6 +110,19 @@ export default async function BlogPost({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={post.thumbnail} alt={post.title} />
           </div>
+        )}
+
+        {post.headings.length >= 3 && (
+          <nav className="blog-toc" aria-label="목차">
+            <p className="blog-toc-title">이 글의 목차</p>
+            <ol>
+              {post.headings.map((h) => (
+                <li key={h.id}>
+                  <a href={`#${h.id}`}>{h.text}</a>
+                </li>
+              ))}
+            </ol>
+          </nav>
         )}
 
         <div className="blog-body" dangerouslySetInnerHTML={{ __html: post.html }} />
@@ -137,6 +158,23 @@ export default async function BlogPost({
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
           />
+        )}
+
+        {related.length > 0 && (
+          <section className="blog-related">
+            <h2>이런 글도 있어요</h2>
+            <div className="blog-related-list">
+              {related.map((r) => (
+                <Link key={r.slug} href={`/blog/${r.slug}`} className="blog-related-card">
+                  {r.thumbnail && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={r.thumbnail} alt={r.title} />
+                  )}
+                  <span className="blog-related-title">{r.title}</span>
+                </Link>
+              ))}
+            </div>
+          </section>
         )}
       </article>
 
