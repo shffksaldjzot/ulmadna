@@ -105,7 +105,10 @@
 .blog-post-tag{font-size:11.5px;font-weight:700;color:var(--brown-600);background:var(--beige-100);
   border:1px solid var(--beige-200);padding:4px 11px;border-radius:999px;}
 .blog-post-head h1{font-size:30px;font-weight:800;color:var(--ink);line-height:1.35;letter-spacing:-0.03em;word-break:keep-all;}
-.blog-post-meta{margin-top:12px;font-size:13.5px;color:var(--ink-3);}
+.blog-post-meta{margin-top:12px;font-size:13.5px;color:var(--ink-3);display:flex;align-items:center;flex-wrap:wrap;}
+.blog-readtime-badge{margin-left:9px;font-size:12.5px;font-weight:800;color:var(--accent);
+  background:#F6E7DD;padding:4px 11px;border-radius:999px;}
+.blog-readtime{color:var(--brown-600);font-weight:700;}
 .blog-post-cover{border-radius:14px;overflow:hidden;margin-bottom:32px;border:1px solid var(--beige-200);}
 .blog-post-cover img{width:100%;display:block;}
 

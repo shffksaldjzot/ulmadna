@@ -103,7 +103,8 @@ export default async function BlogPost({
           <h1>{post.title}</h1>
           <p className="blog-post-meta">
             {post.postNo != null && <>No.{post.postNo} · </>}
-            {fmtDate(post.date)} · 읽기 {post.readingTime}분
+            {fmtDate(post.date)}
+            <span className="blog-readtime-badge">⏱ 읽는 데 {post.readingTime}분</span>
           </p>
         </header>
 

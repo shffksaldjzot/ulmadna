@@ -29,6 +29,7 @@ export interface PostMeta {
   date: string; // YYYY-MM-DD
   thumbnail: string | null;
   tags: string[];
+  readingTime: number; // 예상 읽기 시간(분)
 }
 
 export interface Heading {
@@ -40,13 +41,16 @@ export interface Post extends PostMeta {
   html: string;
   faq: FaqItem[];
   headings: Heading[]; // 목차(H2)
-  readingTime: number; // 예상 읽기 시간(분)
 }
+
+// 읽기 시간(분) — 공백 제외 글자수 / 450자
+const calcReadingTime = (content: string) =>
+  Math.max(1, Math.round(content.replace(/\s+/g, "").length / 450));
 
 function readMeta(file: string): PostMeta {
   const slug = file.replace(/\.md$/, "");
   const raw = fs.readFileSync(path.join(BLOG_DIR, file), "utf8");
-  const { data } = matter(raw);
+  const { data, content } = matter(raw);
   return {
     postNo: typeof data.postNo === "number" ? data.postNo : null,
     slug,
@@ -55,6 +59,7 @@ function readMeta(file: string): PostMeta {
     date: data.date ?? "",
     thumbnail: data.thumbnail ?? null,
     tags: Array.isArray(data.tags) ? data.tags : [],
+    readingTime: calcReadingTime(content),
   };
 }
 
@@ -113,9 +118,7 @@ export async function getPost(slug: string): Promise<Post | null> {
     .replace(/<\/table>/g, "</table></div>")
     .replace(/<a href="(https?:\/\/[^"]*)"/g, '<a href="$1" target="_blank" rel="noopener noreferrer"');
 
-  // 읽기 시간 — 공백 제외 글자수 / 450자(분)
-  const plainLen = content.replace(/\s+/g, "").length;
-  const readingTime = Math.max(1, Math.round(plainLen / 450));
+  const readingTime = calcReadingTime(content);
 
   const faq: FaqItem[] = Array.isArray(data.faq)
     ? data.faq

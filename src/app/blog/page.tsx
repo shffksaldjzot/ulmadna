@@ -52,7 +52,9 @@ export default function BlogIndex() {
                 {posts[0].tags.length > 0 && <span className="blog-card-tag">{posts[0].tags[0]}</span>}
                 <h2>{posts[0].title}</h2>
                 <p className="blog-featured-desc">{posts[0].description}</p>
-                <span className="blog-card-date">{fmtDate(posts[0].date)}</span>
+                <span className="blog-card-date">
+                  {fmtDate(posts[0].date)} <span className="blog-readtime">· ⏱ {posts[0].readingTime}분</span>
+                </span>
               </div>
             </Link>
 
@@ -73,7 +75,9 @@ export default function BlogIndex() {
                       {p.tags.length > 0 && <span className="blog-card-tag">{p.tags[0]}</span>}
                       <h2>{p.title}</h2>
                       <p className="blog-card-desc">{p.description}</p>
-                      <span className="blog-card-date">{fmtDate(p.date)}</span>
+                      <span className="blog-card-date">
+                        {fmtDate(p.date)} <span className="blog-readtime">· ⏱ {p.readingTime}분</span>
+                      </span>
                     </div>
                   </Link>
                 ))}
