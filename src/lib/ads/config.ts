@@ -13,6 +13,7 @@ import type {
   AdResolveContext,
   ResolvedAdContent,
 } from './types';
+import { ADSENSE_SLOTS } from './adsense';
 
 // 슬롯별 규격 — 모바일 기준 (v2 명세 §4 표)
 export const AD_SLOT_SIZES: Record<AdSlotId, AdSlotSize> = {
@@ -46,6 +47,21 @@ export function resolveAdContent(
   key: AdSlotKey,
   context: AdResolveContext = {},
 ): ResolvedAdContent {
+  // AD-P 노출 캡 — 애드센스든 아니든 캡 넘으면 접힘 (§6.3)
+  if (
+    key.id === 'AD-P' &&
+    context.adPPageIndex !== undefined &&
+    context.adPPageIndex >= AD_P_MAX_PER_PAGE
+  ) {
+    return { kind: 'collapse' };
+  }
+
+  // 애드센스 슬롯ID가 설정된 슬롯은 구글 광고 게재 (승인·슬롯ID 입력 시 활성)
+  const adsenseSlot = ADSENSE_SLOTS[key.id];
+  if (adsenseSlot) {
+    return { kind: 'adsense', adsenseSlot };
+  }
+
   switch (key.id) {
     case 'AD-H':
     case 'AD-R':

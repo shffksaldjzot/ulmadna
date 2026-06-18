@@ -19,6 +19,7 @@ import {
 } from '@/lib/ads/config';
 import HouseAdRenderer from './HouseAdRenderer';
 import SponsoredLabel from './SponsoredLabel';
+import { AdsenseUnit } from './AdsenseUnit';
 
 // 슬롯별 max-width Tailwind 클래스 (purge 안전 — 정적 문자열).
 //  - 현재는 모바일 규격을 PC에서도 그대로 사용 (콘텐츠 폭 안 가운데 정렬).
@@ -102,7 +103,10 @@ export default function AdSlot({
         </a>
       )}
 
-      {/* 애드센스 — 향후 승인 후 추가될 분기 */}
+      {/* 애드센스 — 슬롯ID 설정 시 구글 광고 게재 */}
+      {content.kind === 'adsense' && content.adsenseSlot && (
+        <AdsenseUnit slot={content.adsenseSlot} className="w-full" />
+      )}
     </div>
   );
 }

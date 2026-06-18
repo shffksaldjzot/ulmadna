@@ -50,4 +50,6 @@ export interface ResolvedAdContent {
   bannerImageUrl?: string;
   bannerLinkUrl?: string;
   bannerAdvertiserName?: string;
+  // adsense 콘텐츠용 — 광고단위 슬롯ID
+  adsenseSlot?: string;
 }
