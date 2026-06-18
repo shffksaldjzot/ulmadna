@@ -91,10 +91,11 @@ export async function getPost(slug: string): Promise<Post | null> {
     .use(rehypeStringify)
     .process(content);
 
-  // 표는 모바일 가로 스크롤을 위해 래퍼로 감싼다
+  // 표는 모바일 가로 스크롤을 위해 래퍼로 감싼다 + 외부 링크는 새 탭(이탈 방지)
   const html = String(processed)
     .replace(/<table>/g, '<div class="blog-table-wrap"><table>')
-    .replace(/<\/table>/g, "</table></div>");
+    .replace(/<\/table>/g, "</table></div>")
+    .replace(/<a href="(https?:\/\/[^"]*)"/g, '<a href="$1" target="_blank" rel="noopener noreferrer"');
 
   const faq: FaqItem[] = Array.isArray(data.faq)
     ? data.faq

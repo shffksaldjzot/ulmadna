@@ -63,7 +63,9 @@
 .blog-body p{margin:18px 0;}
 .blog-body ul,.blog-body ol{margin:18px 0;padding-left:24px;}
 .blog-body li{margin:8px 0;}
-.blog-body a{color:var(--accent);text-decoration:underline;text-underline-offset:2px;}
+.blog-body a{color:var(--accent);text-decoration:underline;text-underline-offset:2px;font-weight:600;}
+/* 외부 링크(새 탭) — 어른들도 알아보게 화살표 + 새탭 표시 */
+.blog-body a[target="_blank"]::after{content:" ↗";font-size:.85em;vertical-align:0.1em;color:var(--accent);}
 .blog-body strong{font-weight:800;color:var(--brown-700);}
 .blog-body img{width:100%;border-radius:12px;margin:28px 0;border:1px solid var(--beige-200);}
 .blog-body blockquote{margin:24px 0;padding:14px 20px;background:var(--beige-50);
