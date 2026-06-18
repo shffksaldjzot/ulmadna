@@ -99,14 +99,36 @@ export default function Home() {
             <p className="text-xs text-gold font-medium tracking-widest mb-3">
               무료 인테리어 견적 계산기
             </p>
-            <h1 className="text-3xl lg:text-4xl font-bold text-brown leading-tight">
+            <h1 className="text-3xl lg:text-[42px] font-bold text-brown leading-[1.15]">
               우리 집 인테리어,<br />얼마 드나?
             </h1>
-            <p className="text-sm text-gray-500 mt-3 leading-relaxed">
-              회원가입과 개인정보 없이 누구나 쉽게!
+            <p className="text-sm lg:text-base text-gray-500 mt-4 leading-relaxed">
+              회원가입도, 개인정보도 없이.<br className="hidden lg:block" />
+              평형·공정만 고르면 <span className="text-brown font-semibold">예상 견적이 바로</span> 나와요.
             </p>
+            {/* 모바일 신뢰 칩 */}
+            <div className="flex flex-wrap gap-2 mt-5 lg:hidden">
+              <span className="text-xs font-semibold text-brown bg-white border border-gray-200 rounded-full px-3 py-1.5">📊 1,000건+ 데이터</span>
+              <span className="text-xs font-semibold text-brown bg-white border border-gray-200 rounded-full px-3 py-1.5">🆓 회원가입 X</span>
+              <span className="text-xs font-semibold text-brown bg-white border border-gray-200 rounded-full px-3 py-1.5">⚡ 즉시 계산</span>
+            </div>
           </div>
-{/* 인테리어 이미지 제거됨 */}
+          {/* 데스크톱 신뢰 카드 — 히어로 우측 채움 */}
+          <div className="hidden lg:flex flex-col gap-3 w-[330px]">
+            {[
+              { ic: '📊', t: '1,000건+ 실제 견적 데이터', s: '감이 아니라 데이터로 계산' },
+              { ic: '🆓', t: '회원가입·개인정보 없음', s: '전화번호도 안 받아요' },
+              { ic: '⚡', t: '평형·공정 고르면 즉시', s: '바꾸는 순간 금액 반영' },
+            ].map((c) => (
+              <div key={c.t} className="flex items-center gap-4 bg-white border border-gray-200 rounded-2xl px-5 py-4 shadow-sm">
+                <span className="text-2xl">{c.ic}</span>
+                <div>
+                  <p className="text-sm font-bold text-brown">{c.t}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{c.s}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
