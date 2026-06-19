@@ -139,7 +139,12 @@ export default async function BlogPost({
 
         <PostEngagement slug={post.slug} />
 
-        <ShareButtons url={`${SITE}/blog/${post.slug}`} title={post.title} />
+        <ShareButtons
+          url={`${SITE}/blog/${post.slug}`}
+          title={post.title}
+          description={post.description}
+          image={post.thumbnail ? `${SITE}${post.thumbnail}` : undefined}
+        />
 
         {post.faq.length > 0 && (
           <section className="blog-faq">
