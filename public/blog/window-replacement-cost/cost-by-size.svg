@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 372" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif">
+  <rect width="720" height="372" fill="#ffffff"/>
+  <text x="24" y="34" font-size="19" font-weight="700" fill="#2b2b2b">평형별 샷시 교체 비용 (전체 창호 기준)</text>
+  <text x="24" y="56" font-size="13" fill="#8a8a8a">브랜드·유리 사양·확장 여부·철거 난이도에 따라 범위 내에서 달라집니다 · 단위: 만원</text>
+
+  <!-- grid -->
+  <g stroke="#ededed" stroke-width="1">
+    <line x1="110" y1="74" x2="110" y2="320"/>
+    <line x1="255" y1="74" x2="255" y2="320"/>
+    <line x1="400" y1="74" x2="400" y2="320"/>
+    <line x1="545" y1="74" x2="545" y2="320"/>
+    <line x1="690" y1="74" x2="690" y2="320"/>
+  </g>
+  <g font-size="11" fill="#b0b0b0" text-anchor="middle">
+    <text x="110" y="338">0</text>
+    <text x="255" y="338">400</text>
+    <text x="400" y="338">800</text>
+    <text x="545" y="338">1,200</text>
+    <text x="690" y="338">1,600</text>
+  </g>
+
+  <!-- legend -->
+  <rect x="430" y="24" width="14" height="14" rx="3" fill="#e0a78f"/>
+  <text x="450" y="36" font-size="12" fill="#6a6a6a">외부창만</text>
+  <rect x="525" y="24" width="14" height="14" rx="3" fill="#c2613b"/>
+  <text x="545" y="36" font-size="12" fill="#6a6a6a">전체 교체</text>
+
+  <!-- 24평 -->
+  <text x="24" y="106" font-size="14" font-weight="600" fill="#444">24평 / 59㎡</text>
+  <rect x="237" y="90" width="91" height="22" rx="4" fill="#e0a78f"/>
+  <text x="334" y="106" font-size="12" fill="#a06a52">350~600</text>
+  <rect x="327" y="118" width="145" height="22" rx="4" fill="#c2613b"/>
+  <text x="478" y="134" font-size="12" fill="#9a4a2c">600~1,000</text>
+
+  <!-- 32평 -->
+  <text x="24" y="186" font-size="14" font-weight="600" fill="#444">32평 / 84㎡</text>
+  <rect x="291" y="170" width="145" height="22" rx="4" fill="#e0a78f"/>
+  <text x="442" y="186" font-size="12" fill="#a06a52">500~900</text>
+  <rect x="436" y="198" width="218" height="22" rx="4" fill="#c2613b"/>
+  <text x="660" y="214" font-size="12" fill="#9a4a2c">900~1,500</text>
+
+  <!-- 34평 -->
+  <text x="24" y="266" font-size="14" font-weight="600" fill="#444">34평 / 84타입</text>
+  <rect x="327" y="250" width="127" height="22" rx="4" fill="#e0a78f"/>
+  <text x="460" y="266" font-size="12" fill="#a06a52">600~950</text>
+  <rect x="454" y="278" width="200" height="22" rx="4" fill="#c2613b"/>
+  <text x="660" y="294" font-size="12" fill="#9a4a2c">950~1,500</text>
+
+  <text x="24" y="362" font-size="11.5" fill="#9a9a9a">※ 실제 견적 빅데이터 기준. ‘전체’=거실·방·주방·전후면 발코니 전부 / ‘외부창만’=꼭 필요한 발코니·외부창만.</text>
+</svg>
