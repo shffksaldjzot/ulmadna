@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" role="img" aria-label="욕실 리모델링 등급별 비용 범위 막대그래프">
+  <rect width="720" height="380" fill="#faf7f4"/>
+  <text x="24" y="40" font-size="20" font-weight="700" fill="#2b2b2b">욕실 리모델링 비용 (욕실 1칸 · 자재+시공 포함)</text>
+  <text x="24" y="62" font-size="13" fill="#8a8175">단위: 만원 · 실제 견적 빅데이터 기준, 현장 상태에 따라 변동</text>
+
+  <!-- gridlines -->
+  <g stroke="#e7ddd3" stroke-width="1">
+    <line x1="160" y1="84" x2="160" y2="300"/>
+    <line x1="260" y1="84" x2="260" y2="300"/>
+    <line x1="360" y1="84" x2="360" y2="300"/>
+    <line x1="460" y1="84" x2="460" y2="300"/>
+    <line x1="560" y1="84" x2="560" y2="300"/>
+    <line x1="660" y1="84" x2="660" y2="300"/>
+  </g>
+  <g font-size="11" fill="#a89e92" text-anchor="middle">
+    <text x="160" y="318">0</text>
+    <text x="260" y="318">250</text>
+    <text x="360" y="318">500</text>
+    <text x="460" y="318">750</text>
+    <text x="560" y="318">1,000</text>
+    <text x="660" y="318">1,250</text>
+  </g>
+
+  <!-- row labels -->
+  <g font-size="13" fill="#3a3a3a" text-anchor="end">
+    <text x="148" y="112">덧방 리모델링</text>
+    <text x="148" y="156">기본·실속형</text>
+    <text x="148" y="200">중급형</text>
+    <text x="148" y="244">고급·호텔형</text>
+  </g>
+
+  <g>
+    <!-- 덧방 200~350 : x=160+200*0.4=240, w=150*0.4=60 -->
+    <rect x="240" y="98" width="60" height="22" rx="4" fill="#d98b6a"/>
+    <text x="306" y="114" font-size="11" fill="#6b5d52">200~350</text>
+    <!-- 기본 250~400 : x=260, w=60 -->
+    <rect x="260" y="142" width="60" height="22" rx="4" fill="#cf7a55"/>
+    <text x="326" y="158" font-size="11" fill="#6b5d52">250~400</text>
+    <!-- 중급 400~700 : x=320, w=120 -->
+    <rect x="320" y="186" width="120" height="22" rx="4" fill="#c0653f"/>
+    <text x="446" y="202" font-size="11" fill="#6b5d52">400~700</text>
+    <!-- 고급 700~1200 : x=440, w=200 -->
+    <rect x="440" y="230" width="200" height="22" rx="4" fill="#a84e2c"/>
+    <text x="632" y="246" font-size="11" fill="#fbeee7" text-anchor="end">700~1,200</text>
+  </g>
+
+  <text x="24" y="348" font-size="12" fill="#8a8175">※ 덧방은 기존 타일 위에 새로 붙이는 방식, 나머지는 올철거 후 방수부터 재시공 기준.</text>
+  <text x="24" y="368" font-size="12" fill="#8a8175">※ 욕실 2칸을 동시에 하면 인건비·운반비 절감으로 전체 10~15%가량 낮아집니다.</text>
+</svg>
