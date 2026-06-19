@@ -28,10 +28,12 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     type: "website",
   },
-  // 구글 서치콘솔 'HTML 태그' 인증용 — env에 토큰 넣으면 자동으로 메타태그 생성.
-  // (GA 방식으로 인증하면 이건 비워둬도 됨)
+  // 구글 서치콘솔 'HTML 태그' 인증용. 토큰은 어차피 HTML에 공개되는 값이라 직접 명시
+  // (env로 덮어쓰기도 가능). 메타태그 <meta name="google-site-verification" ...> 자동 생성.
   verification: {
-    google: process.env.GOOGLE_SITE_VERIFICATION?.trim() || undefined,
+    google:
+      process.env.GOOGLE_SITE_VERIFICATION?.trim() ||
+      "WaSjktLgL1zVR7K_nLqxT1-QjgC2V9wZgj9Z29bdkLg",
   },
 };
 
