@@ -5,6 +5,7 @@ import { getPost, getAllSlugs, getAllPostMeta } from "@/lib/blog";
 import { BlogHeader } from "@/components/blog/BlogHeader";
 import { SiteFooter } from "@/components/blog/SiteFooter";
 import { PostEngagement } from "@/components/blog/PostEngagement";
+import { ShareButtons } from "@/components/blog/ShareButtons";
 import { AdsenseUnit } from "@/components/ads/AdsenseUnit";
 import { ADSENSE_SLOTS } from "@/lib/ads/adsense";
 import "../blog.css";
@@ -137,6 +138,8 @@ export default async function BlogPost({
         )}
 
         <PostEngagement slug={post.slug} />
+
+        <ShareButtons url={`${SITE}/blog/${post.slug}`} title={post.title} />
 
         {post.faq.length > 0 && (
           <section className="blog-faq">
