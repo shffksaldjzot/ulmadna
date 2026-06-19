@@ -122,7 +122,10 @@
 /* 외부 링크(새 탭) — 어른들도 알아보게 화살표 + 새탭 표시 */
 .blog-body a[target="_blank"]::after{content:" ↗";font-size:.85em;vertical-align:0.1em;color:var(--accent);}
 .blog-body strong{font-weight:800;color:var(--brown-700);}
-.blog-body img{width:100%;border-radius:12px;margin:28px 0;border:1px solid var(--beige-200);}
+.blog-body img{width:100%;border-radius:12px;margin:28px 0 6px;border:1px solid var(--beige-200);}
+/* 사진/도해 바로 밑 캡션 — 이미지 다음 줄에 *기울임* 한 줄로 적으면 작은 회색 설명으로 */
+.blog-body p > em:only-child{display:block;text-align:center;font-size:13px;line-height:1.55;
+  color:var(--ink-3);margin:-2px 0 26px;}
 .blog-body blockquote{margin:24px 0;padding:14px 20px;background:var(--beige-50);
   border-left:4px solid var(--brown-300);border-radius:0 10px 10px 0;color:var(--ink-2);font-size:15.5px;}
 .blog-body blockquote p{margin:0;}

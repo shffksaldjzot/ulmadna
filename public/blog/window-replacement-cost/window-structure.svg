@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 348" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif">
+  <rect width="720" height="348" fill="#ffffff"/>
+  <text x="24" y="34" font-size="19" font-weight="700" fill="#2b2b2b">단창 · 이중창 · 시스템창 — 구조와 단열 차이</text>
+  <text x="24" y="56" font-size="13" fill="#8a8a8a">확장한 거실·방은 이중창이 사실상 필수 · 유리 겹수와 공기층이 단열을 가릅니다</text>
+
+  <!-- 패널 3개 -->
+  <g>
+    <rect x="24"  y="78" width="216" height="150" rx="12" fill="#f8f3ef" stroke="#ece3dc"/>
+    <rect x="252" y="78" width="216" height="150" rx="12" fill="#f8f3ef" stroke="#ece3dc"/>
+    <rect x="480" y="78" width="216" height="150" rx="12" fill="#f8f3ef" stroke="#ece3dc"/>
+  </g>
+
+  <!-- ① 단창 (center 132) -->
+  <rect x="92" y="104" width="80" height="92" rx="6" fill="none" stroke="#c8bdb4" stroke-width="9"/>
+  <rect x="126" y="118" width="12" height="64" fill="#bcdce8" stroke="#7fb4c6" stroke-width="1.5"/>
+
+  <!-- ② 이중창 (center 360) -->
+  <rect x="320" y="104" width="80" height="92" rx="6" fill="none" stroke="#c8bdb4" stroke-width="9"/>
+  <rect x="338" y="118" width="12" height="64" fill="#bcdce8" stroke="#7fb4c6" stroke-width="1.5"/>
+  <rect x="370" y="118" width="12" height="64" fill="#bcdce8" stroke="#7fb4c6" stroke-width="1.5"/>
+  <text x="360" y="154" font-size="9.5" fill="#7a9aa6" text-anchor="middle">공기층</text>
+  <!-- 225mm 양방향 화살표 -->
+  <line x1="338" y1="206" x2="382" y2="206" stroke="#a06a52" stroke-width="1.2"/>
+  <path d="M338 206 l6 -3 v6 z" fill="#a06a52"/>
+  <path d="M382 206 l-6 -3 v6 z" fill="#a06a52"/>
+  <text x="360" y="222" font-size="10" fill="#a06a52" text-anchor="middle">약 225mm</text>
+
+  <!-- ③ 시스템창 (center 588) -->
+  <rect x="548" y="104" width="80" height="92" rx="6" fill="none" stroke="#b8a89c" stroke-width="11"/>
+  <rect x="566" y="118" width="12" height="64" fill="#bcdce8" stroke="#7fb4c6" stroke-width="1.5"/>
+  <rect x="598" y="118" width="12" height="64" fill="#bcdce8" stroke="#7fb4c6" stroke-width="1.5"/>
+  <circle cx="548" cy="126" r="3.4" fill="#c2613b"/>
+  <circle cx="548" cy="150" r="3.4" fill="#c2613b"/>
+  <circle cx="548" cy="174" r="3.4" fill="#c2613b"/>
+
+  <!-- 라벨 -->
+  <g text-anchor="middle">
+    <text x="132" y="252" font-size="15" font-weight="700" fill="#3a3a3a">단창</text>
+    <text x="132" y="272" font-size="11.5" fill="#8a8a8a">한 겹 · 가장 저렴</text>
+
+    <text x="360" y="252" font-size="15" font-weight="700" fill="#c2613b">이중창</text>
+    <text x="360" y="272" font-size="11.5" fill="#8a8a8a">두 겹+공기층 · 단창의 약 2배</text>
+
+    <text x="588" y="252" font-size="15" font-weight="700" fill="#3a3a3a">시스템창</text>
+    <text x="588" y="272" font-size="11.5" fill="#8a8a8a">다중잠금 · 단열·방음 최상</text>
+  </g>
+
+  <text x="24" y="338" font-size="11.5" fill="#9a9a9a">※ 비확장 발코니엔 단창으로 비용을 아끼고, 확장 거실·방엔 이중창(로이유리)을 권장합니다.</text>
+</svg>

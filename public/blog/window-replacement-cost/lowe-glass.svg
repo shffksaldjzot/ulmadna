@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 320" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif">
+  <rect width="720" height="320" fill="#ffffff"/>
+  <text x="24" y="34" font-size="19" font-weight="700" fill="#2b2b2b">로이유리(Low-E) 단열 원리 — 금속 코팅이 열을 되튕긴다</text>
+  <text x="24" y="56" font-size="13" fill="#8a8a8a">유리 하나로 단열 성능 40% 이상 차이 · 이제 외부창의 기본입니다</text>
+
+  <!-- 영역 구분 라벨 -->
+  <text x="120" y="96" font-size="13" font-weight="600" fill="#c98a3a" text-anchor="middle">바깥 (실외)</text>
+  <text x="600" y="96" font-size="13" font-weight="600" fill="#c2613b" text-anchor="middle">집 안 (실내)</text>
+
+  <!-- 가운데 유리(금속코팅 강조) -->
+  <rect x="344" y="108" width="26" height="150" rx="3" fill="#bcdce8" stroke="#6fa8bb" stroke-width="2"/>
+  <rect x="362" y="108" width="5" height="150" fill="#d9b15a"/>
+  <text x="357" y="282" font-size="12" font-weight="600" fill="#3a3a3a" text-anchor="middle">로이유리</text>
+  <text x="357" y="298" font-size="10.5" fill="#9a8a5a" text-anchor="middle">금속 코팅층</text>
+
+  <!-- 여름 햇빛: 실외 → 유리 → 반사 -->
+  <circle cx="96" cy="140" r="16" fill="#f0b44a"/>
+  <g stroke="#f0b44a" stroke-width="2">
+    <line x1="96" y1="116" x2="96" y2="108"/>
+    <line x1="96" y1="164" x2="96" y2="172"/>
+    <line x1="72" y1="140" x2="64" y2="140"/>
+    <line x1="113" y1="123" x2="119" y2="117"/>
+    <line x1="113" y1="157" x2="119" y2="163"/>
+  </g>
+  <!-- 입사 화살표 -->
+  <line x1="124" y1="150" x2="336" y2="172" stroke="#e8a13b" stroke-width="2.5"/>
+  <path d="M336 172 l-9 -1.5 l3 -5 z" fill="#e8a13b"/>
+  <!-- 반사 화살표 -->
+  <line x1="344" y1="176" x2="150" y2="212" stroke="#e8a13b" stroke-width="2.5" stroke-dasharray="5 4"/>
+  <path d="M150 212 l9 -4 l1 6 z" fill="#e8a13b"/>
+  <text x="208" y="150" font-size="11.5" fill="#b07e2c">여름 햇빛 → 일부 반사</text>
+
+  <!-- 겨울 난방열: 실내 → 유리 → 실내로 반사 -->
+  <rect x="600" y="196" width="34" height="26" rx="4" fill="#e7cfc6" stroke="#d0634a"/>
+  <g stroke="#d0634a" stroke-width="2"><line x1="607" y1="196" x2="607" y2="222"/><line x1="617" y1="196" x2="617" y2="222"/><line x1="627" y1="196" x2="627" y2="222"/></g>
+  <!-- 실내열 → 유리 -->
+  <line x1="596" y1="205" x2="376" y2="190" stroke="#d0634a" stroke-width="2.5"/>
+  <path d="M376 190 l9 -1 l-3 6 z" fill="#d0634a"/>
+  <!-- 유리 → 실내 반사 -->
+  <line x1="370" y1="196" x2="560" y2="232" stroke="#d0634a" stroke-width="2.5" stroke-dasharray="5 4"/>
+  <path d="M560 232 l-9 0 l3 6 z" fill="#d0634a"/>
+  <text x="470" y="184" font-size="11.5" fill="#b04632" text-anchor="middle">겨울 난방열 → 실내로 반사</text>
+
+  <!-- 하단 핵심 배너 -->
+  <rect x="232" y="262" width="256" height="30" rx="15" fill="#f6e7dd"/>
+  <text x="360" y="282" font-size="13" font-weight="700" fill="#c2613b" text-anchor="middle">열손실 40%↓ · 창가 결로 감소</text>
+</svg>
