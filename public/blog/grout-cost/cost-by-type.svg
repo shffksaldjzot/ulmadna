@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" role="img" aria-label="줄눈 종류별 욕실 바닥 1칸 시공 비용 막대그래프">
+  <rect width="720" height="360" fill="#faf7f4"/>
+  <text x="24" y="40" font-size="20" font-weight="700" fill="#2b2b2b">줄눈 종류별 욕실 바닥 1칸 시공 비용</text>
+  <text x="24" y="62" font-size="13" fill="#8a8175">단위: 만원 · 실제 견적 빅데이터 기준 · 타일 크기·상태·지역에 따라 변동</text>
+
+  <!-- gridlines -->
+  <g stroke="#e7ddd3" stroke-width="1">
+    <line x1="200" y1="84" x2="200" y2="276"/>
+    <line x1="290" y1="84" x2="290" y2="276"/>
+    <line x1="380" y1="84" x2="380" y2="276"/>
+    <line x1="470" y1="84" x2="470" y2="276"/>
+    <line x1="560" y1="84" x2="560" y2="276"/>
+    <line x1="650" y1="84" x2="650" y2="276"/>
+  </g>
+  <g font-size="11" fill="#a89e92" text-anchor="middle">
+    <text x="200" y="294">0</text>
+    <text x="290" y="294">10</text>
+    <text x="380" y="294">20</text>
+    <text x="470" y="294">30</text>
+    <text x="560" y="294">40</text>
+    <text x="650" y="294">50</text>
+  </g>
+
+  <!-- row labels -->
+  <g font-size="13" fill="#3a3a3a" text-anchor="end">
+    <text x="188" y="112">백시멘트(기본)</text>
+    <text x="188" y="156">폴리우레아</text>
+    <text x="188" y="200">에폭시·케라폭시</text>
+    <text x="188" y="244">퍼플렉스·아스팍톤</text>
+  </g>
+
+  <g>
+    <!-- 백시멘트: 신축 기본 제공(0) -->
+    <rect x="200" y="98" width="4" height="22" rx="2" fill="#cdbfb1"/>
+    <text x="212" y="114" font-size="11" fill="#6b5d52">신축 기본 제공(별도 비용 없음)</text>
+    <!-- 폴리우레아 10~20 : 9px/만, x=200+10*9=290, w=10*9=90 -->
+    <rect x="290" y="142" width="90" height="22" rx="4" fill="#d98b6a"/>
+    <text x="386" y="158" font-size="11" fill="#6b5d52">10~20</text>
+    <!-- 에폭시 30~40 : x=470, w=90 -->
+    <rect x="470" y="186" width="90" height="22" rx="4" fill="#c0653f"/>
+    <text x="566" y="202" font-size="11" fill="#6b5d52">30~40</text>
+    <!-- 퍼플렉스/아스팍톤 30~40 (프리미엄대) -->
+    <rect x="470" y="230" width="100" height="22" rx="4" fill="#a84e2c"/>
+    <text x="576" y="246" font-size="11" fill="#6b5d52">30~45</text>
+  </g>
+
+  <text x="24" y="324" font-size="12" fill="#8a8175">※ 신축은 평균보다 낮게(폴리 10만 내외·에폭시 30만 내외), 구축·살면서 시공은 위 범위 상단으로.</text>
+  <text x="24" y="344" font-size="12" fill="#8a8175">※ 좁은 면적만 해도 기본 인건비가 들어 비용이 크게 내려가지 않습니다.</text>
+</svg>

@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" role="img" aria-label="폴리우레아와 케라폭시의 10년 누적 줄눈 비용 비교 그래프">
+  <rect width="720" height="380" fill="#faf7f4"/>
+  <text x="24" y="40" font-size="20" font-weight="700" fill="#2b2b2b">10년을 보면 비용이 역전됩니다 (욕실 바닥 1칸)</text>
+  <text x="24" y="62" font-size="13" fill="#8a8175">단위: 만원 · 폴리우레아는 약 5년 주기 재시공, 케라폭시는 1회로 반영구 가정</text>
+
+  <!-- y axis gridlines -->
+  <g stroke="#e7ddd3" stroke-width="1">
+    <line x1="90" y1="300" x2="660" y2="300"/>
+    <line x1="90" y1="250" x2="660" y2="250"/>
+    <line x1="90" y1="200" x2="660" y2="200"/>
+    <line x1="90" y1="150" x2="660" y2="150"/>
+    <line x1="90" y1="100" x2="660" y2="100"/>
+  </g>
+  <g font-size="11" fill="#a89e92" text-anchor="end">
+    <text x="80" y="304">0</text>
+    <text x="80" y="254">20</text>
+    <text x="80" y="204">40</text>
+    <text x="80" y="154">60</text>
+    <text x="80" y="104">80</text>
+  </g>
+
+  <!-- x labels -->
+  <g font-size="12" fill="#6b5d52" text-anchor="middle">
+    <text x="180" y="322">시공 시점</text>
+    <text x="370" y="322">5년차(폴리 재시공)</text>
+    <text x="560" y="322">10년차(폴리 또 재시공)</text>
+  </g>
+
+  <!-- 케라폭시: 한 번 35만, 이후 유지 (2.5px/만) -->
+  <!-- 35만 -> y=300-35*2.5=212.5 -->
+  <polyline points="180,212 370,212 560,212" fill="none" stroke="#a84e2c" stroke-width="3"/>
+  <circle cx="180" cy="212" r="5" fill="#a84e2c"/>
+  <circle cx="370" cy="212" r="5" fill="#a84e2c"/>
+  <circle cx="560" cy="212" r="5" fill="#a84e2c"/>
+
+  <!-- 폴리우레아: 15만 -> 5년차 누적 45만(15+30) -> 10년차 누적 75만(+30) -->
+  <!-- 15만 y=262.5 ; 45만 y=187.5 ; 75만 y=112.5 -->
+  <polyline points="180,262 370,188 560,112" fill="none" stroke="#d98b6a" stroke-width="3"/>
+  <circle cx="180" cy="262" r="5" fill="#d98b6a"/>
+  <circle cx="370" cy="188" r="5" fill="#d98b6a"/>
+  <circle cx="560" cy="112" r="5" fill="#d98b6a"/>
+
+  <!-- labels on points -->
+  <g font-size="11" fill="#6b5d52">
+    <text x="172" y="252" text-anchor="end">15</text>
+    <text x="382" y="184">누적 45</text>
+    <text x="572" y="108">누적 75</text>
+  </g>
+  <g font-size="11" fill="#a84e2c">
+    <text x="180" y="204" text-anchor="middle" font-weight="700">35 (1회로 끝)</text>
+  </g>
+
+  <!-- legend -->
+  <g font-size="12">
+    <rect x="430" y="50" width="14" height="6" rx="3" fill="#d98b6a"/>
+    <text x="450" y="56" fill="#6b5d52">폴리우레아(재시공 누적)</text>
+    <rect x="430" y="68" width="14" height="6" rx="3" fill="#a84e2c"/>
+    <text x="450" y="74" fill="#6b5d52">케라폭시(반영구)</text>
+  </g>
+
+  <text x="24" y="352" font-size="12" fill="#8a8175">※ 금액은 이해를 돕기 위한 예시 모델입니다. 재시공은 기존 줄눈 제거가 더해져 첫 시공비보다 비싸지는 경향이 있어요.</text>
+  <text x="24" y="372" font-size="12" fill="#8a8175">※ 5년 안에 이사 계획이면 폴리우레아가, 오래 거주하면 케라폭시가 유리합니다.</text>
+</svg>
