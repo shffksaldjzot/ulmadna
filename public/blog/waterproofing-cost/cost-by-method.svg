@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" role="img" aria-label="방수 방법별 공사 비용 막대그래프 — 셀프 페인트 보수부터 욕실 철거 재방수까지">
+  <rect width="720" height="360" fill="#faf7f4"/>
+  <text x="24" y="40" font-size="20" font-weight="700" fill="#2b2b2b">방수 방법별 공사 비용 한눈에 보기</text>
+  <text x="24" y="62" font-size="13" fill="#8a8175">단위: 만원 · 실제 견적 빅데이터 기준 · 면적·누수 정도·면처리 범위에 따라 변동</text>
+
+  <!-- gridlines -->
+  <g stroke="#e7ddd3" stroke-width="1">
+    <line x1="200" y1="84" x2="200" y2="276"/>
+    <line x1="296" y1="84" x2="296" y2="276"/>
+    <line x1="392" y1="84" x2="392" y2="276"/>
+    <line x1="488" y1="84" x2="488" y2="276"/>
+    <line x1="584" y1="84" x2="584" y2="276"/>
+    <line x1="680" y1="84" x2="680" y2="276"/>
+  </g>
+  <g font-size="11" fill="#a89e92" text-anchor="middle">
+    <text x="200" y="294">0</text>
+    <text x="296" y="294">100</text>
+    <text x="392" y="294">200</text>
+    <text x="488" y="294">300</text>
+    <text x="584" y="294">400</text>
+    <text x="680" y="294">500</text>
+  </g>
+
+  <!-- row labels -->
+  <g font-size="13" fill="#3a3a3a" text-anchor="end">
+    <text x="188" y="112">셀프 페인트 보수</text>
+    <text x="188" y="156">베란다 부분 방수(1일)</text>
+    <text x="188" y="200">베란다 전체 방수(3~5일)</text>
+    <text x="188" y="244">욕실 철거+재방수</text>
+  </g>
+
+  <g>
+    <!-- 셀프 1~5만 -->
+    <rect x="200" y="98" width="5" height="22" rx="2" fill="#cdbfb1"/>
+    <text x="214" y="114" font-size="11" fill="#6b5d52">1~5만 (단순 노후일 때만)</text>
+    <!-- 부분 방수 50~80 -->
+    <rect x="248" y="142" width="29" height="22" rx="4" fill="#d98b6a"/>
+    <text x="283" y="158" font-size="11" fill="#6b5d52">50~80</text>
+    <!-- 전체 방수 150~250 -->
+    <rect x="344" y="186" width="96" height="22" rx="4" fill="#c0653f"/>
+    <text x="446" y="202" font-size="11" fill="#6b5d52">150~250</text>
+    <!-- 욕실 철거 재방수 300~500 -->
+    <rect x="488" y="230" width="192" height="22" rx="4" fill="#a84e2c"/>
+    <text x="600" y="245" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">300~500</text>
+  </g>
+
+  <text x="24" y="324" font-size="12" fill="#8a8175">※ 욕실 방수는 보통 욕실 리모델링(철거·타일 재시공)에 포함돼 별도 단가로 떼지 않습니다.</text>
+  <text x="24" y="344" font-size="12" fill="#8a8175">※ 원인만 잡는 부분 방수로 끝나는 경우가 많아, 무조건 전체 공사부터 잡을 필요는 없습니다.</text>
+</svg>
