@@ -86,7 +86,7 @@ export default function BlogIndex() {
 
             {ADSENSE_SLOTS.blogList && (
               <div className="blog-ad">
-                <AdsenseUnit slot={ADSENSE_SLOTS.blogList} />
+                <AdsenseUnit slot={ADSENSE_SLOTS.blogList} format="autorelaxed" />
               </div>
             )}
           </>

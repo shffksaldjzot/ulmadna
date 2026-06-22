@@ -133,7 +133,7 @@ export default async function BlogPost({
 
         {ADSENSE_SLOTS.blogInArticle && (
           <div className="blog-ad">
-            <AdsenseUnit slot={ADSENSE_SLOTS.blogInArticle} />
+            <AdsenseUnit slot={ADSENSE_SLOTS.blogInArticle} format="fluid" layout="in-article" />
           </div>
         )}
 
