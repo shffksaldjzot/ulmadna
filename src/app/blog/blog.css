@@ -136,43 +136,44 @@
 .blog-body th{background:var(--beige-100);font-weight:700;color:var(--brown-700);}
 .blog-body hr{border:none;border-top:1px solid var(--beige-200);margin:36px 0;}
 
-/* 스포일러 — 흐림 + 탭하면 해제 (체크박스+CSS, JS 없음) */
+/* 스포일러 — 흐림 + 반짝이는 입자(스레드 느낌), 탭하면 해제 (체크박스+CSS, JS 없음) */
 .blog-spoiler{position:relative;margin:24px 0;border-radius:12px;overflow:hidden;}
 .blog-spoiler-cb{position:absolute;opacity:0;width:0;height:0;pointer-events:none;}
 /* 내용은 항상 DOM에 존재 — 시각적으로만 흐리게 */
-.blog-spoiler-inner{filter:blur(7px);transition:filter .25s ease;pointer-events:none;user-select:none;}
+.blog-spoiler-inner{filter:blur(7px);transition:filter .3s ease;pointer-events:none;user-select:none;}
 .blog-spoiler-inner .blog-table-wrap{margin:0;}
-/* 커버 오버레이 — 탭 유도 */
+/* 커버 — 따뜻한 브라운 베일 (흰 반짝이가 보이도록 살짝 어둡게) */
 .blog-spoiler-cover{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:6px;cursor:pointer;text-align:center;padding:16px;overflow:hidden;
-  background:linear-gradient(180deg,rgba(255,253,250,.55),rgba(245,238,230,.65));
-  border:1px solid var(--beige-200);border-radius:12px;
-  backdrop-filter:blur(1px);transition:opacity .25s ease;}
-/* 일렁이는 점 텍스처 — 드리프트 + 밝기 펄스 (스레드 스포일러 느낌) */
-.blog-spoiler-cover::before{content:"";position:absolute;inset:-20%;pointer-events:none;
-  background-image:radial-gradient(rgba(92,58,30,.38) 1px, transparent 1.6px);
-  background-size:7px 7px;
-  animation:spoiler-dots 3.2s linear infinite;}
-/* 사선으로 지나가는 빛 스윕 — 일렁임 강조 */
-.blog-spoiler-cover::after{content:"";position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);
-  background-size:240% 240%;
-  animation:spoiler-sweep 3.8s ease-in-out infinite;}
-.blog-spoiler-hint,.blog-spoiler-sub{position:relative;z-index:1;}
-.blog-spoiler-hint{font-size:16px;font-weight:800;color:var(--brown-700);letter-spacing:-0.02em;}
-.blog-spoiler-sub{font-size:12.5px;font-weight:600;color:var(--ink-2);}
-.blog-spoiler-cover:hover{background:linear-gradient(180deg,rgba(255,253,250,.45),rgba(245,238,230,.55));}
-@keyframes spoiler-dots{
-  0%{background-position:0 0;opacity:.5;}
-  50%{opacity:.95;}
-  100%{background-position:14px 11px;opacity:.5;}}
-@keyframes spoiler-sweep{
-  0%{background-position:120% 0;}
-  100%{background-position:-20% 0;}}
-/* 모션 최소화 설정 사용자는 애니메이션 끔 */
+  gap:6px;cursor:pointer;text-align:center;padding:16px;overflow:hidden;border-radius:12px;
+  background:linear-gradient(135deg,rgba(74,48,26,.55),rgba(48,30,16,.62));
+  backdrop-filter:blur(1px);transition:opacity .3s ease;}
+/* 반짝이 입자 필드 — 각 입자는 drift(이동) + twinkle(깜빡임) 두 애니메이션을 동시에 */
+.blog-spoiler-sparkles{position:absolute;inset:0;pointer-events:none;}
+.blog-spoiler-spark{position:absolute;width:4px;height:4px;border-radius:50%;
+  background:rgba(255,255,255,.85);will-change:transform,opacity;
+  transform:translate(var(--x0),var(--y0)) scale(var(--s));
+  animation-name:spoiler-drift,spoiler-twinkle;
+  animation-timing-function:linear,ease-in-out;
+  animation-iteration-count:infinite,infinite;
+  animation-direction:alternate,alternate;}
+.blog-spoiler-hint,.blog-spoiler-sub{position:relative;z-index:1;text-shadow:0 1px 6px rgba(0,0,0,.4);}
+.blog-spoiler-hint{font-size:16px;font-weight:800;color:#fdf7ee;letter-spacing:-0.02em;}
+.blog-spoiler-sub{font-size:12.5px;font-weight:600;color:rgba(255,255,255,.78);}
+/* 탭하면(체크) 선명하게 + 커버·입자 제거 */
+.blog-spoiler-cb:checked ~ .blog-spoiler-inner{filter:none;pointer-events:auto;user-select:auto;}
+.blog-spoiler-cb:checked ~ .blog-spoiler-cover{opacity:0;pointer-events:none;}
+.blog-spoiler-cb:checked ~ .blog-spoiler-cover .blog-spoiler-spark{display:none;animation-play-state:paused;}
+/* 키보드 접근성 */
+.blog-spoiler-cb:focus-visible ~ .blog-spoiler-cover{outline:2px solid var(--accent);outline-offset:2px;}
+@keyframes spoiler-drift{
+  from{transform:translate(var(--x0),var(--y0)) scale(var(--s));}
+  to{transform:translate(var(--x1),var(--y1)) scale(var(--s));}}
+@keyframes spoiler-twinkle{
+  from{opacity:.25;}
+  to{opacity:.95;}}
+/* 모션 최소화 설정 사용자는 입자 정지 */
 @media (prefers-reduced-motion:reduce){
-  .blog-spoiler-cover::before,.blog-spoiler-cover::after{animation:none;}
-  .blog-spoiler-cover::before{opacity:.7;}}
+  .blog-spoiler-spark{animation:none;opacity:.7;}}
 /* 체크되면(탭하면) 선명하게 + 커버 제거 */
 .blog-spoiler-cb:checked ~ .blog-spoiler-inner{filter:none;pointer-events:auto;user-select:auto;}
 .blog-spoiler-cb:checked ~ .blog-spoiler-cover{opacity:0;pointer-events:none;}

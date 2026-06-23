@@ -119,7 +119,30 @@ export async function getPost(slug: string): Promise<Post | null> {
     .replace(/<a href="(https?:\/\/[^"]*)"/g, '<a href="$1" target="_blank" rel="noopener noreferrer"');
 
   // 스포일러 — <!-- spoiler:start --> ~ <!-- spoiler:end --> 구간을
-  // "흐림 + 탭하면 해제" 구조로 감쌈 (JS 없이 체크박스+CSS 토글, SEO 안전: 내용은 항상 DOM에 그대로 존재)
+  // "흐림 + 반짝이는 입자(스레드 느낌) + 탭하면 해제" 구조로 감쌈
+  // (JS 없이 체크박스+CSS 토글, SEO 안전: 내용은 항상 DOM에 그대로 존재)
+  // 입자는 빌드 타임에 위치·이동경로·속도를 랜덤으로 박아 넣음(스레드처럼 제각각 반짝)
+  const rnd = (min: number, max: number) => min + Math.random() * (max - min);
+  const buildSparkles = (n = 75) => {
+    let out = "";
+    for (let i = 0; i < n; i++) {
+      const left = rnd(0, 100).toFixed(2); // 가로 위치 %
+      const top = rnd(0, 100).toFixed(2); // 세로 위치 %
+      const x0 = rnd(-6, 6).toFixed(1), y0 = rnd(-6, 6).toFixed(1); // 드리프트 시작 오프셋
+      const x1 = rnd(-18, 18).toFixed(1), y1 = rnd(-18, 18).toFixed(1); // 드리프트 끝 오프셋
+      const s = rnd(0.5, 1.5).toFixed(2); // 입자 크기 배율
+      const drift = rnd(8, 28).toFixed(1); // 떠다니는 주기(초)
+      const tw = rnd(0.6, 1.4).toFixed(2); // 깜빡임 주기(초)
+      const dDelay = rnd(-28, 0).toFixed(1); // 음수 지연으로 위상 분산
+      const tDelay = rnd(-1.4, 0).toFixed(2);
+      out +=
+        `<span class="blog-spoiler-spark" style="left:${left}%;top:${top}%;` +
+        `--x0:${x0}px;--y0:${y0}px;--x1:${x1}px;--y1:${y1}px;--s:${s};` +
+        `animation-duration:${drift}s,${tw}s;animation-delay:${dDelay}s,${tDelay}s;"></span>`;
+    }
+    return out;
+  };
+
   let spoilerSeq = 0;
   html = html.replace(
     /(?:<p>\s*)?<!--\s*spoiler:start\s*-->(?:\s*<\/p>)?([\s\S]*?)(?:<p>\s*)?<!--\s*spoiler:end\s*-->(?:\s*<\/p>)?/g,
@@ -130,6 +153,7 @@ export async function getPost(slug: string): Promise<Post | null> {
         `<input type="checkbox" id="${id}" class="blog-spoiler-cb" />` +
         `<div class="blog-spoiler-inner">${inner}</div>` +
         `<label for="${id}" class="blog-spoiler-cover" role="button" tabindex="0" aria-label="단가표 보기">` +
+        `<span class="blog-spoiler-sparkles" aria-hidden="true">${buildSparkles()}</span>` +
         `<span class="blog-spoiler-hint">👆 탭하면 단가표가 보여요</span>` +
         `<span class="blog-spoiler-sub">실제 업체 견적 단가표 · 스포일러</span>` +
         `</label></div>`
