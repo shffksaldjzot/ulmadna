@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" role="img" aria-label="가구 자재 친환경 등급 비교 — 포름알데히드 방출량이 E2, E1, E0, SE0 순으로 줄어들며 낮을수록 친환경. 일반 제작은 E0 기준">
+  <rect width="720" height="360" fill="#faf7f4"/>
+  <text x="24" y="40" font-size="20" font-weight="700" fill="#2b2b2b">가구 자재 친환경 등급 (E2 · E1 · E0 · SE0)</text>
+  <text x="24" y="62" font-size="13" fill="#8a8175">포름알데히드 방출량 — 막대가 짧을수록 친환경. 일반 제작은 E0 기준, 일부 가성비 브랜드만 E1</text>
+
+  <!-- 등급별 막대 (방출량: 낮을수록 좋음) -->
+  <!-- E2 -->
+  <text x="24" y="108" font-size="15" font-weight="700" fill="#2b2b2b">E2</text>
+  <rect x="120" y="92" width="540" height="24" rx="4" fill="#c0392b"/>
+  <text x="650" y="109" font-size="12" fill="#fff" text-anchor="end" font-weight="700">방출 많음 · 실내가구 부적합</text>
+
+  <!-- E1 -->
+  <text x="24" y="160" font-size="15" font-weight="700" fill="#2b2b2b">E1</text>
+  <rect x="120" y="144" width="380" height="24" rx="4" fill="#e08e0b"/>
+  <text x="510" y="161" font-size="12" fill="#8a8175">일부 저가 가성비 브랜드</text>
+
+  <!-- E0 -->
+  <text x="24" y="212" font-size="15" font-weight="700" fill="#5C3A1E">E0 ★</text>
+  <rect x="120" y="196" width="210" height="24" rx="4" fill="#5C3A1E"/>
+  <text x="340" y="213" font-size="12" font-weight="700" fill="#5C3A1E">일반 제작 기준 (권장)</text>
+
+  <!-- SE0 -->
+  <text x="24" y="264" font-size="15" font-weight="700" fill="#2b2b2b">SE0</text>
+  <rect x="120" y="248" width="110" height="24" rx="4" fill="#2e8b57"/>
+  <text x="240" y="265" font-size="12" fill="#8a8175">최상위 친환경 (방출 거의 없음)</text>
+
+  <line x1="120" y1="292" x2="660" y2="292" stroke="#e7ddd3" stroke-width="1"/>
+  <text x="120" y="312" font-size="11" fill="#a89e92">방출 많음 (나쁨)</text>
+  <text x="660" y="312" font-size="11" fill="#a89e92" text-anchor="end">방출 적음 (친환경)</text>
+  <text x="24" y="344" font-size="12" fill="#8a8175">※ 견적서·계약서에 "E0 등급 자재"로 명시받으면 안심. E1로 빠지는지 꼭 확인하세요.</text>
+</svg>
