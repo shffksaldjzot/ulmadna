@@ -118,6 +118,25 @@ export async function getPost(slug: string): Promise<Post | null> {
     .replace(/<\/table>/g, "</table></div>")
     .replace(/<a href="(https?:\/\/[^"]*)"/g, '<a href="$1" target="_blank" rel="noopener noreferrer"');
 
+  // 스포일러 — <!-- spoiler:start --> ~ <!-- spoiler:end --> 구간을
+  // "흐림 + 탭하면 해제" 구조로 감쌈 (JS 없이 체크박스+CSS 토글, SEO 안전: 내용은 항상 DOM에 그대로 존재)
+  let spoilerSeq = 0;
+  html = html.replace(
+    /(?:<p>\s*)?<!--\s*spoiler:start\s*-->(?:\s*<\/p>)?([\s\S]*?)(?:<p>\s*)?<!--\s*spoiler:end\s*-->(?:\s*<\/p>)?/g,
+    (_m, inner) => {
+      const id = `blog-spoiler-${spoilerSeq++}`;
+      return (
+        `<div class="blog-spoiler">` +
+        `<input type="checkbox" id="${id}" class="blog-spoiler-cb" />` +
+        `<div class="blog-spoiler-inner">${inner}</div>` +
+        `<label for="${id}" class="blog-spoiler-cover" role="button" tabindex="0" aria-label="단가표 보기">` +
+        `<span class="blog-spoiler-hint">👆 탭하면 단가표가 보여요</span>` +
+        `<span class="blog-spoiler-sub">실제 업체 견적 단가표 · 스포일러</span>` +
+        `</label></div>`
+      );
+    }
+  );
+
   const readingTime = calcReadingTime(content);
 
   const faq: FaqItem[] = Array.isArray(data.faq)
