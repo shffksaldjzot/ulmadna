@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 330" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" role="img" aria-label="인테리어 공사 속 시스템 에어컨 설치 순서 타임라인">
+  <rect width="720" height="330" fill="#faf7f4"/>
+  <text x="24" y="40" font-size="20" font-weight="700" fill="#2b2b2b">인테리어 공사 속 시스템 에어컨 순서</text>
+  <text x="24" y="62" font-size="13" fill="#8a8175">배관은 천장 마감 전에, 판넬은 도배 후에 — 타이밍을 놓치면 배관이 밖으로 노출됩니다</text>
+
+  <!-- connecting line -->
+  <line x1="80" y1="130" x2="640" y2="130" stroke="#e0d4c8" stroke-width="3"/>
+
+  <g text-anchor="middle">
+    <!-- 1 철거 -->
+    <circle cx="80" cy="130" r="22" fill="#d98b6a"/>
+    <text x="80" y="137" font-size="16" font-weight="700" fill="#fff">1</text>
+    <text x="80" y="176" font-size="13" font-weight="600" fill="#3a3a3a">철거</text>
+    <text x="80" y="194" font-size="11" fill="#8a8175">기존 정리</text>
+    <!-- 2 에어컨 선배관 -->
+    <circle cx="220" cy="130" r="22" fill="#cf7a55"/>
+    <text x="220" y="137" font-size="16" font-weight="700" fill="#fff">2</text>
+    <text x="220" y="176" font-size="13" font-weight="600" fill="#3a3a3a">에어컨 선배관</text>
+    <text x="220" y="194" font-size="11" fill="#8a8175">동관·드레인·전선 매립</text>
+    <!-- 3 목공 -->
+    <circle cx="360" cy="130" r="22" fill="#c0653f"/>
+    <text x="360" y="137" font-size="16" font-weight="700" fill="#fff">3</text>
+    <text x="360" y="176" font-size="13" font-weight="600" fill="#3a3a3a">목공·천장</text>
+    <text x="360" y="194" font-size="11" fill="#8a8175">배관 덮고 마감</text>
+    <!-- 4 도배 -->
+    <circle cx="500" cy="130" r="22" fill="#b85b38"/>
+    <text x="500" y="137" font-size="16" font-weight="700" fill="#fff">4</text>
+    <text x="500" y="176" font-size="13" font-weight="600" fill="#3a3a3a">도배</text>
+    <text x="500" y="194" font-size="11" fill="#8a8175">천장 도배 완료</text>
+    <!-- 5 판넬 -->
+    <circle cx="640" cy="130" r="22" fill="#8f4023"/>
+    <text x="640" y="137" font-size="16" font-weight="700" fill="#fff">5</text>
+    <text x="640" y="176" font-size="13" font-weight="600" fill="#3a3a3a">판넬·시운전</text>
+    <text x="640" y="194" font-size="11" fill="#8a8175">에어컨 마감</text>
+  </g>
+
+  <text x="24" y="246" font-size="13" fill="#7a3c22" font-weight="600">설치 당일: 보양 → 천장 타공(3~4곳) → 배관·전선 → 실내기 → 시운전 (4대 기준 약 6시간, 분진 많음)</text>
+  <text x="24" y="290" font-size="12" fill="#8a8175">※ 입주 시공의 첫 순서가 시스템 에어컨인 이유 — 천장을 덮기 전에 배관을 깔아야 하기 때문입니다.</text>
+  <text x="24" y="310" font-size="12" fill="#8a8175">※ 판넬을 도배 후에 따로 붙이면 출장비가 다시 들 수 있어, 도배 일정과 미리 맞춰야 합니다.</text>
+</svg>

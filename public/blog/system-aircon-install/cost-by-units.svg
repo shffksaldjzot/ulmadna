@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" role="img" aria-label="시스템 에어컨 설치 비용 대수별 막대그래프">
+  <rect width="720" height="380" fill="#faf7f4"/>
+  <text x="24" y="40" font-size="20" font-weight="700" fill="#2b2b2b">시스템 에어컨 설치 비용 (제품+설치 합산)</text>
+  <text x="24" y="62" font-size="13" fill="#8a8175">단위: 만원 · 삼성·LG 중급형 기준, 부가세 포함 · 현장 상태에 따라 변동</text>
+
+  <!-- gridlines -->
+  <g stroke="#e7ddd3" stroke-width="1">
+    <line x1="200" y1="84" x2="200" y2="300"/>
+    <line x1="290" y1="84" x2="290" y2="300"/>
+    <line x1="380" y1="84" x2="380" y2="300"/>
+    <line x1="470" y1="84" x2="470" y2="300"/>
+    <line x1="560" y1="84" x2="560" y2="300"/>
+    <line x1="650" y1="84" x2="650" y2="300"/>
+  </g>
+  <g font-size="11" fill="#a89e92" text-anchor="middle">
+    <text x="200" y="318">0</text>
+    <text x="290" y="318">250</text>
+    <text x="380" y="318">500</text>
+    <text x="470" y="318">750</text>
+    <text x="560" y="318">1,000</text>
+    <text x="650" y="318">1,250</text>
+  </g>
+
+  <!-- row labels -->
+  <g font-size="13" fill="#3a3a3a" text-anchor="end">
+    <text x="188" y="106">1대 (방 1·단독)</text>
+    <text x="188" y="150">3대 · 25평/59타입</text>
+    <text x="188" y="194">4대 · 34평/84타입</text>
+    <text x="188" y="238">5~6대 · 40평대</text>
+  </g>
+
+  <g>
+    <!-- 1대 150~250 -->
+    <rect x="254" y="92" width="36" height="22" rx="4" fill="#d98b6a"/>
+    <text x="296" y="108" font-size="11" fill="#6b5d52">150~250</text>
+    <!-- 3대 450~650 -->
+    <rect x="362" y="136" width="72" height="22" rx="4" fill="#cf7a55"/>
+    <text x="440" y="152" font-size="11" fill="#6b5d52">450~650</text>
+    <!-- 4대 600~850 -->
+    <rect x="416" y="180" width="90" height="22" rx="4" fill="#c0653f"/>
+    <text x="512" y="196" font-size="11" fill="#6b5d52">600~850 (흔히 700만대)</text>
+    <!-- 5~6대 850~1200 -->
+    <rect x="506" y="224" width="126" height="22" rx="4" fill="#a84e2c"/>
+    <text x="632" y="240" font-size="11" fill="#fbeee7" text-anchor="end">850~1,200</text>
+  </g>
+
+  <text x="24" y="348" font-size="12" fill="#8a8175">※ 같은 대수라도 배관 길이·층수·천장 구조·브랜드에 따라 200만원 안팎까지 벌어집니다.</text>
+  <text x="24" y="368" font-size="12" fill="#8a8175">※ 인테리어 공사와 함께 진행하면 천장·배관 마감이 한 번에 끝나 전체 비용이 줄어듭니다.</text>
+</svg>
