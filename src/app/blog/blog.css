@@ -144,13 +144,35 @@
 .blog-spoiler-inner .blog-table-wrap{margin:0;}
 /* 커버 오버레이 — 탭 유도 */
 .blog-spoiler-cover{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:6px;cursor:pointer;text-align:center;padding:16px;
+  gap:6px;cursor:pointer;text-align:center;padding:16px;overflow:hidden;
   background:linear-gradient(180deg,rgba(255,253,250,.55),rgba(245,238,230,.65));
   border:1px solid var(--beige-200);border-radius:12px;
   backdrop-filter:blur(1px);transition:opacity .25s ease;}
+/* 일렁이는 점 텍스처 — 드리프트 + 밝기 펄스 (스레드 스포일러 느낌) */
+.blog-spoiler-cover::before{content:"";position:absolute;inset:-20%;pointer-events:none;
+  background-image:radial-gradient(rgba(92,58,30,.38) 1px, transparent 1.6px);
+  background-size:7px 7px;
+  animation:spoiler-dots 3.2s linear infinite;}
+/* 사선으로 지나가는 빛 스윕 — 일렁임 강조 */
+.blog-spoiler-cover::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);
+  background-size:240% 240%;
+  animation:spoiler-sweep 3.8s ease-in-out infinite;}
+.blog-spoiler-hint,.blog-spoiler-sub{position:relative;z-index:1;}
 .blog-spoiler-hint{font-size:16px;font-weight:800;color:var(--brown-700);letter-spacing:-0.02em;}
 .blog-spoiler-sub{font-size:12.5px;font-weight:600;color:var(--ink-2);}
 .blog-spoiler-cover:hover{background:linear-gradient(180deg,rgba(255,253,250,.45),rgba(245,238,230,.55));}
+@keyframes spoiler-dots{
+  0%{background-position:0 0;opacity:.5;}
+  50%{opacity:.95;}
+  100%{background-position:14px 11px;opacity:.5;}}
+@keyframes spoiler-sweep{
+  0%{background-position:120% 0;}
+  100%{background-position:-20% 0;}}
+/* 모션 최소화 설정 사용자는 애니메이션 끔 */
+@media (prefers-reduced-motion:reduce){
+  .blog-spoiler-cover::before,.blog-spoiler-cover::after{animation:none;}
+  .blog-spoiler-cover::before{opacity:.7;}}
 /* 체크되면(탭하면) 선명하게 + 커버 제거 */
 .blog-spoiler-cb:checked ~ .blog-spoiler-inner{filter:none;pointer-events:auto;user-select:auto;}
 .blog-spoiler-cb:checked ~ .blog-spoiler-cover{opacity:0;pointer-events:none;}
