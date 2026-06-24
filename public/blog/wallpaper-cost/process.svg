@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 320" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="도배 공정 순서 — 기존 벽지 제거, 벽면 보수, 초배, 정배, 마무리 건조 타임라인">
+  <rect width="800" height="320" fill="#ffffff"/>
+  <text x="40" y="44" font-size="23" font-weight="700" fill="#2b2b2b">도배 공정 순서 — 가격은 보이지 않는 밑작업에서 갈립니다</text>
+
+  <!-- connecting line -->
+  <line x1="100" y1="150" x2="700" y2="150" stroke="#e5ddd5" stroke-width="4"/>
+
+  <!-- step circles -->
+  <g text-anchor="middle">
+    <circle cx="100" cy="150" r="30" fill="#D9B38C"/>
+    <text x="100" y="158" font-size="22" font-weight="700" fill="#fff">1</text>
+    <text x="100" y="208" font-size="15" font-weight="600" fill="#444">기존 벽지 제거</text>
+    <text x="100" y="230" font-size="13" fill="#8a8a8a">상태 확인·철거</text>
+
+    <circle cx="250" cy="150" r="30" fill="#D9B38C"/>
+    <text x="250" y="158" font-size="22" font-weight="700" fill="#fff">2</text>
+    <text x="250" y="208" font-size="15" font-weight="600" fill="#444">벽면 보수</text>
+    <text x="250" y="230" font-size="13" fill="#8a8a8a">퍼티·크랙·곰팡이</text>
+
+    <circle cx="400" cy="150" r="34" fill="#C26B4A"/>
+    <text x="400" y="158" font-size="22" font-weight="700" fill="#fff">3</text>
+    <text x="400" y="210" font-size="15" font-weight="600" fill="#a8512f">초배 (실크 필수)</text>
+    <text x="400" y="232" font-size="13" fill="#8a8a8a">부직포·초배지</text>
+
+    <circle cx="550" cy="150" r="30" fill="#D9B38C"/>
+    <text x="550" y="158" font-size="22" font-weight="700" fill="#fff">4</text>
+    <text x="550" y="208" font-size="15" font-weight="600" fill="#444">정배(벽지 시공)</text>
+    <text x="550" y="230" font-size="13" fill="#8a8a8a">합지=겹침 / 실크=맞댐</text>
+
+    <circle cx="700" cy="150" r="30" fill="#D9B38C"/>
+    <text x="700" y="158" font-size="22" font-weight="700" fill="#fff">5</text>
+    <text x="700" y="208" font-size="15" font-weight="600" fill="#444">마무리·건조</text>
+    <text x="700" y="230" font-size="13" fill="#8a8a8a">자연건조·24h 환기</text>
+  </g>
+
+  <text x="400" y="290" font-size="14" fill="#a8512f" text-anchor="middle" font-weight="600">★ 2·3번(보수·초배)을 생략한 '덧방'이 싼 견적의 정체입니다 — 1년 뒤 들뜸·터짐으로 돌아옵니다.</text>
+</svg>

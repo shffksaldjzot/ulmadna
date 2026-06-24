@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="평형별 합지 도배와 실크 도배 비용 비교 막대그래프">
+  <rect width="800" height="500" fill="#ffffff"/>
+  <text x="40" y="46" font-size="25" font-weight="700" fill="#2b2b2b">평형별 도배 비용 — 합지 vs 실크</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">전체 도배(자재+시공), 표준 조건 기준 · 단위: 만원</text>
+
+  <!-- legend -->
+  <rect x="560" y="34" width="16" height="16" rx="3" fill="#D9B38C"/>
+  <text x="583" y="47" font-size="15" fill="#555">합지</text>
+  <rect x="640" y="34" width="16" height="16" rx="3" fill="#C26B4A"/>
+  <text x="663" y="47" font-size="15" fill="#555">실크</text>
+
+  <!-- baseline -->
+  <line x1="70" y1="420" x2="760" y2="420" stroke="#dddddd" stroke-width="2"/>
+
+  <!-- 원룸 group (center 195) -->
+  <rect x="130" y="390" width="60" height="30" rx="4" fill="#D9B38C"/>
+  <text x="160" y="382" font-size="14" fill="#7a6a55" text-anchor="middle">20~35</text>
+  <rect x="200" y="365" width="60" height="55" rx="4" fill="#C26B4A"/>
+  <text x="230" y="357" font-size="14" fill="#a8512f" text-anchor="middle">40~60</text>
+  <text x="195" y="446" font-size="16" font-weight="600" fill="#444" text-anchor="middle">원룸 5~7평</text>
+
+  <!-- 24평 group (center 415) -->
+  <rect x="350" y="302" width="60" height="118" rx="4" fill="#D9B38C"/>
+  <text x="380" y="294" font-size="14" fill="#7a6a55" text-anchor="middle">95~120</text>
+  <rect x="420" y="200" width="60" height="220" rx="4" fill="#C26B4A"/>
+  <text x="450" y="192" font-size="14" fill="#a8512f" text-anchor="middle">180~220</text>
+  <text x="415" y="446" font-size="16" font-weight="600" fill="#444" text-anchor="middle">24평 / 59㎡</text>
+
+  <!-- 34평 group (center 635) -->
+  <rect x="570" y="250" width="60" height="170" rx="4" fill="#D9B38C"/>
+  <text x="600" y="242" font-size="14" fill="#7a6a55" text-anchor="middle">140~170</text>
+  <rect x="640" y="129" width="60" height="291" rx="4" fill="#C26B4A"/>
+  <text x="670" y="121" font-size="14" fill="#a8512f" text-anchor="middle">240~290</text>
+  <text x="635" y="446" font-size="16" font-weight="600" fill="#444" text-anchor="middle">34평 / 84㎡</text>
+
+  <text x="40" y="484" font-size="13" fill="#a0a0a0">※ 벽 상태·천장 포함·확장 여부·거주 중 시공에 따라 달라집니다. 실제 견적 빅데이터 기준 표준 범위.</text>
+</svg>
