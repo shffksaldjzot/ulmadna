@@ -29,7 +29,7 @@ interface Particle {
   cb: number;
 }
 
-const MAX_PARTICLES = 3500; // 성능 상한(모바일 고려)
+const MAX_PARTICLES = 4200; // 성능 상한(모바일 고려)
 
 export function BlogSpoilerInk() {
   useEffect(() => {
@@ -94,7 +94,7 @@ export function BlogSpoilerInk() {
             const g = data[idx + 1];
             const b = data[idx + 2];
             const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-            if (lum > 222) continue; // 거의 흰 배경 제외 → 글자·선·색글자만 남김
+            if (lum > 200) continue; // 옅은 경계(AA)까지 잘라 또렷한 글자/선만 남김
             candidates.push({ x: (x / iw) * w, y: (y / ih) * h, cr: r, cg: g, cb: b });
           }
         }
@@ -106,8 +106,8 @@ export function BlogSpoilerInk() {
         for (const c of candidates) {
           if (keep < 1 && Math.random() > keep) continue;
           // 살짝 흩뜨려 글자를 "읽히지 않게" — 모양은 남고 글자는 흐릿
-          const jx = (Math.random() - 0.5) * 2.4;
-          const jy = (Math.random() - 0.5) * 2.4;
+          const jx = (Math.random() - 0.5) * 1.8;
+          const jy = (Math.random() - 0.5) * 1.8;
           particles.push({
             ox: c.x + jx,
             oy: c.y + jy,
@@ -115,8 +115,8 @@ export function BlogSpoilerInk() {
             y: c.y + jy,
             vx: 0,
             vy: 0,
-            a: 0.5 + Math.random() * 0.5,
-            r: 1 + Math.random() * 0.8,
+            a: 0.6 + Math.random() * 0.4,
+            r: 1.2 + Math.random() * 1.0,
             cr: c.cr,
             cg: c.cg,
             cb: c.cb,
@@ -160,7 +160,7 @@ export function BlogSpoilerInk() {
               p.x = p.ox + (Math.random() - 0.5) * 2.4;
               p.y = p.oy + (Math.random() - 0.5) * 2.4;
               p.a += (Math.random() - 0.5) * 0.2;
-              if (p.a < 0.3) p.a = 0.3;
+              if (p.a < 0.5) p.a = 0.5;
               else if (p.a > 1) p.a = 1;
             } else {
               // 흩어짐 — 부여된 속도로 날아가며 페이드
@@ -181,7 +181,11 @@ export function BlogSpoilerInk() {
           raf = requestAnimationFrame(frame);
         };
 
-        const reveal = () => {
+        const reveal = (e?: Event) => {
+          // 커버가 <label>이라 클릭 시 브라우저가 체크박스를 토글함.
+          // JS에서도 체크하면 "내 설정 → 라벨 기본동작이 다시 토글" 로 도로 꺼져
+          // 블러가 안 풀림. 기본동작을 막고 JS가 직접 체크 상태를 관리한다.
+          if (e) e.preventDefault();
           if (revealed) return;
           revealed = true;
           if (cb) cb.checked = true; // CSS 흐림 제거
