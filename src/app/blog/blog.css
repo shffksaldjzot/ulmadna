@@ -174,6 +174,16 @@
 /* 모션 최소화 설정 사용자는 입자 정지 */
 @media (prefers-reduced-motion:reduce){
   .blog-spoiler-spark{animation:none;opacity:.7;}}
+
+/* ── JS(canvas) 인비저블잉크 모드 — BlogSpoilerInk가 .js-ink 부여 시 ── */
+.blog-spoiler.js-ink .blog-spoiler-sparkles{display:none;} /* CSS 폴백 입자 숨김 */
+.blog-spoiler.js-ink .blog-spoiler-cover{background:none;backdrop-filter:none;} /* 베일은 캔버스가 그림 */
+.blog-spoiler-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+/* js 모드에선 체크돼도 커버 즉시 안 사라짐(입자 흩어짐을 보여주려고) */
+.blog-spoiler.js-ink .blog-spoiler-cb:checked ~ .blog-spoiler-cover{opacity:1;}
+/* 공개되면 힌트 텍스트만 부드럽게 사라짐(캔버스 입자가 흩어지는 동안) */
+.blog-spoiler.js-ink.is-revealed .blog-spoiler-hint,
+.blog-spoiler.js-ink.is-revealed .blog-spoiler-sub{opacity:0;transition:opacity .3s ease;}
 /* 체크되면(탭하면) 선명하게 + 커버 제거 */
 .blog-spoiler-cb:checked ~ .blog-spoiler-inner{filter:none;pointer-events:auto;user-select:auto;}
 .blog-spoiler-cb:checked ~ .blog-spoiler-cover{opacity:0;pointer-events:none;}

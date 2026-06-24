@@ -5,6 +5,7 @@ import { getPost, getAllSlugs, getAllPostMeta } from "@/lib/blog";
 import { BlogHeader } from "@/components/blog/BlogHeader";
 import { SiteFooter } from "@/components/blog/SiteFooter";
 import { PostEngagement } from "@/components/blog/PostEngagement";
+import { BlogSpoilerInk } from "@/components/blog/BlogSpoilerInk";
 import { ShareButtons } from "@/components/blog/ShareButtons";
 import { AdsenseUnit } from "@/components/ads/AdsenseUnit";
 import { ADSENSE_SLOTS } from "@/lib/ads/adsense";
@@ -130,6 +131,8 @@ export default async function BlogPost({
         )}
 
         <div className="blog-body" dangerouslySetInnerHTML={{ __html: post.html }} />
+        {/* 스포일러 캔버스 효과(점진적 향상) — .blog-spoiler 강화 */}
+        <BlogSpoilerInk />
 
         {ADSENSE_SLOTS.blogInArticle && (
           <div className="blog-ad">
