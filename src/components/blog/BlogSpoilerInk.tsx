@@ -129,14 +129,14 @@ export function BlogSpoilerInk() {
             cr: c.cr,
             cg: c.cg,
             cb: c.cb,
-            baseA: 0.68 + Math.random() * 0.32,
-            amp: 0.7 + Math.random() * 1.3, // 작은 진폭 → 잔잔하게
+            baseA: 0.58 + Math.random() * 0.34,
+            amp: 2.5 + Math.random() * 3.5, // 눈에 보이게(부드럽게 미끄러짐)
             phx: Math.random() * Math.PI * 2,
             phy: Math.random() * Math.PI * 2,
             pha: Math.random() * Math.PI * 2,
-            fx: 0.4 + Math.random() * 0.5, // 느린 주파수
-            fy: 0.4 + Math.random() * 0.5,
-            fa: 0.5 + Math.random() * 0.7,
+            fx: 1.1 + Math.random() * 1.3, // 중간 주파수(매끄러운 표류)
+            fy: 1.1 + Math.random() * 1.3,
+            fa: 2.2 + Math.random() * 2.6, // 또렷한 깜빡임
           });
         }
         if (particles.length === 0) continue;
@@ -175,11 +175,11 @@ export function BlogSpoilerInk() {
           const fade = revealed ? Math.max(0, 1 - disperse) : 1;
           for (const p of particles) {
             if (!revealed) {
-              // 시간 기반 sine → 잔잔하고 느리게 일렁 + 부드럽게 깜빡
-              p.x = p.ox + Math.sin(t * p.fx + p.phx) * p.amp;
-              p.y = p.oy + Math.cos(t * p.fy + p.phy) * p.amp;
-              p.a = p.baseA + Math.sin(t * p.fa + p.pha) * 0.26;
-              if (p.a < 0.42) p.a = 0.42;
+              // 시간 기반 sine(매끄러운 표류) + 작은 랜덤 지터(모래알 생동감) + 또렷한 깜빡임
+              p.x = p.ox + Math.sin(t * p.fx + p.phx) * p.amp + (Math.random() - 0.5) * 0.8;
+              p.y = p.oy + Math.cos(t * p.fy + p.phy) * p.amp + (Math.random() - 0.5) * 0.8;
+              p.a = p.baseA + Math.sin(t * p.fa + p.pha) * 0.38;
+              if (p.a < 0.28) p.a = 0.28;
               else if (p.a > 1) p.a = 1;
             } else {
               // 흩어짐 — 부여된 속도로 멀리 날아가며(중력) 점점 커지고 페이드
