@@ -22,11 +22,20 @@ interface Particle {
   y: number;
   vx: number; // 흩어질 때 속도
   vy: number;
-  a: number; // 투명도(깜빡임)
+  a: number; // 현재 그릴 투명도
   r: number; // 크기(px)
   cr: number; // 색(샘플한 픽셀)
   cg: number;
   cb: number;
+  // 부드러운 일렁임용(시간 기반 sine)
+  baseA: number; // 기본 투명도
+  amp: number; // 흔들림 진폭(px)
+  phx: number; // 위상
+  phy: number;
+  pha: number;
+  fx: number; // 흔들림 주파수(rad/s) — 느리게
+  fy: number;
+  fa: number;
 }
 
 const MAX_PARTICLES = 4200; // 성능 상한(모바일 고려)
@@ -120,6 +129,14 @@ export function BlogSpoilerInk() {
             cr: c.cr,
             cg: c.cg,
             cb: c.cb,
+            baseA: 0.68 + Math.random() * 0.32,
+            amp: 0.7 + Math.random() * 1.3, // 작은 진폭 → 잔잔하게
+            phx: Math.random() * Math.PI * 2,
+            phy: Math.random() * Math.PI * 2,
+            pha: Math.random() * Math.PI * 2,
+            fx: 0.4 + Math.random() * 0.5, // 느린 주파수
+            fy: 0.4 + Math.random() * 0.5,
+            fa: 0.5 + Math.random() * 0.7,
           });
         }
         if (particles.length === 0) continue;
@@ -142,37 +159,40 @@ export function BlogSpoilerInk() {
         let revealed = false;
         let disperse = 0; // 흩어짐 진행도 0~1
         let raf = 0;
+        const t0 = performance.now(); // 시간 기준점
 
         const drawOnce = () => {
           ctx.clearRect(0, 0, w, h);
           for (const p of particles) {
-            ctx.fillStyle = `rgba(${p.cr},${p.cg},${p.cb},${p.a})`;
+            ctx.fillStyle = `rgba(${p.cr},${p.cg},${p.cb},${p.baseA})`;
             ctx.fillRect(p.x, p.y, p.r, p.r);
           }
         };
 
         const frame = () => {
           ctx.clearRect(0, 0, w, h);
+          const t = (performance.now() - t0) / 1000; // 경과 초
           const fade = revealed ? Math.max(0, 1 - disperse) : 1;
           for (const p of particles) {
             if (!revealed) {
-              // 원점 주변에서 미세하게 일렁 + 깜빡 → 글자가 살아 움직이는 먼지
-              p.x = p.ox + (Math.random() - 0.5) * 2.4;
-              p.y = p.oy + (Math.random() - 0.5) * 2.4;
-              p.a += (Math.random() - 0.5) * 0.2;
-              if (p.a < 0.5) p.a = 0.5;
+              // 시간 기반 sine → 잔잔하고 느리게 일렁 + 부드럽게 깜빡
+              p.x = p.ox + Math.sin(t * p.fx + p.phx) * p.amp;
+              p.y = p.oy + Math.cos(t * p.fy + p.phy) * p.amp;
+              p.a = p.baseA + Math.sin(t * p.fa + p.pha) * 0.26;
+              if (p.a < 0.42) p.a = 0.42;
               else if (p.a > 1) p.a = 1;
             } else {
-              // 흩어짐 — 부여된 속도로 날아가며 페이드
+              // 흩어짐 — 부여된 속도로 멀리 날아가며(중력) 점점 커지고 페이드
               p.x += p.vx;
               p.y += p.vy;
-              p.vy += 0.05;
+              p.vy += 0.14;
+              p.r *= 1.006;
             }
             ctx.fillStyle = `rgba(${p.cr},${p.cg},${p.cb},${p.a * fade})`;
             ctx.fillRect(p.x, p.y, p.r, p.r);
           }
           if (revealed) {
-            disperse += 0.035;
+            disperse += 0.02; // 더 오래 보이게(약 0.8초)
             if (disperse >= 1) {
               canvas.remove();
               return;
@@ -197,14 +217,14 @@ export function BlogSpoilerInk() {
             canvas.remove();
             return;
           }
-          // 각 입자에 중심 바깥 방향 속도 부여(흩어짐)
+          // 각 입자에 중심 바깥 방향으로 강한 속도 부여(확 흩어짐, 살짝 위로)
           for (const p of particles) {
             const dx = p.x - w / 2;
             const dy = p.y - h / 2;
             const d = Math.hypot(dx, dy) || 1;
-            const sp = 2 + Math.random() * 4;
-            p.vx = (dx / d) * sp + (Math.random() - 0.5) * 2;
-            p.vy = (dy / d) * sp - Math.random() * 2.5;
+            const sp = 4 + Math.random() * 9;
+            p.vx = (dx / d) * sp + (Math.random() - 0.5) * 4;
+            p.vy = (dy / d) * sp - Math.random() * 4 - 1.5;
           }
         };
 
