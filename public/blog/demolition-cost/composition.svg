@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="철거 비용을 구성하는 세 가지 — 인건비 장비대 폐기물 처리비 비중 막대">
+  <rect width="800" height="360" fill="#ffffff"/>
+  <text x="40" y="46" font-size="25" font-weight="700" fill="#2b2b2b">철거비는 '평당'이 아니라 이 셋으로 정해진다</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">같은 평수라도 깰 게 많고 폐기물이 무거우면 값이 뛴다</text>
+
+  <!-- stacked bar -->
+  <rect x="40" y="110" width="304" height="64" fill="#C26B4A"/>
+  <rect x="344" y="110" width="152" height="64" fill="#D9926B"/>
+  <rect x="496" y="110" width="264" height="64" fill="#D9B38C"/>
+
+  <text x="192" y="150" font-size="18" font-weight="700" fill="#ffffff" text-anchor="middle">인건비 약 40%</text>
+  <text x="420" y="150" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">장비·운반 약 20%</text>
+  <text x="628" y="150" font-size="18" font-weight="700" fill="#6b5638" text-anchor="middle">폐기물 처리 약 40%</text>
+
+  <!-- captions -->
+  <text x="192" y="206" font-size="14" fill="#777" text-anchor="middle">숙련 인원 × 공수(일수)</text>
+  <text x="420" y="206" font-size="14" fill="#777" text-anchor="middle">뿌레카·사다리차·트럭</text>
+  <text x="628" y="206" font-size="14" fill="#777" text-anchor="middle">건설폐기물 + 생활폐기물</text>
+
+  <line x1="40" y1="244" x2="760" y2="244" stroke="#eeeeee" stroke-width="1.5"/>
+  <text x="40" y="280" font-size="15" fill="#555">• 10평 식당이 30평 빈 사무실보다 비쌀 수 있다 — 깰 게 많고 폐기물이 무거워서.</text>
+  <text x="40" y="308" font-size="15" fill="#555">• 폐기물을 안 섞고 분리하면(믹스폐기물 회피) 처리 단가가 내려간다.</text>
+  <text x="40" y="340" font-size="13" fill="#a0a0a0">※ 비중은 일반적인 아파트 올철거 기준 개념도. 현장 조건에 따라 달라집니다.</text>
+</svg>
