@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 430" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="아파트 배관 교체 공사 5단계 시공 순서">
+  <rect width="800" height="430" fill="#ffffff"/>
+  <text x="40" y="46" font-size="25" font-weight="700" fill="#2b2b2b">배관 교체 공사, 이렇게 진행됩니다</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">단수부터 통수까지 표준 5단계</text>
+
+  <!-- vertical connector -->
+  <line x1="70" y1="120" x2="70" y2="380" stroke="#e2c8bd" stroke-width="3"/>
+
+  <!-- step 1 -->
+  <circle cx="70" cy="125" r="16" fill="#C26B4A"/>
+  <text x="70" y="131" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+  <text x="105" y="120" font-size="18" font-weight="600" fill="#2b2b2b">현장조사 · 단수계획 · 보양</text>
+  <text x="105" y="143" font-size="14" fill="#7a7a7a">관경·작업범위 확인, 입주민 공지, 복도·세대 보양</text>
+
+  <!-- step 2 -->
+  <circle cx="70" cy="187" r="16" fill="#C26B4A"/>
+  <text x="70" y="193" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+  <text x="105" y="182" font-size="18" font-weight="600" fill="#2b2b2b">단수 후 기존 배관 철거</text>
+  <text x="105" y="205" font-size="14" fill="#7a7a7a">메인밸브 차단, 잔류수 배출, 노후 냉·온수관 해체</text>
+
+  <!-- step 3 -->
+  <circle cx="70" cy="249" r="16" fill="#C26B4A"/>
+  <text x="70" y="255" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">3</text>
+  <text x="105" y="244" font-size="18" font-weight="600" fill="#2b2b2b">신규 배관 설치 · 보온재</text>
+  <text x="105" y="267" font-size="14" fill="#7a7a7a">냉·온수관 구분 시공, 온수관 전 구간 보온 마감</text>
+
+  <!-- step 4 -->
+  <circle cx="70" cy="311" r="16" fill="#C26B4A"/>
+  <text x="70" y="317" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">4</text>
+  <text x="105" y="306" font-size="18" font-weight="600" fill="#2b2b2b">수압시험 · 기기 연결</text>
+  <text x="105" y="329" font-size="14" fill="#7a7a7a">규정 압력 가압·유지, 누수 확인 후 수전·변기·세탁기 연결</text>
+
+  <!-- step 5 -->
+  <circle cx="70" cy="373" r="16" fill="#C26B4A"/>
+  <text x="70" y="379" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">5</text>
+  <text x="105" y="368" font-size="18" font-weight="600" fill="#2b2b2b">통수 · 시운전 · 누수 확인</text>
+  <text x="105" y="391" font-size="14" fill="#7a7a7a">급수 개시, 수압·온수 점검, 전 세대 최종 누수 점검</text>
+</svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="평형별 아파트 수도·난방 배관 전면 교체 비용 막대그래프">
+  <rect width="800" height="500" fill="#ffffff"/>
+  <text x="40" y="46" font-size="25" font-weight="700" fill="#2b2b2b">평형별 수도·난방 배관 전면 교체 비용</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">세대 내부 냉·온수+난방 배관 올교체 기준 · 단위: 만원</text>
+
+  <!-- baseline -->
+  <line x1="70" y1="420" x2="760" y2="420" stroke="#dddddd" stroke-width="2"/>
+
+  <!-- 25평 (center 260) range 300~700 : y top=210 bottom=330 h=120 -->
+  <rect x="210" y="210" width="100" height="120" rx="4" fill="#C26B4A"/>
+  <text x="260" y="202" font-size="16" fill="#a8512f" text-anchor="middle">300~700</text>
+  <text x="260" y="448" font-size="16" font-weight="600" fill="#444" text-anchor="middle">25평 / 59타입</text>
+
+  <!-- 34평 (center 540) range 400~900 : y top=150 bottom=300 h=150 -->
+  <rect x="490" y="150" width="100" height="150" rx="4" fill="#C26B4A"/>
+  <text x="540" y="142" font-size="16" fill="#a8512f" text-anchor="middle">400~900</text>
+  <text x="540" y="448" font-size="16" font-weight="600" fill="#444" text-anchor="middle">34평 / 84타입</text>
+
+  <text x="40" y="484" font-size="13" fill="#a0a0a0">※ 누수·굴착 범위, 비파괴/전면철거 공법, 보일러·분배기 동시 교체 여부에 따라 ±. 실제 견적 빅데이터 기준 표준 범위.</text>
+</svg>
