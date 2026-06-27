@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" role="img" aria-label="부위별 필름 시공 비용 범위 막대그래프">
+  <rect width="720" height="360" fill="#faf7f4"/>
+  <text x="24" y="40" font-size="20" font-weight="700" fill="#2b2b2b">부위별 인테리어 필름 시공 비용</text>
+  <text x="24" y="62" font-size="13" fill="#8a8175">단위: 만원 · 자재+인건비 기준, 현장 상태·필름 등급에 따라 변동</text>
+
+  <!-- gridlines 0~120 -->
+  <g stroke="#e7ddd3" stroke-width="1">
+    <line x1="200" y1="80" x2="200" y2="280"/>
+    <line x1="280" y1="80" x2="280" y2="280"/>
+    <line x1="360" y1="80" x2="360" y2="280"/>
+    <line x1="440" y1="80" x2="440" y2="280"/>
+    <line x1="520" y1="80" x2="520" y2="280"/>
+    <line x1="600" y1="80" x2="600" y2="280"/>
+    <line x1="680" y1="80" x2="680" y2="280"/>
+  </g>
+  <g font-size="11" fill="#a89e92" text-anchor="middle">
+    <text x="200" y="298">0</text>
+    <text x="280" y="298">20</text>
+    <text x="360" y="298">40</text>
+    <text x="440" y="298">60</text>
+    <text x="520" y="298">80</text>
+    <text x="600" y="298">100</text>
+    <text x="680" y="298">120</text>
+  </g>
+
+  <!-- row labels -->
+  <g font-size="13" fill="#3a3a3a" text-anchor="end">
+    <text x="188" y="115">방문(문+문틀 1틀)</text>
+    <text x="188" y="155">현관문 1짝</text>
+    <text x="188" y="195">붙박이장 1개</text>
+    <text x="188" y="235">싱크대 전체</text>
+  </g>
+
+  <g>
+    <!-- 방문 15~20 -->
+    <rect x="260" y="102" width="20" height="20" rx="4" fill="#d98b6a"/>
+    <text x="286" y="117" font-size="11" fill="#6b5d52">15~20</text>
+    <!-- 현관문 25~40 -->
+    <rect x="300" y="142" width="60" height="20" rx="4" fill="#cf7a55"/>
+    <text x="366" y="157" font-size="11" fill="#6b5d52">25~40</text>
+    <!-- 붙박이장 50~100 -->
+    <rect x="400" y="182" width="200" height="20" rx="4" fill="#c0653f"/>
+    <text x="606" y="197" font-size="11" fill="#6b5d52">50~100</text>
+    <!-- 싱크대 70~120 -->
+    <rect x="480" y="222" width="200" height="20" rx="4" fill="#a84e2c"/>
+    <text x="672" y="237" font-size="11" fill="#fbeee7" text-anchor="end">70~120</text>
+  </g>
+
+  <text x="24" y="330" font-size="12" fill="#8a8175">※ 문틀·싱크대·현관·붙박이장을 한 번에 하는 34평(84타입) 전체 통일은 약 100만~250만원.</text>
+  <text x="24" y="348" font-size="12" fill="#8a8175">※ 창문 유리에 붙이는 '단열필름'은 별개 공사(전문가 90만~100만 / 셀프 10만원대 중반).</text>
+</svg>
