@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="발코니 확장 공사 7단계 시공 순서">
+  <rect width="800" height="560" fill="#ffffff"/>
+  <text x="40" y="46" font-size="25" font-weight="700" fill="#2b2b2b">발코니 확장, 이 순서로 진행됩니다</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">허가부터 사용승인까지 — 단열이 한가운데 있는 이유</text>
+
+  <!-- vertical connector -->
+  <line x1="70" y1="125" x2="70" y2="497" stroke="#e2c8bd" stroke-width="3"/>
+
+  <!-- step 1 -->
+  <circle cx="70" cy="125" r="16" fill="#C26B4A"/>
+  <text x="70" y="131" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+  <text x="105" y="120" font-size="18" font-weight="600" fill="#2b2b2b">행위허가 · 입주민 동의서 (공사 전 필수)</text>
+  <text x="105" y="143" font-size="14" fill="#7a7a7a">건축사 도면 + 같은 동 동의(보통 50%↑) → 구청 허가 받고 시작</text>
+
+  <!-- step 2 -->
+  <circle cx="70" cy="187" r="16" fill="#C26B4A"/>
+  <text x="70" y="193" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+  <text x="105" y="182" font-size="18" font-weight="600" fill="#2b2b2b">창호 · 내벽 철거 + 구조 보강</text>
+  <text x="105" y="205" font-size="14" fill="#7a7a7a">기존 창과 비내력벽 철거, 우수관·바닥 정리(내력벽은 절대 손대지 않음)</text>
+
+  <!-- step 3 -->
+  <circle cx="70" cy="249" r="16" fill="#a84e2c"/>
+  <text x="70" y="255" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">3</text>
+  <text x="105" y="244" font-size="18" font-weight="600" fill="#a84e2c">★ 5면 단열 시공 (가장 중요)</text>
+  <text x="105" y="267" font-size="14" fill="#7a7a7a">벽 양옆·천장·바닥·창호 하단까지 압출법 단열재 + 우레탄폼 기밀</text>
+
+  <!-- step 4 -->
+  <circle cx="70" cy="311" r="16" fill="#C26B4A"/>
+  <text x="70" y="317" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">4</text>
+  <text x="105" y="306" font-size="18" font-weight="600" fill="#2b2b2b">이중창(로이유리) 설치 + 터닝도어</text>
+  <text x="105" y="329" font-size="14" fill="#7a7a7a">에너지효율 등급 창호로 교체, 거실·발코니 사이 단열문으로 외풍 차단</text>
+
+  <!-- step 5 -->
+  <circle cx="70" cy="373" r="16" fill="#C26B4A"/>
+  <text x="70" y="379" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">5</text>
+  <text x="105" y="368" font-size="18" font-weight="600" fill="#2b2b2b">난방 배관 연장 + 방수 · 미장</text>
+  <text x="105" y="391" font-size="14" fill="#7a7a7a">분배기 별도 라인 또는 촘촘한 배관 — 안 하면 확장부만 찬 바닥</text>
+
+  <!-- step 6 -->
+  <circle cx="70" cy="435" r="16" fill="#C26B4A"/>
+  <text x="70" y="441" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">6</text>
+  <text x="105" y="430" font-size="18" font-weight="600" fill="#2b2b2b">바닥 마감 · 도배 마감</text>
+  <text x="105" y="453" font-size="14" fill="#7a7a7a">거실과 단차·톤 맞춰 강마루·도배, 몰딩 정리</text>
+
+  <!-- step 7 -->
+  <circle cx="70" cy="497" r="16" fill="#C26B4A"/>
+  <text x="70" y="503" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">7</text>
+  <text x="105" y="492" font-size="18" font-weight="600" fill="#2b2b2b">사용승인 (단열재 · 창호 성적서 제출)</text>
+  <text x="105" y="515" font-size="14" fill="#7a7a7a">변경 도면대로 완료 확인 — 안 받으면 건축물대장에 불법 표시</text>
+</svg>
