@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 380" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="바닥재별 평당 시공비 비교 막대그래프">
+  <rect width="820" height="380" fill="#FBF8F4"/>
+  <text x="40" y="44" font-size="22" font-weight="700" fill="#3A2E26">바닥재별 평당 시공비 (철거·인건비 포함, 부가세 별도)</text>
+  <text x="40" y="68" font-size="14" fill="#8A7B6E">실제 견적 데이터 기준 · 단위 만원/평 · 막대는 가격 범위</text>
+
+  <!-- grid -->
+  <g stroke="#E7DFD6" stroke-width="1">
+    <line x1="150" y1="92" x2="150" y2="320"/>
+    <line x1="284" y1="92" x2="284" y2="320"/>
+    <line x1="418" y1="92" x2="418" y2="320"/>
+    <line x1="552" y1="92" x2="552" y2="320"/>
+    <line x1="686" y1="92" x2="686" y2="320"/>
+    <line x1="780" y1="92" x2="780" y2="320"/>
+  </g>
+  <g font-size="12" fill="#A89B8E" text-anchor="middle">
+    <text x="150" y="338">0</text>
+    <text x="284" y="338">10만</text>
+    <text x="418" y="338">20만</text>
+    <text x="552" y="338">30만</text>
+    <text x="686" y="338">40만</text>
+    <text x="780" y="338">50만</text>
+  </g>
+
+  <!-- bars: x = 150 + 만원*13.4 -->
+  <!-- 장판 3~12 -->
+  <text x="138" y="118" font-size="15" font-weight="600" fill="#3A2E26" text-anchor="end">장판</text>
+  <rect x="190" y="104" width="121" height="22" rx="4" fill="#7FB069"/>
+  <text x="319" y="120" font-size="13" fill="#5A7A48">3~12만</text>
+  <!-- 강화마루 7~9 -->
+  <text x="138" y="160" font-size="15" font-weight="600" fill="#3A2E26" text-anchor="end">강화마루</text>
+  <rect x="244" y="146" width="26" height="22" rx="4" fill="#E0A458"/>
+  <text x="278" y="162" font-size="13" fill="#A9772E">7~9만</text>
+  <!-- 강마루 9~25 -->
+  <text x="138" y="202" font-size="15" font-weight="600" fill="#3A2E26" text-anchor="end">강마루</text>
+  <rect x="270" y="188" width="214" height="22" rx="4" fill="#C0683F"/>
+  <text x="492" y="204" font-size="13" fill="#9A4E2C">9~25만</text>
+  <!-- 원목마루 25~40 -->
+  <text x="138" y="244" font-size="15" font-weight="600" fill="#3A2E26" text-anchor="end">원목마루</text>
+  <rect x="485" y="230" width="201" height="22" rx="4" fill="#9C6B4A"/>
+  <text x="694" y="246" font-size="13" fill="#7A5236">25~40만</text>
+  <!-- 포세린 20~50 -->
+  <text x="138" y="286" font-size="15" font-weight="600" fill="#3A2E26" text-anchor="end">포세린 타일</text>
+  <rect x="418" y="272" width="362" height="22" rx="4" fill="#5C6B73"/>
+  <text x="612" y="287" font-size="13" font-weight="700" fill="#FFFFFF" text-anchor="middle">20~50만</text>
+</svg>
