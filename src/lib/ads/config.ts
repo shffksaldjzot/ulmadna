@@ -27,6 +27,12 @@ export const AD_SLOT_SIZES: Record<AdSlotId, AdSlotSize> = {
 // 사용자 결정: 4. 향후 관리자 설정값으로 빼야 함 (현재는 in-memory 상수).
 export const AD_P_MAX_PER_PAGE = 4;
 
+// ── 광고 전역 ON/OFF 스위치 (2026년 06월 29일 추가) ───────────────
+//  - false면 모든 슬롯이 collapse(=화면에서 완전히 사라짐, 공간 0).
+//  - 사용자 요청: 광고주·애드센스 0인 상태라 빈 House Ad가 화면만 차지 → 전부 끔.
+//  - 나중에 실제 광고/애드센스 생기면 이 값만 true로 바꾸면 시스템 그대로 부활.
+export const ADS_ENABLED = false;
+
 // "광고" 라벨 표기 대상 (v2 명세 §5.5: 매칭 오인 방지)
 //  - banner/adsense 노출 시 라벨 표시
 //  - house ad는 자사 콘텐츠라 라벨 X
@@ -47,6 +53,11 @@ export function resolveAdContent(
   key: AdSlotKey,
   context: AdResolveContext = {},
 ): ResolvedAdContent {
+  // 광고 전역 OFF — 모든 슬롯 접힘(공간 0). 광고 부활 시 ADS_ENABLED=true 한 줄만 변경.
+  if (!ADS_ENABLED) {
+    return { kind: 'collapse' };
+  }
+
   // AD-P 노출 캡 — 애드센스든 아니든 캡 넘으면 접힘 (§6.3)
   if (
     key.id === 'AD-P' &&

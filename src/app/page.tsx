@@ -7,6 +7,7 @@ import { useCalculator } from '@/hooks/useCalculator';
 import InputPanel from '@/components/calculator/InputPanel';
 import ResultPanel from '@/components/calculator/ResultPanel';
 import AdSlot from '@/components/ads/AdSlot';
+import InteriorResourceLinks from '@/components/common/InteriorResourceLinks';
 
 export default function Home() {
   const { data: session } = useSession();
@@ -206,6 +207,10 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* ───── 인테리어 공사 자료실 (광고 자리 대체 — 2026년 06월 29일) ─────
+          표준계약서·키스콘·건축물대장·하자분쟁·소비자원 등 공식 사이트 바로가기 */}
+      <InteriorResourceLinks />
 
       {/* AD-F: 신뢰 섹션 ↔ 푸터 사이 (v2 명세 §4). 광고주 0명 — 현재 collapse */}
       <AdSlot id="AD-F" />
