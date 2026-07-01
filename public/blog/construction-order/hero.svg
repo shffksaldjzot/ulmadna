@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="인테리어 시공 순서 총정리">
+  <!-- 배경: 도토리 다크 브라운 -->
+  <rect width="1200" height="630" fill="#5C3A1E"/>
+  <!-- 크림색 대각선 질감 -->
+  <g opacity="0.05" stroke="#F5F0EB" stroke-width="2">
+    <line x1="0" y1="120" x2="1200" y2="120"/>
+    <line x1="0" y1="240" x2="1200" y2="240"/>
+    <line x1="0" y1="360" x2="1200" y2="360"/>
+    <line x1="0" y1="480" x2="1200" y2="480"/>
+  </g>
+  <!-- 상단 카테고리 뱃지 -->
+  <rect x="80" y="90" width="200" height="46" rx="23" fill="#C9A96E"/>
+  <text x="180" y="122" font-family="'Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="24" font-weight="700" fill="#5C3A1E" text-anchor="middle">인테리어 가이드</text>
+  <!-- 메인 타이틀 -->
+  <text x="80" y="270" font-family="'Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="76" font-weight="800" fill="#F5F0EB">인테리어 시공 순서</text>
+  <text x="80" y="360" font-family="'Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="76" font-weight="800" fill="#C9A96E">철거부터 준공까지</text>
+  <!-- 서브 카피 -->
+  <text x="80" y="430" font-family="'Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="30" font-weight="500" fill="#F5F0EB" opacity="0.85">공정이 겹치면 안 되는 이유 · 34평/84타입 기준</text>
+  <!-- 공정 순서 점 표시 -->
+  <g>
+    <circle cx="96" cy="520" r="10" fill="#C9A96E"/>
+    <line x1="106" y1="520" x2="196" y2="520" stroke="#C9A96E" stroke-width="3" opacity="0.6"/>
+    <circle cx="206" cy="520" r="10" fill="#C9A96E" opacity="0.8"/>
+    <line x1="216" y1="520" x2="306" y2="520" stroke="#C9A96E" stroke-width="3" opacity="0.5"/>
+    <circle cx="316" cy="520" r="10" fill="#C9A96E" opacity="0.6"/>
+    <line x1="326" y1="520" x2="416" y2="520" stroke="#C9A96E" stroke-width="3" opacity="0.4"/>
+    <circle cx="426" cy="520" r="10" fill="#C9A96E" opacity="0.4"/>
+  </g>
+  <!-- 브랜드 -->
+  <text x="1120" y="580" font-family="'Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="28" font-weight="700" fill="#F5F0EB" text-anchor="end" opacity="0.7">얼마드나</text>
+</svg>

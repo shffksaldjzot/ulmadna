@@ -244,6 +244,8 @@ export default function Home() {
               </div>
               <div>
                 <p className="text-cream/40 mb-2 font-medium">지원</p>
+                <p><a href="/about" className="hover:text-cream transition-colors">얼마드나 소개</a></p>
+                <p><a href="/contact" className="hover:text-cream transition-colors">문의하기</a></p>
                 <p><a href="/terms" className="hover:text-cream transition-colors">이용약관</a></p>
                 <p><a href="/privacy" className="hover:text-cream transition-colors">개인정보처리방침</a></p>
               </div>

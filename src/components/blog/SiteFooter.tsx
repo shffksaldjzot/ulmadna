@@ -12,6 +12,9 @@ export function SiteFooter() {
         <nav className="site-foot-nav">
           <Link href="/">견적 계산기</Link>
           <Link href="/blog">블로그</Link>
+          <Link href="/about">소개</Link>
+          <Link href="/contact">문의</Link>
+          <Link href="/privacy">개인정보처리방침</Link>
         </nav>
         <p className="site-foot-note">
           얼마드나는 실제 견적 데이터 기반의 참고용 예상 견적이에요. 실제 계약가는 현장·자재에 따라
