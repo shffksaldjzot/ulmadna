@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="간접조명 시공 유형별 비용 막대그래프">
+  <rect width="800" height="520" fill="#ffffff"/>
+  <text x="40" y="46" font-size="25" font-weight="700" fill="#2b2b2b">간접조명 시공, 어디까지 하느냐로 갈린다</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">30평대 아파트 기준 · 목공+전기배선+조명 포함 · 단위: 만원</text>
+
+  <!-- baseline -->
+  <line x1="70" y1="430" x2="760" y2="430" stroke="#dddddd" stroke-width="2"/>
+
+  <!-- 라인등만 (center 190) 120~180 : top=295 h=45 -->
+  <rect x="145" y="295" width="90" height="45" rx="4" fill="#E0A98C"/>
+  <text x="190" y="287" font-size="16" fill="#a8512f" text-anchor="middle">120~180</text>
+  <text x="190" y="458" font-size="15" font-weight="600" fill="#444" text-anchor="middle">라인등(천장 매입)만</text>
+
+  <!-- 주요공간 전체 (center 400) 180~300 : top=205 h=90 -->
+  <rect x="355" y="205" width="90" height="90" rx="4" fill="#C26B4A"/>
+  <text x="400" y="197" font-size="16" fill="#a8512f" text-anchor="middle">180~300</text>
+  <text x="400" y="458" font-size="15" font-weight="600" fill="#444" text-anchor="middle">거실+방 주요공간 전체</text>
+
+  <!-- 고급 (center 610) 300~400 : top=130 h=75 -->
+  <rect x="565" y="130" width="90" height="75" rx="4" fill="#A8512F"/>
+  <text x="610" y="122" font-size="16" fill="#a8512f" text-anchor="middle">300~400</text>
+  <text x="610" y="458" font-size="15" font-weight="600" fill="#444" text-anchor="middle">고급 프로파일·조명제어</text>
+
+  <text x="40" y="492" font-size="13" fill="#a0a0a0">※ 방1·복도 부분만은 50만원 전후, 커튼박스 셀프 시공은 2~3만원부터. 우물천장·스마트 제어 추가 시 400만원 초과.</text>
+</svg>
