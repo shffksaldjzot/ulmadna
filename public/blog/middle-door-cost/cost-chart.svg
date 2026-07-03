@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 500" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="중문 종류별 설치 비용 범위 막대그래프 — 3연동, 원슬라이딩, 스윙폴딩, 여닫이, 자동 중문">
+  <rect width="860" height="500" fill="#ffffff"/>
+  <text x="40" y="46" font-size="25" font-weight="700" fill="#2b2b2b">중문 종류별 설치 비용 (제품+시공)</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">표준 현관(폭 1200~1500mm) · 실측·설치 포함 · 단위: 만원</text>
+
+  <!-- baseline -->
+  <line x1="40" y1="420" x2="830" y2="420" stroke="#dddddd" stroke-width="2"/>
+
+  <!-- 3연동 일반 55~90 -->
+  <rect x="65" y="330" width="80" height="35" rx="4" fill="#C26B4A"/>
+  <text x="105" y="322" font-size="16" fill="#a8512f" text-anchor="middle">55~90</text>
+  <text x="105" y="448" font-size="15" font-weight="600" fill="#444" text-anchor="middle">3연동 일반</text>
+
+  <!-- 원슬라이딩 55~120 -->
+  <rect x="195" y="300" width="80" height="65" rx="4" fill="#C26B4A"/>
+  <text x="235" y="292" font-size="16" fill="#a8512f" text-anchor="middle">55~120</text>
+  <text x="235" y="448" font-size="15" font-weight="600" fill="#444" text-anchor="middle">원슬라이딩</text>
+
+  <!-- 3연동 브랜드 100~150 -->
+  <rect x="325" y="270" width="80" height="50" rx="4" fill="#C26B4A"/>
+  <text x="365" y="262" font-size="16" fill="#a8512f" text-anchor="middle">100~150</text>
+  <text x="365" y="448" font-size="15" font-weight="600" fill="#444" text-anchor="middle">3연동 브랜드</text>
+
+  <!-- 스윙·폴딩 90~160 -->
+  <rect x="455" y="260" width="80" height="70" rx="4" fill="#C26B4A"/>
+  <text x="495" y="252" font-size="16" fill="#a8512f" text-anchor="middle">90~160</text>
+  <text x="495" y="448" font-size="15" font-weight="600" fill="#444" text-anchor="middle">스윙·폴딩</text>
+
+  <!-- 여닫이·양개 80~180 -->
+  <rect x="585" y="240" width="80" height="100" rx="4" fill="#C26B4A"/>
+  <text x="625" y="232" font-size="16" fill="#a8512f" text-anchor="middle">80~180</text>
+  <text x="625" y="448" font-size="15" font-weight="600" fill="#444" text-anchor="middle">여닫이·양개</text>
+
+  <!-- 자동 중문 150~300 -->
+  <rect x="715" y="120" width="80" height="150" rx="4" fill="#C26B4A"/>
+  <text x="755" y="112" font-size="16" fill="#a8512f" text-anchor="middle">150~300</text>
+  <text x="755" y="448" font-size="15" font-weight="600" fill="#444" text-anchor="middle">자동 중문</text>
+
+  <text x="40" y="484" font-size="13" fill="#a0a0a0">※ 온라인 직판은 50만원대부터, 대기업 브랜드는 +30만~50만원. 가벽·신발장 리폼 등 현장 변수 별도. 실제 견적 빅데이터 기준.</text>
+</svg>
