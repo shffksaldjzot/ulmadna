@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 500" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="인테리어 전기 공사 비용 항목별 가격 범위 막대그래프 — 콘센트 증설, 인덕션 직결, 인덕션 전용선, 24평 전체, 34평 전체">
+  <rect width="860" height="500" fill="#ffffff"/>
+  <text x="40" y="46" font-size="25" font-weight="700" fill="#2b2b2b">인테리어 전기 공사 비용 — 항목별 가격 범위</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">매립 배선 기준 · 현장 난이도에 따라 변동 · 단위: 만원</text>
+
+  <!-- baseline -->
+  <line x1="40" y1="420" x2="830" y2="420" stroke="#dddddd" stroke-width="2"/>
+
+  <!-- 콘센트 증설 5~15 -->
+  <rect x="90" y="397" width="80" height="15" rx="4" fill="#C26B4A"/>
+  <text x="130" y="389" font-size="16" fill="#a8512f" text-anchor="middle">5~15</text>
+  <text x="130" y="448" font-size="15" font-weight="600" fill="#444" text-anchor="middle">콘센트 증설</text>
+  <text x="130" y="468" font-size="12" fill="#999" text-anchor="middle">1개소당</text>
+
+  <!-- 인덕션 직결 10~25 -->
+  <rect x="235" y="382" width="80" height="23" rx="4" fill="#C26B4A"/>
+  <text x="275" y="374" font-size="16" fill="#a8512f" text-anchor="middle">10~25</text>
+  <text x="275" y="448" font-size="15" font-weight="600" fill="#444" text-anchor="middle">인덕션 직결</text>
+  <text x="275" y="468" font-size="12" fill="#999" text-anchor="middle">거주 중 설치</text>
+
+  <!-- 인덕션 전용선 25~45 -->
+  <rect x="380" y="352" width="80" height="30" rx="4" fill="#C26B4A"/>
+  <text x="420" y="344" font-size="16" fill="#a8512f" text-anchor="middle">25~45</text>
+  <text x="420" y="448" font-size="15" font-weight="600" fill="#444" text-anchor="middle">인덕션 전용선</text>
+  <text x="420" y="468" font-size="12" fill="#999" text-anchor="middle">분전반→주방 신설</text>
+
+  <!-- 24평 전체 50~150 -->
+  <rect x="525" y="195" width="80" height="150" rx="4" fill="#C26B4A"/>
+  <text x="565" y="187" font-size="16" fill="#a8512f" text-anchor="middle">50~150</text>
+  <text x="565" y="448" font-size="15" font-weight="600" fill="#444" text-anchor="middle">24평 전체</text>
+  <text x="565" y="468" font-size="12" fill="#999" text-anchor="middle">리모델링 전기 일체</text>
+
+  <!-- 34평 전체 70~200 -->
+  <rect x="670" y="120" width="80" height="195" rx="4" fill="#C26B4A"/>
+  <text x="710" y="112" font-size="16" fill="#a8512f" text-anchor="middle">70~200</text>
+  <text x="710" y="448" font-size="15" font-weight="600" fill="#444" text-anchor="middle">34평/84타입 전체</text>
+  <text x="710" y="468" font-size="12" fill="#999" text-anchor="middle">노후 배선 교체 시 상단</text>
+
+  <text x="40" y="492" font-size="13" fill="#a0a0a0">※ '전체'는 조명 배선+콘센트 증설·이동+전용선+분전반까지 포함한 범위. 노후 배선 전면 교체·천장 목공 동반 시 상단 구간. 실제 견적 빅데이터 기준.</text>
+</svg>
