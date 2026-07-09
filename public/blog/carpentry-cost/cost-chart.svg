@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 500" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="인테리어 목공 비용 항목별 범위 막대그래프 — 몰딩 걸레받이, 문선 문틀, 가벽, 천장 평탄화, 우물천장 간접조명, 무몰딩">
+  <rect width="860" height="500" fill="#ffffff"/>
+  <text x="40" y="46" font-size="25" font-weight="700" fill="#2b2b2b">인테리어 목공 비용 — 항목별 범위</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">34평(84타입) 아파트 기준 · 목수 인건비 + 자재비 · 단위: 만원</text>
+
+  <line x1="40" y1="420" x2="830" y2="420" stroke="#dddddd" stroke-width="2"/>
+
+  <!-- 몰딩·걸레받이 80~150 -->
+  <rect x="75" y="323" width="80" height="45" rx="4" fill="#C26B4A"/>
+  <text x="115" y="315" font-size="16" fill="#a8512f" text-anchor="middle">80~150</text>
+  <text x="115" y="448" font-size="15" font-weight="600" fill="#444" text-anchor="middle">몰딩·걸레받이</text>
+
+  <!-- 문선·문틀 60~120 -->
+  <rect x="200" y="343" width="80" height="39" rx="4" fill="#C26B4A"/>
+  <text x="240" y="335" font-size="16" fill="#a8512f" text-anchor="middle">60~120</text>
+  <text x="240" y="448" font-size="15" font-weight="600" fill="#444" text-anchor="middle">문선·문틀</text>
+
+  <!-- 가벽 1개소 40~90 -->
+  <rect x="325" y="362" width="80" height="32" rx="4" fill="#C26B4A"/>
+  <text x="365" y="354" font-size="16" fill="#a8512f" text-anchor="middle">40~90</text>
+  <text x="365" y="448" font-size="15" font-weight="600" fill="#444" text-anchor="middle">가벽 1개소</text>
+
+  <!-- 천장 평탄화 100~200 -->
+  <rect x="450" y="291" width="80" height="64" rx="4" fill="#C26B4A"/>
+  <text x="490" y="283" font-size="16" fill="#a8512f" text-anchor="middle">100~200</text>
+  <text x="490" y="448" font-size="15" font-weight="600" fill="#444" text-anchor="middle">천장 평탄화</text>
+
+  <!-- 우물천장+간접조명 150~300 -->
+  <rect x="575" y="227" width="80" height="97" rx="4" fill="#C26B4A"/>
+  <text x="615" y="219" font-size="16" fill="#a8512f" text-anchor="middle">150~300</text>
+  <text x="615" y="448" font-size="15" font-weight="600" fill="#444" text-anchor="middle">우물천장+조명</text>
+
+  <!-- 무몰딩 전체 250~450 -->
+  <rect x="700" y="130" width="80" height="129" rx="4" fill="#A8512F"/>
+  <text x="740" y="122" font-size="16" font-weight="700" fill="#a8512f" text-anchor="middle">250~450</text>
+  <text x="740" y="448" font-size="15" font-weight="600" fill="#444" text-anchor="middle">무몰딩 전체</text>
+
+  <text x="40" y="480" font-size="13" fill="#9a9a9a">막대 = 실제 견적 데이터에서 관측되는 하한~상한. 현장 상태·수량·마감 등급에 따라 움직입니다.</text>
+</svg>
