@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 480" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="인테리어 후회 1위 단열 생략 — 공사 때 아낀 400만원과 3년 안에 다시 낸 430만원 비교 막대그래프">
+  <rect width="860" height="480" fill="#ffffff"/>
+  <text x="40" y="46" font-size="25" font-weight="700" fill="#2b2b2b">확장 단열 400만원 아끼면 — 3년 뒤 계산서</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">30평대 거실 확장 기준 · 단위: 만원</text>
+
+  <line x1="40" y1="400" x2="820" y2="400" stroke="#dddddd" stroke-width="2"/>
+
+  <!-- 공사 때 아낀 돈 400 -->
+  <rect x="185" y="160" width="150" height="240" rx="4" fill="#b9b0a9"/>
+  <text x="260" y="148" font-size="18" font-weight="700" fill="#7d746d" text-anchor="middle">400</text>
+  <text x="260" y="430" font-size="16" font-weight="600" fill="#444" text-anchor="middle">공사 때 아낀 돈</text>
+  <text x="260" y="452" font-size="13" fill="#9a9a9a" text-anchor="middle">단열재·기밀 시공 생략</text>
+
+  <!-- 3년 안에 다시 낸 돈: 재시공 250 + 냉난방 손실 180 -->
+  <rect x="530" y="250" width="150" height="150" rx="4" fill="#C26B4A"/>
+  <text x="605" y="332" font-size="15" font-weight="600" fill="#ffffff" text-anchor="middle">결로 재시공 250</text>
+  <rect x="530" y="142" width="150" height="104" rx="4" fill="#A8512F"/>
+  <text x="605" y="200" font-size="15" font-weight="600" fill="#ffffff" text-anchor="middle">냉난방 손실 180</text>
+  <text x="605" y="130" font-size="18" font-weight="700" fill="#a8512f" text-anchor="middle">430+</text>
+  <text x="605" y="430" font-size="16" font-weight="600" fill="#444" text-anchor="middle">3년 안에 다시 낸 돈</text>
+  <text x="605" y="452" font-size="13" fill="#9a9a9a" text-anchor="middle">벽지 철거·재시공 + 연 60만원 × 3년</text>
+</svg>
