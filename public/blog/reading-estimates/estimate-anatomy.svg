@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" font-family="'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif">
+  <rect width="800" height="520" fill="#FAF7F4"/>
+  <text x="400" y="44" text-anchor="middle" font-size="22" font-weight="700" fill="#3D3A37">같은 주방 공사, 다른 견적서 — 한 줄이 이렇게 갈립니다</text>
+
+  <!-- Bad estimate card -->
+  <rect x="40" y="76" width="340" height="300" rx="12" fill="#FFFFFF" stroke="#E5B8AC" stroke-width="1.5"/>
+  <rect x="40" y="76" width="340" height="48" rx="12" fill="#F6E3DC"/>
+  <rect x="40" y="100" width="340" height="24" fill="#F6E3DC"/>
+  <text x="210" y="107" text-anchor="middle" font-size="17" font-weight="700" fill="#B0492F">❌ 뭉뚱그린 견적서</text>
+
+  <rect x="64" y="150" width="292" height="56" rx="8" fill="#FBF3F0"/>
+  <text x="80" y="184" font-size="15" font-weight="600" fill="#5A5551">주방 공사 일체 ……… 8,500,000원</text>
+
+  <text x="64" y="242" font-size="13.5" fill="#8A837D">· 상판이 인조대리석인지 세라믹인지 모름</text>
+  <text x="64" y="268" font-size="13.5" fill="#8A837D">· 타일 면적이 몇 ㎡인지 모름</text>
+  <text x="64" y="294" font-size="13.5" fill="#8A837D">· 수전·싱크볼이 어떤 제품인지 모름</text>
+  <text x="64" y="332" font-size="14" font-weight="700" fill="#B0492F">→ 추가금·자재 바꿔치기의 여지</text>
+
+  <!-- Good estimate card -->
+  <rect x="420" y="76" width="340" height="300" rx="12" fill="#FFFFFF" stroke="#B9CDB4" stroke-width="1.5"/>
+  <rect x="420" y="76" width="340" height="48" rx="12" fill="#E3EDE0"/>
+  <rect x="420" y="100" width="340" height="24" fill="#E3EDE0"/>
+  <text x="590" y="107" text-anchor="middle" font-size="17" font-weight="700" fill="#3F6B39">✅ 쪼개진 견적서</text>
+
+  <text x="444" y="152" font-size="12.5" font-weight="700" fill="#8A837D">품목 · 규격 · 수량 · 금액</text>
+  <line x1="444" y1="162" x2="736" y2="162" stroke="#DDD6CF" stroke-width="1"/>
+  <text x="444" y="188" font-size="13.5" fill="#5A5551">싱크대 상·하부장 / PET도어 / 6m / 320만</text>
+  <text x="444" y="216" font-size="13.5" fill="#5A5551">상판 / 세라믹 12T / 6m / 160만</text>
+  <text x="444" y="244" font-size="13.5" fill="#5A5551">벽타일 / 600×600 포세린 / 12㎡ / 96만</text>
+  <text x="444" y="272" font-size="13.5" fill="#5A5551">수전·싱크볼 / 브랜드·모델명 / 각 1개 / 45만</text>
+  <text x="444" y="300" font-size="13.5" fill="#5A5551">철거·폐기물 / 기존 주방 / 1회 / 60만</text>
+  <line x1="444" y1="316" x2="736" y2="316" stroke="#DDD6CF" stroke-width="1"/>
+  <text x="444" y="344" font-size="14" font-weight="700" fill="#3F6B39">→ 항목이 보이면 따질 근거가 생깁니다</text>
+
+  <!-- Bottom note -->
+  <rect x="40" y="404" width="720" height="80" rx="12" fill="#F1EAE3"/>
+  <text x="400" y="438" text-anchor="middle" font-size="15" font-weight="700" fill="#3D3A37">같은 32평 주방도 자재에 따라 600만~1,200만원까지 벌어집니다</text>
+  <text x="400" y="464" text-anchor="middle" font-size="13.5" fill="#8A837D">'품목·규격·수량·금액'이 한 줄씩 보여야 비교가 가능한 견적서예요</text>
+</svg>
