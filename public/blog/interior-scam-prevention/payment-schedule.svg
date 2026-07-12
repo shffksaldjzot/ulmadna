@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" font-family="'Pretendard','Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <style>
+    text { word-break: keep-all; }
+    .title { font-size: 20px; font-weight: 700; fill: #1f2937; }
+    .sub { font-size: 13px; fill: #6b7280; }
+    .label { font-size: 14px; font-weight: 700; fill: #374151; }
+    .seg { font-size: 12px; font-weight: 600; fill: #ffffff; }
+    .segd { font-size: 12px; fill: #4b5563; }
+    .note { font-size: 12.5px; fill: #6b7280; }
+    .warn { font-size: 13px; font-weight: 700; fill: #c2410c; }
+    .safe { font-size: 13px; font-weight: 700; fill: #047857; }
+  </style>
+
+  <rect width="800" height="470" fill="#ffffff"/>
+  <text x="40" y="44" class="title">인테리어 대금, 이 순서로 주면 호구 안 됩니다</text>
+  <text x="40" y="68" class="sub">총공사비 100% 기준 — 안전한 지급 구조 vs 사고 나는 지급 구조</text>
+
+  <!-- 안전한 구조 -->
+  <text x="40" y="112" class="safe">✓ 안전한 구조 — 공정이 끝난 만큼만 지급</text>
+  <g>
+    <rect x="40" y="126" width="108" height="46" rx="6" fill="#047857"/>
+    <rect x="152" y="126" width="180" height="46" rx="6" fill="#0d9488"/>
+    <rect x="336" y="126" width="180" height="46" rx="6" fill="#14b8a6"/>
+    <rect x="520" y="126" width="132" height="46" rx="6" fill="#5eead4"/>
+    <rect x="656" y="126" width="104" height="46" rx="6" fill="#065f46"/>
+    <text x="94" y="146" text-anchor="middle" class="seg">계약금</text>
+    <text x="94" y="162" text-anchor="middle" class="seg">10~20%</text>
+    <text x="242" y="146" text-anchor="middle" class="seg">중도금 1차</text>
+    <text x="242" y="162" text-anchor="middle" class="seg">철거·설비 후</text>
+    <text x="426" y="146" text-anchor="middle" class="seg">중도금 2차</text>
+    <text x="426" y="162" text-anchor="middle" class="seg">목공·타일 후</text>
+    <text x="586" y="146" text-anchor="middle" font-size="12" font-weight="600" fill="#134e4a">중도금 3차</text>
+    <text x="586" y="162" text-anchor="middle" font-size="12" font-weight="600" fill="#134e4a">마감 공정 후</text>
+    <text x="708" y="146" text-anchor="middle" class="seg">잔금</text>
+    <text x="708" y="162" text-anchor="middle" class="seg">10~20%</text>
+  </g>
+  <text x="656" y="196" class="note">└ 잔금은 반드시 하자 검수를 마친 뒤 지급</text>
+
+  <!-- 위험한 구조 -->
+  <text x="40" y="252" class="warn">✕ 사고 나는 구조 — 공사 시작 전에 돈이 다 넘어감</text>
+  <g>
+    <rect x="40" y="266" width="296" height="46" rx="6" fill="#dc2626"/>
+    <rect x="340" y="266" width="256" height="46" rx="6" fill="#f97316"/>
+    <rect x="600" y="266" width="160" height="46" rx="6" fill="#e5e7eb"/>
+    <text x="188" y="286" text-anchor="middle" class="seg">계약 직후 30~50%</text>
+    <text x="188" y="302" text-anchor="middle" class="seg">"자재 발주 때문에…"</text>
+    <text x="468" y="286" text-anchor="middle" class="seg">철거 전 30~40%</text>
+    <text x="468" y="302" text-anchor="middle" class="seg">"인건비를 먼저…"</text>
+    <text x="680" y="286" text-anchor="middle" class="segd">남은 공정 전부</text>
+    <text x="680" y="302" text-anchor="middle" class="segd">지연·잠적 위험</text>
+  </g>
+  <!-- brace -->
+  <path d="M 42 322 L 42 330 L 594 330 L 594 322" fill="none" stroke="#dc2626" stroke-width="1.6"/>
+  <text x="318" y="352" text-anchor="middle" class="warn">공사 시작 전 70~80% 요구 = 잠적·방치 피해의 공통 패턴</text>
+
+  <!-- 하단 규칙 박스 -->
+  <rect x="40" y="376" width="720" height="62" rx="10" fill="#f0fdf4" stroke="#bbf7d0"/>
+  <text x="60" y="401" font-size="13.5" font-weight="700" fill="#166534">기억할 것 한 줄 — 계약금 10~30% 이내 · 중도금은 공정 끝난 만큼 · 잔금은 검수 후</text>
+  <text x="60" y="422" font-size="12.5" fill="#4b5563">공사 시작 전 50% 이상을 요구하면 그 자체가 경고 신호입니다. (실제 견적 빅데이터 1,000건+ 기준)</text>
+</svg>
