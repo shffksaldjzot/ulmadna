@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 520" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="34평 인테리어 비용 5천만원 기준 예산 계단 — 턴키 하한선 4,200만원, 현실형 올수리 5,000만원, 샷시 추가 6,000만원, 시스템에어컨·확장까지 7,500만원">
+  <rect width="860" height="520" fill="#ffffff"/>
+  <text x="40" y="46" font-size="25" font-weight="700" fill="#2b2b2b">5,000만원에서 무엇을 더하면 얼마가 오르나</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">34평(84타입) 턴키 기준 · 단위: 만원</text>
+
+  <line x1="40" y1="430" x2="830" y2="430" stroke="#dddddd" stroke-width="2"/>
+
+  <!-- 4,200 턴키 하한선 -->
+  <rect x="85" y="262" width="120" height="168" rx="4" fill="#E5D3C9"/>
+  <text x="145" y="252" font-size="16" font-weight="600" fill="#9a7f70" text-anchor="middle">4,200</text>
+  <text x="145" y="458" font-size="15" font-weight="700" fill="#444" text-anchor="middle">턴키 하한선</text>
+  <text x="145" y="478" font-size="12" fill="#999" text-anchor="middle">마감재 위주 최소 수리</text>
+  <text x="145" y="496" font-size="12" fill="#999" text-anchor="middle">+ 업체 관리비</text>
+
+  <!-- 5,000 현실형 올수리 -->
+  <rect x="285" y="230" width="120" height="200" rx="4" fill="#C26B4A"/>
+  <text x="345" y="220" font-size="18" font-weight="700" fill="#a8512f" text-anchor="middle">5,000</text>
+  <text x="345" y="458" font-size="15" font-weight="700" fill="#444" text-anchor="middle">현실형 올수리</text>
+  <text x="345" y="478" font-size="12" fill="#999" text-anchor="middle">주방·욕실2·바닥·도배</text>
+  <text x="345" y="496" font-size="12" fill="#999" text-anchor="middle">필름·조명·중문</text>
+
+  <!-- 6,000 +샷시 -->
+  <rect x="485" y="190" width="120" height="240" rx="4" fill="#D08D6E"/>
+  <text x="545" y="180" font-size="16" font-weight="600" fill="#a8512f" text-anchor="middle">6,000</text>
+  <text x="545" y="458" font-size="15" font-weight="700" fill="#444" text-anchor="middle">+ 샷시 전체</text>
+  <text x="545" y="478" font-size="12" fill="#999" text-anchor="middle">창호 교체 1,000만+</text>
+  <text x="545" y="496" font-size="12" fill="#999" text-anchor="middle">단열·소음의 핵심</text>
+
+  <!-- 7,500 +시스템에어컨·확장 -->
+  <rect x="685" y="130" width="120" height="300" rx="4" fill="#8C4B33"/>
+  <text x="745" y="120" font-size="16" font-weight="600" fill="#8C4B33" text-anchor="middle">7,500+</text>
+  <text x="745" y="458" font-size="15" font-weight="700" fill="#444" text-anchor="middle">+ 에어컨 · 확장</text>
+  <text x="745" y="478" font-size="12" fill="#999" text-anchor="middle">시스템에어컨 1,200만+</text>
+  <text x="745" y="496" font-size="12" fill="#999" text-anchor="middle">확장 500만+ / 목공↑</text>
+
+  <text x="40" y="516" font-size="13" fill="#a0a0a0" opacity="0">.</text>
+</svg>

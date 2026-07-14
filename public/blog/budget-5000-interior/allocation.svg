@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 560" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="34평 인테리어 비용 5천만원 공정별 배분표 — 주방 900만원, 욕실 2칸 1,300만원, 도배·바닥 700만원, 필름·목공 500만원, 전기·조명 350만원, 철거·폐기물 250만원, 중문·붙박이장 250만원, 설비·방수 150만원, 관리비·부가세 600만원">
+  <rect width="860" height="560" fill="#ffffff"/>
+  <text x="40" y="46" font-size="25" font-weight="700" fill="#2b2b2b">34평(84타입) 인테리어 5,000만원 — 어디에 얼마 쓰이나</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">샷시·시스템에어컨·확장 제외 턴키 올수리 기준 · 단위: 만원</text>
+
+  <!-- 주방 900 -->
+  <text x="40" y="121" font-size="15" font-weight="600" fill="#444">주방</text>
+  <rect x="185" y="105" width="378" height="24" rx="3" fill="#C26B4A"/>
+  <text x="575" y="123" font-size="15" font-weight="600" fill="#a8512f">900</text>
+
+  <!-- 욕실 2칸 1300 -->
+  <text x="40" y="161" font-size="15" font-weight="600" fill="#444">욕실 2칸</text>
+  <rect x="185" y="145" width="546" height="24" rx="3" fill="#C26B4A"/>
+  <text x="743" y="163" font-size="15" font-weight="600" fill="#a8512f">1,300</text>
+
+  <!-- 도배·바닥 700 -->
+  <text x="40" y="201" font-size="15" font-weight="600" fill="#444">도배 · 바닥</text>
+  <rect x="185" y="185" width="294" height="24" rx="3" fill="#C26B4A"/>
+  <text x="491" y="203" font-size="15" font-weight="600" fill="#a8512f">700</text>
+
+  <!-- 필름·목공 500 -->
+  <text x="40" y="241" font-size="15" font-weight="600" fill="#444">필름 · 목공</text>
+  <rect x="185" y="225" width="210" height="24" rx="3" fill="#C26B4A"/>
+  <text x="407" y="243" font-size="15" font-weight="600" fill="#a8512f">500</text>
+
+  <!-- 전기·조명 350 -->
+  <text x="40" y="281" font-size="15" font-weight="600" fill="#444">전기 · 조명</text>
+  <rect x="185" y="265" width="147" height="24" rx="3" fill="#C26B4A"/>
+  <text x="344" y="283" font-size="15" font-weight="600" fill="#a8512f">350</text>
+
+  <!-- 철거·폐기물 250 -->
+  <text x="40" y="321" font-size="15" font-weight="600" fill="#444">철거 · 폐기물</text>
+  <rect x="185" y="305" width="105" height="24" rx="3" fill="#C26B4A"/>
+  <text x="302" y="323" font-size="15" font-weight="600" fill="#a8512f">250</text>
+
+  <!-- 중문·붙박이장 250 -->
+  <text x="40" y="361" font-size="15" font-weight="600" fill="#444">중문 · 붙박이장</text>
+  <rect x="185" y="345" width="105" height="24" rx="3" fill="#C26B4A"/>
+  <text x="302" y="363" font-size="15" font-weight="600" fill="#a8512f">250</text>
+
+  <!-- 설비·방수 150 -->
+  <text x="40" y="401" font-size="15" font-weight="600" fill="#444">설비 · 방수</text>
+  <rect x="185" y="385" width="63" height="24" rx="3" fill="#C26B4A"/>
+  <text x="260" y="403" font-size="15" font-weight="600" fill="#a8512f">150</text>
+
+  <!-- 관리비·부가세 600 (다른 색) -->
+  <text x="40" y="441" font-size="15" font-weight="600" fill="#444">관리비 · 부가세</text>
+  <rect x="185" y="425" width="252" height="24" rx="3" fill="#D9B8A8"/>
+  <text x="449" y="443" font-size="15" font-weight="600" fill="#9a7f70">600</text>
+  <text x="510" y="443" font-size="13" fill="#a0a0a0">← 눈에 안 보이지만 반드시 붙는 돈</text>
+
+  <line x1="185" y1="470" x2="820" y2="470" stroke="#dddddd" stroke-width="2"/>
+  <text x="40" y="500" font-size="17" font-weight="700" fill="#2b2b2b">합계</text>
+  <text x="185" y="500" font-size="17" font-weight="700" fill="#C26B4A">5,000만원</text>
+
+  <text x="40" y="538" font-size="13" fill="#a0a0a0">※ 실제 견적 빅데이터 1,000건+ 기준. 자재 등급·구축 연식에 따라 항목별 ±20% 변동.</text>
+</svg>
