@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 500" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="34평 84타입 부분 인테리어 비용 조합별 막대그래프 — 도배만, 도배+바닥, 욕실 1칸 포함, 욕실 2칸+조명 포함, 올수리 비교선">
+  <rect width="860" height="500" fill="#ffffff"/>
+  <text x="40" y="46" font-size="25" font-weight="700" fill="#2b2b2b">부분 인테리어 비용 — 조합별 예산 (34평/84타입)</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">2026년 · 34평/84타입 아파트 기준 · 단위: 만원</text>
+
+  <!-- 올수리 비교선 -->
+  <line x1="40" y1="100" x2="830" y2="100" stroke="#b0b0b0" stroke-width="1.5" stroke-dasharray="7 5"/>
+  <text x="828" y="92" font-size="14" font-weight="600" fill="#8a8a8a" text-anchor="end">올수리(샷시·확장 포함) 4,000만~6,000만원+ — 이 차트 위쪽</text>
+
+  <!-- baseline -->
+  <line x1="40" y1="420" x2="830" y2="420" stroke="#dddddd" stroke-width="2"/>
+
+  <!-- 도배만 120~250 -->
+  <rect x="90" y="382" width="110" height="20" rx="4" fill="#D9A38C"/>
+  <text x="145" y="374" font-size="16" fill="#a8512f" text-anchor="middle">120~250</text>
+  <text x="145" y="448" font-size="15" font-weight="600" fill="#444" text-anchor="middle">도배만</text>
+  <text x="145" y="468" font-size="12" fill="#999" text-anchor="middle">합지~실크 전체</text>
+
+  <!-- 도배+바닥 380~700 -->
+  <rect x="290" y="315" width="110" height="48" rx="4" fill="#C26B4A"/>
+  <text x="345" y="307" font-size="16" fill="#a8512f" text-anchor="middle">380~700</text>
+  <text x="345" y="448" font-size="15" font-weight="600" fill="#444" text-anchor="middle">도배+바닥</text>
+  <text x="345" y="468" font-size="12" fill="#999" text-anchor="middle">실크+장판·강마루</text>
+
+  <!-- 도배+바닥+욕실1 700~1,200 -->
+  <rect x="490" y="240" width="110" height="75" rx="4" fill="#C26B4A"/>
+  <text x="545" y="232" font-size="16" fill="#a8512f" text-anchor="middle">700~1,200</text>
+  <text x="545" y="448" font-size="15" font-weight="600" fill="#444" text-anchor="middle">+욕실 1칸</text>
+  <text x="545" y="468" font-size="12" fill="#999" text-anchor="middle">덧방 기준</text>
+
+  <!-- 도배+바닥+욕실2+조명 1,100~2,000 -->
+  <rect x="690" y="120" width="110" height="135" rx="4" fill="#C26B4A"/>
+  <text x="745" y="145" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">1,100~2,000</text>
+  <text x="745" y="448" font-size="15" font-weight="600" fill="#444" text-anchor="middle">+욕실 2칸·조명</text>
+  <text x="745" y="468" font-size="12" fill="#999" text-anchor="middle">가장 많이 하는 조합</text>
+
+  <text x="40" y="492" font-size="13" fill="#a0a0a0">※ 자재 등급·거주 중 여부·구축 밑작업에 따라 변동. 실제 견적 빅데이터 기준.</text>
+</svg>
