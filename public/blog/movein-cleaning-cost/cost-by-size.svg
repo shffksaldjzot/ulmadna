@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" role="img" aria-label="입주청소 비용 평형별 가격 막대그래프 — 원룸 12~18만, 25평 59타입 25~37만, 34평 84타입 35~55만원">
+  <rect width="720" height="380" fill="#faf7f4"/>
+  <text x="24" y="40" font-size="20" font-weight="700" fill="#2b2b2b">평형별 입주청소 비용 (2026년 기준)</text>
+  <text x="24" y="62" font-size="13" fill="#8a8175">단위: 만원 · 공급면적(분양평수) 기준 · 오염도·지역·시기에 따라 변동</text>
+
+  <!-- gridlines -->
+  <g stroke="#e7ddd3" stroke-width="1">
+    <line x1="200" y1="84" x2="200" y2="296"/>
+    <line x1="275" y1="84" x2="275" y2="296"/>
+    <line x1="350" y1="84" x2="350" y2="296"/>
+    <line x1="425" y1="84" x2="425" y2="296"/>
+    <line x1="500" y1="84" x2="500" y2="296"/>
+    <line x1="575" y1="84" x2="575" y2="296"/>
+    <line x1="650" y1="84" x2="650" y2="296"/>
+  </g>
+  <g font-size="11" fill="#a89e92" text-anchor="middle">
+    <text x="200" y="314">0</text>
+    <text x="275" y="314">10</text>
+    <text x="350" y="314">20</text>
+    <text x="425" y="314">30</text>
+    <text x="500" y="314">40</text>
+    <text x="575" y="314">50</text>
+    <text x="650" y="314">60</text>
+  </g>
+
+  <!-- row labels -->
+  <g font-size="13" fill="#3a3a3a" text-anchor="end">
+    <text x="188" y="114">원룸(5~10평)</text>
+    <text x="188" y="154">20평</text>
+    <text x="188" y="194">24~25평/59타입</text>
+    <text x="188" y="234">30평/74타입</text>
+    <text x="188" y="274">34평/84타입</text>
+  </g>
+
+  <g>
+    <!-- 원룸 12~18 : 7.5px/만 -->
+    <rect x="290" y="98" width="45" height="22" rx="4" fill="#e0a98e"/>
+    <text x="341" y="114" font-size="11" fill="#6b5d52">12~18</text>
+    <!-- 20평 20~30 -->
+    <rect x="350" y="138" width="75" height="22" rx="4" fill="#d98b6a"/>
+    <text x="431" y="154" font-size="11" fill="#6b5d52">20~30</text>
+    <!-- 24~25평 25~37 -->
+    <rect x="387.5" y="178" width="90" height="22" rx="4" fill="#cf7a55"/>
+    <text x="483" y="194" font-size="11" fill="#6b5d52">25~37</text>
+    <!-- 30평 30~45 -->
+    <rect x="425" y="218" width="112.5" height="22" rx="4" fill="#c0653f"/>
+    <text x="543" y="234" font-size="11" fill="#6b5d52">30~45</text>
+    <!-- 34평 35~55 -->
+    <rect x="462.5" y="258" width="150" height="22" rx="4" fill="#a84e2c"/>
+    <text x="618" y="274" font-size="11" fill="#6b5d52">35~55</text>
+  </g>
+
+  <text x="24" y="344" font-size="12" fill="#8a8175">※ 평당 1.1만~1.5만원이 표준선. 신축 분진 제거는 평당 1.2만~1.8만원으로 위 범위의 상단(34평 40만~60만).</text>
+  <text x="24" y="364" font-size="12" fill="#8a8175">※ 원룸은 최소 출장비·인건비가 깔려 평당 단가로 계산한 값보다 하한이 높게(12만원 내외) 형성됩니다.</text>
+</svg>
