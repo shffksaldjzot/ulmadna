@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" role="img" aria-label="싱크대 상판 종류별 가격 막대그래프 — PT 5~8만, 인조대리석 20~35만, 프리미엄 인조대리석 35~50만, 엔지니어드 스톤 50~80만, 세라믹 80~130만원(1m당 시공 포함)">
+  <rect width="720" height="380" fill="#faf7f4"/>
+  <text x="24" y="40" font-size="20" font-weight="700" fill="#2b2b2b">싱크대 상판 종류별 가격 (1m당 · 시공 포함)</text>
+  <text x="24" y="62" font-size="13" fill="#8a8175">단위: 만원 · 두께·색상 등급·주방 구조에 따라 변동</text>
+
+  <!-- gridlines -->
+  <g stroke="#e7ddd3" stroke-width="1">
+    <line x1="200" y1="84" x2="200" y2="296"/>
+    <line x1="265.7" y1="84" x2="265.7" y2="296"/>
+    <line x1="331.4" y1="84" x2="331.4" y2="296"/>
+    <line x1="397.1" y1="84" x2="397.1" y2="296"/>
+    <line x1="462.9" y1="84" x2="462.9" y2="296"/>
+    <line x1="528.6" y1="84" x2="528.6" y2="296"/>
+    <line x1="594.3" y1="84" x2="594.3" y2="296"/>
+    <line x1="660" y1="84" x2="660" y2="296"/>
+  </g>
+  <g font-size="11" fill="#a89e92" text-anchor="middle">
+    <text x="200" y="314">0</text>
+    <text x="265.7" y="314">20</text>
+    <text x="331.4" y="314">40</text>
+    <text x="397.1" y="314">60</text>
+    <text x="462.9" y="314">80</text>
+    <text x="528.6" y="314">100</text>
+    <text x="594.3" y="314">120</text>
+    <text x="660" y="314">140</text>
+  </g>
+
+  <!-- row labels -->
+  <g font-size="13" fill="#3a3a3a" text-anchor="end">
+    <text x="188" y="114">PT(필름) 상판</text>
+    <text x="188" y="154">인조대리석(보급)</text>
+    <text x="188" y="194">인조대리석(프리미엄)</text>
+    <text x="188" y="234">엔지니어드 스톤</text>
+    <text x="188" y="274">세라믹(포세린)</text>
+  </g>
+
+  <g>
+    <!-- PT 5~8 : 3.2857px/만 -->
+    <rect x="216.4" y="98" width="9.9" height="22" rx="4" fill="#e0a98e"/>
+    <text x="233" y="114" font-size="11" fill="#6b5d52">5~8</text>
+    <!-- 인조대리석 보급 20~35 -->
+    <rect x="265.7" y="138" width="49.3" height="22" rx="4" fill="#d98b6a"/>
+    <text x="321" y="154" font-size="11" fill="#6b5d52">20~35</text>
+    <!-- 인조대리석 프리미엄 35~50 -->
+    <rect x="315" y="178" width="49.3" height="22" rx="4" fill="#cf7a55"/>
+    <text x="370" y="194" font-size="11" fill="#6b5d52">35~50</text>
+    <!-- 엔지니어드 스톤 50~80 -->
+    <rect x="364.3" y="218" width="98.6" height="22" rx="4" fill="#c0653f"/>
+    <text x="469" y="234" font-size="11" fill="#6b5d52">50~80</text>
+    <!-- 세라믹 80~130 -->
+    <rect x="462.9" y="258" width="164.3" height="22" rx="4" fill="#a84e2c"/>
+    <text x="633" y="274" font-size="11" fill="#6b5d52">80~130+</text>
+  </g>
+
+  <text x="24" y="344" font-size="12" fill="#8a8175">※ 철거·타공·기본 시공을 포함한 교체 기준 단가. 자재만 사면 이보다 낮습니다(인조대리석 15~25만/m 등).</text>
+  <text x="24" y="364" font-size="12" fill="#8a8175">※ 수입 세라믹·특수 색상은 1m당 130만원을 훌쩍 넘습니다. ㄱ자·ㄷ자 주방은 코너 가공 할증이 붙습니다.</text>
+</svg>
