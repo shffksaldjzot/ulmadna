@@ -1,0 +1,30 @@
+[
+  {
+    "file": "hero.jpg",
+    "photographer": "Daniel Lerman",
+    "profile": "https://unsplash.com/@dlerman6",
+    "source": "https://unsplash.com/photos/white-wooden-table-beside-window-8QbyE8bBjzU",
+    "query": "white bright apartment balcony interior"
+  },
+  {
+    "file": "hero.jpg",
+    "photographer": "Franck V.",
+    "profile": "https://unsplash.com/@possessedphotography",
+    "source": "https://unsplash.com/photos/two-closed-doors-ZyFJRzIdZLM",
+    "query": "bright white balcony wall minimal interior"
+  },
+  {
+    "file": "hero.jpg",
+    "photographer": "Frames For Your Heart",
+    "profile": "https://unsplash.com/@framesforyourheart",
+    "source": "https://unsplash.com/photos/blue-swimming-pool-near-green-potted-plant-3jztLhBPrUo",
+    "query": "sunroom white interior plants window"
+  },
+  {
+    "file": "hero.jpg",
+    "photographer": "Daniel Lerman",
+    "profile": "https://unsplash.com/@dlerman6",
+    "source": "https://unsplash.com/photos/white-wooden-table-beside-window-8QbyE8bBjzU",
+    "query": "white bright apartment balcony interior"
+  }
+]

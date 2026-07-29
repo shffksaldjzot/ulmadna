@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" role="img" aria-label="탄성코트 비용 평형별 막대그래프 — 24평 59타입 40~60만, 30평 74타입 50~70만, 34평 84타입 55~80만, 40평대 80~110만원">
+  <rect width="720" height="380" fill="#faf7f4"/>
+  <text x="24" y="40" font-size="20" font-weight="700" fill="#2b2b2b">평형별 탄성코트 비용 (2026년 기준)</text>
+  <text x="24" y="62" font-size="13" fill="#8a8175">단위: 만원 · 기본형(바이오세라믹) 도료 · 비확장 아파트 기준 · 개소 수·벽 상태 따라 변동</text>
+
+  <!-- gridlines -->
+  <g stroke="#e7ddd3" stroke-width="1">
+    <line x1="200" y1="84" x2="200" y2="276"/>
+    <line x1="275" y1="84" x2="275" y2="276"/>
+    <line x1="350" y1="84" x2="350" y2="276"/>
+    <line x1="425" y1="84" x2="425" y2="276"/>
+    <line x1="500" y1="84" x2="500" y2="276"/>
+    <line x1="575" y1="84" x2="575" y2="276"/>
+    <line x1="650" y1="84" x2="650" y2="276"/>
+  </g>
+  <g font-size="11" fill="#a89e92" text-anchor="middle">
+    <text x="200" y="294">0</text>
+    <text x="275" y="294">20</text>
+    <text x="350" y="294">40</text>
+    <text x="425" y="294">60</text>
+    <text x="500" y="294">80</text>
+    <text x="575" y="294">100</text>
+    <text x="650" y="294">120</text>
+  </g>
+
+  <!-- row labels -->
+  <g font-size="13" fill="#3a3a3a" text-anchor="end">
+    <text x="188" y="112">24평/59타입</text>
+    <text x="188" y="110" dy="14" font-size="10" fill="#a89e92">2~3개소</text>
+    <text x="188" y="160">30평/74타입</text>
+    <text x="188" y="158" dy="14" font-size="10" fill="#a89e92">3개소</text>
+    <text x="188" y="208">34평/84타입</text>
+    <text x="188" y="206" dy="14" font-size="10" fill="#a89e92">3~4개소</text>
+    <text x="188" y="256">40평대~</text>
+    <text x="188" y="254" dy="14" font-size="10" fill="#a89e92">4개소 이상</text>
+  </g>
+
+  <g>
+    <!-- 24평 40~60 : 3.75px/만 -->
+    <rect x="350" y="98" width="75" height="24" rx="4" fill="#e0a98e"/>
+    <text x="431" y="115" font-size="11" fill="#6b5d52">40~60</text>
+    <!-- 30평 50~70 -->
+    <rect x="387.5" y="146" width="75" height="24" rx="4" fill="#d98b6a"/>
+    <text x="469" y="163" font-size="11" fill="#6b5d52">50~70</text>
+    <!-- 34평 55~80 -->
+    <rect x="406.25" y="194" width="93.75" height="24" rx="4" fill="#c0653f"/>
+    <text x="506" y="211" font-size="11" fill="#6b5d52">55~80</text>
+    <!-- 40평대 80~110 -->
+    <rect x="500" y="242" width="112.5" height="24" rx="4" fill="#a84e2c"/>
+    <text x="618" y="259" font-size="11" fill="#6b5d52">80~110</text>
+  </g>
+
+  <text x="24" y="324" font-size="12" fill="#8a8175">※ 탄성코트 가격은 평수보다 '시공 개소 수'가 좌우 — 개소 추가는 15만원 안팎, 구축 밑작업은 +10만~30만원.</text>
+  <text x="24" y="344" font-size="12" fill="#8a8175">※ 규조토·에어로겔 프리미엄 도료는 기본형의 1.5~2배. 신축 입주 패키지(줄눈·입주청소 묶음)는 이보다 저렴한 편.</text>
+  <text x="24" y="364" font-size="12" fill="#8a8175">※ 실제 견적 빅데이터 1,000건+ 기준 범위.</text>
+</svg>
