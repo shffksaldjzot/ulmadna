@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="34평 84타입 기준 도배와 페인트 도장 총비용 비교 막대그래프">
+  <rect width="800" height="500" fill="#ffffff"/>
+  <text x="40" y="46" font-size="25" font-weight="700" fill="#2b2b2b">도배 vs 페인트 총비용 — 34평/84타입</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">자재+시공 전체 기준 · 단위: 만원</text>
+
+  <!-- baseline -->
+  <line x1="70" y1="420" x2="760" y2="420" stroke="#dddddd" stroke-width="2"/>
+
+  <!-- 합지 도배 -->
+  <rect x="125" y="392" width="90" height="28" rx="4" fill="#D9B38C"/>
+  <text x="170" y="384" font-size="14" fill="#7a6a55" text-anchor="middle">140~170</text>
+  <text x="170" y="446" font-size="16" font-weight="600" fill="#444" text-anchor="middle">합지 도배</text>
+
+  <!-- 실크 도배 -->
+  <rect x="285" y="372" width="90" height="48" rx="4" fill="#C26B4A"/>
+  <text x="330" y="364" font-size="14" fill="#a8512f" text-anchor="middle">240~290</text>
+  <text x="330" y="446" font-size="16" font-weight="600" fill="#444" text-anchor="middle">실크 도배</text>
+
+  <!-- 부분 도장 -->
+  <rect x="445" y="403" width="90" height="17" rx="4" fill="#C9977A"/>
+  <text x="490" y="395" font-size="14" fill="#9c6a48" text-anchor="middle">60~100</text>
+  <text x="490" y="446" font-size="16" font-weight="600" fill="#444" text-anchor="middle">부분 도장</text>
+  <text x="490" y="468" font-size="13" fill="#999" text-anchor="middle">방 1~2개·벽지 위</text>
+
+  <!-- 전체 도장 -->
+  <rect x="605" y="90" width="90" height="330" rx="4" fill="#7A4632"/>
+  <text x="650" y="82" font-size="15" font-weight="700" fill="#7A4632" text-anchor="middle">2,000만+</text>
+  <text x="650" y="446" font-size="16" font-weight="600" fill="#444" text-anchor="middle">전체 도장</text>
+  <text x="650" y="468" font-size="13" fill="#999" text-anchor="middle">석고보드·올퍼티 포함</text>
+
+  <text x="40" y="492" font-size="13" fill="#a0a0a0">※ 벽 상태·퍼티 범위·페인트 등급에 따라 달라집니다. 실제 견적 빅데이터 기준 표준 범위.</text>
+</svg>
