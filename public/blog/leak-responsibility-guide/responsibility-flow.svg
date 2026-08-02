@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 560" font-family="'Pretendard','Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <style>
+    .q { fill: #3d3833; font-size: 19px; font-weight: 700; }
+    .t { fill: #3d3833; font-size: 15px; font-weight: 600; }
+    .s { fill: #7a7168; font-size: 13px; }
+    .r { fill: #ffffff; font-size: 16px; font-weight: 700; }
+    .edge { stroke: #b9b0a5; stroke-width: 2; fill: none; }
+    .lbl { fill: #8a8078; font-size: 13px; font-weight: 600; }
+  </style>
+
+  <!-- 시작 질문 -->
+  <rect x="255" y="24" width="350" height="64" rx="14" fill="#f4efe9" stroke="#c96f4a" stroke-width="2"/>
+  <text x="430" y="52" text-anchor="middle" class="q">물이 어디서 시작됐나? (발원지)</text>
+  <text x="430" y="74" text-anchor="middle" class="s">천장에 보이는 곳이 아니라, 물이 새기 시작한 지점 기준</text>
+
+  <!-- 가지 -->
+  <path class="edge" d="M330 88 L150 148"/>
+  <path class="edge" d="M430 88 L430 148"/>
+  <path class="edge" d="M530 88 L710 148"/>
+
+  <!-- 전유부분 -->
+  <rect x="30" y="148" width="240" height="150" rx="12" fill="#fbf8f4" stroke="#d9d2c8" stroke-width="1.5"/>
+  <text x="150" y="176" text-anchor="middle" class="t">윗집 세대 안 (전유부분)</text>
+  <text x="150" y="202" text-anchor="middle" class="s">바닥 매립 수도·난방 배관</text>
+  <text x="150" y="222" text-anchor="middle" class="s">욕실 방수층 · 세탁기 호스</text>
+  <text x="150" y="242" text-anchor="middle" class="s">베란다 창틀 실리콘(코킹)</text>
+  <text x="150" y="262" text-anchor="middle" class="s">베란다 확장 등 임의 개조</text>
+
+  <!-- 공용부분 -->
+  <rect x="310" y="148" width="240" height="150" rx="12" fill="#fbf8f4" stroke="#d9d2c8" stroke-width="1.5"/>
+  <text x="430" y="176" text-anchor="middle" class="t">건물 공용 설비 (공용부분)</text>
+  <text x="430" y="202" text-anchor="middle" class="s">외벽 균열로 빗물 유입</text>
+  <text x="430" y="222" text-anchor="middle" class="s">옥상 방수층 노후</text>
+  <text x="430" y="242" text-anchor="middle" class="s">공용 입상관(메인 배관)</text>
+  <text x="430" y="262" text-anchor="middle" class="s">우수관 노후·파손 (판례상 공용)</text>
+
+  <!-- 매매 직후 -->
+  <rect x="590" y="148" width="240" height="150" rx="12" fill="#fbf8f4" stroke="#d9d2c8" stroke-width="1.5"/>
+  <text x="710" y="176" text-anchor="middle" class="t">집을 산 직후 발견</text>
+  <text x="710" y="202" text-anchor="middle" class="s">잔금 전부터 있던 하자</text>
+  <text x="710" y="222" text-anchor="middle" class="s">(배관 노후·방수층 손상 등)</text>
+  <text x="710" y="242" text-anchor="middle" class="s">계약 때 몰랐고 알 수 없었음</text>
+  <text x="710" y="262" text-anchor="middle" class="s">안 날부터 6개월 안에 청구</text>
+
+  <!-- 화살표 -->
+  <path class="edge" d="M150 298 L150 350"/>
+  <path class="edge" d="M430 298 L430 350"/>
+  <path class="edge" d="M710 298 L710 350"/>
+
+  <!-- 결과 -->
+  <rect x="30" y="350" width="240" height="58" rx="12" fill="#c96f4a"/>
+  <text x="150" y="385" text-anchor="middle" class="r">윗집(소유자·거주자) 책임</text>
+
+  <rect x="310" y="350" width="240" height="58" rx="12" fill="#8c7a68"/>
+  <text x="430" y="385" text-anchor="middle" class="r">관리사무소(입대위) 책임</text>
+
+  <rect x="590" y="350" width="240" height="58" rx="12" fill="#5f6f5e"/>
+  <text x="710" y="385" text-anchor="middle" class="r">매도인 책임 (하자담보책임)</text>
+
+  <!-- 하단 각주 -->
+  <rect x="30" y="440" width="800" height="92" rx="12" fill="#f4efe9"/>
+  <text x="50" y="470" class="t">⚖ 발원지가 안 밝혀지면?</text>
+  <text x="50" y="496" class="s">집합건물법 제6조 — 하자 위치가 입증되지 않으면 "공용부분에 있는 것으로 추정"합니다.</text>
+  <text x="50" y="516" class="s">즉, 윗집 잘못이라는 증거가 없으면 아랫집은 관리주체(입주자대표회의)에 먼저 책임을 물을 수 있습니다.</text>
+</svg>
