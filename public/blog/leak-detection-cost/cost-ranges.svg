@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 500" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" role="img" aria-label="누수 탐지 비용과 보수 공사 비용 범위 막대그래프 — 탐지 10~50만부터 전체 배관 교체 200~400만까지">
+  <rect width="720" height="500" fill="#faf7f4"/>
+  <text x="24" y="40" font-size="20" font-weight="700" fill="#2b2b2b">누수 탐지부터 보수 공사까지 — 단계별 비용 범위</text>
+  <text x="24" y="62" font-size="13" fill="#8a8175">단위: 만원 · 실제 견적 빅데이터 기준 · 위치·장비·굴착 범위에 따라 변동</text>
+
+  <!-- gridlines -->
+  <g stroke="#e7ddd3" stroke-width="1">
+    <line x1="200" y1="84" x2="200" y2="440"/>
+    <line x1="320" y1="84" x2="320" y2="440"/>
+    <line x1="440" y1="84" x2="440" y2="440"/>
+    <line x1="560" y1="84" x2="560" y2="440"/>
+    <line x1="680" y1="84" x2="680" y2="440"/>
+  </g>
+  <g font-size="11" fill="#a89e92" text-anchor="middle">
+    <text x="200" y="458">0</text>
+    <text x="320" y="458">100</text>
+    <text x="440" y="458">200</text>
+    <text x="560" y="458">300</text>
+    <text x="680" y="458">400</text>
+  </g>
+
+  <!-- row labels -->
+  <g font-size="13" fill="#3a3a3a" text-anchor="end">
+    <text x="188" y="112">누수 탐지(장비 정밀)</text>
+    <text x="188" y="156">배관 부분 수리</text>
+    <text x="188" y="200">외부 코킹(빗물 누수)</text>
+    <text x="188" y="244">누수 공사(탐지+굴착+복구)</text>
+    <text x="188" y="288">욕실 비파괴 방수</text>
+    <text x="188" y="332">아랫집 천장 복구 포함</text>
+    <text x="188" y="376">전체 수도배관 교체</text>
+    <text x="188" y="420">욕실 철거+전체 방수</text>
+  </g>
+
+  <g>
+    <!-- 탐지 10~50 -->
+    <rect x="212" y="98" width="48" height="22" rx="4" fill="#cdbfb1"/>
+    <text x="268" y="114" font-size="11" fill="#6b5d52">10~50</text>
+    <!-- 배관 부분 수리 30~60 -->
+    <rect x="236" y="142" width="36" height="22" rx="4" fill="#d9a184"/>
+    <text x="280" y="158" font-size="11" fill="#6b5d52">30~60</text>
+    <!-- 외부 코킹 35~70 -->
+    <rect x="242" y="186" width="42" height="22" rx="4" fill="#d98b6a"/>
+    <text x="292" y="202" font-size="11" fill="#6b5d52">35~70</text>
+    <!-- 누수 공사 50~100 -->
+    <rect x="260" y="230" width="60" height="22" rx="4" fill="#d17b55"/>
+    <text x="328" y="246" font-size="11" fill="#6b5d52">50~100</text>
+    <!-- 욕실 비파괴 방수 80~150 -->
+    <rect x="296" y="274" width="84" height="22" rx="4" fill="#c86f47"/>
+    <text x="388" y="290" font-size="11" fill="#6b5d52">80~150</text>
+    <!-- 천장 복구 포함 50~200 -->
+    <rect x="260" y="318" width="180" height="22" rx="4" fill="#c0653f"/>
+    <text x="448" y="334" font-size="11" fill="#6b5d52">50~200</text>
+    <!-- 전체 배관 교체 200~400 -->
+    <rect x="440" y="362" width="240" height="22" rx="4" fill="#b05934"/>
+    <text x="560" y="377" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">200~400</text>
+    <!-- 욕실 전체 방수 250~400+ -->
+    <rect x="500" y="406" width="180" height="22" rx="4" fill="#a84e2c"/>
+    <text x="590" y="421" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">250~400+</text>
+  </g>
+
+  <text x="24" y="482" font-size="12" fill="#8a8175">※ 탐지에서 원인이 한 곳으로 좁혀지면 부분 수리로 끝나는 경우가 많습니다. 전체 공사부터 잡을 필요는 없습니다.</text>
+</svg>
