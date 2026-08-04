@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 620" font-family="Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif">
+  <rect width="800" height="620" fill="#fdfaf7"/>
+  <text x="40" y="52" font-size="24" font-weight="700" fill="#2b2b2b">신축 입주 전 시공 순서 — 5단계</text>
+  <text x="40" y="78" font-size="14" fill="#8a8a8a">기준 ① 잔금 전에 가능한가 · ② 입주청소 전에 해야 하는가(분진)</text>
+
+  <line x1="70" y1="110" x2="70" y2="560" stroke="#e0d5cc" stroke-width="3"/>
+
+  <!-- 1 -->
+  <circle cx="70" cy="130" r="18" fill="#c06b4f"/>
+  <text x="70" y="136" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+  <rect x="110" y="104" width="650" height="72" rx="10" fill="#ffffff" stroke="#e8ddd4"/>
+  <text x="130" y="132" font-size="16" font-weight="700" fill="#2b2b2b">잔금 전 (키 불출 후)</text>
+  <text x="130" y="158" font-size="14" fill="#555555">줄눈 — 단지에 따라 탄성코트·새집증후군·청소까지만 허용되는 경우가 많음</text>
+
+  <!-- 2 -->
+  <circle cx="70" cy="230" r="18" fill="#c06b4f"/>
+  <text x="70" y="236" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+  <rect x="110" y="204" width="650" height="72" rx="10" fill="#ffffff" stroke="#e8ddd4"/>
+  <text x="130" y="232" font-size="16" font-weight="700" fill="#2b2b2b">잔금 후 ~ 입주청소 전</text>
+  <text x="130" y="258" font-size="14" fill="#555555">탄성코트 · 새집증후군 · 붙박이장 · 조명 타공 · 중문 · 방충망 — 분진 작업 전부 여기서</text>
+
+  <!-- 3 -->
+  <circle cx="70" cy="330" r="18" fill="#a3543a"/>
+  <text x="70" y="336" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+  <rect x="110" y="304" width="650" height="72" rx="10" fill="#faf3ee" stroke="#dcb9a8"/>
+  <text x="130" y="332" font-size="16" font-weight="700" fill="#2b2b2b">입주청소</text>
+  <text x="130" y="358" font-size="14" fill="#555555">모든 분진 작업이 끝난 뒤 딱 한 번 — 순서가 꼬이면 재청소 비용이 이중으로</text>
+
+  <!-- 4 -->
+  <circle cx="70" cy="430" r="18" fill="#c06b4f"/>
+  <text x="70" y="436" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
+  <rect x="110" y="404" width="650" height="72" rx="10" fill="#ffffff" stroke="#e8ddd4"/>
+  <text x="130" y="432" font-size="16" font-weight="700" fill="#2b2b2b">청소 후 ~ 이사 전</text>
+  <text x="130" y="458" font-size="14" fill="#555555">나노코팅 · 가구·가전 설치 · 커튼 — 깨끗한 상태가 필요한 작업 + 베이크아웃·환기</text>
+
+  <!-- 5 -->
+  <circle cx="70" cy="530" r="18" fill="#c06b4f"/>
+  <text x="70" y="536" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">5</text>
+  <rect x="110" y="504" width="650" height="72" rx="10" fill="#ffffff" stroke="#e8ddd4"/>
+  <text x="130" y="532" font-size="16" font-weight="700" fill="#2b2b2b">이사 후</text>
+  <text x="130" y="558" font-size="14" fill="#555555">인터넷·정수기 설치 · 층간소음매트 · 남은 하자 A/S 접수</text>
+</svg>

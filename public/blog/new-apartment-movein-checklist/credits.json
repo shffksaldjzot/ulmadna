@@ -1,0 +1,16 @@
+[
+  {
+    "file": "hero.jpg",
+    "photographer": "Medea Dzagnidze",
+    "profile": "https://unsplash.com/@medeadza",
+    "source": "https://unsplash.com/photos/a-cat-sitting-on-a-counter-9nOCQu7CqLk",
+    "query": "modern apartment bathroom tile interior"
+  },
+  {
+    "file": "hero.jpg",
+    "photographer": "RETRATO INMOBILIARIO",
+    "profile": "https://unsplash.com/@retratoinmobiliario",
+    "source": "https://unsplash.com/photos/empty-white-room-with-a-large-window-overlooking-city-g088A6P6ywU",
+    "query": "bright empty new apartment interior"
+  }
+]
