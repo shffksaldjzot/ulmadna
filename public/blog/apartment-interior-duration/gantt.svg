@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 640" font-family="Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif">
+  <rect width="800" height="640" fill="#fdfaf7"/>
+  <text x="40" y="52" font-size="24" font-weight="700" fill="#2b2b2b">34평/84타입 올수리 공사 기간 — 5주 흐름</text>
+  <text x="40" y="78" font-size="14" fill="#8a8a8a">주말 제외 실작업 기준 · 공정별 막대 길이 = 대략적 소요 일수</text>
+
+  <!-- week grid -->
+  <line x1="240" y1="100" x2="240" y2="560" stroke="#e8ddd4" stroke-width="1"/>
+  <line x1="344" y1="100" x2="344" y2="560" stroke="#e8ddd4" stroke-width="1"/>
+  <line x1="448" y1="100" x2="448" y2="560" stroke="#e8ddd4" stroke-width="1"/>
+  <line x1="552" y1="100" x2="552" y2="560" stroke="#e8ddd4" stroke-width="1"/>
+  <line x1="656" y1="100" x2="656" y2="560" stroke="#e8ddd4" stroke-width="1"/>
+  <line x1="760" y1="100" x2="760" y2="560" stroke="#e8ddd4" stroke-width="1"/>
+  <text x="292" y="118" font-size="13" fill="#8a8a8a" text-anchor="middle">1주차</text>
+  <text x="396" y="118" font-size="13" fill="#8a8a8a" text-anchor="middle">2주차</text>
+  <text x="500" y="118" font-size="13" fill="#8a8a8a" text-anchor="middle">3주차</text>
+  <text x="604" y="118" font-size="13" fill="#8a8a8a" text-anchor="middle">4주차</text>
+  <text x="708" y="118" font-size="13" fill="#8a8a8a" text-anchor="middle">5주차</text>
+
+  <!-- rows -->
+  <text x="40" y="152" font-size="14" font-weight="600" fill="#2b2b2b">보양·철거·폐기물</text>
+  <rect x="240" y="138" width="83" height="20" rx="6" fill="#c06b4f"/>
+  <text x="330" y="153" font-size="12" fill="#8a8a8a">2~4일</text>
+
+  <text x="40" y="190" font-size="14" font-weight="600" fill="#2b2b2b">설비(배관)·에어컨</text>
+  <rect x="302" y="176" width="62" height="20" rx="6" fill="#c06b4f"/>
+  <text x="371" y="191" font-size="12" fill="#8a8a8a">2~5일</text>
+
+  <text x="40" y="228" font-size="14" font-weight="600" fill="#2b2b2b">샷시 시공</text>
+  <rect x="344" y="214" width="30" height="20" rx="6" fill="#d98e6f"/>
+  <text x="381" y="229" font-size="12" fill="#8a8a8a">1~2일 (제작은 2~3주 전 발주)</text>
+
+  <text x="40" y="266" font-size="14" font-weight="600" fill="#2b2b2b">전기 배선</text>
+  <rect x="365" y="252" width="62" height="20" rx="6" fill="#c06b4f"/>
+  <text x="434" y="267" font-size="12" fill="#8a8a8a">2~4일 · 목공과 병행</text>
+
+  <text x="40" y="304" font-size="14" font-weight="600" fill="#2b2b2b">목공</text>
+  <rect x="386" y="290" width="104" height="20" rx="6" fill="#c06b4f"/>
+  <text x="497" y="305" font-size="12" fill="#8a8a8a">4~7일</text>
+
+  <text x="40" y="342" font-size="14" font-weight="600" fill="#2b2b2b">타일·욕실</text>
+  <rect x="469" y="328" width="83" height="20" rx="6" fill="#c06b4f"/>
+  <text x="559" y="343" font-size="12" fill="#8a8a8a">3~5일 + 방수·줄눈 양생</text>
+
+  <text x="40" y="380" font-size="14" font-weight="600" fill="#2b2b2b">필름·도장</text>
+  <rect x="552" y="366" width="52" height="20" rx="6" fill="#c06b4f"/>
+  <text x="611" y="381" font-size="12" fill="#8a8a8a">2~3일</text>
+
+  <text x="40" y="418" font-size="14" font-weight="600" fill="#2b2b2b">도배</text>
+  <rect x="593" y="404" width="62" height="20" rx="6" fill="#c06b4f"/>
+  <text x="662" y="419" font-size="12" fill="#8a8a8a">2~3일</text>
+
+  <text x="40" y="456" font-size="14" font-weight="600" fill="#2b2b2b">바닥(마루·장판)</text>
+  <rect x="635" y="442" width="41" height="20" rx="6" fill="#c06b4f"/>
+  <text x="683" y="457" font-size="12" fill="#8a8a8a">1~3일</text>
+
+  <text x="40" y="494" font-size="14" font-weight="600" fill="#2b2b2b">가구·중문 설치</text>
+  <rect x="666" y="480" width="52" height="20" rx="6" fill="#c06b4f"/>
+  <text x="725" y="495" font-size="12" fill="#8a8a8a">2~3일</text>
+
+  <text x="40" y="532" font-size="14" font-weight="600" fill="#2b2b2b">조명·마감·입주청소</text>
+  <rect x="708" y="518" width="52" height="20" rx="6" fill="#a3543a"/>
+
+  <text x="40" y="596" font-size="13" fill="#8a8a8a">※ 방통(난방배관 재시공) 포함 시 +1주 · 확장·구조변경·맞춤가구 많으면 5~8주까지</text>
+  <text x="40" y="620" font-size="13" fill="#8a8a8a">※ 순서가 겹치면 하자 — 공정 사이 1~2일 여유가 정상 일정입니다</text>
+</svg>
