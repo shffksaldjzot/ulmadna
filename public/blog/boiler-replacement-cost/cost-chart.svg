@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="보일러 교체 비용 평형별 총비용 가로 막대그래프">
+  <rect width="800" height="500" fill="#ffffff"/>
+  <text x="40" y="46" font-size="25" font-weight="700" fill="#2b2b2b">보일러 교체 비용 — 평형별 총비용 (제품+설치)</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">콘덴싱 보일러 기준 · 실제 견적·시공 사례 기준 · 단위: 만원</text>
+
+  <!-- baseline -->
+  <line x1="235" y1="95" x2="235" y2="390" stroke="#dddddd" stroke-width="2"/>
+
+  <!-- 20평 미만 60~90 -->
+  <text x="223" y="140" font-size="15" font-weight="600" fill="#444" text-anchor="end">20평 미만</text>
+  <rect x="235" y="112" width="180" height="15" rx="4" fill="#E5C3B3"/>
+  <rect x="235" y="127" width="270" height="15" rx="4" fill="#C26B4A"/>
+  <text x="515" y="140" font-size="15" fill="#a8512f">60만~90만</text>
+
+  <!-- 25~30평(59·74타입) 80~120 -->
+  <text x="223" y="220" font-size="15" font-weight="600" fill="#444" text-anchor="end">25~30평 (59·74타입)</text>
+  <rect x="235" y="192" width="240" height="15" rx="4" fill="#E5C3B3"/>
+  <rect x="235" y="207" width="360" height="15" rx="4" fill="#C26B4A"/>
+  <text x="605" y="220" font-size="15" fill="#a8512f">80만~120만</text>
+
+  <!-- 34평 이상(84타입~) 100~150+ -->
+  <text x="223" y="300" font-size="15" font-weight="600" fill="#444" text-anchor="end">34평 이상 (84타입~)</text>
+  <rect x="235" y="272" width="300" height="15" rx="4" fill="#E5C3B3"/>
+  <rect x="235" y="287" width="450" height="15" rx="4" fill="#C26B4A"/>
+  <text x="695" y="300" font-size="15" fill="#a8512f">100만~150만+</text>
+
+  <!-- legend -->
+  <rect x="235" y="345" width="14" height="14" rx="3" fill="#E5C3B3"/>
+  <text x="256" y="357" font-size="13" fill="#777">하한(기본 설치)</text>
+  <rect x="380" y="345" width="14" height="14" rx="3" fill="#C26B4A"/>
+  <text x="401" y="357" font-size="13" fill="#777">상한(용량·추가 공사 포함)</text>
+
+  <text x="40" y="432" font-size="13" fill="#a0a0a0">※ 일반(2종) 보일러는 같은 평형에서 콘덴싱보다 15만~25만가량 저렴. 단, 신규 설치는 콘덴싱이 원칙.</text>
+  <text x="40" y="454" font-size="13" fill="#a0a0a0">※ 연통 1m 이상 연장·각방 통신변환기·배관 보수가 필요하면 추가 비용 발생.</text>
+</svg>
