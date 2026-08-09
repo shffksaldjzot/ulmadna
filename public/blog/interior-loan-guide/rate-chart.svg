@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 540" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="인테리어 대출 자금원별 연 금리 비교 가로 막대그래프">
+  <rect width="800" height="540" fill="#ffffff"/>
+  <text x="40" y="46" font-size="25" font-weight="700" fill="#2b2b2b">인테리어 대출 — 자금원별 연 금리 비교</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">2026년 기준 대략적 범위 · 신용점수·기간·시점에 따라 변동 · 단위: 연 %</text>
+
+  <!-- grid -->
+  <line x1="245" y1="95" x2="245" y2="430" stroke="#dddddd" stroke-width="2"/>
+  <line x1="374" y1="95" x2="374" y2="430" stroke="#f0f0f0" stroke-width="1"/>
+  <line x1="503" y1="95" x2="503" y2="430" stroke="#f0f0f0" stroke-width="1"/>
+  <line x1="632" y1="95" x2="632" y2="430" stroke="#f0f0f0" stroke-width="1"/>
+  <line x1="760" y1="95" x2="760" y2="430" stroke="#f0f0f0" stroke-width="1"/>
+  <text x="245" y="450" font-size="13" fill="#a0a0a0" text-anchor="middle">0%</text>
+  <text x="374" y="450" font-size="13" fill="#a0a0a0" text-anchor="middle">5%</text>
+  <text x="503" y="450" font-size="13" fill="#a0a0a0" text-anchor="middle">10%</text>
+  <text x="632" y="450" font-size="13" fill="#a0a0a0" text-anchor="middle">15%</text>
+  <text x="760" y="450" font-size="13" fill="#a0a0a0" text-anchor="middle">20%</text>
+
+  <!-- 카드 무이자 할부 0% -->
+  <text x="233" y="127" font-size="15" font-weight="600" fill="#444" text-anchor="end">카드 무이자 할부</text>
+  <circle cx="245" cy="122" r="8" fill="#C26B4A"/>
+  <text x="262" y="127" font-size="15" fill="#a8512f" font-weight="600">0% (이자 없음 · 개월수 한정)</text>
+
+  <!-- 직역연금 대출 3~4% -->
+  <text x="233" y="184" font-size="15" font-weight="600" fill="#444" text-anchor="end">직역연금 대출(공무원 등)</text>
+  <rect x="322" y="170" width="26" height="18" rx="4" fill="#C26B4A"/>
+  <text x="358" y="184" font-size="15" fill="#a8512f">3~4%</text>
+
+  <!-- 주담대 생활안정자금 3.5~5% -->
+  <text x="233" y="241" font-size="15" font-weight="600" fill="#444" text-anchor="end">주담대 생활안정자금</text>
+  <rect x="335" y="227" width="39" height="18" rx="4" fill="#C26B4A"/>
+  <text x="384" y="241" font-size="15" fill="#a8512f">3%대 중반~5%</text>
+
+  <!-- 신용대출·마이너스통장 4.5~7% -->
+  <text x="233" y="298" font-size="15" font-weight="600" fill="#444" text-anchor="end">신용대출·마이너스통장</text>
+  <rect x="361" y="284" width="65" height="18" rx="4" fill="#D89477"/>
+  <text x="436" y="298" font-size="15" fill="#a8512f">4%대 중반~7%</text>
+
+  <!-- 은행 인테리어 전용 대출 5.7~6.8% -->
+  <text x="233" y="355" font-size="15" font-weight="600" fill="#444" text-anchor="end">은행 인테리어 전용 대출</text>
+  <rect x="392" y="341" width="28" height="18" rx="4" fill="#D89477"/>
+  <text x="430" y="355" font-size="15" fill="#a8512f">5.7~6.8%</text>
+
+  <!-- 카드 유이자 할부 15~20% -->
+  <text x="233" y="412" font-size="15" font-weight="600" fill="#444" text-anchor="end">카드 유이자 할부</text>
+  <rect x="632" y="398" width="128" height="18" rx="4" fill="#8a8a8a"/>
+  <text x="628" y="412" font-size="15" fill="#666" text-anchor="end">15~20% ⚠️</text>
+
+  <text x="40" y="490" font-size="13" fill="#a0a0a0">※ 창호·단열 공사는 그린리모델링 이자지원(기본 4.5%p, 우대 5.5%p)으로 실부담을 크게 낮출 수 있음(선착순).</text>
+  <text x="40" y="512" font-size="13" fill="#a0a0a0">※ 유이자 할부 500만원·12개월이면 이자만 40만~50만원. 무이자 여부부터 확인할 것.</text>
+</svg>
