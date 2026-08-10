@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 620" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="인테리어 공사 안내문·동의서·양해 선물 준비 타임라인 — 공사 2주 전부터 완료 후까지">
+  <rect width="800" height="620" fill="#ffffff"/>
+  <text x="40" y="48" font-size="25" font-weight="700" fill="#2b2b2b">이웃 알림 준비 타임라인</text>
+  <text x="40" y="76" font-size="15" fill="#8a8a8a">공사 2주 전부터 완료 후까지 · 관리사무소 규정에 따라 시점 조정</text>
+
+  <!-- spine -->
+  <line x1="120" y1="110" x2="120" y2="560" stroke="#e8ddd6" stroke-width="3"/>
+
+  <!-- D-14 -->
+  <circle cx="120" cy="130" r="9" fill="#C26B4A"/>
+  <text x="100" y="136" font-size="15" font-weight="700" fill="#a8512f" text-anchor="end">D-14</text>
+  <text x="145" y="128" font-size="17" font-weight="700" fill="#2b2b2b">관리사무소 방문</text>
+  <text x="145" y="152" font-size="14" fill="#666">동의율(50%? 70%?)·지정 양식·공사 가능 시간·엘리베이터</text>
+  <text x="145" y="172" font-size="14" fill="#666">사용료·보양 규정 확인 — 단지마다 전부 다릅니다</text>
+
+  <!-- D-10~5 -->
+  <circle cx="120" cy="225" r="9" fill="#C26B4A"/>
+  <text x="100" y="231" font-size="15" font-weight="700" fill="#a8512f" text-anchor="end">D-10~5</text>
+  <text x="145" y="223" font-size="17" font-weight="700" fill="#2b2b2b">동의서 받기</text>
+  <text x="145" y="247" font-size="14" fill="#666">직접 방문(저녁·주말) + 부재 세대 비대면 안내문 부착</text>
+  <text x="145" y="267" font-size="14" fill="#666">제출 기한은 보통 공사 시작 3일 전 — 여유 있게 시작</text>
+
+  <!-- D-3 -->
+  <circle cx="120" cy="320" r="9" fill="#C26B4A"/>
+  <text x="100" y="326" font-size="15" font-weight="700" fill="#a8512f" text-anchor="end">D-3</text>
+  <text x="145" y="318" font-size="17" font-weight="700" fill="#2b2b2b">안내문 부착 + 인접 세대 인사</text>
+  <text x="145" y="342" font-size="14" fill="#666">엘리베이터·1층 게시판·해당 층 복도에 부착</text>
+  <text x="145" y="362" font-size="14" fill="#666">위·아래·양옆 세대에 선물과 함께 직접 인사</text>
+
+  <!-- 공사 중 -->
+  <circle cx="120" cy="415" r="9" fill="#d8a48c"/>
+  <text x="100" y="421" font-size="15" font-weight="700" fill="#a8512f" text-anchor="end">공사 중</text>
+  <text x="145" y="413" font-size="17" font-weight="700" fill="#2b2b2b">소음 공정 재안내 · 민원 즉시 대응</text>
+  <text x="145" y="437" font-size="14" fill="#666">철거·타일 등 소음 집중일은 하루 전 한 번 더 안내</text>
+  <text x="145" y="457" font-size="14" fill="#666">민원 접수 시 작업 중지 → 원인 확인 → 시간 조정</text>
+
+  <!-- 완료 후 -->
+  <circle cx="120" cy="510" r="9" fill="#d8a48c"/>
+  <text x="100" y="516" font-size="15" font-weight="700" fill="#a8512f" text-anchor="end">완료 후</text>
+  <text x="145" y="508" font-size="17" font-weight="700" fill="#2b2b2b">공용부 정리 + 마무리 인사</text>
+  <text x="145" y="532" font-size="14" fill="#666">복도·엘리베이터 먼지 청소, 보양재 철거</text>
+  <text x="145" y="552" font-size="14" fill="#666">한 달 이상 장기 공사였다면 답례 인사까지</text>
+
+  <text x="40" y="600" font-size="13" fill="#a0a0a0">© 얼마드나 — 실제 견적·시공 데이터 기반 정리</text>
+</svg>
