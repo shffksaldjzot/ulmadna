@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 430" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <rect width="800" height="430" fill="#fdfaf7"/>
+  <text x="40" y="46" font-size="22" font-weight="700" fill="#2d2a26">TV 설치 방식별 비용 구간</text>
+  <text x="40" y="72" font-size="13" fill="#8a8378">실제 견적 빅데이터 기준 · 브라켓·시공비 포함 (단위: 만원)</text>
+
+  <!-- grid -->
+  <g stroke="#e8e2da" stroke-width="1">
+    <line x1="150" y1="95" x2="150" y2="345"/>
+    <line x1="287" y1="95" x2="287" y2="345"/>
+    <line x1="424" y1="95" x2="424" y2="345"/>
+    <line x1="561" y1="95" x2="561" y2="345"/>
+    <line x1="698" y1="95" x2="698" y2="345"/>
+  </g>
+  <g font-size="12" fill="#a09888" text-anchor="middle">
+    <text x="150" y="368">0</text>
+    <text x="287" y="368">50만</text>
+    <text x="424" y="368">100만</text>
+    <text x="561" y="368">150만</text>
+    <text x="698" y="368">200만</text>
+  </g>
+
+  <!-- bars: x = 150 + 만원*2.74 -->
+  <!-- 타공 5~15 -->
+  <text x="138" y="122" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">타공 벽걸이</text>
+  <rect x="163" y="106" width="28" height="22" rx="11" fill="#c96f4a"/>
+  <text x="200" y="122" font-size="13" fill="#6b6459">5만~15만</text>
+
+  <!-- 무타공 15~33 -->
+  <text x="138" y="182" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">무타공 벽걸이</text>
+  <rect x="191" y="166" width="49" height="22" rx="11" fill="#c96f4a"/>
+  <text x="249" y="182" font-size="13" fill="#6b6459">15만~33만</text>
+
+  <!-- 반매립 80~150 -->
+  <text x="138" y="242" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">반매립(목공)</text>
+  <rect x="369" y="226" width="192" height="22" rx="11" fill="#a3624f"/>
+  <text x="570" y="242" font-size="13" fill="#6b6459">80만~150만+</text>
+
+  <!-- 완전매립 100~200 -->
+  <text x="138" y="302" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">완전매립</text>
+  <rect x="424" y="286" width="274" height="22" rx="11" fill="#7d5346"/>
+  <text x="424" y="326" font-size="13" fill="#6b6459">100만~200만+</text>
+
+  <text x="40" y="408" font-size="12.5" fill="#8a8378">※ 벽걸이는 벽 재질·브라켓 종류·선 정리 범위에 따라, 매립은 목공·전기 범위에 따라 달라집니다.</text>
+</svg>
