@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <rect width="800" height="470" fill="#fdfaf7"/>
+  <text x="40" y="46" font-size="22" font-weight="700" fill="#2d2a26">싱크대 리폼 항목별 비용 범위</text>
+  <text x="40" y="72" font-size="13" fill="#8a8378">실제 견적 빅데이터 기준 · 업체 시공가 (단위: 만원)</text>
+
+  <!-- grid : x = 150 + 만원*3.65 -->
+  <g stroke="#e8e2da" stroke-width="1">
+    <line x1="150" y1="95" x2="150" y2="385"/>
+    <line x1="260" y1="95" x2="260" y2="385"/>
+    <line x1="369" y1="95" x2="369" y2="385"/>
+    <line x1="479" y1="95" x2="479" y2="385"/>
+    <line x1="588" y1="95" x2="588" y2="385"/>
+    <line x1="698" y1="95" x2="698" y2="385"/>
+  </g>
+  <g font-size="12" fill="#a09888" text-anchor="middle">
+    <text x="150" y="408">0</text>
+    <text x="260" y="408">30만</text>
+    <text x="369" y="408">60만</text>
+    <text x="479" y="408">90만</text>
+    <text x="588" y="408">120만</text>
+    <text x="698" y="408">150만</text>
+  </g>
+
+  <!-- 수전 교체 7~15 -->
+  <text x="138" y="122" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">수전 교체(제품+시공)</text>
+  <rect x="176" y="106" width="29" height="22" rx="11" fill="#c96f4a"/>
+  <text x="214" y="122" font-size="13" fill="#6b6459">7만~15만</text>
+
+  <!-- 식기세척기장 리폼 5~40 -->
+  <text x="138" y="180" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">식기세척기장 리폼</text>
+  <rect x="168" y="164" width="128" height="22" rx="11" fill="#c96f4a"/>
+  <text x="305" y="180" font-size="13" fill="#6b6459">5만~40만 (규격장은 0원~)</text>
+
+  <!-- 싱크볼 교체 35~75 -->
+  <text x="138" y="238" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">싱크볼 교체(출장 포함)</text>
+  <rect x="278" y="222" width="146" height="22" rx="11" fill="#b56749"/>
+  <text x="433" y="238" font-size="13" fill="#6b6459">35만~75만</text>
+
+  <!-- 문짝 전체 교체 60~100 -->
+  <text x="138" y="296" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">문짝 전체 교체(맞춤 제작)</text>
+  <rect x="369" y="280" width="146" height="22" rx="11" fill="#a3624f"/>
+  <text x="524" y="296" font-size="13" fill="#6b6459">60만~100만 (부분은 15만~)</text>
+
+  <!-- 필름 리폼 50~120 -->
+  <text x="138" y="354" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">필름 리폼(상·하부장 전체)</text>
+  <rect x="333" y="338" width="255" height="22" rx="11" fill="#7d5346"/>
+  <text x="597" y="354" font-size="13" fill="#6b6459">50만~120만</text>
+
+  <text x="40" y="446" font-size="12.5" fill="#8a8378">※ 비교 기준: 싱크대 전체 교체(기본형)는 300만~600만원. 몸통이 멀쩡하면 리폼이 전체 교체의 40~60% 수준입니다.</text>
+</svg>
