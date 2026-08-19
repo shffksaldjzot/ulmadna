@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <rect width="800" height="470" fill="#fdfaf7"/>
+  <text x="40" y="46" font-size="22" font-weight="700" fill="#2d2a26">욕실 타일 들뜸 보수 방식별 비용 범위</text>
+  <text x="40" y="72" font-size="13" fill="#8a8378">실제 견적 빅데이터 기준 · 자재+공임 포함 (단위: 만원)</text>
+
+  <!-- grid : x = 150 + 만원*1.8 -->
+  <g stroke="#e8e2da" stroke-width="1">
+    <line x1="150" y1="95" x2="150" y2="385"/>
+    <line x1="258" y1="95" x2="258" y2="385"/>
+    <line x1="366" y1="95" x2="366" y2="385"/>
+    <line x1="474" y1="95" x2="474" y2="385"/>
+    <line x1="582" y1="95" x2="582" y2="385"/>
+    <line x1="690" y1="95" x2="690" y2="385"/>
+  </g>
+  <g font-size="12" fill="#a09888" text-anchor="middle">
+    <text x="150" y="408">0</text>
+    <text x="258" y="408">60만</text>
+    <text x="366" y="408">120만</text>
+    <text x="474" y="408">180만</text>
+    <text x="582" y="408">240만</text>
+    <text x="690" y="408">300만</text>
+  </g>
+
+  <!-- 셀프 주입 보수 2~4 -->
+  <text x="138" y="122" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">셀프 주입 보수(보수제)</text>
+  <rect x="153" y="106" width="14" height="22" rx="7" fill="#c96f4a"/>
+  <text x="176" y="122" font-size="13" fill="#6b6459">2만~4만 (한두 장 · 임시 성격)</text>
+
+  <!-- 부분 교체 15~40 -->
+  <text x="138" y="180" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">부분 교체(1~3장)</text>
+  <rect x="177" y="164" width="45" height="22" rx="11" fill="#c96f4a"/>
+  <text x="231" y="180" font-size="13" fill="#6b6459">15만~40만</text>
+
+  <!-- 벽면 한 면 철거·재시공 40~100 -->
+  <text x="138" y="238" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">벽면 한 면 철거·재시공</text>
+  <rect x="222" y="222" width="108" height="22" rx="11" fill="#b56749"/>
+  <text x="339" y="238" font-size="13" fill="#6b6459">40만~100만</text>
+
+  <!-- 바닥 전체 재시공 80~150 -->
+  <text x="138" y="296" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">바닥 전체 재시공(미장 포함)</text>
+  <rect x="294" y="280" width="126" height="22" rx="11" fill="#a3624f"/>
+  <text x="429" y="296" font-size="13" fill="#6b6459">80만~150만</text>
+
+  <!-- 욕실 타일 전체 재시공 150~300 -->
+  <text x="138" y="354" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">욕실 타일 전체 재시공</text>
+  <rect x="420" y="338" width="270" height="22" rx="11" fill="#7d5346"/>
+  <text x="555" y="333" font-size="13" fill="#6b6459">150만~300만</text>
+
+  <text x="40" y="446" font-size="12.5" fill="#8a8378">※ 한두 장 국소 들뜸을 초기에 잡으면 15만~40만으로 끝납니다. 방치해서 바탕까지 번지면 전체 재시공(150만~300만)으로 커집니다.</text>
+</svg>
