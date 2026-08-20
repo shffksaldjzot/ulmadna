@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <rect width="800" height="470" fill="#fdfaf7"/>
+  <text x="40" y="46" font-size="22" font-weight="700" fill="#2d2a26">화장실 환풍기 교체 방식별 비용 범위</text>
+  <text x="40" y="72" font-size="13" fill="#8a8378">실제 견적 빅데이터 기준 · 자재+공임 포함 (단위: 만원)</text>
+
+  <!-- grid : x = 150 + 만원*5.4 -->
+  <g stroke="#e8e2da" stroke-width="1">
+    <line x1="150" y1="95" x2="150" y2="385"/>
+    <line x1="258" y1="95" x2="258" y2="385"/>
+    <line x1="366" y1="95" x2="366" y2="385"/>
+    <line x1="474" y1="95" x2="474" y2="385"/>
+    <line x1="582" y1="95" x2="582" y2="385"/>
+    <line x1="690" y1="95" x2="690" y2="385"/>
+  </g>
+  <g font-size="12" fill="#a09888" text-anchor="middle">
+    <text x="150" y="408">0</text>
+    <text x="258" y="408">20만</text>
+    <text x="366" y="408">40만</text>
+    <text x="474" y="408">60만</text>
+    <text x="582" y="408">80만</text>
+    <text x="690" y="408">100만</text>
+  </g>
+
+  <!-- 댐퍼 부품만 교체 1~5 -->
+  <text x="138" y="122" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">댐퍼 부품만 교체(셀프)</text>
+  <rect x="155" y="106" width="22" height="22" rx="7" fill="#c96f4a"/>
+  <text x="186" y="122" font-size="13" fill="#6b6459">1만~5만 (부품값만)</text>
+
+  <!-- 환풍기 셀프 교체 2~9 -->
+  <text x="138" y="180" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">환풍기 셀프 교체(제품값만)</text>
+  <rect x="161" y="164" width="38" height="22" rx="11" fill="#c96f4a"/>
+  <text x="208" y="180" font-size="13" fill="#6b6459">2만~9만</text>
+
+  <!-- 업체 단순 교체 5~15 -->
+  <text x="138" y="238" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">업체 단순 교체(출장·공임 포함)</text>
+  <rect x="177" y="222" width="54" height="22" rx="11" fill="#b56749"/>
+  <text x="240" y="238" font-size="13" fill="#6b6459">5만~15만</text>
+
+  <!-- 타공 확장·천장 개방 동반 15~30 -->
+  <text x="138" y="296" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">타공 확장·천장 개방 동반</text>
+  <rect x="231" y="280" width="81" height="22" rx="11" fill="#a3624f"/>
+  <text x="321" y="296" font-size="13" fill="#6b6459">15만~30만</text>
+
+  <!-- 복합환풍기 60~100 -->
+  <text x="138" y="354" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">복합환풍기(제품+설치)</text>
+  <rect x="474" y="338" width="216" height="22" rx="11" fill="#7d5346"/>
+  <text x="582" y="333" font-size="13" fill="#6b6459">60만~100만</text>
+
+  <text x="40" y="446" font-size="12.5" fill="#8a8378">※ 같은 '환풍기 교체'인데 5만과 100만으로 갈립니다. 갈림길은 타공 크기·천장 내부 공간·전기 배선, 그리고 어떤 제품을 고르느냐입니다.</text>
+</svg>
