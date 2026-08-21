@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <rect width="800" height="400" fill="#fdfaf7"/>
+  <text x="40" y="46" font-size="22" font-weight="700" fill="#2d2a26">샷시 유리 교체 비용 — 유리 종류별 한 장 가격</text>
+  <text x="40" y="72" font-size="13" fill="#8a8378">600×900mm 한 장 유리값 기준 · 출장비·시공비 별도 (단위: 만원)</text>
+
+  <!-- grid : x = 150 + 만원*18 -->
+  <g stroke="#e8e2da" stroke-width="1">
+    <line x1="150" y1="95" x2="150" y2="315"/>
+    <line x1="258" y1="95" x2="258" y2="315"/>
+    <line x1="366" y1="95" x2="366" y2="315"/>
+    <line x1="474" y1="95" x2="474" y2="315"/>
+    <line x1="582" y1="95" x2="582" y2="315"/>
+    <line x1="690" y1="95" x2="690" y2="315"/>
+  </g>
+  <g font-size="12" fill="#a09888" text-anchor="middle">
+    <text x="150" y="338">0</text>
+    <text x="258" y="338">6만</text>
+    <text x="366" y="338">12만</text>
+    <text x="474" y="338">18만</text>
+    <text x="582" y="338">24만</text>
+    <text x="690" y="338">30만</text>
+  </g>
+
+  <!-- 단판 유리 2~4 -->
+  <text x="138" y="126" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">단판 유리(일반)</text>
+  <rect x="186" y="110" width="36" height="22" rx="7" fill="#c96f4a"/>
+  <text x="232" y="126" font-size="13" fill="#6b6459">2만~4만 (깨진 유리 원상복구용)</text>
+
+  <!-- 복층(페어)유리 7~15 -->
+  <text x="138" y="184" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">복층(페어)유리</text>
+  <rect x="276" y="168" width="144" height="22" rx="7" fill="#c96f4a"/>
+  <text x="430" y="184" font-size="13" fill="#6b6459">7만~15만 (아파트 외창 표준)</text>
+
+  <!-- 로이 복층유리 10~20+ -->
+  <text x="138" y="242" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">로이(Low-E) 복층유리</text>
+  <rect x="330" y="226" width="180" height="22" rx="7" fill="#b5573a"/>
+  <text x="520" y="242" font-size="13" fill="#6b6459">10만~20만+ (단열 업그레이드)</text>
+
+  <!-- 방범·접합 유리 15~30+ -->
+  <text x="138" y="300" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">방범·접합·방음 유리</text>
+  <rect x="420" y="284" width="270" height="22" rx="7" fill="#9c4a30"/>
+  <text x="555" y="277" font-size="13" fill="#6b6459" text-anchor="middle">15만~30만+ (특수 목적)</text>
+
+  <text x="40" y="378" font-size="12.5" fill="#8a8378">※ 실제 견적 빅데이터 기준 범위. 유리 크기·두께·층수(사다리차)에 따라 달라지며, 실제 청구액은 유리값 + 출장·시공비 구조입니다.</text>
+</svg>
