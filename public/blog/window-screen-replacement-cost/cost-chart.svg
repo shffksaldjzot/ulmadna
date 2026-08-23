@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <rect width="800" height="400" fill="#fdfaf7"/>
+  <text x="40" y="46" font-size="22" font-weight="700" fill="#2d2a26">방충망 교체 비용 — 종류별 창 한 짝 단가</text>
+  <text x="40" y="72" font-size="13" fill="#8a8378">업체 시공 기준 · 출장비 1만~3만원 별도 (단위: 만원)</text>
+
+  <!-- grid : x = 150 + 만원*21.6 -->
+  <g stroke="#e8e2da" stroke-width="1">
+    <line x1="150" y1="95" x2="150" y2="315"/>
+    <line x1="258" y1="95" x2="258" y2="315"/>
+    <line x1="366" y1="95" x2="366" y2="315"/>
+    <line x1="474" y1="95" x2="474" y2="315"/>
+    <line x1="582" y1="95" x2="582" y2="315"/>
+    <line x1="690" y1="95" x2="690" y2="315"/>
+  </g>
+  <g font-size="12" fill="#a09888" text-anchor="middle">
+    <text x="150" y="338">0</text>
+    <text x="258" y="338">5만</text>
+    <text x="366" y="338">10만</text>
+    <text x="474" y="338">15만</text>
+    <text x="582" y="338">20만</text>
+    <text x="690" y="338">25만</text>
+  </g>
+
+  <!-- 셀프 교체 재료비 0.5~3 -->
+  <text x="138" y="126" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">셀프 교체(재료비)</text>
+  <rect x="161" y="110" width="54" height="22" rx="7" fill="#d9a173"/>
+  <text x="225" y="126" font-size="13" fill="#6b6459">5천~3만 (망+가스켓+롤러)</text>
+
+  <!-- 일반 알루미늄·PE망 3~7 -->
+  <text x="138" y="184" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">일반망(알루미늄·PE)</text>
+  <rect x="215" y="168" width="86" height="22" rx="7" fill="#c96f4a"/>
+  <text x="311" y="184" font-size="13" fill="#6b6459">3만~7만 (16~18메쉬 기본형)</text>
+
+  <!-- 미세방충망 5~12 -->
+  <text x="138" y="242" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">미세방충망(모노필라멘트)</text>
+  <rect x="258" y="226" width="151" height="22" rx="7" fill="#b5573a"/>
+  <text x="419" y="242" font-size="13" fill="#6b6459">5만~12만 (24~30메쉬, 요즘 표준)</text>
+
+  <!-- 블랙스텐 10~25 -->
+  <text x="138" y="300" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">블랙스텐(스테인리스)망</text>
+  <rect x="366" y="284" width="324" height="22" rx="7" fill="#9c4a30"/>
+  <text x="528" y="277" font-size="13" fill="#6b6459" text-anchor="middle">10만~25만 (반영구, 반려동물 집)</text>
+
+  <text x="40" y="378" font-size="12.5" fill="#8a8378">※ 실제 시공 사례·견적 빅데이터 기준 범위. 창 크기(소형·중형·대형)와 지역, 모헤어 등 부자재 포함 여부에 따라 달라집니다.</text>
+</svg>
