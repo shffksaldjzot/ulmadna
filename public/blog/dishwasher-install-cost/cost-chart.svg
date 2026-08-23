@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" width="800" height="470" role="img" aria-label="식기세척기 설치 비용 상황별 범위 차트">
+  <style>
+    .t { font-family: -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; fill: #2b2622; }
+    .lab { font-size: 15px; font-weight: 600; }
+    .sub { font-size: 12px; fill: #7a6f66; }
+    .val { font-size: 13px; font-weight: 700; fill: #2b2622; }
+    .axis { font-size: 11px; fill: #9a8f86; }
+    .title { font-size: 18px; font-weight: 700; }
+  </style>
+  <rect width="800" height="470" fill="#fbf8f4"/>
+  <text x="32" y="38" class="t title">식기세척기 설치 비용 — 우리 집은 어느 구간?</text>
+  <text x="32" y="60" class="t sub">12~14인용 빌트인 기준 · 제품값 제외 · 실제 견적 빅데이터 1,000건+ 정리</text>
+
+  <!-- axis: 0 ~ 35만 → x 260..760 -->
+  <g class="t axis">
+    <line x1="260" y1="86" x2="260" y2="420" stroke="#e2d9d0"/>
+    <line x1="403" y1="86" x2="403" y2="420" stroke="#eee7df" stroke-dasharray="3 3"/>
+    <line x1="546" y1="86" x2="546" y2="420" stroke="#eee7df" stroke-dasharray="3 3"/>
+    <line x1="689" y1="86" x2="689" y2="420" stroke="#eee7df" stroke-dasharray="3 3"/>
+    <text x="260" y="438" text-anchor="middle">0원</text>
+    <text x="403" y="438" text-anchor="middle">10만</text>
+    <text x="546" y="438" text-anchor="middle">20만</text>
+    <text x="689" y="438" text-anchor="middle">30만</text>
+  </g>
+
+  <!-- 1. 규격장 있음 -->
+  <text x="32" y="118" class="t lab">① 600mm 규격장 있음</text>
+  <text x="32" y="136" class="t sub">제조사 기본 설치 · 보강 3만 수준</text>
+  <rect x="260" y="104" width="46" height="26" rx="6" fill="#c9a98f"/>
+  <text x="314" y="122" class="t val">0 ~ 3만원</text>
+
+  <!-- 2. 비규격장 -->
+  <text x="32" y="182" class="t lab">② 비규격장(장 절단·리폼)</text>
+  <text x="32" y="200" class="t sub">제조사 협력 9만~13만 / 사설 10만~30만</text>
+  <rect x="389" y="168" width="300" height="26" rx="6" fill="#b8654a"/>
+  <text x="389" y="216" class="t val">9만 ~ 30만원</text>
+
+  <!-- 3. 이전설치 (철거+설치 따로) -->
+  <text x="32" y="246" class="t lab">③ 이전설치 — 철거·설치 따로</text>
+  <text x="32" y="264" class="t sub">SK매직 8.6만 · LG 8.4만~9.5만 · 삼성 ~18.5만</text>
+  <rect x="380" y="232" width="150" height="26" rx="6" fill="#d98c6b"/>
+  <text x="380" y="280" class="t val">8.4만 ~ 18.5만원</text>
+
+  <!-- 4. 이전설치 원스톱 -->
+  <text x="32" y="310" class="t lab">④ 이전설치 — 제조사 원스톱(운송 포함)</text>
+  <text x="32" y="328" class="t sub">LG 13만~17.5만 · 삼성 13만+ (거리 할증)</text>
+  <rect x="446" y="296" width="150" height="26" rx="6" fill="#d98c6b"/>
+  <text x="446" y="344" class="t val">13만 ~ 20만원+</text>
+
+  <!-- 5. 사설 원스톱 + 장 리폼 -->
+  <text x="32" y="374" class="t lab">⑤ 사설 이전설치 + 하부장 리폼</text>
+  <text x="32" y="392" class="t sub">규격장 없으면 절단·재설치 포함</text>
+  <rect x="617" y="360" width="143" height="26" rx="6" fill="#8f4a34"/>
+  <text x="617" y="408" class="t val">25만 ~ 35만원</text>
+
+  <text x="32" y="458" class="t sub">* 주말·평일 18시 이후 +4천원(SK매직), 급수호스 연장 1.7만·브라켓 6천 등 부품비 별도</text>
+</svg>
