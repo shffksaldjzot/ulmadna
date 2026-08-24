@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 520" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="구옥 리모델링 비용 30평 기준 공사 범위별 가격 범위 — 부분수리 2,500만~4,500만, 실거주형 5,000만~8,000만, 내외부 전체 8,000만~1억2,000만, 비교용 30평대 구축 아파트 올수리 4,600만~6,900만">
+  <rect width="860" height="520" fill="#ffffff"/>
+  <text x="40" y="46" font-size="25" font-weight="700" fill="#2b2b2b">구옥 리모델링 비용 — 30평 단독주택 공사 범위별 (단위: 만원)</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">실제 견적 빅데이터 기준 · 지붕 골조·기초·정화조·마당은 별도 · 부가세 포함 여부 확인</text>
+
+  <!-- axis grid: 0 ~ 13,000 mapped to x 250 ~ 820 -->
+  <g stroke="#e6e6e6" stroke-width="1">
+    <line x1="250" y1="100" x2="250" y2="440"/>
+    <line x1="359.6" y1="100" x2="359.6" y2="440"/>
+    <line x1="469.2" y1="100" x2="469.2" y2="440"/>
+    <line x1="578.8" y1="100" x2="578.8" y2="440"/>
+    <line x1="688.5" y1="100" x2="688.5" y2="440"/>
+    <line x1="798" y1="100" x2="798" y2="440"/>
+  </g>
+  <g font-size="12" fill="#999" text-anchor="middle">
+    <text x="250" y="460">0</text>
+    <text x="359.6" y="460">2,500</text>
+    <text x="469.2" y="460">5,000</text>
+    <text x="578.8" y="460">7,500</text>
+    <text x="688.5" y="460">1억</text>
+    <text x="798" y="460">1억2,500</text>
+  </g>
+
+  <!-- 부분수리 2,500~4,500 : x 359.6 ~ 447.3 -->
+  <text x="235" y="146" font-size="15" font-weight="600" fill="#444" text-anchor="end">부분수리</text>
+  <text x="235" y="164" font-size="12" fill="#999" text-anchor="end">도배·바닥·싱크대·욕실</text>
+  <rect x="359.6" y="130" width="87.7" height="30" rx="6" fill="#E3B7A6"/>
+  <text x="455" y="151" font-size="15" font-weight="700" fill="#a8512f">2,500~4,500</text>
+
+  <!-- 실거주형 5,000~8,000 : x 469.2 ~ 600.7 -->
+  <text x="235" y="226" font-size="15" font-weight="600" fill="#444" text-anchor="end">실거주형 리모델링</text>
+  <text x="235" y="244" font-size="12" fill="#999" text-anchor="end">+단열·창호·배관·전기 교체</text>
+  <rect x="469.2" y="210" width="131.5" height="30" rx="6" fill="#C26B4A"/>
+  <text x="608" y="231" font-size="15" font-weight="700" fill="#a8512f">5,000~8,000</text>
+
+  <!-- 내외부 전체 8,000~12,000 : x 600.7 ~ 776.1 -->
+  <text x="235" y="306" font-size="15" font-weight="600" fill="#444" text-anchor="end">내·외부 전체</text>
+  <text x="235" y="324" font-size="12" fill="#999" text-anchor="end">+지붕·외벽·기초 보강</text>
+  <rect x="600.7" y="290" width="175.4" height="30" rx="6" fill="#8E3F22"/>
+  <text x="776" y="284" font-size="15" font-weight="700" fill="#8E3F22" text-anchor="end">8,000~1억2,000+</text>
+
+  <!-- 비교: 아파트 30평대 올수리 4,600~6,900 : x 451.7 ~ 552.6 -->
+  <line x1="250" y1="360" x2="820" y2="360" stroke="#dddddd" stroke-width="1" stroke-dasharray="4 4"/>
+  <text x="235" y="396" font-size="15" font-weight="600" fill="#666" text-anchor="end">비교) 구축 아파트 올수리</text>
+  <text x="235" y="414" font-size="12" fill="#999" text-anchor="end">30평대 · 샷시·도배·마루·주방·욕실 2</text>
+  <rect x="451.7" y="380" width="100.9" height="30" rx="6" fill="#BFC7CC"/>
+  <text x="560" y="401" font-size="15" font-weight="700" fill="#5d6b74">4,600~6,900</text>
+
+  <text x="40" y="500" font-size="13" fill="#8a8a8a">같은 30평인데 주택 '실거주형'이 아파트 올수리보다 위에 있는 이유 = 지붕·외벽 단열·땅속 배관·전기 승압이 주택에만 추가되기 때문</text>
+</svg>
