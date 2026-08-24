@@ -11,6 +11,12 @@ export const metadata: Metadata = {
   title: "얼마드나 — 무료 인테리어 견적 계산기 | 회원가입 없이 바로 사용",
   description: "평형, 자재 등급, 공정만 선택하면 인테리어 예상 견적이 바로 나옵니다. 회원가입·전화번호 입력 없이 완전 무료.",
   keywords: "인테리어 견적, 인테리어 비용, 리모델링 비용, 평당 가격, 인테리어 얼마",
+  // RSS 구독 주소를 <head>에 알림 — 구독 앱·크롤러가 자동으로 찾아감
+  alternates: {
+    types: {
+      "application/rss+xml": [{ url: "https://ulmadna.com/feed.xml", title: "얼마드나 블로그" }],
+    },
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "32x32" },

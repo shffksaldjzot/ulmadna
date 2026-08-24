@@ -34,7 +34,52 @@
 .blog-hero p{margin-top:12px;font-size:15.5px;color:var(--ink-2);line-height:1.55;}
 .blog-empty{padding:60px 0;text-align:center;color:var(--ink-3);font-size:15px;}
 
+/* ---- 검색창 ---- */
+/* 카드와 같은 흰 배경 + 베이지 테두리로 기존 카드 톤에 맞춤 */
+.blog-search{position:relative;display:flex;align-items:center;gap:9px;background:var(--card);
+  border:1.5px solid var(--beige-200);border-radius:999px;padding:0 16px;height:48px;
+  margin-bottom:14px;transition:border-color .15s,box-shadow .15s;}
+.blog-search:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(192,97,58,.12);}
+.blog-search-icon{font-size:14px;line-height:1;flex:none;opacity:.55;}
+.blog-search-input{flex:1;border:none;outline:none;background:transparent;font:inherit;
+  font-size:15px;color:var(--ink);min-width:0;}
+.blog-search-input::placeholder{color:var(--ink-3);}
+/* 브라우저가 기본으로 넣는 검색창 X 아이콘 제거(우리 버튼과 겹침) */
+.blog-search-input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none;}
+.blog-search-clear{flex:none;border:none;background:var(--beige-100);color:var(--ink-2);
+  width:24px;height:24px;border-radius:50%;font-size:17px;line-height:1;cursor:pointer;
+  display:grid;place-items:center;padding:0;transition:.14s;}
+.blog-search-clear:hover{background:var(--beige-200);color:var(--brown-700);}
+
+/* ---- 카테고리 칩 ---- */
+/* 모바일에서 줄바꿈 대신 가로 스크롤(한 줄 유지) */
+.blog-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;}
+.blog-chip{flex:none;font-size:13px;font-weight:700;color:var(--brown-600);background:var(--card);
+  border:1.5px solid var(--beige-200);border-radius:999px;padding:8px 15px;cursor:pointer;
+  white-space:nowrap;transition:.14s;font-family:inherit;line-height:1;}
+.blog-chip:hover{border-color:var(--brown-300);color:var(--brown-700);}
+.blog-chip.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+/* 결과 수 — 거를 때만 짧게 */
+.blog-filter-count{font-size:13px;font-weight:700;color:var(--ink-3);margin-bottom:16px;}
+/* 결과 0건 */
+.blog-search-empty{padding:52px 0 64px;text-align:center;color:var(--ink-2);font-size:15px;line-height:1.7;word-break:keep-all;}
+.blog-search-empty a{color:var(--accent);font-weight:800;text-decoration:none;white-space:nowrap;}
+.blog-search-empty a:hover{text-decoration:underline;}
+
 .blog-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;padding-bottom:64px;}
+/* 아래에 더보기 버튼이 붙는 경우 여백을 줄임 */
+.blog-grid.has-more{padding-bottom:28px;}
+
+/* ---- 더보기 버튼 ---- */
+.blog-more{display:flex;justify-content:center;padding-bottom:64px;}
+.blog-more-btn{display:inline-flex;align-items:center;gap:8px;font-family:inherit;
+  font-size:15px;font-weight:800;color:var(--brown-700);background:var(--card);
+  border:1.5px solid var(--beige-200);border-radius:999px;padding:13px 28px;cursor:pointer;
+  transition:.15s;box-shadow:0 1px 3px rgba(92,58,30,.05);}
+.blog-more-btn:hover{border-color:var(--accent);color:var(--accent);
+  box-shadow:0 8px 20px rgba(92,58,30,.12);}
+.blog-more-left{font-size:12.5px;font-weight:600;color:var(--ink-3);}
 .blog-card{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--beige-200);
   border-radius:16px;overflow:hidden;text-decoration:none;
   box-shadow:0 1px 3px rgba(92,58,30,.05);transition:transform .2s ease,box-shadow .2s ease,border-color .2s;}
@@ -95,6 +140,25 @@
 .blog-related-title{font-size:14px;font-weight:700;color:var(--ink);line-height:1.4;letter-spacing:-0.01em;word-break:keep-all;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .blog-related-card:hover .blog-related-title{color:var(--accent);}
+
+/* ---- 이전 글 / 다음 글 ---- */
+/* PC는 좌우 2칸, 모바일은 위아래 2줄로 쌓임 */
+.blog-prevnext{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:44px;
+  padding-top:30px;border-top:1px solid var(--beige-200);}
+.blog-pn{display:flex;flex-direction:column;gap:7px;text-decoration:none;background:var(--card);
+  border:1px solid var(--beige-200);border-radius:14px;padding:16px 18px;
+  transition:transform .18s,box-shadow .18s,border-color .18s;}
+.blog-pn:hover{transform:translateY(-3px);border-color:var(--brown-300);
+  box-shadow:0 10px 24px rgba(92,58,30,.12);}
+.blog-pn-label{font-size:11.5px;font-weight:800;color:var(--accent);letter-spacing:.02em;}
+.blog-pn-title{font-size:14.5px;font-weight:700;color:var(--ink);line-height:1.45;
+  letter-spacing:-0.01em;word-break:keep-all;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.blog-pn:hover .blog-pn-title{color:var(--accent);}
+/* 다음 글 칸은 오른쪽 정렬(방향감) */
+.blog-pn-next{text-align:right;align-items:flex-end;}
+/* 한쪽이 없을 때(첫 글·마지막 글) 빈 칸 유지용 */
+.blog-pn-blank{border:none;background:none;}
 
 /* ---- blog detail ---- */
 .blog-article{max-width:720px;padding-top:28px;padding-bottom:70px;}
@@ -250,13 +314,33 @@
 .live-visitors b{color:var(--accent);font-size:15px;}
 .live-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;animation:livePulse 1.8s infinite;}
 @keyframes livePulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.45)}70%{box-shadow:0 0 0 7px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
-.site-foot-nav{display:flex;gap:18px;}
+.site-foot-nav{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;}
 .site-foot-nav a{font-size:13px;font-weight:700;color:var(--brown-600);text-decoration:none;}
 .site-foot-nav a:hover{color:var(--accent);}
+/* RSS 구독 링크 — 작은 아이콘 + 글자 */
+.site-foot-rss{display:inline-flex;align-items:center;gap:5px;}
+.site-foot-rss svg{width:12px;height:12px;fill:currentColor;flex:none;}
 .site-foot-note{font-size:12px;color:var(--ink-3);line-height:1.6;max-width:440px;word-break:keep-all;}
 
 /* ---- mobile ---- */
 @media (max-width:880px){ .blog-grid{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:560px){
+  /* 검색·칩 — 모바일에서 조금 더 촘촘하게 */
+  .blog-search{height:46px;padding:0 14px;}
+  .blog-search-input{font-size:15px;}
+  /* 칩은 줄바꿈 대신 옆으로 밀어 보기(한 줄 유지) */
+  .blog-chips{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;margin-left:calc(-1*var(--pad));margin-right:calc(-1*var(--pad));
+    padding:2px var(--pad) 4px;}
+  .blog-chips::-webkit-scrollbar{display:none;}
+  .blog-chip{font-size:12.5px;padding:8px 13px;}
+  .blog-more{padding-bottom:52px;}
+  .blog-more-btn{width:100%;justify-content:center;}
+  /* 이전·다음 글 — 위아래 2줄로 쌓임 */
+  .blog-prevnext{grid-template-columns:1fr;gap:10px;margin-top:34px;padding-top:24px;}
+  .blog-pn-next{text-align:left;align-items:flex-start;}
+  .blog-pn-blank{display:none;}
+}
 @media (max-width:560px){
   .blog-scope .hdr-in{height:58px;}
   .blog-scope .logo-img{height:38px;}

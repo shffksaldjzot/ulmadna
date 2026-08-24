@@ -29,7 +29,13 @@ export async function generateMetadata({
   return {
     title: `${post.title} — 얼마드나`,
     description: post.description,
-    alternates: { canonical: `${SITE}/blog/${post.slug}` },
+    alternates: {
+      canonical: `${SITE}/blog/${post.slug}`,
+      // 글 페이지에서도 RSS 구독 주소를 알림 (layout.tsx 설정이 덮어써지므로 여기도 명시)
+      types: {
+        "application/rss+xml": [{ url: `${SITE}/feed.xml`, title: "얼마드나 블로그" }],
+      },
+    },
     openGraph: {
       title: post.title,
       description: post.description,
@@ -54,8 +60,16 @@ export default async function BlogPost({
   const post = await getPost(slug);
   if (!post) notFound();
 
+  const allPosts = getAllPostMeta();
+
+  // 이전 글 / 다음 글 — 목록은 최신(글 번호 큰 것)이 앞이라
+  // 배열에서 뒤쪽(+1)이 더 예전 글 = "이전 글", 앞쪽(-1)이 더 최신 글 = "다음 글"
+  const myIdx = allPosts.findIndex((p) => p.slug === post.slug);
+  const prevPost = myIdx >= 0 ? allPosts[myIdx + 1] ?? null : null; // 더 예전 글
+  const nextPost = myIdx > 0 ? allPosts[myIdx - 1] ?? null : null; // 더 최신 글
+
   // 관련글 — 공유 태그 많은 순, 없으면 최신, 최대 3
-  const related = getAllPostMeta()
+  const related = allPosts
     .filter((p) => p.slug !== post.slug)
     .map((p) => ({ p, shared: p.tags.filter((t) => post.tags.includes(t)).length }))
     .sort((a, b) => b.shared - a.shared || (a.p.date < b.p.date ? 1 : -1))
@@ -195,6 +209,28 @@ export default async function BlogPost({
               ))}
             </div>
           </section>
+        )}
+
+        {/* 이전 글 / 다음 글 — 다 읽고 바로 옆 글로 넘어가게 */}
+        {(prevPost || nextPost) && (
+          <nav className="blog-prevnext" aria-label="이전 글 다음 글">
+            {prevPost ? (
+              <Link href={`/blog/${prevPost.slug}`} className="blog-pn blog-pn-prev">
+                <span className="blog-pn-label">← 이전 글</span>
+                <span className="blog-pn-title">{prevPost.title}</span>
+              </Link>
+            ) : (
+              <span className="blog-pn blog-pn-blank" aria-hidden="true" />
+            )}
+            {nextPost ? (
+              <Link href={`/blog/${nextPost.slug}`} className="blog-pn blog-pn-next">
+                <span className="blog-pn-label">다음 글 →</span>
+                <span className="blog-pn-title">{nextPost.title}</span>
+              </Link>
+            ) : (
+              <span className="blog-pn blog-pn-blank" aria-hidden="true" />
+            )}
+          </nav>
         )}
       </article>
 

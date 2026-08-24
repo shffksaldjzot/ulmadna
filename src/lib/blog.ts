@@ -13,6 +13,7 @@ import remarkGfm from "remark-gfm";
 import remarkRehype from "remark-rehype";
 import rehypeRaw from "rehype-raw";
 import rehypeStringify from "rehype-stringify";
+import { detectCategories, normalizeKo } from "./blog-categories";
 
 const BLOG_DIR = path.join(process.cwd(), "content", "blog");
 
@@ -47,10 +48,16 @@ export interface Post extends PostMeta {
 const calcReadingTime = (content: string) =>
   Math.max(1, Math.round(content.replace(/\s+/g, "").length / 450));
 
+// 파일 하나를 읽어 프런트매터(data)와 본문(content)을 같이 돌려줌
+// (메타만 쓸 때도, 소제목까지 뽑을 때도 같은 함수를 쓰려고 분리)
+function readRaw(file: string) {
+  const raw = fs.readFileSync(path.join(BLOG_DIR, file), "utf8");
+  return matter(raw);
+}
+
 function readMeta(file: string): PostMeta {
   const slug = file.replace(/\.md$/, "");
-  const raw = fs.readFileSync(path.join(BLOG_DIR, file), "utf8");
-  const { data, content } = matter(raw);
+  const { data, content } = readRaw(file);
   return {
     postNo: typeof data.postNo === "number" ? data.postNo : null,
     slug,
@@ -77,6 +84,44 @@ export function getAllPostMeta(): PostMeta[] {
       if (b.postNo != null) return 1;
       return a.date < b.date ? 1 : -1;
     });
+}
+
+/**
+ * 목록 페이지용 "검색 색인" — 메타 + 카테고리 + 검색용 글자 덩어리
+ *
+ * 본문 전문은 절대 넣지 않습니다(65편 전문이면 수 MB라 페이지가 무거워짐).
+ * 대신 제목·설명·태그·H2 소제목만 모아 한 줄로 붙이고, 띄어쓰기를 지운
+ * "hay"를 빌드 때 미리 만들어 둡니다. 브라우저는 이걸 훑기만 하면 됩니다.
+ */
+export interface PostIndexItem extends PostMeta {
+  cats: string[]; // 이 글이 속한 카테고리 id 목록
+  hay: string; // 검색 대조용 (이미 정규화됨)
+}
+
+export function getAllPostIndex(): PostIndexItem[] {
+  if (!fs.existsSync(BLOG_DIR)) return [];
+  const files = fs.readdirSync(BLOG_DIR).filter((f) => f.endsWith(".md"));
+
+  const items = files.map((file): PostIndexItem => {
+    const meta = readMeta(file);
+    const { content } = readRaw(file);
+    // 마크다운 본문에서 H2(## 로 시작하는 줄)만 뽑음 = 글의 소제목들
+    const headings = Array.from(content.matchAll(/^##\s+(.+)$/gm)).map((m) =>
+      m[1].replace(/[*_`#]/g, "").trim()
+    );
+    const hay = normalizeKo(
+      [meta.title, meta.description, meta.tags.join(" "), headings.join(" ")].join(" ")
+    );
+    return { ...meta, cats: detectCategories(meta.title, meta.tags), hay };
+  });
+
+  // 목록과 같은 순서(최신 글이 위)로 정렬
+  return items.sort((a, b) => {
+    if (a.postNo != null && b.postNo != null) return b.postNo - a.postNo;
+    if (a.postNo != null) return -1;
+    if (b.postNo != null) return 1;
+    return a.date < b.date ? 1 : -1;
+  });
 }
 
 /** 정적 생성용 slug 목록 */
