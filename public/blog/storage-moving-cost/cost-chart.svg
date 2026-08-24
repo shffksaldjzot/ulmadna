@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" width="800" height="470" role="img" aria-label="보관이사 비용 평형별 총액 범위 차트 (1개월 보관 기준)">
+  <style>
+    .t { font-family: -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; fill: #2b2622; }
+    .lab { font-size: 15px; font-weight: 600; }
+    .sub { font-size: 12px; fill: #7a6f66; }
+    .val { font-size: 13px; font-weight: 700; fill: #2b2622; }
+    .axis { font-size: 11px; fill: #9a8f86; }
+    .title { font-size: 18px; font-weight: 700; }
+  </style>
+  <rect width="800" height="470" fill="#fbf8f4"/>
+  <text x="32" y="38" class="t title">보관이사 비용 — 평형별 총액 (1차 이사 + 1개월 보관 + 2차 이사)</text>
+  <text x="32" y="60" class="t sub">사다리차 왕복 포함 · 부가세 별도 · 실제 견적 빅데이터 1,000건+ 정리</text>
+
+  <!-- axis: 0 ~ 500만 → x 260..760 (1px = 1만) -->
+  <g class="t axis">
+    <line x1="260" y1="86" x2="260" y2="420" stroke="#e2d9d0"/>
+    <line x1="360" y1="86" x2="360" y2="420" stroke="#eee7df" stroke-dasharray="3 3"/>
+    <line x1="460" y1="86" x2="460" y2="420" stroke="#eee7df" stroke-dasharray="3 3"/>
+    <line x1="560" y1="86" x2="560" y2="420" stroke="#eee7df" stroke-dasharray="3 3"/>
+    <line x1="660" y1="86" x2="660" y2="420" stroke="#eee7df" stroke-dasharray="3 3"/>
+    <line x1="760" y1="86" x2="760" y2="420" stroke="#eee7df" stroke-dasharray="3 3"/>
+    <text x="260" y="438" text-anchor="middle">0원</text>
+    <text x="360" y="438" text-anchor="middle">100만</text>
+    <text x="460" y="438" text-anchor="middle">200만</text>
+    <text x="560" y="438" text-anchor="middle">300만</text>
+    <text x="660" y="438" text-anchor="middle">400만</text>
+    <text x="760" y="438" text-anchor="middle">500만</text>
+  </g>
+
+  <!-- 1. 1톤 원룸 -->
+  <text x="32" y="118" class="t lab">① 원룸 · 1톤</text>
+  <text x="32" y="136" class="t sub">편도 48만~60만 ×2 + 보관 월 18만~30만</text>
+  <rect x="380" y="104" width="50" height="26" rx="6" fill="#c9a98f"/>
+  <text x="438" y="122" class="t val">120만 ~ 150만원</text>
+
+  <!-- 2. 25평/59타입 -->
+  <text x="32" y="182" class="t lab">② 25평/59타입 · 5톤</text>
+  <text x="32" y="200" class="t sub">편도 110만~150만 ×2 + 보관 일 1만 안팎</text>
+  <rect x="500" y="168" width="90" height="26" rx="6" fill="#d98c6b"/>
+  <text x="598" y="186" class="t val">240만 ~ 330만원</text>
+
+  <!-- 3. 30평/74타입 -->
+  <text x="32" y="246" class="t lab">③ 30평/74타입 · 5톤+1톤</text>
+  <text x="32" y="264" class="t sub">편도 120만~160만 ×2 + 보관 일 1만~1.5만</text>
+  <rect x="530" y="232" width="90" height="26" rx="6" fill="#cf7a58"/>
+  <text x="628" y="250" class="t val">270만 ~ 360만원</text>
+
+  <!-- 4. 34평/84타입 -->
+  <text x="32" y="310" class="t lab">④ 34평/84타입 · 6~7톤</text>
+  <text x="32" y="328" class="t sub">편도 160만~220만 ×2 + 보관 일 1.5만~2만</text>
+  <rect x="580" y="296" width="130" height="26" rx="6" fill="#b8654a"/>
+  <text x="580" y="344" class="t val">320만 ~ 450만원</text>
+
+  <!-- 5. 비교: 일반 포장이사 1회 (34평) -->
+  <text x="32" y="382" class="t lab">참고 · 34평 일반 포장이사 1회</text>
+  <text x="32" y="400" class="t sub">보관이사는 이 금액의 약 1.8~2배 + 보관료</text>
+  <rect x="420" y="368" width="60" height="26" rx="6" fill="#e2d9d0"/>
+  <text x="488" y="386" class="t val">160만 ~ 220만원</text>
+</svg>
