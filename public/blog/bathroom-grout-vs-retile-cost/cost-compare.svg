@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 440" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <rect width="800" height="440" fill="#fdfaf7"/>
+  <text x="40" y="46" font-size="22" font-weight="700" fill="#2d2a26">욕실 1칸 — 줄눈 재시공 vs 부분 타일 교체 vs 덧방 vs 올철거</text>
+  <text x="40" y="72" font-size="13" fill="#8a8378">실제 견적 빅데이터 기준 · 자재+공임 포함 · 도기 제외 (단위: 만원)</text>
+
+  <!-- grid : x = 170 + 만원*1.2 (0~500) -->
+  <g stroke="#e8e2da" stroke-width="1">
+    <line x1="170" y1="95" x2="170" y2="355"/>
+    <line x1="290" y1="95" x2="290" y2="355"/>
+    <line x1="410" y1="95" x2="410" y2="355"/>
+    <line x1="530" y1="95" x2="530" y2="355"/>
+    <line x1="650" y1="95" x2="650" y2="355"/>
+    <line x1="770" y1="95" x2="770" y2="355"/>
+  </g>
+  <g font-size="12" fill="#a09888" text-anchor="middle">
+    <text x="170" y="378">0</text>
+    <text x="290" y="378">100만</text>
+    <text x="410" y="378">200만</text>
+    <text x="530" y="378">300만</text>
+    <text x="650" y="378">400만</text>
+    <text x="770" y="378">500만+</text>
+  </g>
+
+  <!-- 줄눈 재시공 10~40 -->
+  <text x="158" y="128" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">줄눈 재시공(바닥)</text>
+  <rect x="182" y="112" width="36" height="22" rx="7" fill="#c96f4a"/>
+  <text x="228" y="128" font-size="13" fill="#6b6459">10만~40만 (폴리우레아 10~20 · 에폭시 30~40)</text>
+
+  <!-- 부분 타일 교체 15~40, 면 단위 ~150 -->
+  <text x="158" y="192" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">부분 타일 교체</text>
+  <rect x="188" y="176" width="30" height="22" rx="7" fill="#d9946f"/>
+  <rect x="218" y="181" width="132" height="12" rx="6" fill="#efc9b3"/>
+  <text x="360" y="192" font-size="13" fill="#6b6459">15만~40만 (1~3장) · 면 단위 40만~150만</text>
+
+  <!-- 덧방 230~450 (도기 포함 패키지) -->
+  <text x="158" y="256" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">타일 덧방(리모델링)</text>
+  <rect x="446" y="240" width="264" height="22" rx="7" fill="#8c6a5a"/>
+  <text x="446" y="282" font-size="13" fill="#6b6459">230만~450만 (도기·천장 포함 패키지 · 타일만이면 180만~)</text>
+
+  <!-- 올철거 400~ -->
+  <text x="158" y="330" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">올철거+방수</text>
+  <rect x="650" y="314" width="120" height="22" rx="7" fill="#5c4a40"/>
+  <text x="650" y="356" font-size="13" fill="#6b6459" text-anchor="start">400만~800만 (누수·들뜸 광범위 시 유일한 선택)</text>
+
+  <text x="40" y="418" font-size="12" fill="#a09888">※ 줄눈 재시공과 덧방의 가격 차이는 약 10~20배. 판단 기준은 "타일이 살아 있는가"입니다.</text>
+</svg>
