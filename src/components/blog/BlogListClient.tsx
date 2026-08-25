@@ -16,15 +16,10 @@ import Link from "next/link";
 import type { PostIndexItem } from "@/lib/blog";
 import { BLOG_CATEGORIES } from "@/lib/blog-categories";
 import { matchesQuery, normalizeKo } from "@/lib/blog-search";
+import { PostCard, fmtDate } from "./PostCard";
 
 /** "더보기" 한 번에 더 나오는 글 수 */
 const PAGE_SIZE = 18;
-
-/** 2026-01-02 → 2026.01.02 */
-function fmtDate(d: string) {
-  if (!d) return "";
-  return d.replaceAll("-", ".");
-}
 
 export function BlogListClient({ posts }: { posts: PostIndexItem[] }) {
   const [q, setQ] = useState(""); // 검색창에 친 글자
@@ -71,8 +66,10 @@ export function BlogListClient({ posts }: { posts: PostIndexItem[] }) {
     window.history.pushState(null, "", qs ? `?${qs}` : window.location.pathname);
   };
 
+  // 검색어를 치고 있는 중인가 (칩을 링크로 낼지 버튼으로 낼지 가르는 기준)
+  const searching = q.trim().length > 0;
   // 검색어나 칩 중 하나라도 쓰고 있으면 "거르는 중"
-  const filtering = q.trim().length > 0 || cat.length > 0;
+  const filtering = searching || cat.length > 0;
 
   // 실제로 화면에 보여줄 글 목록
   const filtered = useMemo(() => {
@@ -117,28 +114,54 @@ export function BlogListClient({ posts }: { posts: PostIndexItem[] }) {
         )}
       </div>
 
-      {/* 카테고리 칩 — 누르면 그 주제 글만 */}
-      <div className="blog-chips" role="group" aria-label="카테고리">
-        <button
-          type="button"
-          className={`blog-chip${cat === "" ? " on" : ""}`}
-          aria-pressed={cat === ""}
-          onClick={() => pickCat("")}
-        >
-          전체
-        </button>
-        {BLOG_CATEGORIES.map((c) => (
+      {/*
+        카테고리 칩 — 상황에 따라 성격이 바뀝니다.
+
+        (1) 검색어를 안 쳤을 때  → 진짜 링크(<a>)로 카테고리 허브 페이지로 이동
+            이유: 버튼으로 화면만 거르면 검색엔진은 링크가 없으니 허브 8장을 못 찾습니다.
+                  첫 화면(검색어 없음)에서 링크로 그려야 크롤러가 그대로 따라 들어갑니다.
+        (2) 검색어를 치는 중일 때 → 예전처럼 버튼(화면 안에서 거르기)
+            이유: 애써 친 검색어를 두고 다른 페이지로 튕겨 보내면 흐름이 끊깁니다.
+                  "욕실 + 34평"처럼 검색어와 주제를 겹쳐 좁히는 것도 이쪽이 자연스럽습니다.
+      */}
+      {searching ? (
+        <div className="blog-chips" role="group" aria-label="카테고리">
           <button
-            key={c.id}
             type="button"
-            className={`blog-chip${cat === c.id ? " on" : ""}`}
-            aria-pressed={cat === c.id}
-            onClick={() => pickCat(c.id)}
+            className={`blog-chip${cat === "" ? " on" : ""}`}
+            aria-pressed={cat === ""}
+            onClick={() => pickCat("")}
           >
-            {c.label}
+            전체
           </button>
-        ))}
-      </div>
+          {BLOG_CATEGORIES.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              className={`blog-chip${cat === c.id ? " on" : ""}`}
+              aria-pressed={cat === c.id}
+              onClick={() => pickCat(c.id)}
+            >
+              {c.label}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="blog-chips" role="group" aria-label="카테고리">
+          <Link href="/blog" className={`blog-chip${cat === "" ? " on" : ""}`}>
+            전체
+          </Link>
+          {BLOG_CATEGORIES.map((c) => (
+            <Link
+              key={c.id}
+              href={`/blog/category/${c.id}`}
+              className={`blog-chip${cat === c.id ? " on" : ""}`}
+            >
+              {c.label}
+            </Link>
+          ))}
+        </div>
+      )}
 
       {/* 거르는 중엔 결과 수만 짧게 */}
       {filtering && filtered.length > 0 && <p className="blog-filter-count">{filtered.length}편</p>}
@@ -178,25 +201,7 @@ export function BlogListClient({ posts }: { posts: PostIndexItem[] }) {
       {gridPosts.length > 0 && (
         <div className={`blog-grid${hasMore ? " has-more" : ""}`}>
           {gridPosts.map((p) => (
-            <Link key={p.slug} href={`/blog/${p.slug}`} className="blog-card">
-              <div className="blog-card-thumb">
-                {p.thumbnail ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={p.thumbnail} alt={p.title} />
-                ) : (
-                  <span className="blog-card-noimg">얼마드나</span>
-                )}
-                {p.postNo != null && <span className="blog-card-no">No.{p.postNo}</span>}
-              </div>
-              <div className="blog-card-body">
-                {p.tags.length > 0 && <span className="blog-card-tag">{p.tags[0]}</span>}
-                <h2>{p.title}</h2>
-                <p className="blog-card-desc">{p.description}</p>
-                <span className="blog-card-date">
-                  {fmtDate(p.date)} <span className="blog-readtime">· ⏱ {p.readingTime}분</span>
-                </span>
-              </div>
-            </Link>
+            <PostCard key={p.slug} post={p} />
           ))}
         </div>
       )}

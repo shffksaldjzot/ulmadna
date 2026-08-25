@@ -126,6 +126,40 @@
 .blog-toc a:hover{color:var(--accent);text-decoration:underline;}
 .blog-body h2{scroll-margin-top:70px;} /* 앵커 이동 시 헤더 가림 방지 */
 
+/* ---- 목차: 모바일 접이식 ---- */
+/* details/summary — JS 없이 접었다 폈다. 기본은 접힘 */
+.blog-toc-mobile{padding:0;overflow:hidden;}
+.blog-toc-mobile>summary{list-style:none;cursor:pointer;padding:14px 18px;margin:0;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.blog-toc-mobile>summary::-webkit-details-marker{display:none;}
+/* 오른쪽 화살표 — 펼치면 뒤집힘 */
+.blog-toc-mobile>summary::after{content:"▾";font-size:12px;color:var(--brown-500);transition:transform .18s;}
+.blog-toc-mobile[open]>summary::after{transform:rotate(180deg);}
+.blog-toc-mobile>ol{padding:0 22px 16px 40px;}
+
+/* ---- 목차: PC 오른쪽 고정 ---- */
+/* 1100px 미만에서는 통째로 감춤(모바일은 위 접이식 목차를 씀) */
+.blog-toc-side{display:none;}
+
+/* ---- 길잡이(브레드크럼) ---- */
+.blog-crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:4px;
+  font-size:12.5px;color:var(--ink-3);padding:18px 0 6px;}
+.blog-crumb{display:inline-flex;align-items:center;gap:4px;min-width:0;}
+.blog-crumb a{color:var(--brown-600);text-decoration:none;font-weight:700;}
+.blog-crumb a:hover{color:var(--accent);text-decoration:underline;}
+.blog-crumb-sep{color:var(--brown-300);}
+/* 마지막 칸(지금 페이지) — 길면 한 줄로 잘라냄 */
+.blog-crumb-now{color:var(--ink-3);max-width:min(420px,60vw);overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;}
+
+/* ---- 카테고리 허브 ---- */
+.blog-hero-hub{padding-top:16px;}
+.blog-hub-intro{max-width:760px;font-size:15px;line-height:1.75;color:var(--ink-2);word-break:keep-all;}
+.blog-cta-hub{margin-top:8px;}
+/* 허브의 칩은 링크(<a>)라 글자 색·밑줄을 버튼과 같게 맞춰줌 */
+.blog-scope a.blog-chip{display:inline-flex;align-items:center;text-decoration:none;}
+.blog-scope a.blog-chip.on{color:#fff;}
+
 /* ---- 광고(애드센스) ---- */
 .blog-ad{margin:34px 0;display:flex;justify-content:center;min-height:90px;overflow:hidden;}
 .blog-ad .adsbygoogle{width:100%;}
@@ -140,6 +174,10 @@
 .blog-related-title{font-size:14px;font-weight:700;color:var(--ink);line-height:1.4;letter-spacing:-0.01em;word-break:keep-all;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .blog-related-card:hover .blog-related-title{color:var(--accent);}
+/* 같은 주제 전체 보기 링크 */
+.blog-related-more{display:inline-block;margin-top:18px;font-size:13.5px;font-weight:800;
+  color:var(--accent);text-decoration:none;}
+.blog-related-more:hover{text-decoration:underline;}
 
 /* ---- 이전 글 / 다음 글 ---- */
 /* PC는 좌우 2칸, 모바일은 위아래 2줄로 쌓임 */
@@ -372,4 +410,42 @@
   .blog-body td:first-child,.blog-body th:first-child{width:24%;}
   .blog-cta{flex-direction:column;align-items:flex-start;padding:22px;}
   .blog-cta-btn{width:100%;text-align:center;}
+  /* 길잡이 — 모바일에서는 좀 더 촘촘하게 */
+  .blog-crumbs{font-size:12px;padding:14px 0 4px;}
+  .blog-crumb-now{max-width:52vw;}
+  .blog-hub-intro{font-size:14px;line-height:1.7;}
+}
+
+/* ---- 태블릿 이상: 관련글 4칸 ---- */
+/* (위쪽 560px 모바일 규칙보다 뒤에 있으므로, 모바일 1칸 규칙을 덮지 않도록 min-width로 감쌈) */
+@media (min-width:561px){
+  .blog-related-list{grid-template-columns:repeat(4,1fr);gap:14px;}
+}
+
+/* ============================================================
+   PC 넓은 화면(1100px 이상) — 본문 오른쪽에 따라다니는 목차
+   본문 폭(720px)은 그대로 두고, 남는 자리에 목차 칸(236px)을 붙입니다.
+   ============================================================ */
+@media (min-width:1100px){
+  /* 두 칸을 담기 위해 바깥 틀만 넓힘 (본문 폭은 .blog-main이 720으로 지킴) */
+  .blog-article{max-width:var(--maxw);}
+  .blog-layout{display:grid;grid-template-columns:minmax(0,720px) 236px;
+    gap:44px;justify-content:center;align-items:start;}
+  .blog-main{min-width:0;}
+  /* 모바일용 접이식 목차는 이 폭에서 숨김 */
+  .blog-toc-mobile{display:none;}
+  /* 오른쪽 목차 — 스크롤을 내려도 헤더 밑에 붙어 따라옴 */
+  .blog-toc-side{display:block;position:sticky;top:86px;}
+  .blog-toc-side-in{background:var(--beige-50);border:1px solid var(--beige-200);
+    border-radius:12px;padding:16px 16px 16px 18px;
+    max-height:calc(100vh - 120px);overflow-y:auto;}
+  .blog-toc-side-in .blog-toc-title{margin-bottom:10px;}
+  .blog-toc-side ol{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:2px;}
+  .blog-toc-side li{font-size:13px;line-height:1.45;}
+  .blog-toc-side a{display:block;padding:6px 8px;border-radius:7px;color:var(--ink-2);
+    text-decoration:none;word-break:keep-all;border-left:2px solid transparent;transition:.14s;}
+  .blog-toc-side a:hover{color:var(--brown-700);background:var(--beige-100);}
+  /* 지금 읽고 있는 소제목 */
+  .blog-toc-side li.on>a{color:var(--accent);font-weight:800;background:#F6E7DD;
+    border-left-color:var(--accent);}
 }

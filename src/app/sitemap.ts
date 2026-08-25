@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { getAllPostMeta } from '@/lib/blog';
+import { BLOG_CATEGORIES } from '@/lib/blog-categories';
 
 const SITE = 'https://ulmadna.com';
 
@@ -25,6 +26,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE}/contact`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
     { url: `${SITE}/terms`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
     { url: `${SITE}/privacy`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
+    // 카테고리 허브 8장 — 주제별 모음 페이지 (글 목록 다음으로 중요한 색인 대상)
+    ...BLOG_CATEGORIES.map((c) => ({
+      url: `${SITE}/blog/category/${c.id}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    })),
     // 블로그 글 각각 (발행일을 lastModified로)
     ...posts.map((p) => ({
       url: `${SITE}/blog/${p.slug}`,
