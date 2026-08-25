@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" font-family="'Pretendard','Apple SD Gothic Neo','Noto Sans KR',sans-serif" role="img" aria-label="전동 블라인드 가격 창 하나 기준 방식별 비교 차트">
+  <rect width="800" height="470" fill="#fffdf9"/>
+  <text x="40" y="44" font-size="20" font-weight="700" fill="#2b2523">전동 블라인드·전동 커튼 가격 — 창 하나 기준 (만원)</text>
+  <text x="40" y="68" font-size="13" fill="#7a716c">실제 견적·시공 데이터 기준 · 원단·제품 포함, 배선 공사비 별도</text>
+
+  <!-- axis -->
+  <line x1="290" y1="90" x2="290" y2="400" stroke="#d9d2cc" stroke-width="1"/>
+  <g font-size="11" fill="#9a918b">
+    <text x="290" y="416" text-anchor="middle">0</text>
+    <text x="410" y="416" text-anchor="middle">30</text>
+    <text x="530" y="416" text-anchor="middle">60</text>
+    <text x="650" y="416" text-anchor="middle">90</text>
+    <text x="770" y="416" text-anchor="middle">120</text>
+  </g>
+  <g stroke="#efe9e3" stroke-width="1">
+    <line x1="410" y1="90" x2="410" y2="400"/>
+    <line x1="530" y1="90" x2="530" y2="400"/>
+    <line x1="650" y1="90" x2="650" y2="400"/>
+    <line x1="770" y1="90" x2="770" y2="400"/>
+  </g>
+
+  <!-- 4px per 만원 -->
+  <!-- 1. 수동 블라인드 전동화(모터만) 3~5 -->
+  <text x="280" y="116" font-size="13" text-anchor="end" fill="#2b2523">기존 수동 블라인드 전동화(모터만)</text>
+  <rect x="302" y="102" width="8" height="20" rx="4" fill="#c9bfb7"/>
+  <text x="318" y="116" font-size="12" fill="#5c534e">3만~5만</text>
+
+  <!-- 2. 셀프 전동커튼 풀세트 33 -->
+  <text x="280" y="160" font-size="13" text-anchor="end" fill="#2b2523">셀프 전동커튼(모터+전동레일+원단)</text>
+  <rect x="290" y="146" width="132" height="20" rx="4" fill="#c9bfb7"/>
+  <text x="430" y="160" font-size="12" fill="#5c534e">33만</text>
+
+  <!-- 3. 업체 수동커튼 시공 10~30 -->
+  <text x="280" y="204" font-size="13" text-anchor="end" fill="#2b2523">업체 수동커튼 시공(비교 기준)</text>
+  <rect x="330" y="190" width="80" height="20" rx="4" fill="#e6ddd6"/>
+  <text x="418" y="204" font-size="12" fill="#5c534e">10만~30만</text>
+
+  <!-- 4. 업체 전동커튼 시공 20~50 -->
+  <text x="280" y="248" font-size="13" text-anchor="end" fill="#2b2523">업체 전동커튼 시공</text>
+  <rect x="370" y="234" width="120" height="20" rx="4" fill="#c8623f"/>
+  <text x="498" y="248" font-size="12" fill="#5c534e">20만~50만</text>
+
+  <!-- 5. 국산 모터 전동블라인드 대형창 70 -->
+  <text x="280" y="292" font-size="13" text-anchor="end" fill="#2b2523">국산 모터 전동블라인드(대형 창)</text>
+  <rect x="290" y="278" width="280" height="20" rx="4" fill="#c8623f"/>
+  <text x="578" y="292" font-size="12" fill="#5c534e">70만</text>
+
+  <!-- 6. 유니슬렛 수동 60 → 전동 120 -->
+  <text x="280" y="336" font-size="13" text-anchor="end" fill="#2b2523">유니슬렛 커튼 수동 → 전동 옵션</text>
+  <rect x="290" y="322" width="240" height="20" rx="4" fill="#e6ddd6"/>
+  <rect x="530" y="322" width="240" height="20" rx="4" fill="#a44d2f"/>
+  <text x="540" y="336" font-size="12" fill="#fff">+60만 (총 120만)</text>
+
+  <!-- 7. 34평 거실+안방 2창 셀프 60 -->
+  <text x="280" y="380" font-size="13" text-anchor="end" fill="#2b2523">거실+안방 2창 셀프 전동커튼</text>
+  <rect x="290" y="366" width="240" height="20" rx="4" fill="#c9bfb7"/>
+  <text x="538" y="380" font-size="12" fill="#5c534e">약 60만</text>
+
+  <g font-size="11" fill="#7a716c">
+    <rect x="40" y="440" width="12" height="12" rx="2" fill="#c9bfb7"/><text x="58" y="450">셀프·부품 구매</text>
+    <rect x="170" y="440" width="12" height="12" rx="2" fill="#e6ddd6"/><text x="188" y="450">수동(비교 기준)</text>
+    <rect x="300" y="440" width="12" height="12" rx="2" fill="#c8623f"/><text x="318" y="450">업체 시공 전동</text>
+    <rect x="430" y="440" width="12" height="12" rx="2" fill="#a44d2f"/><text x="448" y="450">전동 옵션 추가금</text>
+  </g>
+</svg>
