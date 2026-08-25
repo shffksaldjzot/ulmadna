@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="34평/84타입 인테리어 추가금 실제 사례 — 첫 견적 대비 최종 견적 항목별 증감 막대그래프">
+  <rect width="800" height="520" fill="#ffffff"/>
+  <text x="40" y="46" font-size="24" font-weight="700" fill="#2b2b2b">34평/84타입 실제 사례 — 첫 견적 vs 최종 견적</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">설계 확정·자재 선택 후 항목별 증감 · 단위: 만원 · 총 +1,000만원 이상</text>
+
+  <!-- zero line -->
+  <line x1="70" y1="300" x2="760" y2="300" stroke="#bbbbbb" stroke-width="2"/>
+  <text x="66" y="305" font-size="12" fill="#999" text-anchor="end">0</text>
+
+  <!-- 제작가구 +1,112 (center 190) scale: 1112 -> 200px -->
+  <rect x="150" y="100" width="80" height="200" rx="4" fill="#C26B4A"/>
+  <text x="190" y="92" font-size="16" font-weight="700" fill="#a8512f" text-anchor="middle">+1,112</text>
+  <text x="190" y="330" font-size="15" font-weight="600" fill="#444" text-anchor="middle">제작가구</text>
+  <text x="190" y="350" font-size="12" fill="#888" text-anchor="middle">2,728 → 3,840</text>
+  <text x="190" y="368" font-size="12" fill="#888" text-anchor="middle">보조주방·붙박이장 추가</text>
+
+  <!-- 설비 +193 (center 350) -> 35px -->
+  <rect x="310" y="265" width="80" height="35" rx="4" fill="#C26B4A"/>
+  <text x="350" y="257" font-size="16" font-weight="700" fill="#a8512f" text-anchor="middle">+193</text>
+  <text x="350" y="330" font-size="15" font-weight="600" fill="#444" text-anchor="middle">설비</text>
+  <text x="350" y="350" font-size="12" fill="#888" text-anchor="middle">252 → 445</text>
+  <text x="350" y="368" font-size="12" fill="#888" text-anchor="middle">욕실 확장·바닥난방 2곳</text>
+
+  <!-- 싱크볼 +9.5 (center 510) -> 2px -->
+  <rect x="470" y="297" width="80" height="3" rx="1" fill="#C26B4A"/>
+  <text x="510" y="289" font-size="16" font-weight="700" fill="#a8512f" text-anchor="middle">+9.5</text>
+  <text x="510" y="330" font-size="15" font-weight="600" fill="#444" text-anchor="middle">주방 싱크볼</text>
+  <text x="510" y="350" font-size="12" fill="#888" text-anchor="middle">상위 제품으로 변경</text>
+
+  <!-- 바닥 -178 (center 670) -> 32px downward -->
+  <rect x="630" y="300" width="80" height="32" rx="4" fill="#7a9cc6"/>
+  <text x="670" y="352" font-size="16" font-weight="700" fill="#4a6fa5" text-anchor="middle">−178</text>
+  <text x="670" y="380" font-size="15" font-weight="600" fill="#444" text-anchor="middle">바닥(원목마루)</text>
+  <text x="670" y="400" font-size="12" fill="#888" text-anchor="middle">975 → 797</text>
+  <text x="670" y="418" font-size="12" fill="#888" text-anchor="middle">평당 29만 → 24만 제품</text>
+
+  <!-- legend -->
+  <rect x="40" y="452" width="14" height="14" rx="3" fill="#C26B4A"/>
+  <text x="60" y="464" font-size="13" fill="#666">올라간 항목(설계 변경·상위 자재)</text>
+  <rect x="300" y="452" width="14" height="14" rx="3" fill="#7a9cc6"/>
+  <text x="320" y="464" font-size="13" fill="#666">내려간 항목(더 저렴한 자재 선택)</text>
+
+  <text x="40" y="500" font-size="13" fill="#a0a0a0">※ 같은 공사가 비싸진 게 아니라 '해야 할 공사 자체'가 바뀐 사례. 실제 견적 빅데이터 기준.</text>
+</svg>
