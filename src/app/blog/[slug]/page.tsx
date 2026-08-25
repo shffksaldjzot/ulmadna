@@ -123,6 +123,8 @@ export default async function BlogPost({
     headline: post.title,
     description: post.description,
     datePublished: post.date,
+    // 시세를 갱신한 날이 있으면 그 날, 없으면 발행일 그대로
+    dateModified: post.updated || post.date,
     image: post.thumbnail ? `${SITE}${post.thumbnail}` : undefined,
     author: { "@type": "Organization", name: "얼마드나" },
     publisher: { "@type": "Organization", name: "얼마드나" },
@@ -179,6 +181,8 @@ export default async function BlogPost({
               <p className="blog-post-meta">
                 {post.postNo != null && <>No.{post.postNo} · </>}
                 {fmtDate(post.date)}
+                {/* 시세를 갱신한 글에만 붙음 — 아직 안 고친 글은 아예 안 나옴 */}
+                {post.updated && <> · 마지막 업데이트: {fmtDate(post.updated)}</>}
                 <span className="blog-readtime-badge">⏱ 읽는 데 {post.readingTime}분</span>
               </p>
             </header>

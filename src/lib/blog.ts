@@ -27,7 +27,10 @@ export interface PostMeta {
   slug: string;
   title: string;
   description: string;
-  date: string; // YYYY-MM-DD
+  date: string; // YYYY-MM-DD (처음 발행한 날)
+  // 시세·단가가 바뀌어 글을 손본 날 (주간 시세 갱신 봇이 프런트매터에 적어줌).
+  // 아직 한 번도 안 고친 글은 null — 예전 글에는 아무 영향이 없습니다.
+  updated: string | null;
   thumbnail: string | null;
   tags: string[];
   readingTime: number; // 예상 읽기 시간(분)
@@ -64,6 +67,7 @@ function readMeta(file: string): PostMeta {
     title: data.title ?? slug,
     description: data.description ?? "",
     date: data.date ?? "",
+    updated: data.updated ?? null, // 프런트매터에 updated가 없으면 null
     thumbnail: data.thumbnail ?? null,
     tags: Array.isArray(data.tags) ? data.tags : [],
     readingTime: calcReadingTime(content),
@@ -220,6 +224,7 @@ export async function getPost(slug: string): Promise<Post | null> {
     title: data.title ?? slug,
     description: data.description ?? "",
     date: data.date ?? "",
+    updated: data.updated ?? null, // 시세 갱신 봇이 적어주는 "마지막 손본 날"
     thumbnail: data.thumbnail ?? null,
     tags: Array.isArray(data.tags) ? data.tags : [],
     html,
