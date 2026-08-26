@@ -2,8 +2,17 @@
 
 import { signIn } from 'next-auth/react';
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
 
 export default function LoginPage() {
+  // 로그인 실패 시 NextAuth가 /login?error=... 로 되돌려 보낸다.
+  // (useSearchParams 대신 주소창을 직접 읽어서 Suspense 없이 처리)
+  const [errCode, setErrCode] = useState<string | null>(null);
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get('error');
+    if (code) setErrCode(code);
+  }, []);
+
   return (
     <div className="min-h-screen bg-cream flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 w-full max-w-sm text-center">
@@ -19,6 +28,14 @@ export default function LoginPage() {
         <p className="text-xs text-gray-400 mb-6">
           로그인하면 견적을 저장하고 다시 불러올 수 있어요
         </p>
+
+        {/* 로그인 실패 안내 — 한 줄만, 오류코드는 작게(문의용) */}
+        {errCode && (
+          <div className="mb-4 rounded-lg bg-red-50 border border-red-100 px-3 py-2 text-xs text-red-600">
+            로그인에 실패했어요. 다시 시도해 주세요.
+            <span className="block text-[10px] text-red-300 mt-0.5">{errCode}</span>
+          </div>
+        )}
 
         <button
           onClick={() => signIn('kakao', { callbackUrl: '/' })}
