@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" width="800" height="420" font-family="'Pretendard','Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <title>구축 아파트 천장 속 깊이별 시스템 에어컨 설치 방법과 추가 비용</title>
+  <rect width="800" height="420" fill="#fbf8f4"/>
+  <text x="400" y="38" text-anchor="middle" font-size="20" font-weight="700" fill="#2b2b2b">천장 속 깊이(속고)별 설치 방법 · 추가 비용</text>
+  <text x="400" y="60" text-anchor="middle" font-size="12" fill="#7a7a7a">다운라이트를 빼고 슬래브까지 줄자로 잰 값 기준 · 34평/84타입 4대 설치 시</text>
+
+  <!-- axis -->
+  <line x1="70" y1="120" x2="730" y2="120" stroke="#d9d2c8" stroke-width="2"/>
+  <g font-size="12" fill="#555" text-anchor="middle">
+    <text x="70" y="108">10cm 미만</text>
+    <text x="235" y="108">10~15cm</text>
+    <text x="400" y="108">16~17cm</text>
+    <text x="565" y="108">18cm 이상</text>
+    <text x="730" y="108">스프링클러 有</text>
+  </g>
+  <g fill="#c96a45">
+    <circle cx="70" cy="120" r="6"/><circle cx="235" cy="120" r="6"/><circle cx="400" cy="120" r="6"/><circle cx="565" cy="120" r="6"/><circle cx="730" cy="120" r="6"/>
+  </g>
+
+  <!-- cards -->
+  <g>
+    <rect x="30" y="150" width="170" height="230" rx="12" fill="#fff" stroke="#e8e0d6"/>
+    <text x="115" y="180" text-anchor="middle" font-size="14" font-weight="700" fill="#c96a45">단내림 (목공)</text>
+    <text x="115" y="204" text-anchor="middle" font-size="12" fill="#444">속고 10cm 미만이면</text>
+    <text x="115" y="222" text-anchor="middle" font-size="12" fill="#444">사실상 유일한 해법</text>
+    <text x="115" y="252" text-anchor="middle" font-size="12" fill="#444">거실 1곳만</text>
+    <text x="115" y="272" text-anchor="middle" font-size="15" font-weight="700" fill="#2b2b2b">약 50만원</text>
+    <text x="115" y="298" text-anchor="middle" font-size="12" fill="#444">거실+방 3곳(40평대)</text>
+    <text x="115" y="318" text-anchor="middle" font-size="15" font-weight="700" fill="#2b2b2b">150만~200만원</text>
+    <text x="115" y="348" text-anchor="middle" font-size="11" fill="#7a7a7a">목공·석고·도배 2~3일</text>
+  </g>
+  <g>
+    <rect x="215" y="150" width="170" height="230" rx="12" fill="#fff" stroke="#e8e0d6"/>
+    <text x="300" y="180" text-anchor="middle" font-size="14" font-weight="700" fill="#c96a45">전용 키트</text>
+    <text x="300" y="204" text-anchor="middle" font-size="12" fill="#444">삼성 인테리어핏 10cm~</text>
+    <text x="300" y="222" text-anchor="middle" font-size="12" fill="#444">LG 슬림매립 11~17cm</text>
+    <text x="300" y="252" text-anchor="middle" font-size="12" fill="#444">대당</text>
+    <text x="300" y="272" text-anchor="middle" font-size="15" font-weight="700" fill="#2b2b2b">약 10만원</text>
+    <text x="300" y="298" text-anchor="middle" font-size="12" fill="#444">방 3곳이면</text>
+    <text x="300" y="318" text-anchor="middle" font-size="15" font-weight="700" fill="#2b2b2b">약 30만원</text>
+    <text x="300" y="348" text-anchor="middle" font-size="11" fill="#7a7a7a">설치 당일 하루 마감</text>
+  </g>
+  <g>
+    <rect x="400" y="150" width="170" height="230" rx="12" fill="#fff" stroke="#e8e0d6"/>
+    <text x="485" y="180" text-anchor="middle" font-size="14" font-weight="700" fill="#c96a45">몰딩 마감</text>
+    <text x="485" y="204" text-anchor="middle" font-size="12" fill="#444">1~2cm 살짝 부족할 때</text>
+    <text x="485" y="222" text-anchor="middle" font-size="12" fill="#444">돌출 하단만 감싸기</text>
+    <text x="485" y="252" text-anchor="middle" font-size="12" fill="#444">실내기 1대당</text>
+    <text x="485" y="272" text-anchor="middle" font-size="15" font-weight="700" fill="#2b2b2b">5.5만~7.7만원</text>
+    <text x="485" y="298" text-anchor="middle" font-size="12" fill="#444">인테리어 중이면</text>
+    <text x="485" y="318" text-anchor="middle" font-size="12" fill="#444">목공에 흡수되기도</text>
+    <text x="485" y="348" text-anchor="middle" font-size="11" fill="#7a7a7a">천장고 거의 유지</text>
+  </g>
+  <g>
+    <rect x="585" y="150" width="185" height="230" rx="12" fill="#f2f7f0" stroke="#cfe0c8"/>
+    <text x="677" y="180" text-anchor="middle" font-size="14" font-weight="700" fill="#3d7a4a">플랫 매립</text>
+    <text x="677" y="204" text-anchor="middle" font-size="12" fill="#444">천장 공사 추가 없음</text>
+    <text x="677" y="222" text-anchor="middle" font-size="12" fill="#444">신축과 같은 조건</text>
+    <text x="677" y="252" text-anchor="middle" font-size="12" fill="#444">천장 관련 추가비</text>
+    <text x="677" y="272" text-anchor="middle" font-size="15" font-weight="700" fill="#2b2b2b">0원</text>
+    <text x="677" y="298" text-anchor="middle" font-size="12" fill="#444">탑층·고층·16층↑(92~04년식)</text>
+    <text x="677" y="318" text-anchor="middle" font-size="12" fill="#444">에서 자주 나오는 조건</text>
+    <text x="677" y="348" text-anchor="middle" font-size="11" fill="#7a7a7a">스프링클러 배관 = 15cm↑ 신호</text>
+  </g>
+  <text x="400" y="405" text-anchor="middle" font-size="11" fill="#9a9a9a">개념 안내용 도식 · 실제 적용 가능 여부는 현장 실측 후 확정</text>
+</svg>
