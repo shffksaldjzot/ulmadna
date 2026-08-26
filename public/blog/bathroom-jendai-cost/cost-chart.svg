@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif" role="img" aria-label="젠다이 비용 방식별 범위 차트 — 코너 8만~15만, 벽면 타일 10만~20만, 매립형 니치 20만~40만, 욕조 젠다이 20만~50만, 조적+엔지니어드스톤 상판 30만~50만">
+  <rect width="800" height="520" fill="#fdfaf7"/>
+  <text x="40" y="46" font-size="22" font-weight="700" fill="#2d2a26">젠다이 비용 — 방식별 범위 (욕실 1칸 기준)</text>
+  <text x="40" y="72" font-size="13" fill="#8a8378">실제 견적 빅데이터 기준 · 자재+시공 (단위: 만원)</text>
+
+  <!-- grid : x = 230 + 만원*9 -->
+  <g stroke="#e8e2da" stroke-width="1">
+    <line x1="230" y1="95" x2="230" y2="425"/>
+    <line x1="320" y1="95" x2="320" y2="425"/>
+    <line x1="410" y1="95" x2="410" y2="425"/>
+    <line x1="500" y1="95" x2="500" y2="425"/>
+    <line x1="590" y1="95" x2="590" y2="425"/>
+    <line x1="680" y1="95" x2="680" y2="425"/>
+    <line x1="770" y1="95" x2="770" y2="425"/>
+  </g>
+  <g font-size="12" fill="#a09888" text-anchor="middle">
+    <text x="230" y="448">0</text>
+    <text x="320" y="448">10만</text>
+    <text x="410" y="448">20만</text>
+    <text x="500" y="448">30만</text>
+    <text x="590" y="448">40만</text>
+    <text x="680" y="448">50만</text>
+    <text x="770" y="448">60만</text>
+  </g>
+
+  <!-- 코너 젠다이 8~15 -->
+  <text x="218" y="126" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">코너 젠다이</text>
+  <rect x="302" y="110" width="63" height="22" rx="11" fill="#d9a48a"/>
+  <text x="375" y="126" font-size="13" fill="#6b6459">8만~15만</text>
+
+  <!-- 벽면 타일 젠다이 10~20 -->
+  <text x="218" y="186" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">벽면 타일 젠다이</text>
+  <rect x="320" y="170" width="90" height="22" rx="11" fill="#d08b6a"/>
+  <text x="420" y="186" font-size="13" fill="#6b6459">10만~20만</text>
+
+  <!-- 매립형(니치) 20~40 -->
+  <text x="218" y="246" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">매립형(니치) 젠다이</text>
+  <rect x="410" y="230" width="180" height="22" rx="11" fill="#c96f4a"/>
+  <text x="600" y="246" font-size="13" fill="#6b6459">20만~40만</text>
+
+  <!-- 욕조 젠다이 20~50 -->
+  <text x="218" y="306" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">욕조 젠다이</text>
+  <rect x="410" y="290" width="270" height="22" rx="11" fill="#b85c3a"/>
+  <text x="690" y="306" font-size="13" fill="#6b6459">20만~50만</text>
+
+  <!-- 조적 + 엔지니어드스톤 상판 30~50 -->
+  <text x="218" y="360" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">조적 + 스톤 상판</text>
+  <text x="218" y="378" font-size="12" fill="#8a8378" text-anchor="end">(경사·실리콘 마감 포함 정석)</text>
+  <rect x="500" y="352" width="180" height="22" rx="11" fill="#9e4a2c"/>
+  <text x="690" y="368" font-size="13" fill="#6b6459">30만~50만</text>
+
+  <line x1="40" y1="470" x2="760" y2="470" stroke="#e8e2da"/>
+  <text x="40" y="496" font-size="12" fill="#8a8378">※ 기존 젠다이의 인조대리석 상판만 교체하는 부분 공사는 두께·재질·길이에 따라 3만~10만원 이상 벌어지며, 1명이 2시간 안팎에 끝납니다.</text>
+</svg>
