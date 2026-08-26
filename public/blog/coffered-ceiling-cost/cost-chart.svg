@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif">
+  <rect width="800" height="520" fill="#fffdf9"/>
+  <text x="40" y="44" font-size="22" font-weight="700" fill="#2b2b2b">우물천장 비용 범위 — 만들 때 vs 없앨 때 (거실 1곳 기준)</text>
+  <text x="40" y="68" font-size="13" fill="#7a7a7a">단위: 만원 · 실제 견적 빅데이터 1,000건+ 기준 · 도배 별도 여부는 항목 참고</text>
+
+  <!-- axis -->
+  <g stroke="#e6e0d8" stroke-width="1">
+    <line x1="300" y1="90" x2="300" y2="440"/>
+    <line x1="400" y1="90" x2="400" y2="440"/>
+    <line x1="500" y1="90" x2="500" y2="440"/>
+    <line x1="600" y1="90" x2="600" y2="440"/>
+    <line x1="700" y1="90" x2="700" y2="440"/>
+  </g>
+  <g font-size="12" fill="#9a9a9a" text-anchor="middle">
+    <text x="300" y="460">0</text>
+    <text x="400" y="460">100</text>
+    <text x="500" y="460">200</text>
+    <text x="600" y="460">300</text>
+    <text x="700" y="460">400</text>
+  </g>
+
+  <!-- rows: x = 300 + value  (1만원 = 1px) -->
+  <!-- 1. 기존 우물천장 + 간접등만 40~60 -->
+  <text x="285" y="120" font-size="14" fill="#2b2b2b" text-anchor="end">기존 우물천장에 간접등만</text>
+  <rect x="340" y="106" width="20" height="20" rx="4" fill="#c96a4a"/>
+  <text x="368" y="121" font-size="13" fill="#c96a4a" font-weight="700">40~60만</text>
+
+  <!-- 2. 기존 틀 → 필름 목공/무몰딩 목공 변경 (조명 포함) 75~100 -->
+  <text x="285" y="168" font-size="14" fill="#2b2b2b" text-anchor="end">기존 틀 → 필름·무몰딩 목공 변경</text>
+  <rect x="375" y="154" width="25" height="20" rx="4" fill="#c96a4a"/>
+  <text x="408" y="169" font-size="13" fill="#c96a4a" font-weight="700">75~100만 (조명 포함)</text>
+
+  <!-- 3. 평천장에 기본형 신설 80~150 -->
+  <text x="285" y="216" font-size="14" fill="#2b2b2b" text-anchor="end">평천장에 기본형 신설(메인등)</text>
+  <rect x="380" y="202" width="70" height="20" rx="4" fill="#d98b6e"/>
+  <text x="458" y="217" font-size="13" fill="#c96a4a" font-weight="700">80~150만</text>
+
+  <!-- 4. 신설 + 간접조명 120~220 -->
+  <text x="285" y="264" font-size="14" fill="#2b2b2b" text-anchor="end">신설 + 간접조명 (20평대 거실)</text>
+  <rect x="420" y="250" width="100" height="20" rx="4" fill="#d98b6e"/>
+  <text x="528" y="265" font-size="13" fill="#c96a4a" font-weight="700">120~220만</text>
+
+  <!-- 5. 신설 + 간접조명 + 도장/도배 마감 (30평대) 200~350 -->
+  <text x="285" y="312" font-size="14" fill="#2b2b2b" text-anchor="end">신설 + 간접조명 + 마감 (30평대)</text>
+  <rect x="500" y="298" width="150" height="20" rx="4" fill="#b8563a"/>
+  <text x="658" y="313" font-size="13" fill="#c96a4a" font-weight="700">200~350만</text>
+
+  <!-- divider -->
+  <line x1="40" y1="345" x2="760" y2="345" stroke="#e6e0d8" stroke-dasharray="4 4"/>
+  <text x="40" y="368" font-size="12" fill="#7a7a7a">▼ 없앨 때 (평탄화)</text>
+
+  <!-- 6. 평탄화 목공 40~50 -->
+  <text x="285" y="396" font-size="14" fill="#2b2b2b" text-anchor="end">우물천장 평탄화 목공(도배 별도)</text>
+  <rect x="340" y="382" width="10" height="20" rx="4" fill="#5b7f6a"/>
+  <text x="358" y="397" font-size="13" fill="#3e5f4c" font-weight="700">40~50만</text>
+
+  <!-- 7. 평탄화 + 거실 천장 도배 70~100 -->
+  <text x="285" y="436" font-size="14" fill="#2b2b2b" text-anchor="end">평탄화 + 우물 부분 도배</text>
+  <rect x="370" y="422" width="30" height="20" rx="4" fill="#5b7f6a"/>
+  <text x="408" y="437" font-size="13" fill="#3e5f4c" font-weight="700">70~100만 (도배 30~40만)</text>
+
+  <text x="40" y="500" font-size="12" fill="#9a9a9a">※ 실링팬 보강 5~15만·감지기 이설·거실 전체 도배·출장비(3~5만)는 별도. 라운드·2단·2줄 조명은 상한 쪽으로.</text>
+</svg>
