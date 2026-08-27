@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400" font-family="'Pretendard','Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <title>시스템 에어컨 후회 4가지가 드러나는 시점 — 위치·소음·누수·결로</title>
+  <rect width="800" height="400" fill="#fbf8f4"/>
+  <text x="400" y="38" text-anchor="middle" font-size="20" font-weight="700" fill="#2b2b2b">시스템 에어컨 후회, 언제 드러나나</text>
+  <text x="400" y="60" text-anchor="middle" font-size="12" fill="#7a7a7a">늦게 드러날수록 되돌리는 비용이 커집니다 · 실제 견적 빅데이터 1,000건+ 기준</text>
+
+  <!-- timeline axis -->
+  <line x1="60" y1="120" x2="740" y2="120" stroke="#d9d2c8" stroke-width="3"/>
+  <polygon points="740,113 754,120 740,127" fill="#d9d2c8"/>
+  <g font-size="12" fill="#555" text-anchor="middle" font-weight="600">
+    <text x="120" y="102">설치 당일</text>
+    <text x="290" y="102">첫 여름</text>
+    <text x="460" y="102">장마철</text>
+    <text x="640" y="102">2~3년 뒤</text>
+  </g>
+  <g fill="#c96a45">
+    <circle cx="120" cy="120" r="7"/><circle cx="290" cy="120" r="7"/><circle cx="460" cy="120" r="7"/><circle cx="640" cy="120" r="7"/>
+  </g>
+
+  <!-- cards -->
+  <g>
+    <rect x="40" y="150" width="160" height="200" rx="12" fill="#fff" stroke="#e8e0d6"/>
+    <text x="120" y="180" text-anchor="middle" font-size="15" font-weight="700" fill="#c96a45">① 위치</text>
+    <text x="120" y="204" text-anchor="middle" font-size="12" fill="#444">실내기 머리 위·직풍</text>
+    <text x="120" y="222" text-anchor="middle" font-size="12" fill="#444">보·덕트에 막혀 자리 이동</text>
+    <text x="120" y="240" text-anchor="middle" font-size="12" fill="#444">실외기가 뷰 한가운데</text>
+    <line x1="60" y1="258" x2="180" y2="258" stroke="#eee6dc"/>
+    <text x="120" y="280" text-anchor="middle" font-size="11" fill="#7a7a7a">되돌리기</text>
+    <text x="120" y="300" text-anchor="middle" font-size="13" font-weight="700" fill="#2b2b2b">천장 재시공</text>
+    <text x="120" y="320" text-anchor="middle" font-size="12" fill="#c96a45">50만~200만원+</text>
+  </g>
+  <g>
+    <rect x="210" y="150" width="160" height="200" rx="12" fill="#fff" stroke="#e8e0d6"/>
+    <text x="290" y="180" text-anchor="middle" font-size="15" font-weight="700" fill="#c96a45">② 소음</text>
+    <text x="290" y="204" text-anchor="middle" font-size="12" fill="#444">드드드 · 웅웅 공진음</text>
+    <text x="290" y="222" text-anchor="middle" font-size="12" fill="#444">모터 가이드 파손</text>
+    <text x="290" y="240" text-anchor="middle" font-size="12" fill="#444">실외기 수평·방진 불량</text>
+    <line x1="230" y1="258" x2="350" y2="258" stroke="#eee6dc"/>
+    <text x="290" y="280" text-anchor="middle" font-size="11" fill="#7a7a7a">되돌리기</text>
+    <text x="290" y="300" text-anchor="middle" font-size="13" font-weight="700" fill="#2b2b2b">출장 3.3만~모터 30만</text>
+    <text x="290" y="320" text-anchor="middle" font-size="12" fill="#c96a45">셀프 방진패드 수만원</text>
+  </g>
+  <g>
+    <rect x="380" y="150" width="160" height="200" rx="12" fill="#fff" stroke="#e8e0d6"/>
+    <text x="460" y="180" text-anchor="middle" font-size="15" font-weight="700" fill="#c96a45">③ 누수</text>
+    <text x="460" y="204" text-anchor="middle" font-size="12" fill="#444">가동 20~30분 뒤 똑똑</text>
+    <text x="460" y="222" text-anchor="middle" font-size="12" fill="#444">드레인 막힘·구배 불량</text>
+    <text x="460" y="240" text-anchor="middle" font-size="12" fill="#444">벤트 넘침·펌프 고장</text>
+    <line x1="400" y1="258" x2="520" y2="258" stroke="#eee6dc"/>
+    <text x="460" y="280" text-anchor="middle" font-size="11" fill="#7a7a7a">되돌리기</text>
+    <text x="460" y="300" text-anchor="middle" font-size="13" font-weight="700" fill="#2b2b2b">배수 점검 + 도배</text>
+    <text x="460" y="320" text-anchor="middle" font-size="12" fill="#c96a45">방치 시 천장 도배 전체</text>
+  </g>
+  <g>
+    <rect x="560" y="150" width="160" height="200" rx="12" fill="#fff" stroke="#e8e0d6"/>
+    <text x="640" y="180" text-anchor="middle" font-size="15" font-weight="700" fill="#c96a45">④ 결로·곰팡이</text>
+    <text x="640" y="204" text-anchor="middle" font-size="12" fill="#444">천장 속 배관 보온 불량</text>
+    <text x="640" y="222" text-anchor="middle" font-size="12" fill="#444">석고보드 → 도배지 얼룩</text>
+    <text x="640" y="240" text-anchor="middle" font-size="12" fill="#444">가장 늦게, 가장 비싸게</text>
+    <line x1="580" y1="258" x2="700" y2="258" stroke="#eee6dc"/>
+    <text x="640" y="280" text-anchor="middle" font-size="11" fill="#7a7a7a">되돌리기</text>
+    <text x="640" y="300" text-anchor="middle" font-size="13" font-weight="700" fill="#2b2b2b">천장 열고 보온 재시공</text>
+    <text x="640" y="320" text-anchor="middle" font-size="12" fill="#c96a45">결로 도배 60만원~</text>
+  </g>
+
+  <text x="400" y="380" text-anchor="middle" font-size="12" fill="#7a7a7a">①②는 설치 조건·부품 문제라 비교적 빨리 잡히고, ③④는 천장을 닫은 뒤 드러나서 도배까지 번집니다</text>
+</svg>
