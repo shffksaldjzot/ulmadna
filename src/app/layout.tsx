@@ -40,6 +40,11 @@ export const metadata: Metadata = {
     google:
       process.env.GOOGLE_SITE_VERIFICATION?.trim() ||
       "WaSjktLgL1zVR7K_nLqxT1-QjgC2V9wZgj9Z29bdkLg",
+    // 네이버 서치어드바이저 소유확인 태그 (2026-08-27 등록) — 네이버 검색 유입 공략 1층.
+    // <meta name="naver-site-verification" ...> 자동 생성됨. 이것도 공개되는 값이라 직접 명시.
+    other: {
+      "naver-site-verification": "fd2ae300bb75c7c5de41ec8f4bed6be9e820b2dd",
+    },
   },
 };
 
