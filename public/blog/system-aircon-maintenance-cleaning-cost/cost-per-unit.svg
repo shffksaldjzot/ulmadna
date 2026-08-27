@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" role="img" aria-label="시스템 에어컨 청소 비용 실내기 1대당 가격 범위 — 사설 업체 1·2Way, 4Way, LG 공식, 삼성 공식 비교 막대그래프">
+  <rect width="720" height="400" fill="#faf7f4"/>
+  <text x="24" y="40" font-size="20" font-weight="700" fill="#2b2b2b">시스템 에어컨 청소 비용 (실내기 1대당)</text>
+  <text x="24" y="62" font-size="13" fill="#8a8175">단위: 만원 · 완전 분해세척 기준 · 2026년 · 실외기·출장비 별도인 곳 있음</text>
+
+  <!-- gridlines -->
+  <g stroke="#e7ddd3" stroke-width="1">
+    <line x1="200" y1="84" x2="200" y2="300"/>
+    <line x1="290" y1="84" x2="290" y2="300"/>
+    <line x1="380" y1="84" x2="380" y2="300"/>
+    <line x1="470" y1="84" x2="470" y2="300"/>
+    <line x1="560" y1="84" x2="560" y2="300"/>
+    <line x1="650" y1="84" x2="650" y2="300"/>
+  </g>
+  <g font-size="11" fill="#a89e92" text-anchor="middle">
+    <text x="200" y="318">0</text>
+    <text x="290" y="318">5</text>
+    <text x="380" y="318">10</text>
+    <text x="470" y="318">15</text>
+    <text x="560" y="318">20</text>
+    <text x="650" y="318">25</text>
+  </g>
+
+  <!-- row labels -->
+  <g font-size="13" fill="#3a3a3a" text-anchor="end">
+    <text x="188" y="106">사설 · 1Way/2Way (방)</text>
+    <text x="188" y="150">사설 · 4Way (거실)</text>
+    <text x="188" y="194">LG 공식 · 천장형</text>
+    <text x="188" y="238">삼성 공식 · 천장형</text>
+  </g>
+
+  <g>
+    <!-- 사설 1·2Way 8~13 -->
+    <rect x="344" y="92" width="90" height="22" rx="4" fill="#d98b6a"/>
+    <text x="440" y="108" font-size="11" fill="#6b5d52">8~13 (7만대도 있음)</text>
+    <!-- 사설 4Way 12~18 -->
+    <rect x="416" y="136" width="108" height="22" rx="4" fill="#cf7a55"/>
+    <text x="530" y="152" font-size="11" fill="#6b5d52">12~18</text>
+    <!-- LG 공식 17~18.9 -->
+    <rect x="506" y="180" width="34" height="22" rx="4" fill="#c0653f"/>
+    <text x="546" y="196" font-size="11" fill="#6b5d52">17 (공기청정형 18.9)</text>
+    <!-- 삼성 공식 19.5~21.1 -->
+    <rect x="551" y="224" width="29" height="22" rx="4" fill="#a84e2c"/>
+    <text x="586" y="240" font-size="11" fill="#6b5d52">19.5 (중대형 21.1)</text>
+  </g>
+
+  <text x="24" y="348" font-size="12" fill="#8a8175">※ 34평/84타입 4대 기준 합산: 사설 32만~52만원 · LG 공식 68만원 · 삼성 공식 78만원.</text>
+  <text x="24" y="368" font-size="12" fill="#8a8175">※ 여러 대 동시 신청 시 대당 1만~2만원 할인, 6~8월 성수기엔 20~30% 할증이 흔합니다.</text>
+</svg>
