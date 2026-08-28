@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" font-family="Pretendard, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif">
+  <rect width="900" height="400" fill="#FBF8F4"/>
+  <text x="450" y="38" text-anchor="middle" font-size="19" font-weight="700" fill="#2B2724">인테리어 견적 받는 순서 — 준비부터 계약까지 5단계</text>
+  <text x="450" y="60" text-anchor="middle" font-size="12" fill="#7A736C">가견적은 '비교용', 실측 뒤 본견적이 '계약용' — 이 구분이 핵심</text>
+
+  <!-- connector line -->
+  <line x1="90" y1="150" x2="810" y2="150" stroke="#D9D0C6" stroke-width="3"/>
+
+  <!-- step circles -->
+  <g font-size="15" font-weight="700" text-anchor="middle" fill="#fff">
+    <circle cx="90" cy="150" r="22" fill="#C96B4B"/><text x="90" y="156">1</text>
+    <circle cx="270" cy="150" r="22" fill="#C96B4B"/><text x="270" y="156">2</text>
+    <circle cx="450" cy="150" r="22" fill="#C96B4B"/><text x="450" y="156">3</text>
+    <circle cx="630" cy="150" r="22" fill="#C96B4B"/><text x="630" y="156">4</text>
+    <circle cx="810" cy="150" r="22" fill="#C96B4B"/><text x="810" y="156">5</text>
+  </g>
+
+  <!-- step titles -->
+  <g font-size="14" font-weight="700" text-anchor="middle" fill="#2B2724">
+    <text x="90" y="110">상담 준비</text>
+    <text x="270" y="110">가견적 3~5곳</text>
+    <text x="450" y="110">현장 실측</text>
+    <text x="630" y="110">본견적 비교</text>
+    <text x="810" y="110">계약</text>
+  </g>
+
+  <!-- step details -->
+  <g font-size="12" fill="#5B544D" text-anchor="middle">
+    <text x="90" y="200">도면·현재 사진</text>
+    <text x="90" y="218">공사 범위표</text>
+    <text x="90" y="236">예산 상한</text>
+    <text x="90" y="254">레퍼런스 3~5장</text>
+
+    <text x="270" y="200">같은 범위표로</text>
+    <text x="270" y="218">같은 조건 요청</text>
+    <text x="270" y="236">가격대 섞기</text>
+    <text x="270" y="254">(고·중·저)</text>
+
+    <text x="450" y="200">벽·바닥·배관</text>
+    <text x="450" y="218">누수·단열 확인</text>
+    <text x="450" y="236">실측 30분 미만이면</text>
+    <text x="450" y="254">경계</text>
+
+    <text x="630" y="200">총액 말고</text>
+    <text x="630" y="218">범위 → 자재 → 별도</text>
+    <text x="630" y="236">→ 추가금 조건</text>
+    <text x="630" y="254">순서로</text>
+
+    <text x="810" y="200">자재 모델명</text>
+    <text x="810" y="218">추가금 절차</text>
+    <text x="810" y="236">하자보증·잔금</text>
+    <text x="810" y="254">계약서에 명시</text>
+  </g>
+
+  <!-- timing bar -->
+  <rect x="60" y="300" width="780" height="1" fill="#D9D0C6"/>
+  <g font-size="12" fill="#7A736C" text-anchor="middle">
+    <text x="180" y="330">입주 3개월 전 시작 (인기 업체는 6개월 전)</text>
+    <text x="540" y="330">가견적 ±10~20% 오차 → 실측 후 확정</text>
+    <text x="810" y="330">착공 4~6주 전</text>
+  </g>
+  <text x="450" y="375" text-anchor="middle" font-size="11" fill="#A39B93">얼마드나 · 실제 견적 데이터 1,000건+ 기준 정리</text>
+</svg>
