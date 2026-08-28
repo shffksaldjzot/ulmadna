@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 460" font-family="Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif">
+  <rect width="800" height="460" fill="#fffdf9"/>
+  <text x="400" y="38" text-anchor="middle" font-size="20" font-weight="700" fill="#2b2b2b">층간소음매트 시공 비용 — 거실+복도+주방 기준 (만원)</text>
+  <text x="400" y="60" text-anchor="middle" font-size="12" fill="#777">시공형 TPU 조립매트(전문 시공) vs 셀프 롤·퍼즐매트 · 실제 견적 데이터 1,000건+</text>
+  <!-- axis -->
+  <line x1="150" y1="90" x2="150" y2="400" stroke="#ccc"/>
+  <line x1="150" y1="400" x2="760" y2="400" stroke="#ccc"/>
+  <!-- gridlines: 0..500 => 150..750 (1.2px per 만원) -->
+  <g stroke="#eee" stroke-dasharray="3 3">
+    <line x1="270" y1="90" x2="270" y2="400"/><line x1="390" y1="90" x2="390" y2="400"/>
+    <line x1="510" y1="90" x2="510" y2="400"/><line x1="630" y1="90" x2="630" y2="400"/><line x1="750" y1="90" x2="750" y2="400"/>
+  </g>
+  <g font-size="11" fill="#888" text-anchor="middle">
+    <text x="150" y="418">0</text><text x="270" y="418">100</text><text x="390" y="418">200</text>
+    <text x="510" y="418">300</text><text x="630" y="418">400</text><text x="750" y="418">500만원</text>
+  </g>
+  <!-- rows -->
+  <g font-size="13" fill="#333">
+    <text x="140" y="126" text-anchor="end">25평/59타입 · 시공형</text>
+    <rect x="378" y="110" width="102" height="24" rx="4" fill="#c96a4a"/>
+    <text x="490" y="127" font-size="12" fill="#c96a4a" font-weight="700">190만~275만</text>
+
+    <text x="140" y="176" text-anchor="end">25평/59타입 · 셀프</text>
+    <rect x="234" y="160" width="132" height="24" rx="4" fill="#8faa9b"/>
+    <text x="376" y="177" font-size="12" fill="#5f7d6e" font-weight="700">70만~180만</text>
+
+    <text x="140" y="236" text-anchor="end">34평/84타입 · 시공형</text>
+    <rect x="426" y="220" width="204" height="24" rx="4" fill="#c96a4a"/>
+    <text x="640" y="237" font-size="12" fill="#c96a4a" font-weight="700">230만~400만</text>
+
+    <text x="140" y="286" text-anchor="end">34평/84타입 · 셀프</text>
+    <rect x="270" y="270" width="120" height="24" rx="4" fill="#8faa9b"/>
+    <text x="400" y="287" font-size="12" fill="#5f7d6e" font-weight="700">100만~200만</text>
+
+    <text x="140" y="346" text-anchor="end">셀프 롤매트만(거실+복도)</text>
+    <rect x="180" y="330" width="30" height="24" rx="4" fill="#d9c8a3"/>
+    <text x="220" y="347" font-size="12" fill="#8a7a4e" font-weight="700">25만~50만</text>
+  </g>
+  <text x="400" y="448" text-anchor="middle" font-size="11" fill="#999">시공형 = 자재+시공비 포함 · 셀프 = 자재비만(TPU 조립매트 직접 시공) · 방까지 확장·고급 두께 선택 시 상단 초과</text>
+</svg>
