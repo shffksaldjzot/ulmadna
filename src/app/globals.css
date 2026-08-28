@@ -2,6 +2,8 @@
 
 :root {
   --brown: #5C3A21;
+  --brown-press: #3F2716; /* 주버튼 눌림 */
+  --brown-hover: #4A2E1A; /* 주버튼 PC 호버 */
   --cream: #F5F0EB;
   --gold: #C9A96E;
   --red: #C0392B;
@@ -9,17 +11,42 @@
   --green: #2E7D5B;
   --background: #ffffff;
   --foreground: #333333;
+
+  /* ── v1 허브(디자인 가이드 v4) 전용 토큰 ──
+     v4 목업 인라인 스타일 값을 그대로 옮긴 색 역할 토큰.
+     기존 라이브(블로그·구 계산기) 토큰은 위 값을 그대로 재사용 */
+  --v1-card-soft: #FAF7F3;      /* 옅은 카드(금액 박스 등) */
+  --v1-gold-tile: #FAF3E6;      /* 올수리 타일 배경 */
+  --v1-badge-gold-bg: #F3E9D6;  /* 골드 배지 배경 */
+  --v1-line: #E3D9CC;           /* 카드 테두리 */
+  --v1-line-2: #EFE7DC;         /* 내부 구분선 */
+  --v1-line-3: #DCD3C7;         /* 입력칸 테두리 */
+  --v1-text-secondary: #6E6257; /* 보조 텍스트 */
+  --v1-text-disabled: #A79C90;  /* 비활성·근거·고지 텍스트 */
+  --v1-text-label: #8A7A6A;     /* 라벨용 텍스트 */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-brown: var(--brown);
+  --color-brown-press: var(--brown-press);
+  --color-brown-hover: var(--brown-hover);
   --color-cream: var(--cream);
   --color-gold: var(--gold);
   --color-danger: var(--red);
   --color-amber: var(--amber);
   --color-safe: var(--green);
+
+  --color-v1-card-soft: var(--v1-card-soft);
+  --color-v1-gold-tile: var(--v1-gold-tile);
+  --color-v1-badge-gold-bg: var(--v1-badge-gold-bg);
+  --color-v1-line: var(--v1-line);
+  --color-v1-line-2: var(--v1-line-2);
+  --color-v1-line-3: var(--v1-line-3);
+  --color-v1-text-secondary: var(--v1-text-secondary);
+  --color-v1-text-disabled: var(--v1-text-disabled);
+  --color-v1-text-label: var(--v1-text-label);
 }
 
 body {

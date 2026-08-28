@@ -112,9 +112,10 @@ function calcPaste(ctx: SchemaCalcContext): SchemaQuantityOutput | null {
   // 모자라면 공사가 멈추므로 "가장 많이 드는 쪽(min 평수/포)"으로 보수 산출
   const qty = Math.max(1, Math.ceil(pyeong / band.min));
   const bandText = band.min === band.max ? `${band.min}평` : `${band.min}~${band.max}평`;
+  // 근거줄은 계산식이 아니라 한 토막 계수만 (설명글 최소화 원칙)
   return {
     qty,
-    basis: `도배 ${r1(pyeong)}평 ÷ ${PASTE_BAG_KG}kg 포당 ${bandText}(보수적으로 ${band.min}평 적용) → ${qty}포`,
+    basis: `${PASTE_BAG_KG}kg 포당 ${bandText}`,
   };
 }
 
@@ -127,7 +128,7 @@ function calcNonwoven(ctx: SchemaCalcContext): SchemaQuantityOutput | null {
   const qty = Math.max(1, Math.ceil(need / NONWOVEN_SQM_PER_ROLL.value));
   return {
     qty,
-    basis: `벽 ${r1(wall)}㎡ × ${NONWOVEN_AREA_MULT.max} ÷ 롤당 ${NONWOVEN_SQM_PER_ROLL.value}㎡ → ${qty}롤`,
+    basis: `벽면적 × ${NONWOVEN_AREA_MULT.max}`,
   };
 }
 
@@ -140,7 +141,7 @@ function calcLiningPaper(ctx: SchemaCalcContext): SchemaQuantityOutput | null {
   const qty = Math.max(1, Math.ceil(need / LINING_PAPER_SQM_PER_ROLL.value));
   return {
     qty,
-    basis: `벽 ${r1(wall)}㎡ × ${LINING_PAPER_RATIO.value}(추정) ÷ 롤당 ${LINING_PAPER_SQM_PER_ROLL.value}㎡ → ${qty}롤`,
+    basis: `벽면적 × ${LINING_PAPER_RATIO.value} · 추정`,
   };
 }
 
@@ -154,7 +155,7 @@ function calcNebari(ctx: SchemaCalcContext): SchemaQuantityOutput | null {
   const src = ctx.flags.perimeterIsMeasured ? '실측' : '추정';
   return {
     qty,
-    basis: `둘레 ${r1(perimeter)}m(${src}) × ${NEBARI_PERIMETER_MULT.value}줄 ÷ 롤당 ${NEBARI_M_PER_ROLL.value}m → ${qty}롤`,
+    basis: `둘레 ${r1(perimeter)}m · ${src}`,
   };
 }
 
@@ -167,7 +168,7 @@ function calcBond(ctx: SchemaCalcContext): SchemaQuantityOutput | null {
   const qty = Math.max(1, Math.ceil(kg / BOND_KG_PER_CAN.value));
   return {
     qty,
-    basis: `벽 ${r1(wall)}㎡ × ${BOND_KG_PER_SQM.value}kg/㎡(추정) = ${r1(kg)}kg ÷ ${BOND_KG_PER_CAN.value}kg 통 → ${qty}통`,
+    basis: `${BOND_KG_PER_SQM.value}kg/㎡ · 추정`,
   };
 }
 
@@ -180,7 +181,7 @@ function calcPutty(ctx: SchemaCalcContext): SchemaQuantityOutput | null {
   const qty = Math.max(1, Math.ceil(kg / PUTTY_KG_PER_BAG.value));
   return {
     qty,
-    basis: `벽 ${r1(wall)}㎡ × ${PUTTY_KG_PER_SQM.value}kg/㎡(추정·국소 보수) = ${r1(kg)}kg ÷ ${PUTTY_KG_PER_BAG.value}kg 포 → ${qty}포`,
+    basis: `${PUTTY_KG_PER_SQM.value}kg/㎡ · 추정`,
   };
 }
 
@@ -193,7 +194,7 @@ function calcBinder(ctx: SchemaCalcContext): SchemaQuantityOutput | null {
   const qty = Math.max(1, Math.ceil(kg / BINDER_KG_PER_CAN.value));
   return {
     qty,
-    basis: `벽 ${r1(wall)}㎡ × ${BINDER_KG_PER_SQM.value}kg/㎡(추정) = ${r1(kg)}kg ÷ ${BINDER_KG_PER_CAN.value}kg 통 → ${qty}통`,
+    basis: `${BINDER_KG_PER_SQM.value}kg/㎡ · 추정`,
   };
 }
 
@@ -206,7 +207,7 @@ function calcSilicone(ctx: SchemaCalcContext): SchemaQuantityOutput | null {
   const src = ctx.flags.perimeterIsMeasured ? '실측' : '추정';
   return {
     qty,
-    basis: `둘레 ${r1(perimeter)}m(${src}) × ${SILICONE_PERIMETER_MULT.value}줄 ÷ 개당 ${SILICONE_M_PER_CARTRIDGE.value}m(추정) → ${qty}개`,
+    basis: `둘레 ${r1(perimeter)}m · ${src}`,
   };
 }
 
@@ -214,7 +215,7 @@ function calcSilicone(ctx: SchemaCalcContext): SchemaQuantityOutput | null {
 function calcProtection(ctx: SchemaCalcContext): SchemaQuantityOutput | null {
   const total = ctx.numbers.totalSqm;
   if (total <= 0) return null;
-  return { qty: 1, basis: `도배 ${r1(total)}㎡ 현장 보양 1식` };
+  return { qty: 1, basis: '현장 1식' };
 }
 
 /** 기존 벽지 제거 — 구축에서 선택했을 때만. 벽 + 천장 면적 */
@@ -267,7 +268,7 @@ const ITEMS: Item[] = [
   },
   {
     key: 'nonwoven',
-    name: '부직포(공간초배)',
+    name: '부직포',
     unit: '롤',
     kind: '부자재',
     quantityRule: {
@@ -280,7 +281,7 @@ const ITEMS: Item[] = [
   },
   {
     key: 'lining_paper',
-    name: '각초배지(운용지)',
+    name: '초배지',
     unit: '롤',
     kind: '부자재',
     quantityRule: {
@@ -307,7 +308,7 @@ const ITEMS: Item[] = [
   },
   {
     key: 'bond',
-    name: '본드(합성수지)',
+    name: '본드',
     unit: '통',
     kind: '부자재',
     quantityRule: {
@@ -349,7 +350,7 @@ const ITEMS: Item[] = [
   },
   {
     key: 'silicone',
-    name: '수성실리콘(코킹)',
+    name: '실리콘',
     unit: '개',
     kind: '부자재',
     quantityRule: {
@@ -361,7 +362,7 @@ const ITEMS: Item[] = [
   },
   {
     key: 'protection',
-    name: '보양(마스킹·비닐)',
+    name: '보양',
     unit: '식',
     kind: '부자재',
     quantityRule: {
