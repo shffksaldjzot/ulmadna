@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif">
+  <rect width="800" height="560" fill="#fffdf9"/>
+  <text x="40" y="44" font-size="22" font-weight="700" fill="#2b2b2b">디아망 도배 가격 vs 일반 실크 — 평형별 전체 도배 견적 범위</text>
+  <text x="40" y="68" font-size="13" fill="#7a7a7a">단위: 만원 · 자재+시공 포함 · 실제 견적 빅데이터 1,000건+ 기준 · 천장·밑작업 조건에 따라 변동</text>
+
+  <!-- legend -->
+  <rect x="40" y="86" width="14" height="14" rx="3" fill="#cfc4b8"/>
+  <text x="60" y="98" font-size="13" fill="#4a4a4a">일반 실크 전체</text>
+  <rect x="170" y="86" width="14" height="14" rx="3" fill="#c96a4a"/>
+  <text x="190" y="98" font-size="13" fill="#4a4a4a">디아망 전체</text>
+
+  <!-- axis: x = 260 + value * 0.9 -->
+  <g stroke="#e6e0d8" stroke-width="1">
+    <line x1="260" y1="115" x2="260" y2="470"/>
+    <line x1="350" y1="115" x2="350" y2="470"/>
+    <line x1="440" y1="115" x2="440" y2="470"/>
+    <line x1="530" y1="115" x2="530" y2="470"/>
+    <line x1="620" y1="115" x2="620" y2="470"/>
+    <line x1="710" y1="115" x2="710" y2="470"/>
+  </g>
+  <g font-size="12" fill="#9a9a9a" text-anchor="middle">
+    <text x="260" y="490">0</text>
+    <text x="350" y="490">100</text>
+    <text x="440" y="490">200</text>
+    <text x="530" y="490">300</text>
+    <text x="620" y="490">400</text>
+    <text x="710" y="490">500</text>
+  </g>
+
+  <!-- 24평/59타입: 실크 160~210 / 디아망 270~300 -->
+  <text x="245" y="146" font-size="14" fill="#2b2b2b" text-anchor="end" font-weight="700">24평 / 59타입</text>
+  <rect x="404" y="128" width="45" height="16" rx="4" fill="#cfc4b8"/>
+  <text x="456" y="141" font-size="12" fill="#6a6a6a">160~210만</text>
+  <rect x="503" y="150" width="27" height="16" rx="4" fill="#c96a4a"/>
+  <text x="537" y="163" font-size="12" fill="#c96a4a" font-weight="700">270~300만</text>
+
+  <!-- 30평/74타입: 실크 240~250 / 디아망 320~450 -->
+  <text x="245" y="228" font-size="14" fill="#2b2b2b" text-anchor="end" font-weight="700">30평 / 74타입</text>
+  <rect x="476" y="210" width="9" height="16" rx="4" fill="#cfc4b8"/>
+  <text x="492" y="223" font-size="12" fill="#6a6a6a">240~250만</text>
+  <rect x="548" y="232" width="117" height="16" rx="4" fill="#c96a4a"/>
+  <text x="672" y="245" font-size="12" fill="#c96a4a" font-weight="700">320~450만</text>
+
+  <!-- 32~34평/84타입: 실크 220~300 / 디아망 310~400 -->
+  <text x="245" y="310" font-size="14" fill="#2b2b2b" text-anchor="end" font-weight="700">32~34평 / 84타입</text>
+  <rect x="458" y="292" width="72" height="16" rx="4" fill="#cfc4b8"/>
+  <text x="537" y="305" font-size="12" fill="#6a6a6a">220~300만</text>
+  <rect x="539" y="314" width="81" height="16" rx="4" fill="#c96a4a"/>
+  <text x="627" y="327" font-size="12" fill="#c96a4a" font-weight="700">310~400만</text>
+
+  <!-- 39~40평: 실크 300~380 / 디아망 420~520 -->
+  <text x="245" y="392" font-size="14" fill="#2b2b2b" text-anchor="end" font-weight="700">39~40평 (구축)</text>
+  <rect x="530" y="374" width="72" height="16" rx="4" fill="#cfc4b8"/>
+  <text x="609" y="387" font-size="12" fill="#6a6a6a">300~380만</text>
+  <rect x="638" y="396" width="90" height="16" rx="4" fill="#c96a4a"/>
+  <text x="640" y="430" font-size="12" fill="#c96a4a" font-weight="700">420~520만</text>
+
+  <line x1="40" y1="505" x2="760" y2="505" stroke="#e6e0d8" stroke-dasharray="4 4"/>
+  <text x="40" y="528" font-size="12" fill="#7a7a7a">※ 롤당 자재 차이는 1.8만~2.4만원인데 전체 견적은 70만~100만원 벌어짐 → 차이의 절반 이상은 '밑작업·품값'</text>
+  <text x="40" y="548" font-size="12" fill="#7a7a7a">※ 공용부만 디아망 + 방은 베스트(구 베스띠) 혼합 시공 시 33평 210만~260만원 사례</text>
+</svg>
