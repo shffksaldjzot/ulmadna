@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 470" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" role="img" aria-label="난방비 절약 공사 비용 — 34평/84타입 기준 공사별 실제 가격 범위 막대그래프">
+  <rect width="720" height="470" fill="#faf7f4"/>
+  <text x="24" y="40" font-size="20" font-weight="700" fill="#2b2b2b">난방비 절약 공사, 항목별로 얼마나 들까</text>
+  <text x="24" y="62" font-size="13" fill="#8a8175">34평/84타입 아파트 기준 · 단위: 만원 · 실제 견적 빅데이터 1,000건+ 기준</text>
+
+  <!-- gridlines 0~1600 -->
+  <g stroke="#e7ddd3" stroke-width="1">
+    <line x1="230" y1="80" x2="230" y2="380"/>
+    <line x1="345" y1="80" x2="345" y2="380"/>
+    <line x1="460" y1="80" x2="460" y2="380"/>
+    <line x1="575" y1="80" x2="575" y2="380"/>
+    <line x1="690" y1="80" x2="690" y2="380"/>
+  </g>
+  <g font-size="11" fill="#a89e92" text-anchor="middle">
+    <text x="230" y="398">0</text>
+    <text x="345" y="398">400</text>
+    <text x="460" y="398">800</text>
+    <text x="575" y="398">1,200</text>
+    <text x="690" y="398">1,600</text>
+  </g>
+
+  <!-- row labels -->
+  <g font-size="13" fill="#3a3a3a" text-anchor="end">
+    <text x="218" y="105">셀프 틈새·창문 단열필름</text>
+    <text x="218" y="145">열화상 진단(냉기 부위 찾기)</text>
+    <text x="218" y="185">베란다 탄성코트(1칸)</text>
+    <text x="218" y="225">외벽 방 단열 재시공(1칸)</text>
+    <text x="218" y="265">콘덴싱 보일러 교체</text>
+    <text x="218" y="305">난방 배관 전체 교체</text>
+    <text x="218" y="345">샷시 외부창만 교체</text>
+    <text x="218" y="385">샷시 전체 교체</text>
+  </g>
+
+  <!-- bars: scale 0.2875 px per 만원 (460px = 1600만) -->
+  <g rx="4">
+    <rect x="230" y="92" width="6" height="18" rx="3" fill="#d9a48f"/>
+    <rect x="233" y="132" width="3" height="18" rx="3" fill="#d9a48f"/>
+    <rect x="236" y="172" width="9" height="18" rx="3" fill="#d9a48f"/>
+    <rect x="273" y="212" width="37" height="18" rx="3" fill="#c97b5c"/>
+    <rect x="256" y="252" width="17" height="18" rx="3" fill="#c97b5c"/>
+    <rect x="391" y="292" width="4" height="18" rx="3" fill="#b5613f"/>
+    <rect x="403" y="332" width="100" height="18" rx="3" fill="#b5613f"/>
+    <rect x="503" y="372" width="158" height="18" rx="3" fill="#a24f2e"/>
+  </g>
+
+  <!-- value labels -->
+  <g font-size="12" fill="#5a4f45">
+    <text x="242" y="105">1만~20만</text>
+    <text x="242" y="145">10만~20만</text>
+    <text x="251" y="185">20만~50만</text>
+    <text x="316" y="225">150만~280만</text>
+    <text x="279" y="265">90만~150만</text>
+    <text x="401" y="305">560만~580만</text>
+    <text x="509" y="345">600만~950만</text>
+    <text x="497" y="385" text-anchor="end">950만~1,500만</text>
+  </g>
+
+  <g font-size="12" fill="#8a8175">
+    <text x="24" y="430">※ 단열·창호는 공사 자체 기준(도배 별도), 보일러는 시공비 포함 총액, 난방 배관은 2026년 5월 현행 소비자가(VAT 포함).</text>
+    <text x="24" y="450">※ 같은 항목이라도 확장 여부·자재 등급·시공 범위에 따라 범위 안에서 움직입니다.</text>
+  </g>
+</svg>
