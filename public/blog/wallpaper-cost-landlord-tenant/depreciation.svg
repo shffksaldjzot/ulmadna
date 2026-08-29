@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 460" font-family="Pretendard, 'Noto Sans KR', system-ui, sans-serif">
+  <rect width="800" height="460" fill="#F7F2EA"/>
+  <text x="40" y="44" font-size="22" font-weight="700" fill="#2B2B2B">세입자 과실이어도 '새 도배비 전액'이 아니다 — 감가상각 잔존가치</text>
+  <text x="40" y="70" font-size="14" fill="#6B6B6B">벽지 내용연수 6년 기준. 세입자 부담 = 교체비 × 잔존가치율 × 과실 비율</text>
+  <!-- axes -->
+  <line x1="80" y1="340" x2="740" y2="340" stroke="#B9B2A6" stroke-width="1.5"/>
+  <line x1="80" y1="110" x2="80" y2="340" stroke="#B9B2A6" stroke-width="1.5"/>
+  <!-- y labels -->
+  <g font-size="12" fill="#6B6B6B" text-anchor="end">
+    <text x="72" y="345">0%</text><text x="72" y="288">25%</text><text x="72" y="230">50%</text><text x="72" y="173">75%</text><text x="72" y="115">100%</text>
+  </g>
+  <g stroke="#E3DCCF" stroke-width="1">
+    <line x1="80" y1="283" x2="740" y2="283"/><line x1="80" y1="225" x2="740" y2="225"/><line x1="80" y1="168" x2="740" y2="168"/><line x1="80" y1="110" x2="740" y2="110"/>
+  </g>
+  <!-- bars: x for years 0..6 -->
+  <g>
+    <rect x="110" y="110" width="60" height="230" fill="#C8763A"/>
+    <rect x="200" y="148" width="60" height="192" fill="#C8763A"/>
+    <rect x="290" y="187" width="60" height="153" fill="#C8763A"/>
+    <rect x="380" y="225" width="60" height="115" fill="#D99A66"/>
+    <rect x="470" y="263" width="60" height="77" fill="#D99A66"/>
+    <rect x="560" y="302" width="60" height="38" fill="#E8BC95"/>
+    <rect x="650" y="336" width="60" height="4" fill="#E8BC95"/>
+  </g>
+  <g font-size="14" font-weight="700" fill="#2B2B2B" text-anchor="middle">
+    <text x="140" y="100">100%</text><text x="230" y="138">83%</text><text x="320" y="177">67%</text><text x="410" y="215">50%</text><text x="500" y="253">33%</text><text x="590" y="292">17%</text><text x="680" y="326">0%</text>
+  </g>
+  <g font-size="13" fill="#4A4A4A" text-anchor="middle">
+    <text x="140" y="362">새 도배</text><text x="230" y="362">1년</text><text x="320" y="362">2년</text><text x="410" y="362">3년</text><text x="500" y="362">4년</text><text x="590" y="362">5년</text><text x="680" y="362">6년+</text>
+  </g>
+  <text x="410" y="392" font-size="13" fill="#6B6B6B" text-anchor="middle">도배한 지 지난 기간 → 남아 있는 가치(잔존가치율)</text>
+  <rect x="80" y="408" width="660" height="36" rx="8" fill="#FFFFFF" stroke="#E3DCCF"/>
+  <text x="410" y="431" font-size="14" fill="#2B2B2B" text-anchor="middle">예) 3년 된 벽지, 세입자 과실 100% → 교체비 200만원 × 50% = <tspan font-weight="700" fill="#C8763A">100만원</tspan>만 부담</text>
+</svg>
