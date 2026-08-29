@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 460" width="800" height="460" role="img" aria-label="턴키 반셀프 차이 — 34평/84타입 공사 범위별 비용 범위 비교 차트">
+  <title>턴키 vs 반셀프 비용 범위 — 34평/84타입 기준</title>
+  <style>
+    .t { font-family: -apple-system, "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif; fill: #2b2b2b; }
+    .h { font-size: 18px; font-weight: 700; }
+    .s { font-size: 12px; fill: #6b6b6b; }
+    .l { font-size: 13px; }
+    .v { font-size: 12px; font-weight: 600; }
+    .axis { stroke: #d9d4cf; stroke-width: 1; }
+  </style>
+  <rect width="800" height="460" fill="#fbf8f4"/>
+  <text x="40" y="38" class="t h">턴키 vs 반셀프 — 공사 범위별 비용 범위 (34평/84타입)</text>
+  <text x="40" y="58" class="t s">단위: 만원 · 실제 견적 빅데이터 기준 · 막대 = 최소~최대 범위</text>
+
+  <!-- legend -->
+  <rect x="560" y="28" width="14" height="14" rx="3" fill="#c96a4a"/>
+  <text x="580" y="40" class="t l">턴키</text>
+  <rect x="630" y="28" width="14" height="14" rx="3" fill="#5b7a8c"/>
+  <text x="650" y="40" class="t l">반셀프(직영)</text>
+
+  <!-- axis: x from 200 to 760 = 0 ~ 10,000만원 -->
+  <g>
+    <line x1="200" y1="90" x2="200" y2="400" class="axis"/>
+    <line x1="200" y1="400" x2="760" y2="400" class="axis"/>
+    <g class="t s">
+      <text x="200" y="420" text-anchor="middle">0</text>
+      <text x="312" y="420" text-anchor="middle">2,000</text>
+      <text x="424" y="420" text-anchor="middle">4,000</text>
+      <text x="536" y="420" text-anchor="middle">6,000</text>
+      <text x="648" y="420" text-anchor="middle">8,000</text>
+      <text x="760" y="420" text-anchor="middle">10,000</text>
+    </g>
+    <g stroke="#ece6e0" stroke-width="1" stroke-dasharray="3 4">
+      <line x1="312" y1="90" x2="312" y2="400"/>
+      <line x1="424" y1="90" x2="424" y2="400"/>
+      <line x1="536" y1="90" x2="536" y2="400"/>
+      <line x1="648" y1="90" x2="648" y2="400"/>
+    </g>
+  </g>
+
+  <!-- Row 1: 부분 공사 (도배·바닥·조명·욕실 일부) 턴키 2,000~3,000 / 반셀프 900~1,300 -->
+  <text x="190" y="118" class="t l" text-anchor="end">부분 공사</text>
+  <text x="190" y="134" class="t s" text-anchor="end">도배·바닥·조명·욕실 일부</text>
+  <rect x="312" y="104" width="56" height="16" rx="4" fill="#c96a4a"/>
+  <text x="374" y="117" class="t v">2,000~3,000</text>
+  <rect x="250" y="124" width="23" height="16" rx="4" fill="#5b7a8c"/>
+  <text x="279" y="137" class="t v">900~1,300</text>
+
+  <!-- Row 2: 기본형 올수리 (샷시 제외) 턴키 3,500~6,000 / 반셀프 2,300~3,000 -->
+  <text x="190" y="188" class="t l" text-anchor="end">기본형 올수리</text>
+  <text x="190" y="204" class="t s" text-anchor="end">샷시 제외 · 구조변경 없음</text>
+  <rect x="396" y="174" width="140" height="16" rx="4" fill="#c96a4a"/>
+  <text x="542" y="187" class="t v">3,500~6,000</text>
+  <rect x="329" y="194" width="39" height="16" rx="4" fill="#5b7a8c"/>
+  <text x="374" y="207" class="t v">2,300~3,000</text>
+
+  <!-- Row 3: 올수리 (30평대 일반) 턴키 4,000~7,000 / 반셀프 2,500~4,500 -->
+  <text x="190" y="258" class="t l" text-anchor="end">올수리 (중급 자재)</text>
+  <text x="190" y="274" class="t s" text-anchor="end">욕실 2개 철거 · 주방 교체</text>
+  <rect x="424" y="244" width="168" height="16" rx="4" fill="#c96a4a"/>
+  <text x="598" y="257" class="t v">4,000~7,000</text>
+  <rect x="340" y="264" width="112" height="16" rx="4" fill="#5b7a8c"/>
+  <text x="458" y="277" class="t v">2,500~4,500</text>
+
+  <!-- Row 4: 샷시 포함 중상급 턴키 6,000~6,500 / 반셀프 4,400~4,800 -->
+  <text x="190" y="328" class="t l" text-anchor="end">샷시 포함 · 중상급</text>
+  <text x="190" y="344" class="t s" text-anchor="end">창호 전체 교체 포함</text>
+  <rect x="536" y="314" width="28" height="16" rx="4" fill="#c96a4a"/>
+  <text x="570" y="327" class="t v">6,000~6,500</text>
+  <rect x="446" y="334" width="23" height="16" rx="4" fill="#5b7a8c"/>
+  <text x="475" y="347" class="t v">4,400~4,800</text>
+
+  <!-- Row 5: 고급형 턴키 6,000~9,500 / 반셀프 - -->
+  <text x="190" y="382" class="t l" text-anchor="end">고급형 (확장·시스템에어컨)</text>
+  <rect x="536" y="370" width="196" height="16" rx="4" fill="#c96a4a"/>
+  <text x="600" y="366" class="t v">6,000~9,500+</text>
+
+  <text x="40" y="448" class="t s">※ 같은 줄의 턴키·반셀프는 동일 공사 범위 기준. 반셀프 금액은 양중·폐기물·예비비를 뺀 계약 합계라서 실제 지출은 10~15% 더 잡아야 합니다.</text>
+</svg>
