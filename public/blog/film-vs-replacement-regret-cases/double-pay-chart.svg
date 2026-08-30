@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" role="img" aria-label="필름 시공 후회 부위별 이중지출 비교 — 필름 비용, 처음부터 교체 비용, 필름 후 교체 이중지출">
+  <rect width="720" height="400" fill="#faf7f4"/>
+  <text x="24" y="38" font-size="20" font-weight="700" fill="#2b2b2b">필름 후회 부위 — 처음부터 교체 vs 필름 후 교체(이중지출)</text>
+  <text x="24" y="60" font-size="13" fill="#8a8175">단위: 만원 · 범위 중간값 기준 · 실제 견적 빅데이터 1,000건+ 추출</text>
+
+  <!-- legend -->
+  <g font-size="12" fill="#3a3a3a">
+    <rect x="24" y="74" width="12" height="12" rx="2" fill="#c9b8a8"/><text x="42" y="85">필름만</text>
+    <rect x="110" y="74" width="12" height="12" rx="2" fill="#5b8c6f"/><text x="128" y="85">처음부터 교체</text>
+    <rect x="236" y="74" width="12" height="12" rx="2" fill="#c8553d"/><text x="254" y="85">필름 → 결국 교체(이중지출)</text>
+  </g>
+
+  <!-- grid 0~450, x from 200 to 680 (1만원 = 480/450 px) -->
+  <g stroke="#e7ddd3" stroke-width="1">
+    <line x1="200" y1="100" x2="200" y2="340"/>
+    <line x1="306.7" y1="100" x2="306.7" y2="340"/>
+    <line x1="413.3" y1="100" x2="413.3" y2="340"/>
+    <line x1="520" y1="100" x2="520" y2="340"/>
+    <line x1="626.7" y1="100" x2="626.7" y2="340"/>
+  </g>
+  <g font-size="11" fill="#a89e92" text-anchor="middle">
+    <text x="200" y="358">0</text>
+    <text x="306.7" y="358">100</text>
+    <text x="413.3" y="358">200</text>
+    <text x="520" y="358">300</text>
+    <text x="626.7" y="358">400</text>
+  </g>
+
+  <!-- row labels -->
+  <g font-size="13" fill="#3a3a3a" text-anchor="end">
+    <text x="188" y="128">뒤틀린 방문 1틀</text>
+    <text x="188" y="204">속통 부푼 싱크대</text>
+    <text x="188" y="220" font-size="10" fill="#a89e92">(34평/84타입)</text>
+    <text x="188" y="288">싱크대 상판</text>
+  </g>
+
+  <!-- 방문: 필름 20 / 교체 20 / 이중 40 -->
+  <rect x="200" y="108" width="21.3" height="14" rx="2" fill="#c9b8a8"/><text x="227" y="119" font-size="11" fill="#6b6259">20</text>
+  <rect x="200" y="124" width="21.3" height="14" rx="2" fill="#5b8c6f"/><text x="227" y="135" font-size="11" fill="#3f6b51">20</text>
+  <rect x="200" y="140" width="42.7" height="14" rx="2" fill="#c8553d"/><text x="248" y="151" font-size="11" font-weight="700" fill="#a4432f">40</text>
+
+  <!-- 싱크대: 필름 100 / 교체 325 / 이중 425 -->
+  <rect x="200" y="188" width="106.7" height="14" rx="2" fill="#c9b8a8"/><text x="312" y="199" font-size="11" fill="#6b6259">100</text>
+  <rect x="200" y="204" width="346.7" height="14" rx="2" fill="#5b8c6f"/><text x="552" y="215" font-size="11" fill="#3f6b51">325</text>
+  <rect x="200" y="220" width="453.3" height="14" rx="2" fill="#c8553d"/><text x="658" y="231" font-size="11" font-weight="700" fill="#a4432f">425</text>
+
+  <!-- 상판: 필름 8 / 교체 90 / 이중 98 -->
+  <rect x="200" y="268" width="8.5" height="14" rx="2" fill="#c9b8a8"/><text x="214" y="279" font-size="11" fill="#6b6259">8(셀프)</text>
+  <rect x="200" y="284" width="96" height="14" rx="2" fill="#5b8c6f"/><text x="302" y="295" font-size="11" fill="#3f6b51">90</text>
+  <rect x="200" y="300" width="104.5" height="14" rx="2" fill="#c8553d"/><text x="310" y="311" font-size="11" font-weight="700" fill="#a4432f">98</text>
+
+  <text x="24" y="386" font-size="12" fill="#8a8175">교체 기준: 방문=문짝 ABS 교체, 싱크대=상판+하부장 교체, 상판=인조대리석 보급형(3m). 샷시·몰딩은 본문 표 참고.</text>
+</svg>
