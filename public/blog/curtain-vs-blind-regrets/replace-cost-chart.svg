@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 640" font-family="'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif" role="img" aria-label="커튼 블라인드 후회 후 교체 비용 시나리오별 범위 차트">
+  <rect width="800" height="640" fill="#FFFFFF"/>
+  <text x="30" y="44" font-size="22" font-weight="700" fill="#2B2622">커튼·블라인드 잘못 골랐을 때 교체 비용 (시나리오별)</text>
+  <text x="30" y="70" font-size="13" fill="#8A8078">기존 제품 셀프 철거(0원) 기준 · 새 제품 + 설치 · 단위: 만원</text>
+
+  <!-- guide lines -->
+  <g stroke="#EFEAE4" stroke-width="1">
+    <line x1="250" y1="95" x2="250" y2="560"/>
+    <line x1="380" y1="95" x2="380" y2="560"/>
+    <line x1="510" y1="95" x2="510" y2="560"/>
+    <line x1="640" y1="95" x2="640" y2="560"/>
+    <line x1="770" y1="95" x2="770" y2="560"/>
+  </g>
+  <g font-size="12" fill="#B0A69C" text-anchor="middle">
+    <text x="250" y="580">0</text>
+    <text x="380" y="580">25</text>
+    <text x="510" y="580">50</text>
+    <text x="640" y="580">75</text>
+    <text x="770" y="580">100만원</text>
+  </g>
+
+  <!-- rows: x = 250 + 만원*5.2 -->
+  <!-- 1. 설치만 기사 (레일 1개) 5~6 -->
+  <g>
+    <text x="238" y="122" font-size="14" fill="#4A423C" text-anchor="end">설치만 기사 호출 (레일·블라인드 1개)</text>
+    <rect x="276" y="106" width="12" height="24" rx="4" fill="#D98B63"/>
+    <text x="298" y="123" font-size="13" font-weight="700" fill="#2B2622">5만~6만</text>
+  </g>
+
+  <!-- 2. 방 블라인드 → 온라인 맞춤 블라인드 + 셀프 5~8 -->
+  <g>
+    <text x="238" y="180" font-size="14" fill="#4A423C" text-anchor="end">방 블라인드 → 온라인 맞춤 블라인드(셀프)</text>
+    <rect x="276" y="164" width="16" height="24" rx="4" fill="#D98B63"/>
+    <text x="302" y="181" font-size="13" font-weight="700" fill="#2B2622">5만~8만</text>
+  </g>
+
+  <!-- 3. 거실 블라인드 → 쉬폰 커튼 (온라인 맞춤 + 셀프) 7~13 -->
+  <g>
+    <text x="238" y="238" font-size="14" fill="#4A423C" text-anchor="end">거실 블라인드 → 쉬폰 커튼 (셀프)</text>
+    <rect x="286" y="222" width="32" height="24" rx="4" fill="#D98B63"/>
+    <text x="328" y="239" font-size="13" font-weight="700" fill="#2B2622">7만~13만</text>
+  </g>
+
+  <!-- 4. 방 블라인드 → 업체 콤비 블라인드 9~15 -->
+  <g>
+    <text x="238" y="296" font-size="14" fill="#4A423C" text-anchor="end">방 블라인드 → 업체 콤비 블라인드</text>
+    <rect x="297" y="280" width="31" height="24" rx="4" fill="#C96F4A"/>
+    <text x="338" y="297" font-size="13" font-weight="700" fill="#2B2622">9만~15만</text>
+  </g>
+
+  <!-- 5. 안방 블라인드 → 암막커튼 (업체) 15~25 -->
+  <g>
+    <text x="238" y="354" font-size="14" fill="#4A423C" text-anchor="end">안방 블라인드 → 암막커튼 (업체)</text>
+    <rect x="328" y="338" width="52" height="24" rx="4" fill="#C96F4A"/>
+    <text x="390" y="355" font-size="13" font-weight="700" fill="#2B2622">15만~25만</text>
+  </g>
+
+  <!-- 6. 거실 블라인드 → 쉬폰 커튼 (업체) 20~25 -->
+  <g>
+    <text x="238" y="412" font-size="14" fill="#4A423C" text-anchor="end">거실 블라인드 → 쉬폰 커튼 (업체)</text>
+    <rect x="354" y="396" width="26" height="24" rx="4" fill="#C96F4A"/>
+    <text x="390" y="413" font-size="13" font-weight="700" fill="#2B2622">20만~25만</text>
+  </g>
+
+  <!-- 7. 방 커튼 → 로만쉐이드 (암막 원단, 업체) 26~ -->
+  <g>
+    <text x="238" y="470" font-size="14" fill="#4A423C" text-anchor="end">방 커튼 → 로만쉐이드 (암막 원단·업체)</text>
+    <rect x="385" y="454" width="30" height="24" rx="4" fill="#B05A38"/>
+    <text x="425" y="471" font-size="13" font-weight="700" fill="#2B2622">26만원~ (면적당 최고가)</text>
+  </g>
+
+  <!-- 8. 30평대(74타입) 집 전체 다시 80~100 -->
+  <g>
+    <text x="238" y="528" font-size="14" fill="#4A423C" text-anchor="end">30평대(74타입) 집 전체 다시 (업체)</text>
+    <rect x="666" y="512" width="104" height="24" rx="4" fill="#8F4527"/>
+    <text x="662" y="505" font-size="13" font-weight="700" fill="#2B2622">80만~100만</text>
+  </g>
+
+  <text x="30" y="618" font-size="12" fill="#8A8078">※ 업체 철거비 별도 시 항목 추가. 수입 원단은 국산의 2배, 로만쉐이드는 면적당 단가가 가장 높음.</text>
+</svg>
