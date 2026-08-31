@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" role="img" aria-label="창호 단열 비용 — 외풍 잡는 공사 4단계와 실제 가격 범위">
+  <style>
+    text { font-family: -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
+    .title { font-size: 22px; font-weight: 700; fill: #2b2b2b; }
+    .sub { font-size: 13px; fill: #8a8175; }
+    .step { font-size: 13px; font-weight: 700; fill: #ffffff; }
+    .name { font-size: 17px; font-weight: 700; fill: #2b2b2b; }
+    .price { font-size: 16px; font-weight: 700; fill: #a24f2e; }
+    .desc { font-size: 12.5px; fill: #5a4f45; }
+  </style>
+  <rect width="800" height="470" fill="#faf7f4"/>
+  <text x="40" y="48" class="title">외풍 잡는 공사, 4단계 중 어디까지?</text>
+  <text x="40" y="72" class="sub">아래 단계일수록 싸고 빠르고, 위 단계일수록 근본 해결 — 실제 견적 데이터 기준</text>
+
+  <!-- step 1 -->
+  <rect x="40" y="380" width="710" height="62" rx="10" fill="#d9a48f" opacity="0.35"/>
+  <rect x="40" y="380" width="26" height="62" rx="10" fill="#d9a48f"/>
+  <text x="53" y="416" text-anchor="middle" class="step">1</text>
+  <text x="84" y="404" class="name">셀프 부분 보수</text>
+  <text x="84" y="426" class="desc">문풍지·풍지판·모헤어·실리콘 재시공 — 창가 틈새 바람이 원인일 때</text>
+  <text x="748" y="404" text-anchor="end" class="price">1만~10만원</text>
+
+  <!-- step 2 -->
+  <rect x="40" y="288" width="710" height="62" rx="10" fill="#d9a48f" opacity="0.55"/>
+  <rect x="40" y="288" width="26" height="62" rx="10" fill="#c97b5c"/>
+  <text x="53" y="324" text-anchor="middle" class="step">2</text>
+  <text x="84" y="312" class="name">유리만 교체 (프레임 유지)</text>
+  <text x="84" y="334" class="desc">단창 한 짝 5만~15만 · 로이 복층 15만~30만 — 베란다 전체 50만~150만</text>
+  <text x="748" y="312" text-anchor="end" class="price">5만~150만원</text>
+
+  <!-- step 3 -->
+  <rect x="40" y="196" width="710" height="62" rx="10" fill="#c97b5c" opacity="0.55"/>
+  <rect x="40" y="196" width="26" height="62" rx="10" fill="#b5613f"/>
+  <text x="53" y="232" text-anchor="middle" class="step">3</text>
+  <text x="84" y="220" class="name">벽체 단열 보강 (창호와 병행)</text>
+  <text x="84" y="242" class="desc">발코니 이보드 100만~120만 · 외벽 방 1칸 재시공 150만~280만</text>
+  <text x="748" y="220" text-anchor="end" class="price">100만~280만원</text>
+
+  <!-- step 4 -->
+  <rect x="40" y="104" width="710" height="62" rx="10" fill="#b5613f" opacity="0.55"/>
+  <rect x="40" y="104" width="26" height="62" rx="10" fill="#a24f2e"/>
+  <text x="53" y="140" text-anchor="middle" class="step">4</text>
+  <text x="84" y="128" class="name">샷시 전체 교체 (사춤·기밀 포함)</text>
+  <text x="84" y="150" class="desc">24평/59타입 650만~900만 · 30평대/74~84타입 850만~1,500만</text>
+  <text x="748" y="128" text-anchor="end" class="price">650만~1,500만원</text>
+
+  <text x="40" y="462" class="sub">※ 사양·창 면적·부대비용(철거·양중·부가세) 포함 여부에 따라 달라집니다 · 얼마드나</text>
+</svg>
