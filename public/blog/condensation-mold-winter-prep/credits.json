@@ -1,0 +1,16 @@
+[
+  {
+    "file": "hero.jpg",
+    "photographer": "C. G.",
+    "profile": "https://unsplash.com/@cg",
+    "source": "https://unsplash.com/photos/a-wet-window-with-a-traffic-light-on-it-JgDUVGAXsso",
+    "query": "winter window condensation interior"
+  },
+  {
+    "file": "hero.jpg",
+    "photographer": "Vitus Bever",
+    "profile": "https://unsplash.com/@vits",
+    "source": "https://unsplash.com/photos/sunlight-filters-through-sheer-curtains-on-a-window-pauPArJS-_0",
+    "query": "cozy home window winter light curtain"
+  }
+]
