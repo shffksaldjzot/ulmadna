@@ -1,0 +1,16 @@
+[
+  {
+    "file": "hero.jpg",
+    "photographer": "Albero Furniture Bratislava",
+    "profile": "https://unsplash.com/@alberofurniture",
+    "source": "https://unsplash.com/photos/a-living-room-filled-with-furniture-and-a-flat-screen-tv-xRuHNSq5rD0",
+    "query": "smart home devices living room"
+  },
+  {
+    "file": "hero.jpg",
+    "photographer": "Thomas Kolnowski",
+    "profile": "https://unsplash.com/@tkolnowski",
+    "source": "https://unsplash.com/photos/white-and-gray-google-home-on-brown-table-ljG19qhTzZQ",
+    "query": "smart speaker on table modern home"
+  }
+]
