@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 480" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif">
+  <rect width="800" height="480" fill="#fffdf9"/>
+  <text x="40" y="42" font-size="21" font-weight="700" fill="#2b2b2b">천장 도배 비용 — 벽만 할 때 vs 천장까지 할 때 (실크 전체 도배)</text>
+  <text x="40" y="66" font-size="13" fill="#7a7a7a">단위: 만원 · 표준 조건(빈집·덧방 없음·보수 최소) 기준 · 실제 견적 빅데이터 1,000건+ 교차</text>
+
+  <g stroke="#ece5dc" stroke-width="1">
+    <line x1="280" y1="86" x2="280" y2="404"/>
+    <line x1="410" y1="86" x2="410" y2="404"/>
+    <line x1="540" y1="86" x2="540" y2="404"/>
+    <line x1="670" y1="86" x2="670" y2="404"/>
+  </g>
+  <g font-size="12" fill="#a09890" text-anchor="middle">
+    <text x="280" y="424">0</text>
+    <text x="410" y="424">100</text>
+    <text x="540" y="424">200</text>
+    <text x="670" y="424">300</text>
+  </g>
+
+  <!-- 24평 / 59타입 -->
+  <text x="264" y="128" font-size="14" font-weight="700" fill="#2b2b2b" text-anchor="end">24~25평 / 59타입</text>
+  <rect x="280" y="102" width="177" height="20" rx="4" fill="#c3b5a8"/>
+  <rect x="457" y="102" width="42" height="20" rx="4" fill="#c3b5a8" opacity="0.45"/>
+  <text x="509" y="117" font-size="12.5" fill="#8a7f74">벽만 136~168만</text>
+  <rect x="280" y="132" width="208" height="20" rx="4" fill="#c96a4a"/>
+  <rect x="488" y="132" width="65" height="20" rx="4" fill="#c96a4a" opacity="0.45"/>
+  <text x="563" y="147" font-size="12.5" font-weight="700" fill="#c96a4a">벽+천장 160~210만</text>
+
+  <!-- 30평 / 74타입 -->
+  <text x="264" y="208" font-size="14" font-weight="700" fill="#2b2b2b" text-anchor="end">30평 / 74타입</text>
+  <rect x="280" y="182" width="221" height="20" rx="4" fill="#c3b5a8"/>
+  <rect x="501" y="182" width="49" height="20" rx="4" fill="#c3b5a8" opacity="0.45"/>
+  <text x="560" y="197" font-size="12.5" fill="#8a7f74">벽만 170~208만</text>
+  <rect x="280" y="212" width="260" height="20" rx="4" fill="#c96a4a"/>
+  <rect x="540" y="212" width="78" height="20" rx="4" fill="#c96a4a" opacity="0.45"/>
+  <text x="628" y="227" font-size="12.5" font-weight="700" fill="#c96a4a">벽+천장 200~260만</text>
+
+  <!-- 34평 / 84타입 -->
+  <text x="264" y="288" font-size="14" font-weight="700" fill="#2b2b2b" text-anchor="end">34평 / 84타입</text>
+  <rect x="280" y="262" width="265" height="20" rx="4" fill="#c3b5a8"/>
+  <rect x="545" y="262" width="47" height="20" rx="4" fill="#c3b5a8" opacity="0.45"/>
+  <text x="602" y="277" font-size="12.5" fill="#8a7f74">벽만 204~240만</text>
+  <rect x="280" y="292" width="312" height="20" rx="4" fill="#c96a4a"/>
+  <rect x="592" y="292" width="78" height="20" rx="4" fill="#c96a4a" opacity="0.45"/>
+  <text x="450" y="307" font-size="12.5" font-weight="700" fill="#fff">벽+천장 240~300만</text>
+
+  <rect x="280" y="336" width="390" height="52" rx="8" fill="#faf3ec" stroke="#e8dccf"/>
+  <text x="298" y="358" font-size="13.5" font-weight="700" fill="#8a4a30">천장 몫 = 전체 견적의 15~20%</text>
+  <text x="298" y="378" font-size="12.5" fill="#6b6259">34평/84타입이면 36만~60만원. 면적은 3분의 1인데 금액은 5분의 1입니다.</text>
+
+  <g font-size="12" fill="#a09890">
+    <rect x="40" y="452" width="12" height="12" rx="3" fill="#c3b5a8"/>
+    <text x="58" y="462">벽만 도배</text>
+    <rect x="140" y="452" width="12" height="12" rx="3" fill="#c96a4a"/>
+    <text x="158" y="462">벽+천장 전체 도배</text>
+    <text x="300" y="462">연한 부분 = 현장 조건에 따른 상단 범위</text>
+  </g>
+</svg>
