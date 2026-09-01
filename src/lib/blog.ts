@@ -34,6 +34,12 @@ export interface PostMeta {
   thumbnail: string | null;
   tags: string[];
   readingTime: number; // 예상 읽기 시간(분)
+  // 비공개(초안) 글 여부 — 프런트매터에 `draft: true` 라고 적으면 켜집니다.
+  // 켜지면: 블로그 목록·카테고리·검색·사이트맵·RSS 어디에도 안 나오고,
+  //        검색엔진에도 수집하지 말라고(noindex) 표시됩니다.
+  //        대신 주소(URL)를 직접 아는 사람은 그대로 볼 수 있어요 — 검토용 링크 공유가 목적입니다.
+  // 프런트매터에 draft가 없는 기존 글은 전부 false(=평소대로 공개)라 아무 영향이 없습니다.
+  draft: boolean;
 }
 
 export interface Heading {
@@ -71,16 +77,24 @@ function readMeta(file: string): PostMeta {
     thumbnail: data.thumbnail ?? null,
     tags: Array.isArray(data.tags) ? data.tags : [],
     readingTime: calcReadingTime(content),
+    draft: data.draft === true, // 프런트매터에 draft: true 라고 적힌 글만 비공개 처리
   };
 }
 
-/** 발행된 모든 글의 메타 (최신순) */
-export function getAllPostMeta(): PostMeta[] {
+/**
+ * 발행된 모든 글의 메타 (최신순)
+ *
+ * 비공개(draft: true) 글은 여기서 걸러집니다. 이 함수를 쓰는 곳이
+ * 목록·카테고리·사이트맵·RSS라서, 한 군데서 거르면 전부 같이 숨겨집니다.
+ * 검토용으로 비공개 글까지 다 봐야 할 때만 { includeDrafts: true } 로 부르세요.
+ */
+export function getAllPostMeta({ includeDrafts = false } = {}): PostMeta[] {
   if (!fs.existsSync(BLOG_DIR)) return [];
   return fs
     .readdirSync(BLOG_DIR)
     .filter((f) => f.endsWith(".md"))
     .map(readMeta)
+    .filter((m) => includeDrafts || !m.draft) // 비공개 글 숨기기
     .sort((a, b) => {
       // 글 번호 큰 게(최신) 위로. 번호 없으면 날짜 최신순.
       if (a.postNo != null && b.postNo != null) return b.postNo - a.postNo;
@@ -117,7 +131,9 @@ export function getAllPostIndex(): PostIndexItem[] {
       [meta.title, meta.description, meta.tags.join(" "), headings.join(" ")].join(" ")
     );
     return { ...meta, cats: detectCategories(meta.title, meta.tags), hay };
-  });
+  })
+  // 비공개(draft: true) 글은 목록·카테고리·검색 색인에서 제외합니다.
+  .filter((item) => !item.draft);
 
   // 목록과 같은 순서(최신 글이 위)로 정렬
   return items.sort((a, b) => {
@@ -128,7 +144,13 @@ export function getAllPostIndex(): PostIndexItem[] {
   });
 }
 
-/** 정적 생성용 slug 목록 */
+/**
+ * 정적 생성용 slug 목록
+ *
+ * 여기는 일부러 비공개(draft) 글도 포함합니다.
+ * 페이지 자체는 만들어져 있어야 "주소를 아는 사람"이 열어볼 수 있기 때문입니다.
+ * (목록에 안 뜨고 검색에도 안 걸릴 뿐, 링크를 받으면 볼 수 있는 상태)
+ */
 export function getAllSlugs(): string[] {
   if (!fs.existsSync(BLOG_DIR)) return [];
   return fs
@@ -227,6 +249,7 @@ export async function getPost(slug: string): Promise<Post | null> {
     updated: data.updated ?? null, // 시세 갱신 봇이 적어주는 "마지막 손본 날"
     thumbnail: data.thumbnail ?? null,
     tags: Array.isArray(data.tags) ? data.tags : [],
+    draft: data.draft === true, // 비공개(검토용) 글이면 상세 페이지에서 noindex 처리
     html,
     faq,
     headings,

@@ -32,6 +32,9 @@ export async function generateMetadata({
   return {
     title: `${post.title} — 얼마드나`,
     description: post.description,
+    // 비공개(draft) 글은 검색엔진이 수집하지 않도록 막습니다.
+    // 주소를 아는 사람은 그대로 볼 수 있지만, 구글 검색 결과에는 안 뜹니다.
+    ...(post.draft ? { robots: { index: false, follow: false } } : {}),
     alternates: {
       canonical: `${SITE}/blog/${post.slug}`,
       // 글 페이지에서도 RSS 구독 주소를 알림 (layout.tsx 설정이 덮어써지므로 여기도 명시)
@@ -170,6 +173,22 @@ export default async function BlogPost({
         <div className="blog-layout">
           <article className="blog-main">
             <header className="blog-post-head">
+              {/* 비공개(검토용) 글에만 보이는 표시 — 목록·검색에 안 나오는 상태임을 알려줍니다 */}
+              {post.draft && (
+                <p
+                  style={{
+                    margin: "0 0 12px",
+                    padding: "8px 12px",
+                    borderRadius: 8,
+                    background: "#FEF3C7",
+                    color: "#92400E",
+                    fontSize: 13,
+                    fontWeight: 600,
+                  }}
+                >
+                  🔒 비공개 미리보기 — 목록·검색에 노출되지 않습니다
+                </p>
+              )}
               {post.tags.length > 0 && (
                 <div className="blog-post-tags">
                   {post.tags.slice(0, 3).map((t) => (
