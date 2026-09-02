@@ -8,6 +8,9 @@ const GA_ID = process.env.NEXT_PUBLIC_GA_ID?.trim();
 import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
+  // 모든 상대주소(OG 이미지 등)를 절대주소로 바꿀 때 기준이 되는 주소.
+  // 이게 없으면 카톡·페북 미리보기에서 이미지 주소가 localhost로 잡혀 안 보임.
+  metadataBase: new URL("https://ulmadna.com"),
   title: "얼마드나 — 무료 인테리어 견적 계산기 | 회원가입 없이 바로 사용",
   description: "평형, 자재 등급, 공정만 선택하면 인테리어 예상 견적이 바로 나옵니다. 회원가입·전화번호 입력 없이 완전 무료.",
   keywords: "인테리어 견적, 인테리어 비용, 리모델링 비용, 평당 가격, 인테리어 얼마",
@@ -30,7 +33,8 @@ export const metadata: Metadata = {
     description: "회원가입·전화번호 없이 바로 사용. 평형·자재·공정 선택하면 예상 견적이 나와요.",
     url: "https://ulmadna.com",
     siteName: "얼마드나",
-    images: [{ url: "/opengraph-image", width: 1200, height: 630 }],
+    // 이미지는 src/app/opengraph-image.png 파일이 자동으로 붙으므로 여기 따로 안 적음
+    // (직접 적으면 파일 것과 두 장이 되어 미리보기가 엉뚱한 걸 고를 수 있음)
     locale: "ko_KR",
     type: "website",
   },

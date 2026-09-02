@@ -61,6 +61,9 @@ export async function generateMetadata({
       description: copy.seoDesc,
       url: `${SITE}/blog/category/${cat}`,
       type: "website",
+      // 이 페이지가 openGraph를 직접 쓰면 루트의 대표 이미지가 안 붙어서 여기도 같이 적음
+      // (카톡·페북 공유 시 이미지 없는 밋밋한 카드로 나가는 것 방지)
+      images: [{ url: "/opengraph-image.png", width: 1200, height: 630, alt: "얼마드나 — 무료 인테리어 견적 계산기" }],
     },
   };
 }
