@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" font-family="Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif">
+  <rect width="800" height="470" fill="#fffdf9"/>
+  <text x="400" y="38" text-anchor="middle" font-size="20" font-weight="700" fill="#2b2b2b">장판 덧시공 vs 철거 후 시공 — 34평/84타입 총액 비교 (만원)</text>
+  <text x="400" y="60" text-anchor="middle" font-size="12" fill="#777">바닥 실제 시공면적 24~25평 기준 · 자재비+시공비 포함, 부가세 별도</text>
+  <line x1="180" y1="90" x2="180" y2="400" stroke="#ccc"/>
+  <line x1="180" y1="400" x2="760" y2="400" stroke="#ccc"/>
+  <g stroke="#eee" stroke-dasharray="3 3">
+    <line x1="330" y1="90" x2="330" y2="400"/><line x1="480" y1="90" x2="480" y2="400"/>
+    <line x1="630" y1="90" x2="630" y2="400"/><line x1="750" y1="90" x2="750" y2="400"/>
+  </g>
+  <g font-size="11" fill="#888" text-anchor="middle">
+    <text x="180" y="418">0</text><text x="330" y="418">100</text><text x="480" y="418">200</text>
+    <text x="630" y="418">300</text><text x="750" y="418">400만원</text>
+  </g>
+  <g font-size="13" fill="#333">
+    <text x="170" y="126" text-anchor="end">덧시공 · 1.8~2.0T</text>
+    <rect x="237" y="110" width="38" height="24" rx="4" fill="#8faa9b"/>
+    <text x="285" y="127" font-size="12" fill="#5f7d6e" font-weight="700">38만~63만</text>
+
+    <text x="170" y="176" text-anchor="end">덧시공 · 2.2T (표준)</text>
+    <rect x="255" y="160" width="75" height="24" rx="4" fill="#8faa9b"/>
+    <text x="340" y="177" font-size="12" fill="#5f7d6e" font-weight="700">50만~100만</text>
+
+    <text x="170" y="226" text-anchor="end">철거 후 시공 · 2.2T</text>
+    <rect x="363" y="210" width="80" height="24" rx="4" fill="#c96a4a"/>
+    <text x="453" y="227" font-size="12" fill="#c96a4a" font-weight="700">122만~175만</text>
+
+    <text x="170" y="276" text-anchor="end">덧시공 · 4.5~5.0T</text>
+    <rect x="368" y="260" width="188" height="24" rx="4" fill="#d9c8a3"/>
+    <text x="566" y="277" font-size="12" fill="#8a7a4e" font-weight="700">125만~250만</text>
+
+    <text x="170" y="326" text-anchor="end">철거+바탕면 보수·2.2T</text>
+    <rect x="435" y="310" width="308" height="24" rx="4" fill="#a84f34"/>
+    <text x="600" y="327" font-size="12" fill="#fff" font-weight="700">170만~375만</text>
+  </g>
+  <text x="400" y="440" text-anchor="middle" font-size="11" fill="#999">덧시공과 철거 시공의 차이는 &#39;철거비+폐기물&#39; 72만~75만원 (평당 3만원 기준)</text>
+  <text x="400" y="458" text-anchor="middle" font-size="11" fill="#999">바탕면 균열·단차가 나오면 셀프레벨링·미장이 붙어 수십만원~200만원이 추가됩니다</text>
+</svg>
