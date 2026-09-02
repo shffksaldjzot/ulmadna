@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <rect width="800" height="470" fill="#fdfaf7"/>
+  <text x="40" y="46" font-size="22" font-weight="700" fill="#2d2a26">장판 브랜드 비교 — 등급(두께)별 평당 시공비</text>
+  <text x="40" y="72" font-size="13" fill="#8a8378">자재비 + 기본 시공비 포함 · 철거·걸레받이·부가세 별도 (단위: 만원/평)</text>
+
+  <!-- grid : x = 190 + 만원*32 -->
+  <g stroke="#e8e2da" stroke-width="1">
+    <line x1="190" y1="95" x2="190" y2="360"/>
+    <line x1="318" y1="95" x2="318" y2="360"/>
+    <line x1="446" y1="95" x2="446" y2="360"/>
+    <line x1="574" y1="95" x2="574" y2="360"/>
+    <line x1="702" y1="95" x2="702" y2="360"/>
+  </g>
+  <g font-size="12" fill="#a09888" text-anchor="middle">
+    <text x="190" y="382">0</text>
+    <text x="318" y="382">4만</text>
+    <text x="446" y="382">8만</text>
+    <text x="574" y="382">12만</text>
+    <text x="702" y="382">16만</text>
+  </g>
+
+  <!-- 1.8T 보급형 : 2~4만 -->
+  <text x="178" y="130" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">1.8T 보급형 라인</text>
+  <rect x="254" y="114" width="64" height="22" rx="11" fill="#dcc3ac"/>
+  <text x="330" y="130" font-size="13" fill="#6b6459">2만~4만원 · 임대·단기 거주용</text>
+
+  <!-- 2.2T 표준 : 4~8만 -->
+  <text x="178" y="182" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">2.2T 표준 라인</text>
+  <rect x="318" y="166" width="128" height="22" rx="11" fill="#c96f4a"/>
+  <text x="458" y="182" font-size="13" fill="#6b6459">4만~8만원 · 아파트 국민 두께</text>
+
+  <!-- 3.2T 고급 : 7~11만 -->
+  <text x="178" y="234" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">3.2T 고급 라인</text>
+  <rect x="414" y="218" width="128" height="22" rx="11" fill="#b45f42"/>
+  <text x="554" y="234" font-size="13" fill="#6b6459">7만~11만원 · 실제 견적 평당 8.5만원</text>
+
+  <!-- 4.5T 프리미엄 : 9~13만 -->
+  <text x="178" y="286" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">4.5~5.0T 프리미엄</text>
+  <rect x="478" y="270" width="128" height="22" rx="11" fill="#a3624f"/>
+  <text x="618" y="286" font-size="13" fill="#6b6459">9만~13만원</text>
+
+  <!-- 강마루 비교선 -->
+  <text x="178" y="338" font-size="15" font-weight="600" fill="#8a8378" text-anchor="end">(비교) 기본형 강마루</text>
+  <rect x="446" y="322" width="224" height="22" rx="11" fill="none" stroke="#c9b8a6" stroke-width="2" stroke-dasharray="5 4"/>
+  <text x="682" y="338" font-size="13" fill="#8a8378">8만~15만원</text>
+
+  <text x="40" y="422" font-size="12.5" fill="#8a8378">※ 여기서 '평'은 공급면적이 아니라 실제 바닥 시공면적입니다. 25평/59타입은 약 17평, 34평/84타입은 약 24~25평.</text>
+  <text x="40" y="444" font-size="12.5" fill="#8a8378">※ 4.5T 이상 프리미엄 장판은 기본형 강마루와 가격대가 겹칩니다 — 싸서 고르는 자재가 아니라 쿠션을 사는 자재입니다.</text>
+</svg>
