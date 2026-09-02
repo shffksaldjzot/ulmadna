@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 480" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif">
+  <rect width="800" height="480" fill="#fffdf9"/>
+  <text x="40" y="42" font-size="21" font-weight="700" fill="#2b2b2b">부분 도배 비용이 면적에 비례하지 않는 이유 — 인건비는 계단식</text>
+  <text x="40" y="66" font-size="13" fill="#7a7a7a">단위: 만원 · 합지 밀착 시공 · 빈집 · 천장고 2.4m · 부가세 별도 기준</text>
+
+  <g stroke="#ece5dc" stroke-width="1">
+    <line x1="200" y1="88" x2="200" y2="352"/>
+    <line x1="356" y1="88" x2="356" y2="352"/>
+    <line x1="512" y1="88" x2="512" y2="352"/>
+    <line x1="668" y1="88" x2="668" y2="352"/>
+  </g>
+  <g font-size="12" fill="#a09890" text-anchor="middle">
+    <text x="200" y="372">0</text>
+    <text x="356" y="372">30만</text>
+    <text x="512" y="372">60만</text>
+    <text x="668" y="372">90만</text>
+  </g>
+
+  <g font-size="14" font-weight="700" fill="#2b2b2b" text-anchor="end">
+    <text x="184" y="115">10평 (33㎡)</text>
+    <text x="184" y="167">12평 (39.6㎡)</text>
+    <text x="184" y="219">14평 (46.2㎡)</text>
+    <text x="184" y="271">16평 (52.8㎡)</text>
+    <text x="184" y="323">18평 (59.4㎡)</text>
+  </g>
+
+  <!-- 10평 -->
+  <rect x="200" y="98" width="110" height="22" fill="#c3b5a8"/>
+  <rect x="310" y="98" width="120" height="22" fill="#c96a4a"/>
+  <rect x="430" y="98" width="18" height="22" fill="#e8dccf"/>
+  <text x="460" y="115" font-size="13" font-weight="700" fill="#8a4a30">약 48만</text>
+
+  <!-- 12평 -->
+  <rect x="200" y="150" width="141" height="22" fill="#c3b5a8"/>
+  <rect x="341" y="150" width="239" height="22" fill="#c96a4a"/>
+  <rect x="580" y="150" width="25" height="22" fill="#e8dccf"/>
+  <text x="617" y="167" font-size="13" font-weight="700" fill="#8a4a30">약 78만</text>
+
+  <!-- 14평 -->
+  <rect x="200" y="202" width="163" height="22" fill="#c3b5a8"/>
+  <rect x="363" y="202" width="239" height="22" fill="#c96a4a"/>
+  <rect x="602" y="202" width="28" height="22" fill="#e8dccf"/>
+  <text x="642" y="219" font-size="13" font-weight="700" fill="#8a4a30">약 83만</text>
+
+  <!-- 16평 -->
+  <rect x="200" y="254" width="180" height="22" fill="#c3b5a8"/>
+  <rect x="380" y="254" width="239" height="22" fill="#c96a4a"/>
+  <rect x="619" y="254" width="30" height="22" fill="#e8dccf"/>
+  <text x="661" y="271" font-size="13" font-weight="700" fill="#8a4a30">약 86만</text>
+
+  <!-- 18평 -->
+  <rect x="200" y="306" width="195" height="22" fill="#c3b5a8"/>
+  <rect x="395" y="306" width="239" height="22" fill="#c96a4a"/>
+  <rect x="634" y="306" width="33" height="22" fill="#e8dccf"/>
+  <text x="679" y="323" font-size="13" font-weight="700" fill="#8a4a30">약 90만</text>
+
+  <rect x="200" y="388" width="560" height="56" rx="8" fill="#faf3ec" stroke="#e8dccf"/>
+  <text x="218" y="410" font-size="13.5" font-weight="700" fill="#8a4a30">10평 → 12평: 면적은 20% 느는데 금액은 64% 뛴다</text>
+  <text x="218" y="430" font-size="12.5" fill="#6b6259">인건비가 23만원(반품)에서 46만원(1품)으로 한 칸 올라서기 때문. 그 뒤 18평까지는 인건비가 그대로입니다.</text>
+
+  <g font-size="12" fill="#a09890">
+    <rect x="40" y="456" width="12" height="12" rx="3" fill="#c3b5a8"/>
+    <text x="58" y="466">재료비</text>
+    <rect x="120" y="456" width="12" height="12" rx="3" fill="#c96a4a"/>
+    <text x="138" y="466">인건비</text>
+    <rect x="200" y="456" width="12" height="12" rx="3" fill="#e8dccf"/>
+    <text x="218" y="466">부자재·기타</text>
+  </g>
+</svg>
