@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" font-family="Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif">
+  <rect width="800" height="560" fill="#fdfaf7"/>
+  <text x="40" y="52" font-size="24" font-weight="700" fill="#2b2b2b">샷시 교체 공사 기간 — 원데이 시공 당일 시간표</text>
+  <text x="40" y="78" font-size="14" fill="#8a8a8a">34평/84타입 전체 교체 기준 · 오전 8시 도착 ~ 오후 6시 철수 · 막대 = 실제 작업 구간</text>
+
+  <!-- hour grid -->
+  <line x1="230" y1="100" x2="230" y2="470" stroke="#e8ddd4" stroke-width="1"/>
+  <line x1="336" y1="100" x2="336" y2="470" stroke="#e8ddd4" stroke-width="1"/>
+  <line x1="442" y1="100" x2="442" y2="470" stroke="#e8ddd4" stroke-width="1"/>
+  <line x1="548" y1="100" x2="548" y2="470" stroke="#e8ddd4" stroke-width="1"/>
+  <line x1="654" y1="100" x2="654" y2="470" stroke="#e8ddd4" stroke-width="1"/>
+  <line x1="760" y1="100" x2="760" y2="470" stroke="#e8ddd4" stroke-width="1"/>
+  <text x="230" y="118" font-size="13" fill="#8a8a8a" text-anchor="middle">8시</text>
+  <text x="336" y="118" font-size="13" fill="#8a8a8a" text-anchor="middle">10시</text>
+  <text x="442" y="118" font-size="13" fill="#8a8a8a" text-anchor="middle">12시</text>
+  <text x="548" y="118" font-size="13" fill="#8a8a8a" text-anchor="middle">14시</text>
+  <text x="654" y="118" font-size="13" fill="#8a8a8a" text-anchor="middle">16시</text>
+  <text x="760" y="118" font-size="13" fill="#8a8a8a" text-anchor="middle">18시</text>
+
+  <text x="40" y="152" font-size="14" font-weight="600" fill="#2b2b2b">보양(바닥·가구·복도)</text>
+  <rect x="230" y="138" width="53" height="20" rx="6" fill="#c06b4f"/>
+  <text x="291" y="153" font-size="12" fill="#8a8a8a">약 1시간</text>
+
+  <text x="40" y="196" font-size="14" font-weight="600" fill="#2b2b2b">기존 창호 철거</text>
+  <rect x="283" y="182" width="106" height="20" rx="6" fill="#c06b4f"/>
+  <text x="397" y="197" font-size="12" fill="#8a8a8a">2시간 안팎 · 분진 피크</text>
+
+  <text x="40" y="240" font-size="14" font-weight="600" fill="#2b2b2b">양중(사다리차·윈치)</text>
+  <rect x="336" y="226" width="106" height="20" rx="6" fill="#d98e6f"/>
+  <text x="450" y="241" font-size="12" fill="#8a8a8a">폐창 반출 + 새 창 반입</text>
+
+  <text x="40" y="284" font-size="14" font-weight="600" fill="#2b2b2b">창틀 설치·수평 수직</text>
+  <rect x="415" y="270" width="133" height="20" rx="6" fill="#c06b4f"/>
+  <text x="556" y="285" font-size="12" fill="#8a8a8a">품질이 갈리는 구간</text>
+
+  <text x="40" y="328" font-size="14" font-weight="600" fill="#2b2b2b">폼 충진·창짝 설치</text>
+  <rect x="521" y="314" width="106" height="20" rx="6" fill="#c06b4f"/>
+  <text x="635" y="329" font-size="12" fill="#8a8a8a">빈틈 없이가 핵심</text>
+
+  <text x="40" y="372" font-size="14" font-weight="600" fill="#2b2b2b">외부 코킹·내부 마감</text>
+  <rect x="601" y="358" width="106" height="20" rx="6" fill="#d98e6f"/>
+  <text x="715" y="373" font-size="12" fill="#8a8a8a">몰딩·실리콘</text>
+
+  <text x="40" y="416" font-size="14" font-weight="600" fill="#2b2b2b">보양 철거·청소·검수</text>
+  <rect x="680" y="402" width="80" height="20" rx="6" fill="#c06b4f"/>
+  <text x="600" y="447" font-size="12" fill="#8a8a8a">※ 창이 15틀 이상이거나 조적·하부보강이 붙으면 이틀로 넘어갑니다</text>
+
+  <line x1="40" y1="480" x2="760" y2="480" stroke="#e8ddd4" stroke-width="1"/>
+  <text x="40" y="508" font-size="13" fill="#8a8a8a">실리콘 완전 경화까지는 시공 후 2~3일 — 그날 저녁 물청소·강한 개폐는 피하세요.</text>
+  <text x="40" y="532" font-size="13" fill="#8a8a8a">얼마드나 · 실제 견적 데이터 1,000건+ 기준</text>
+</svg>
