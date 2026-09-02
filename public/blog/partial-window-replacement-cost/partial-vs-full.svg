@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 390" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <rect width="800" height="390" fill="#fdfaf7"/>
+  <text x="40" y="44" font-size="22" font-weight="700" fill="#2d2a26">샷시 부분 교체 비용 vs 전체 교체 — 평형별 비교</text>
+  <text x="40" y="70" font-size="13" fill="#8a8378">부분 교체 = 외부와 맞닿는 발코니·외창만 · 전체 교체 = 거실·방·주방·전후면 발코니 전부 (단위: 만원)</text>
+
+  <g stroke="#e8e2da" stroke-width="1">
+    <line x1="150" y1="88" x2="150" y2="296"/>
+    <line x1="282" y1="88" x2="282" y2="296"/>
+    <line x1="414" y1="88" x2="414" y2="296"/>
+    <line x1="546" y1="88" x2="546" y2="296"/>
+    <line x1="678" y1="88" x2="678" y2="296"/>
+  </g>
+  <g font-size="12" fill="#a09888" text-anchor="middle">
+    <text x="150" y="318">0</text>
+    <text x="282" y="318">400만</text>
+    <text x="414" y="318">800만</text>
+    <text x="546" y="318">1,200만</text>
+    <text x="678" y="318">1,600만</text>
+  </g>
+
+  <!-- 24평 -->
+  <text x="140" y="115" font-size="14" font-weight="600" fill="#2d2a26" text-anchor="end">24평/59타입 · 부분</text>
+  <rect x="298" y="100" width="50" height="20" rx="6" fill="#c96f4a"/>
+  <text x="358" y="115" font-size="12" fill="#6b6459">450만~600만</text>
+  <text x="140" y="143" font-size="14" font-weight="600" fill="#6b6459" text-anchor="end">24평/59타입 · 전체</text>
+  <rect x="365" y="128" width="82" height="20" rx="6" fill="#6b6459"/>
+  <text x="457" y="143" font-size="12" fill="#6b6459">650만~900만</text>
+
+  <!-- 32~34평 -->
+  <text x="140" y="183" font-size="14" font-weight="600" fill="#2d2a26" text-anchor="end">32~34평/84타입 · 부분</text>
+  <rect x="348" y="168" width="83" height="20" rx="6" fill="#c96f4a"/>
+  <text x="441" y="183" font-size="12" fill="#6b6459">600만~850만</text>
+  <text x="140" y="211" font-size="14" font-weight="600" fill="#6b6459" text-anchor="end">32~34평/84타입 · 전체</text>
+  <rect x="431" y="196" width="148" height="20" rx="6" fill="#6b6459"/>
+  <text x="589" y="211" font-size="12" fill="#6b6459">850만~1,300만</text>
+
+  <!-- 42평 -->
+  <text x="140" y="251" font-size="14" font-weight="600" fill="#2d2a26" text-anchor="end">42평/139㎡ · 부분</text>
+  <rect x="414" y="236" width="99" height="20" rx="6" fill="#c96f4a"/>
+  <text x="523" y="251" font-size="12" fill="#6b6459">800만~1,100만</text>
+  <text x="140" y="279" font-size="14" font-weight="600" fill="#6b6459" text-anchor="end">42평/139㎡ · 전체</text>
+  <rect x="513" y="264" width="165" height="20" rx="6" fill="#6b6459"/>
+  <text x="688" y="279" font-size="12" fill="#6b6459">1,100만~1,600만</text>
+
+  <text x="40" y="352" font-size="13" fill="#c96f4a" font-weight="700">핵심: 부분 교체는 반값이 아니라 전체 교체의 65~73% 수준입니다.</text>
+  <text x="40" y="372" font-size="12" fill="#8a8378">창 면적의 대부분이 외부창이고, 철거·양중·출장 같은 부대비용은 창 개수와 상관없이 거의 그대로 붙기 때문입니다.</text>
+</svg>
