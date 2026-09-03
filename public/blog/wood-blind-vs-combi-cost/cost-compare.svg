@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <rect width="800" height="560" fill="#fdfaf7"/>
+  <text x="40" y="44" font-size="22" font-weight="700" fill="#2d2a26">우드블라인드 vs 콤비블라인드 가격 — 거실 큰 창(폭 185~190cm) 하나 기준</text>
+  <text x="40" y="70" font-size="13" fill="#8a8378">구매 경로별 실제 가격 · 실제 견적 데이터 기준 (단위: 만원)</text>
+
+  <g stroke="#e8e2da" stroke-width="1">
+    <line x1="230" y1="90" x2="230" y2="460"/>
+    <line x1="384" y1="90" x2="384" y2="460"/>
+    <line x1="539" y1="90" x2="539" y2="460"/>
+    <line x1="693" y1="90" x2="693" y2="460"/>
+  </g>
+  <g font-size="12" fill="#a09888" text-anchor="middle">
+    <text x="230" y="482">0</text>
+    <text x="384" y="482">10만</text>
+    <text x="539" y="482">20만</text>
+    <text x="693" y="482">30만</text>
+  </g>
+
+  <!-- 1 다이소 접착식 -->
+  <text x="218" y="118" font-size="13" font-weight="600" fill="#2d2a26" text-anchor="end">다이소 접착식 2~3장 이어붙임</text>
+  <rect x="245" y="103" width="10" height="20" rx="5" fill="#b8b0a4"/>
+  <text x="264" y="118" font-size="12" fill="#6b6459">1만~1만5,000원 (장당 5,000원, 폭 90cm 고정)</text>
+
+  <!-- 2 온라인 맞춤 알루미늄 -->
+  <text x="218" y="168" font-size="13" font-weight="600" fill="#2d2a26" text-anchor="end">온라인 맞춤 알루미늄 (190×220cm)</text>
+  <rect x="330" y="153" width="16" height="20" rx="5" fill="#b8b0a4"/>
+  <text x="355" y="168" font-size="12" fill="#6b6459">7만원 · 셀프 설치</text>
+
+  <!-- 3 온라인 맞춤 원목 우드 -->
+  <text x="218" y="218" font-size="13" font-weight="600" fill="#2d2a26" text-anchor="end">온라인 맞춤 원목 우드 (165×135cm)</text>
+  <rect x="353" y="203" width="16" height="20" rx="5" fill="#c96f4a"/>
+  <text x="378" y="218" font-size="12" fill="#6b6459">8만원대 · 셀프 설치 (거실 사이즈는 면적 비례로 위쪽)</text>
+
+  <!-- 4 창고형 규격 콤비 -->
+  <text x="218" y="268" font-size="13" font-weight="600" fill="#2d2a26" text-anchor="end">창고형 매장 규격 콤비 (185×240cm)</text>
+  <rect x="361" y="253" width="20" height="20" rx="5" fill="#6b6459"/>
+  <text x="390" y="268" font-size="12" fill="#6b6459">일반 8만4,900원 ~ 암막 9만7,900원 · 셀프 설치</text>
+
+  <!-- 5 업체 맞춤 콤비 -->
+  <text x="218" y="318" font-size="13" font-weight="600" fill="#2d2a26" text-anchor="end">업체 맞춤 콤비 (실측·설치 포함)</text>
+  <rect x="461" y="303" width="232" height="20" rx="5" fill="#6b6459"/>
+  <text x="461" y="340" font-size="12" fill="#6b6459">15만~30만원 · 방 창은 9만~15만원</text>
+
+  <!-- 6 업체 맞춤 우드 -->
+  <text x="218" y="378" font-size="13" font-weight="600" fill="#2d2a26" text-anchor="end">업체 맞춤 우드 (실측·설치 포함)</text>
+  <rect x="539" y="363" width="154" height="20" rx="5" fill="#c96f4a"/>
+  <text x="539" y="400" font-size="12" fill="#6b6459">창당 평균 약 20만원(집 전체 130만원 ÷ 창 6~7개 환산) · 거실 큰 창은 그 이상</text>
+
+  <!-- 7 전동 -->
+  <text x="218" y="438" font-size="13" font-weight="600" fill="#2d2a26" text-anchor="end">전동 블라인드 (185cm, 국산 모터)</text>
+  <rect x="693" y="423" width="60" height="20" rx="5" fill="#8a4a2e"/>
+  <text x="690" y="460" font-size="12" fill="#6b6459" text-anchor="end">70만원 → 눈금 밖</text>
+
+  <text x="40" y="516" font-size="13" fill="#c96f4a" font-weight="700">핵심: 같은 창에서 우드는 콤비의 약 1.5~2배. 차이의 절반은 소재, 나머지 절반은 실측·설치 서비스 값입니다.</text>
+  <text x="40" y="538" font-size="12" fill="#8a8378">※ 온라인 맞춤은 표시가(30×30cm 기준 2,000~8,500원)가 아니라 실제 창 크기를 넣은 결제가 기준. 지역·자재 등급·분할 여부로 달라집니다.</text>
+</svg>
