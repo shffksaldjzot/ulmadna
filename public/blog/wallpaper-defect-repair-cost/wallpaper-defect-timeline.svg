@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400" role="img" aria-labelledby="t d">
+  <title id="t">도배 하자 보수 시간축 — 정상 건조, 골든타임, 무상 A/S 기간</title>
+  <desc id="d">도배 후 경과 시간에 따라 정상 건조 구간, 셀프·즉시 보수 골든타임, 하자 판정 구간, 업체 무상 A/S 6개월~1년, 법정 1년, 신축 아파트 2년을 한 줄로 정리한 차트</desc>
+  <style>
+    .f { font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif; }
+    .ttl { font-size: 17px; font-weight: 700; fill: #2b2b2b; }
+    .sub { font-size: 12px; fill: #6b6b6b; }
+    .lab { font-size: 12.5px; fill: #2b2b2b; font-weight: 600; }
+    .lab-s { font-size: 11.5px; fill: #4a4a4a; }
+    .tick { font-size: 12px; fill: #3a3a3a; font-weight: 600; }
+    .band { font-size: 12px; fill: #ffffff; font-weight: 700; }
+  </style>
+  <rect width="800" height="400" fill="#fbf9f6"/>
+  <text x="40" y="36" class="f ttl">도배 후 시간축으로 보는 하자 판단과 무상 A/S 기간</text>
+  <text x="40" y="56" class="f sub">시공 완료일 기준 · 업체 자체 A/S 6개월~1년, 실내건축 법정 1년, 신축 아파트 마감공사 2년</text>
+
+  <!-- axis -->
+  <line x1="60" y1="210" x2="760" y2="210" stroke="#b9b1a8" stroke-width="2"/>
+  <!-- ticks: 직후 60, 3일 120, 1주 180, 2주 240, 1개월 320, 6개월 460, 1년 600, 2년 740 -->
+  <g class="f tick" text-anchor="middle">
+    <line x1="60" y1="204" x2="60" y2="216" stroke="#7a7268" stroke-width="2"/><text x="60" y="236">시공 직후</text>
+    <line x1="120" y1="204" x2="120" y2="216" stroke="#7a7268" stroke-width="2"/><text x="120" y="236">2~3일</text>
+    <line x1="180" y1="204" x2="180" y2="216" stroke="#7a7268" stroke-width="2"/><text x="180" y="236">1주</text>
+    <line x1="240" y1="204" x2="240" y2="216" stroke="#7a7268" stroke-width="2"/><text x="240" y="236">2주</text>
+    <line x1="320" y1="204" x2="320" y2="216" stroke="#7a7268" stroke-width="2"/><text x="320" y="236">1개월</text>
+    <line x1="460" y1="204" x2="460" y2="216" stroke="#7a7268" stroke-width="2"/><text x="460" y="236">6개월</text>
+    <line x1="600" y1="204" x2="600" y2="216" stroke="#7a7268" stroke-width="2"/><text x="600" y="236">1년</text>
+    <line x1="740" y1="204" x2="740" y2="216" stroke="#7a7268" stroke-width="2"/><text x="740" y="236">2년</text>
+  </g>
+
+  <!-- upper bands: judgment -->
+  <g>
+    <rect x="60" y="90" width="120" height="30" rx="6" fill="#8a9a8b"/>
+    <text x="120" y="110" class="f band" text-anchor="middle">자연 건조 · 손대지 말기</text>
+    <text x="120" y="80" class="f lab-s" text-anchor="middle">난방·맞바람·제습기 금지</text>
+
+    <rect x="180" y="130" width="140" height="30" rx="6" fill="#c2603e"/>
+    <text x="250" y="150" class="f band" text-anchor="middle">골든타임 · 즉시 조치</text>
+    <text x="250" y="178" class="f lab-s" text-anchor="middle">기포·경미한 들뜸은 풀 주입으로 복원</text>
+
+    <rect x="320" y="90" width="440" height="30" rx="6" fill="#5f5a55"/>
+    <text x="540" y="110" class="f band" text-anchor="middle">1주 뒤에도 남은 들뜸·벌어짐·울음 = 하자 (사진·날짜 기록)</text>
+    <text x="540" y="80" class="f lab-s" text-anchor="middle">몇 달 뒤 같은 자리 재발이면 구조체·누수·결로부터 의심</text>
+  </g>
+
+  <!-- lower bands: warranty -->
+  <g>
+    <rect x="60" y="262" width="400" height="26" rx="6" fill="#d9a17f"/>
+    <text x="260" y="280" class="f band" text-anchor="middle">업체 자체 무상 A/S 최소 6개월</text>
+    <rect x="460" y="262" width="140" height="26" rx="6" fill="#e6c4ad"/>
+    <text x="530" y="280" class="f lab" text-anchor="middle">~1년 (업체별)</text>
+
+    <rect x="60" y="298" width="540" height="26" rx="6" fill="#a9735a"/>
+    <text x="330" y="316" class="f band" text-anchor="middle">법정 하자담보 1년 (실내건축 · 등록업체 / 무면허는 민법 1년)</text>
+
+    <rect x="60" y="334" width="680" height="26" rx="6" fill="#6f4e3c"/>
+    <text x="400" y="352" class="f band" text-anchor="middle">신축 아파트 도배(마감공사) 2년 · 전유부분은 열쇠 받은 날부터 계산</text>
+  </g>
+
+  <text x="40" y="388" class="f sub">※ 기간 안에 '발생'했고 '접수'한 기록이 있으면 실제 보수는 기간이 지난 뒤에 받아도 됩니다. 얼마드나 정리.</text>
+</svg>
