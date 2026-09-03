@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif">
+  <rect width="800" height="560" fill="#fffdf9"/>
+  <text x="40" y="42" font-size="21" font-weight="700" fill="#2b2b2b">장판 부분 교체 — 손상 유형별 처치 방법과 실제 비용</text>
+  <text x="40" y="66" font-size="13" fill="#7a7a7a">단위: 원 · 업체 비용은 수도권 출장 기준 · 자재 여분 보유 시 자재비 0원</text>
+
+  <!-- 열 머리 -->
+  <g font-size="12.5" font-weight="700" fill="#a09890">
+    <text x="40" y="100">손상 유형</text>
+    <text x="270" y="100">먼저 할 것</text>
+    <text x="560" y="100">비용</text>
+  </g>
+  <line x1="40" y1="108" x2="760" y2="108" stroke="#e8dccf" stroke-width="1"/>
+
+  <!-- 1. 눌림 자국 -->
+  <rect x="40" y="124" width="720" height="86" rx="10" fill="#faf3ec" stroke="#e8dccf"/>
+  <rect x="40" y="124" width="6" height="86" rx="3" fill="#c3b5a8"/>
+  <text x="62" y="152" font-size="15" font-weight="700" fill="#2b2b2b">① 눌림 자국</text>
+  <text x="62" y="174" font-size="12.5" fill="#7a7a7a">가구 다리 자국, 변색 없음</text>
+  <text x="270" y="150" font-size="13" fill="#2b2b2b">가구 치우고 며칠 대기 → 따뜻한 수건·드라이어 약한 열</text>
+  <text x="270" y="172" font-size="12.5" fill="#7a7a7a">표면만 눌린 상태는 대부분 되돌아옵니다</text>
+  <text x="560" y="164" font-size="16" font-weight="700" fill="#2b2b2b">0원</text>
+
+  <!-- 2. 찍힘·긁힘 -->
+  <rect x="40" y="222" width="720" height="86" rx="10" fill="#faf3ec" stroke="#e8dccf"/>
+  <rect x="40" y="222" width="6" height="86" rx="3" fill="#d9a48c"/>
+  <text x="62" y="250" font-size="15" font-weight="700" fill="#2b2b2b">② 작은 찍힘·찢김</text>
+  <text x="62" y="272" font-size="12.5" fill="#7a7a7a">손가락 크기, 조각이 남아 있음</text>
+  <text x="270" y="248" font-size="13" fill="#2b2b2b">장판 전용 접착제로 셀프 보수 (10분)</text>
+  <text x="270" y="270" font-size="12.5" fill="#7a7a7a">박스테이프·순간접착제는 금지</text>
+  <text x="560" y="262" font-size="16" font-weight="700" fill="#2b2b2b">1만원 미만</text>
+
+  <!-- 3. 구멍·탄 자국·변색 -->
+  <rect x="40" y="320" width="720" height="86" rx="10" fill="#faf3ec" stroke="#e8dccf"/>
+  <rect x="40" y="320" width="6" height="86" rx="3" fill="#c96a4a"/>
+  <text x="62" y="348" font-size="15" font-weight="700" fill="#2b2b2b">③ 구멍·탄 자국·노란 변색</text>
+  <text x="62" y="370" font-size="12.5" fill="#7a7a7a">표면이 없어졌거나 색이 변함</text>
+  <text x="270" y="346" font-size="13" fill="#2b2b2b">업체 부분 교체 (도려내고 조각 이식, 30분~1시간)</text>
+  <text x="270" y="368" font-size="12.5" fill="#7a7a7a">한 곳 5만~15만원 · 네 곳 묶으면 10만원 중반~20만원 중반</text>
+  <text x="560" y="360" font-size="16" font-weight="700" fill="#8a4a30">5만~25만원</text>
+
+  <!-- 4. 넓은 손상·노후 -->
+  <rect x="40" y="418" width="720" height="86" rx="10" fill="#faf3ec" stroke="#e8dccf"/>
+  <rect x="40" y="418" width="6" height="86" rx="3" fill="#8a4a30"/>
+  <text x="62" y="446" font-size="15" font-weight="700" fill="#2b2b2b">④ 넓은 손상·바닥 노후</text>
+  <text x="62" y="468" font-size="12.5" fill="#7a7a7a">여러 곳 갈라짐, 습기·들뜸 동반</text>
+  <text x="270" y="444" font-size="13" fill="#2b2b2b">전체 교체 (방 하나 또는 집 전체)</text>
+  <text x="270" y="466" font-size="12.5" fill="#7a7a7a">원룸 20만~45만원 · 34평/84타입 2.2T 100만~130만원</text>
+  <text x="560" y="458" font-size="16" font-weight="700" fill="#8a4a30">20만~130만원+</text>
+
+  <text x="40" y="536" font-size="12" fill="#a09890">※ 실제 견적 빅데이터 1,000건+ 및 공개 시공 사례 교차 정리 · 자재 등급·지역·손상 위치에 따라 달라집니다</text>
+</svg>
