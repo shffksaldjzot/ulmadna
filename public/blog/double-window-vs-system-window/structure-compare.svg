@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <rect width="800" height="360" fill="#fdfaf7"/>
+  <text x="40" y="40" font-size="20" font-weight="700" fill="#2d2a26">이중창과 시스템창, 닫히는 방식이 다릅니다</text>
+
+  <!-- 왼쪽: 미서기 이중창 -->
+  <text x="200" y="76" font-size="15" font-weight="700" fill="#6b6459" text-anchor="middle">미서기 이중창 (슬라이딩)</text>
+  <rect x="70" y="92" width="260" height="150" rx="4" fill="#ffffff" stroke="#6b6459" stroke-width="3"/>
+  <rect x="84" y="106" width="110" height="122" rx="2" fill="#e9f0f5" stroke="#6b6459" stroke-width="2"/>
+  <rect x="206" y="106" width="110" height="122" rx="2" fill="#e9f0f5" stroke="#6b6459" stroke-width="2"/>
+  <!-- 겹치는 틈 -->
+  <line x1="194" y1="106" x2="194" y2="228" stroke="#c96f4a" stroke-width="2" stroke-dasharray="4 3"/>
+  <line x1="206" y1="106" x2="206" y2="228" stroke="#c96f4a" stroke-width="2" stroke-dasharray="4 3"/>
+  <path d="M110 167 L150 167" stroke="#a09888" stroke-width="2" marker-end="url(#arr)"/>
+  <path d="M290 167 L250 167" stroke="#a09888" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="200" y="262" font-size="12" fill="#c96f4a" font-weight="600" text-anchor="middle">창짝이 스치며 겹침 → 모헤어(브러시)로 틈 막음</text>
+  <text x="200" y="282" font-size="12" fill="#8a8378" text-anchor="middle">창 두 겹 사이 넓은 공기층으로 단열 보완</text>
+  <text x="200" y="300" font-size="12" fill="#8a8378" text-anchor="middle">실내 공간 안 차지 · 좌우로 활짝 열림</text>
+
+  <!-- 오른쪽: 시스템창 -->
+  <text x="600" y="76" font-size="15" font-weight="700" fill="#c96f4a" text-anchor="middle">시스템창호 (틸트앤턴)</text>
+  <rect x="470" y="92" width="260" height="150" rx="4" fill="#ffffff" stroke="#c96f4a" stroke-width="3"/>
+  <rect x="490" y="110" width="220" height="114" rx="2" fill="#e9f0f5" stroke="#c96f4a" stroke-width="2"/>
+  <!-- 가스켓 압착 표시 -->
+  <rect x="482" y="102" width="236" height="130" rx="3" fill="none" stroke="#c96f4a" stroke-width="2" stroke-dasharray="5 3"/>
+  <!-- 잠금 포인트 -->
+  <g fill="#c96f4a">
+    <circle cx="482" cy="130" r="5"/><circle cx="482" cy="204" r="5"/>
+    <circle cx="718" cy="130" r="5"/><circle cx="718" cy="204" r="5"/>
+    <circle cx="560" cy="102" r="5"/><circle cx="640" cy="102" r="5"/>
+    <circle cx="560" cy="232" r="5"/><circle cx="640" cy="232" r="5"/>
+  </g>
+  <!-- 핸들 -->
+  <rect x="700" y="152" width="8" height="30" rx="3" fill="#6b6459"/>
+  <text x="600" y="262" font-size="12" fill="#c96f4a" font-weight="600" text-anchor="middle">손잡이 하나로 여러 지점 동시 잠금 → 4면 가스켓 압착</text>
+  <text x="600" y="282" font-size="12" fill="#8a8378" text-anchor="middle">자동차 문처럼 밀착 · 기밀·방음 유리</text>
+  <text x="600" y="300" font-size="12" fill="#8a8378" text-anchor="middle">안쪽으로 열려 앞뒤 여유 공간 필요 · 무거움</text>
+
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#a09888"/>
+    </marker>
+  </defs>
+  <text x="40" y="340" font-size="12" fill="#8a8378">● 표시 = 다중 잠금 포인트. 열관류율(유리 성능)이 같아도 기밀 등급이 다르면 겨울 체감이 달라지는 이유가 이 구조 차이입니다.</text>
+</svg>

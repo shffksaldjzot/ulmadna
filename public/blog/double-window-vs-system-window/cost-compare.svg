@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <rect width="800" height="420" fill="#fdfaf7"/>
+  <text x="40" y="44" font-size="22" font-weight="700" fill="#2d2a26">이중창 vs 시스템창 교체 비용 — 24평/59타입 전체 교체 기준</text>
+  <text x="40" y="70" font-size="13" fill="#8a8378">자재비+시공비 포함 · 실제 견적 데이터 기준 (단위: 만원)</text>
+
+  <g stroke="#e8e2da" stroke-width="1">
+    <line x1="200" y1="88" x2="200" y2="296"/>
+    <line x1="320" y1="88" x2="320" y2="296"/>
+    <line x1="440" y1="88" x2="440" y2="296"/>
+    <line x1="560" y1="88" x2="560" y2="296"/>
+    <line x1="680" y1="88" x2="680" y2="296"/>
+  </g>
+  <g font-size="12" fill="#a09888" text-anchor="middle">
+    <text x="200" y="318">0</text>
+    <text x="320" y="318">500만</text>
+    <text x="440" y="318">1,000만</text>
+    <text x="560" y="318">1,500만</text>
+    <text x="680" y="318">2,000만+</text>
+  </g>
+
+  <!-- 일반 PVC 이중창 -->
+  <text x="188" y="122" font-size="14" font-weight="600" fill="#2d2a26" text-anchor="end">일반 PVC 이중창</text>
+  <rect x="296" y="106" width="48" height="22" rx="6" fill="#6b6459"/>
+  <text x="354" y="122" font-size="12" fill="#6b6459">400만~600만</text>
+
+  <!-- 국산 시스템창호 -->
+  <text x="188" y="182" font-size="14" font-weight="600" fill="#2d2a26" text-anchor="end">국산 시스템창호</text>
+  <rect x="392" y="166" width="96" height="22" rx="6" fill="#c96f4a"/>
+  <text x="498" y="182" font-size="12" fill="#6b6459">800만~1,200만 (이중창의 약 2배)</text>
+
+  <!-- 수입 고급 시스템창호 -->
+  <text x="188" y="242" font-size="14" font-weight="600" fill="#2d2a26" text-anchor="end">수입 고급 시스템창호</text>
+  <rect x="680" y="226" width="70" height="22" rx="6" fill="#8a4a2e"/>
+  <text x="678" y="264" font-size="12" fill="#6b6459" text-anchor="end">2,000만원 이상 →</text>
+
+  <text x="40" y="352" font-size="13" fill="#c96f4a" font-weight="700">핵심: 같은 집, 같은 창 개수인데 시스템창호로 바꾸면 총액이 두 배로 뜁니다.</text>
+  <text x="40" y="372" font-size="12" fill="#8a8378">차이는 압착 하드웨어·다중잠금·두꺼운 프레임·시공 난이도에서 나옵니다. 유리 사양은 두 창 모두 별도 옵션입니다.</text>
+  <text x="40" y="392" font-size="12" fill="#8a8378">※ 부분 교체(거실·베란다 중심)는 이중창 기준 200만~400만원, 방 창 일부만이면 100만~200만원.</text>
+</svg>
