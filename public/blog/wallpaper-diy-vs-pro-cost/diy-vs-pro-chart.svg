@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="셀프 도배 비용과 업체 견적 비교 막대그래프 — 벽 한 면부터 34평/84타입 전체까지">
+  <rect width="800" height="560" fill="#ffffff"/>
+  <text x="40" y="46" font-size="25" font-weight="700" fill="#2b2b2b">셀프 도배 재료비 vs 업체 견적</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">합지 기준 · 단위: 만원 · 막대 길이는 범위 상한 기준</text>
+
+  <!-- legend -->
+  <rect x="560" y="34" width="16" height="16" rx="3" fill="#D9B38C"/>
+  <text x="583" y="47" font-size="15" fill="#555">셀프 재료비</text>
+  <rect x="670" y="34" width="16" height="16" rx="3" fill="#C26B4A"/>
+  <text x="693" y="47" font-size="15" fill="#555">업체 견적</text>
+
+  <!-- axis -->
+  <line x1="200" y1="100" x2="200" y2="490" stroke="#dddddd" stroke-width="2"/>
+
+  <!-- row 1: 벽 한 면 -->
+  <text x="188" y="130" font-size="15" font-weight="600" fill="#444" text-anchor="end">벽 한 면 (1~2평)</text>
+  <rect x="200" y="108" width="6" height="18" rx="3" fill="#D9B38C"/>
+  <text x="212" y="122" font-size="13" fill="#7a6a55">1~2</text>
+  <rect x="200" y="130" width="75" height="18" rx="3" fill="#C26B4A"/>
+  <text x="281" y="144" font-size="13" fill="#a8512f">10~28</text>
+
+  <!-- row 2: 방 한 칸 -->
+  <text x="188" y="204" font-size="15" font-weight="600" fill="#444" text-anchor="end">방 한 칸 (3×3.4m)</text>
+  <rect x="200" y="182" width="21" height="18" rx="3" fill="#D9B38C"/>
+  <text x="227" y="196" font-size="13" fill="#7a6a55">5~8</text>
+  <rect x="200" y="204" width="120" height="18" rx="3" fill="#C26B4A"/>
+  <text x="326" y="218" font-size="13" fill="#a8512f">45 안팎</text>
+
+  <!-- row 3: 원룸 -->
+  <text x="188" y="278" font-size="15" font-weight="600" fill="#444" text-anchor="end">원룸 6~8평 (벽 4면)</text>
+  <rect x="200" y="256" width="19" height="18" rx="3" fill="#D9B38C"/>
+  <text x="225" y="270" font-size="13" fill="#7a6a55">4~7</text>
+  <rect x="200" y="278" width="120" height="18" rx="3" fill="#C26B4A"/>
+  <text x="326" y="292" font-size="13" fill="#a8512f">25~45</text>
+
+  <!-- row 4: 25평 -->
+  <text x="188" y="352" font-size="15" font-weight="600" fill="#444" text-anchor="end">25평 / 59타입 전체</text>
+  <rect x="200" y="330" width="101" height="18" rx="3" fill="#D9B38C"/>
+  <text x="307" y="344" font-size="13" fill="#7a6a55">30~38</text>
+  <rect x="200" y="352" width="400" height="18" rx="3" fill="#C26B4A"/>
+  <text x="606" y="366" font-size="13" fill="#a8512f">95~150</text>
+
+  <!-- row 5: 34평 -->
+  <text x="188" y="426" font-size="15" font-weight="600" fill="#444" text-anchor="end">34평 / 84타입 전체</text>
+  <rect x="200" y="404" width="125" height="18" rx="3" fill="#D9B38C"/>
+  <text x="331" y="418" font-size="13" fill="#7a6a55">35~47</text>
+  <rect x="200" y="426" width="560" height="18" rx="3" fill="#C26B4A"/>
+  <text x="752" y="440" font-size="13" font-weight="600" fill="#ffffff" text-anchor="end">140~210</text>
+
+  <text x="40" y="520" font-size="13" fill="#a0a0a0">※ 셀프는 벽지·풀·초배지·부자재·기본 도구 합계, 시간과 실패 비용은 제외. 업체는 자재+시공 표준 조건.</text>
+  <text x="40" y="542" font-size="13" fill="#a0a0a0">※ 실제 견적 빅데이터 1,000건+와 공개 단가 자료 교차 기준. 벽 상태·천장·거주 중 시공에 따라 달라집니다.</text>
+</svg>
