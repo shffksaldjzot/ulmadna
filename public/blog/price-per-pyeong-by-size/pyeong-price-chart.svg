@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 540" font-family="'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif">
+  <rect width="800" height="540" fill="#FFFFFF"/>
+  <text x="30" y="44" font-size="22" font-weight="700" fill="#2B2622">인테리어 평당 가격 — 평형이 커질수록 평당가는 내려간다</text>
+  <text x="30" y="70" font-size="13" fill="#8A8078">올수리(표준형) 기준 평당 범위 · 단위: 만원/평 · 막대 오른쪽은 총액 · ●는 실제 견적 사례</text>
+
+  <!-- guide lines: x = 200 + 만원*1.6 -->
+  <g stroke="#EFEAE4" stroke-width="1">
+    <line x1="200" y1="95" x2="200" y2="440"/>
+    <line x1="280" y1="95" x2="280" y2="440"/>
+    <line x1="360" y1="95" x2="360" y2="440"/>
+    <line x1="440" y1="95" x2="440" y2="440"/>
+    <line x1="520" y1="95" x2="520" y2="440"/>
+    <line x1="600" y1="95" x2="600" y2="440"/>
+    <line x1="680" y1="95" x2="680" y2="440"/>
+    <line x1="760" y1="95" x2="760" y2="440"/>
+  </g>
+  <g font-size="12" fill="#B0A69C" text-anchor="middle">
+    <text x="200" y="460">0</text>
+    <text x="280" y="460">50</text>
+    <text x="360" y="460">100</text>
+    <text x="440" y="460">150</text>
+    <text x="520" y="460">200</text>
+    <text x="600" y="460">250</text>
+    <text x="680" y="460">300</text>
+    <text x="760" y="460">350만원/평</text>
+  </g>
+
+  <!-- 12평: 150~250 (공급 기준) / 전용 기준 최대 309 -->
+  <g>
+    <text x="188" y="135" font-size="14" font-weight="700" fill="#4A423C" text-anchor="end">12평 소형</text>
+    <text x="188" y="152" font-size="11" fill="#8A8078" text-anchor="end">전용 32㎡ · 욕실 1</text>
+    <rect x="440" y="120" width="160" height="26" rx="6" fill="#D98B63"/>
+    <rect x="600" y="120" width="94" height="26" rx="6" fill="#F1C9B0"/>
+    <text x="520" y="138" font-size="13" font-weight="700" fill="#FFFFFF" text-anchor="middle">150~250</text>
+    <text x="647" y="138" font-size="11" fill="#7A4A2E" text-anchor="middle">전용 기준 309</text>
+    <text x="704" y="138" font-size="12" fill="#4A423C">총 1,800만~3,000만</text>
+  </g>
+
+  <!-- 24평: 179~250 -->
+  <g>
+    <text x="188" y="205" font-size="14" font-weight="700" fill="#4A423C" text-anchor="end">24평 / 59타입</text>
+    <text x="188" y="222" font-size="11" fill="#8A8078" text-anchor="end">전용 59㎡ · 욕실 1~2</text>
+    <rect x="486" y="190" width="114" height="26" rx="6" fill="#D98B63"/>
+    <text x="543" y="208" font-size="13" font-weight="700" fill="#FFFFFF" text-anchor="middle">179~250</text>
+    <circle cx="434" cy="203" r="6" fill="#2B2622"/>
+    <text x="424" y="207" font-size="11" fill="#2B2622" text-anchor="end">구축 올수리 146</text>
+    <text x="608" y="208" font-size="12" fill="#4A423C">총 4,300만~6,000만</text>
+  </g>
+
+  <!-- 33평: 173~242 -->
+  <g>
+    <text x="188" y="275" font-size="14" font-weight="700" fill="#4A423C" text-anchor="end">33평 / 84타입</text>
+    <text x="188" y="292" font-size="11" fill="#8A8078" text-anchor="end">전용 84㎡ · 욕실 2</text>
+    <rect x="477" y="260" width="110" height="26" rx="6" fill="#D98B63"/>
+    <text x="532" y="278" font-size="13" font-weight="700" fill="#FFFFFF" text-anchor="middle">173~242</text>
+    <circle cx="565" cy="303" r="6" fill="#2B2622"/>
+    <text x="576" y="307" font-size="11" fill="#2B2622">실제 견적 228 (맞춤가구 포함)</text>
+    <circle cx="428" cy="303" r="6" fill="#2B2622"/>
+    <text x="418" y="307" font-size="11" fill="#2B2622" text-anchor="end">대기업 대리점 142~152</text>
+    <text x="595" y="278" font-size="12" fill="#4A423C">총 5,700만~8,000만</text>
+  </g>
+
+  <!-- 43평: 151~200 -->
+  <g>
+    <text x="188" y="365" font-size="14" font-weight="700" fill="#4A423C" text-anchor="end">43평 / 114타입</text>
+    <text x="188" y="382" font-size="11" fill="#8A8078" text-anchor="end">전용 115㎡ · 욕실 2</text>
+    <rect x="442" y="350" width="78" height="26" rx="6" fill="#D98B63"/>
+    <text x="481" y="368" font-size="13" font-weight="700" fill="#FFFFFF" text-anchor="middle">151~200</text>
+    <circle cx="483" cy="393" r="6" fill="#2B2622"/>
+    <text x="494" y="397" font-size="11" fill="#2B2622">올수리 중심값 177</text>
+    <text x="528" y="368" font-size="12" fill="#4A423C">총 6,500만~8,600만</text>
+  </g>
+
+  <!-- trend arrow -->
+  <g stroke="#B0A69C" stroke-width="1.5" stroke-dasharray="5,4" fill="none">
+    <path d="M 520 150 L 543 190 M 543 220 L 532 260 M 532 290 L 481 350"/>
+  </g>
+
+  <text x="30" y="500" font-size="12" fill="#8A8078">평당가는 12평 → 43평으로 갈수록 약 1.4배 내려가지만, 총액은 3,000만 → 8,600만으로 3배 가까이 오릅니다.</text>
+  <text x="30" y="520" font-size="12" fill="#8A8078">욕실·주방·철거·전기처럼 면적과 상관없이 붙는 고정비가 작은 집에서 평당가를 밀어 올리는 구조입니다. 실제 견적 빅데이터 1,000건+ 기준.</text>
+</svg>
