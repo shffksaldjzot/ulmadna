@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 440" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <rect width="800" height="440" fill="#fdfaf7"/>
+  <text x="40" y="46" font-size="22" font-weight="700" fill="#2d2a26">친환경 장판 가격 — 34평/84타입 두께별 총액</text>
+  <text x="40" y="72" font-size="13" fill="#8a8378">실제 시공면적 24~25평 기준 · 자재비 + 시공비 · 철거·평탄·걸레받이 별도 (단위: 만원)</text>
+
+  <!-- grid : x = 190 + 만원*1.28 -->
+  <g stroke="#e8e2da" stroke-width="1">
+    <line x1="190" y1="95" x2="190" y2="330"/>
+    <line x1="318" y1="95" x2="318" y2="330"/>
+    <line x1="446" y1="95" x2="446" y2="330"/>
+    <line x1="574" y1="95" x2="574" y2="330"/>
+    <line x1="702" y1="95" x2="702" y2="330"/>
+  </g>
+  <g font-size="12" fill="#a09888" text-anchor="middle">
+    <text x="190" y="352">0</text>
+    <text x="318" y="352">100만</text>
+    <text x="446" y="352">200만</text>
+    <text x="574" y="352">300만</text>
+    <text x="702" y="352">400만</text>
+  </g>
+
+  <!-- 1.8~2.0T : 70~90 -->
+  <text x="178" y="130" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">1.8~2.0T 보급형</text>
+  <rect x="279.6" y="114" width="25.6" height="22" rx="11" fill="#dcc3ac"/>
+  <text x="316" y="130" font-size="13" fill="#6b6459">70만~90만원 · 임대·단기 거주</text>
+
+  <!-- 2.2T : 100~180 -->
+  <text x="178" y="182" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">2.2T 표준</text>
+  <rect x="318" y="166" width="102.4" height="22" rx="11" fill="#c96f4a"/>
+  <text x="432" y="182" font-size="13" fill="#6b6459">100만~180만원 · 무프탈레이트 기본 라인</text>
+
+  <!-- 3.2T : 170~260 -->
+  <text x="178" y="234" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">2.7~3.2T 고급</text>
+  <rect x="407.6" y="218" width="115.2" height="22" rx="11" fill="#b45f42"/>
+  <text x="534" y="234" font-size="13" fill="#6b6459">170만~260만원 · 아이 있는 집 최다 선택</text>
+
+  <!-- 4.5~5.0T : 220~400 -->
+  <text x="178" y="286" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">4.5~5.0T 프리미엄</text>
+  <rect x="471.6" y="270" width="230.4" height="22" rx="11" fill="#a3624f"/>
+  <text x="600" y="310" font-size="13" fill="#6b6459" text-anchor="middle">220만~400만원 · 층간소음·낙상 완충</text>
+
+  <text x="40" y="392" font-size="12.5" fill="#8a8378">※ 여기서 '평'은 공급면적이 아니라 실제 바닥 시공면적입니다. 34평/84타입은 약 24~25평.</text>
+  <text x="40" y="414" font-size="12.5" fill="#8a8378">※ 친환경 인증 라인은 대부분 2.0T 이상 등급에 들어 있어 '옵션비'가 아니라 등급 한 칸 차이로 가격이 벌어집니다.</text>
+</svg>
