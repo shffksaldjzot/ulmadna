@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 330" width="760" height="330" role="img" aria-label="34평/84타입 도배 비용 — 빈집과 가구 있는 집 비교 (합지·실크)">
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif; fill: #2b2b2b; }
+    .t { font-size: 17px; font-weight: 700; }
+    .s { font-size: 12px; fill: #6b6b6b; }
+    .l { font-size: 13px; }
+    .v { font-size: 12px; font-weight: 600; }
+    .ax { stroke: #e3e3e3; stroke-width: 1; }
+  </style>
+  <rect width="760" height="330" fill="#ffffff"/>
+  <text x="24" y="34" class="t">34평/84타입 전체 도배 비용 — 빈집 vs 가구 있는 집</text>
+  <text x="24" y="54" class="s">단위: 만원 · 벽 기준 표준 조건 · 가구 있는 집은 가구 이동·보양 추가금 포함 범위</text>
+
+  <!-- axis -->
+  <g class="ax">
+    <line x1="200" y1="80" x2="200" y2="270"/>
+    <line x1="330" y1="80" x2="330" y2="270"/>
+    <line x1="460" y1="80" x2="460" y2="270"/>
+    <line x1="590" y1="80" x2="590" y2="270"/>
+    <line x1="720" y1="80" x2="720" y2="270"/>
+  </g>
+  <g class="s">
+    <text x="200" y="288" text-anchor="middle">0</text>
+    <text x="330" y="288" text-anchor="middle">100</text>
+    <text x="460" y="288" text-anchor="middle">200</text>
+    <text x="590" y="288" text-anchor="middle">300</text>
+    <text x="720" y="288" text-anchor="middle">400</text>
+  </g>
+
+  <!-- scale: 1.3px per 만원, origin x=200 -->
+  <!-- 합지 · 빈집 140~210 -->
+  <text x="24" y="103" class="l">합지 · 빈집</text>
+  <rect x="382" y="90" width="91" height="18" rx="4" fill="#b8bfc7"/>
+  <text x="479" y="104" class="v">140~210</text>
+
+  <!-- 합지 · 가구 있는 집 155~250 -->
+  <text x="24" y="143" class="l">합지 · 가구 있는 집</text>
+  <rect x="401.5" y="130" width="123.5" height="18" rx="4" fill="#c2634a"/>
+  <text x="531" y="144" class="v">155~250 (+15~40)</text>
+
+  <!-- 실크 · 빈집 240~300 -->
+  <text x="24" y="193" class="l">실크 · 빈집</text>
+  <rect x="512" y="180" width="78" height="18" rx="4" fill="#b8bfc7"/>
+  <text x="596" y="194" class="v">240~300</text>
+
+  <!-- 실크 · 가구 있는 집 265~360 -->
+  <text x="24" y="233" class="l">실크 · 가구 있는 집</text>
+  <rect x="544.5" y="220" width="123.5" height="18" rx="4" fill="#c2634a"/>
+  <text x="560" y="257" class="v">265~360 (+25~60)</text>
+
+  <!-- legend -->
+  <rect x="24" y="304" width="12" height="12" rx="2" fill="#b8bfc7"/>
+  <text x="42" y="314" class="s">빈집(이사 전) 시공</text>
+  <rect x="160" y="304" width="12" height="12" rx="2" fill="#c2634a"/>
+  <text x="178" y="314" class="s">가구 있는 집(살면서) 시공 = 빈집 + 가구 이동·보양 추가금</text>
+</svg>
