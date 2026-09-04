@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" font-family="'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif">
+  <rect width="800" height="560" fill="#FFFFFF"/>
+  <text x="30" y="44" font-size="22" font-weight="700" fill="#2B2622">암막커튼 가격 사다리 — 구매 경로별 (창 1개 기준)</text>
+  <text x="30" y="70" font-size="13" fill="#8A8078">실제 견적·판매가 데이터 기준 · 단위: 만원 · 업체 시공가는 실측·설치 포함</text>
+
+  <!-- guide lines: x = 250 + 만원*9 -->
+  <g stroke="#EFEAE4" stroke-width="1">
+    <line x1="250" y1="95" x2="250" y2="470"/>
+    <line x1="385" y1="95" x2="385" y2="470"/>
+    <line x1="520" y1="95" x2="520" y2="470"/>
+    <line x1="655" y1="95" x2="655" y2="470"/>
+    <line x1="790" y1="95" x2="790" y2="470"/>
+  </g>
+  <g font-size="12" fill="#B0A69C" text-anchor="middle">
+    <text x="250" y="490">0</text>
+    <text x="385" y="490">15</text>
+    <text x="520" y="490">30</text>
+    <text x="655" y="490">45</text>
+    <text x="790" y="490">60만원</text>
+  </g>
+
+  <!-- 1. 다이소 기성 0.5~1.8 -->
+  <g>
+    <text x="238" y="122" font-size="14" fill="#4A423C" text-anchor="end">다이소 기성 (장당 5천원)</text>
+    <rect x="254" y="106" width="13" height="24" rx="4" fill="#D98B63"/>
+    <text x="277" y="123" font-size="13" font-weight="700" fill="#2B2622">봉·브라켓 포함 1.5만~1.8만</text>
+  </g>
+
+  <!-- 2. 온라인 기성·맞춤 (장당) 1~4.3 -->
+  <g>
+    <text x="238" y="182" font-size="14" fill="#4A423C" text-anchor="end">온라인 기성·맞춤 (장당)</text>
+    <rect x="259" y="166" width="30" height="24" rx="6" fill="#D98B63"/>
+    <text x="299" y="183" font-size="13" font-weight="700" fill="#2B2622">1만~4만원대</text>
+  </g>
+
+  <!-- 3. 온라인 맞춤 + 셀프 설치 (커튼 2장+레일) 7~13 -->
+  <g>
+    <text x="238" y="242" font-size="14" fill="#4A423C" text-anchor="end">온라인 맞춤+셀프 (커튼 2장+레일)</text>
+    <rect x="313" y="226" width="54" height="24" rx="6" fill="#C96F4A"/>
+    <text x="377" y="243" font-size="13" font-weight="700" fill="#2B2622">7만~13만</text>
+  </g>
+
+  <!-- 4. 업체 시공 · 안방 암막 15~25 -->
+  <g>
+    <text x="238" y="302" font-size="14" fill="#4A423C" text-anchor="end">업체 실측 시공 · 안방 암막</text>
+    <rect x="385" y="286" width="90" height="24" rx="6" fill="#C96F4A"/>
+    <text x="485" y="303" font-size="13" font-weight="700" fill="#2B2622">15만~25만</text>
+  </g>
+
+  <!-- 5. 업체 시공 · 거실 암막 단독 20~40 -->
+  <g>
+    <text x="238" y="362" font-size="14" fill="#4A423C" text-anchor="end">업체 실측 시공 · 거실 암막 단독</text>
+    <rect x="430" y="346" width="180" height="24" rx="6" fill="#C96F4A"/>
+    <text x="620" y="363" font-size="13" font-weight="700" fill="#2B2622">20만~40만</text>
+  </g>
+
+  <!-- 6. 업체 시공 · 거실 쉬폰+암막 이중 40~60 -->
+  <g>
+    <text x="238" y="422" font-size="14" fill="#4A423C" text-anchor="end">업체 시공 · 거실 쉬폰+암막 이중</text>
+    <rect x="610" y="406" width="180" height="24" rx="6" fill="#A8563A"/>
+    <text x="700" y="423" font-size="13" font-weight="700" fill="#FFFFFF" text-anchor="middle">40만~60만</text>
+  </g>
+
+  <text x="30" y="530" font-size="12" fill="#8A8078">* 같은 창이라도 차광률 등급(반암막 → 완전암막 코팅·3중직 → 벨벳·수입 원단)에 따라 한 구간씩 올라갑니다. 수입 원단은 국산의 약 2배.</text>
+</svg>
