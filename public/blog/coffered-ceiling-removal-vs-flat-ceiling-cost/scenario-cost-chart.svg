@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif">
+  <rect width="800" height="560" fill="#fffdf9"/>
+  <text x="40" y="44" font-size="22" font-weight="700" fill="#2b2b2b">우물천장 철거 비용 vs 그대로 두기 — 34평/84타입 거실 1곳 총액</text>
+  <text x="40" y="68" font-size="13" fill="#7a7a7a">단위: 만원 · 실제 견적 빅데이터 1,000건+ 기준 · 목공+도배+조명 이설까지 합친 금액</text>
+
+  <!-- axis -->
+  <g stroke="#e6e0d8" stroke-width="1">
+    <line x1="300" y1="90" x2="300" y2="470"/>
+    <line x1="400" y1="90" x2="400" y2="470"/>
+    <line x1="500" y1="90" x2="500" y2="470"/>
+    <line x1="600" y1="90" x2="600" y2="470"/>
+    <line x1="700" y1="90" x2="700" y2="470"/>
+  </g>
+  <g font-size="12" fill="#9a9a9a" text-anchor="middle">
+    <text x="300" y="490">0</text>
+    <text x="400" y="490">100</text>
+    <text x="500" y="490">200</text>
+    <text x="600" y="490">300</text>
+    <text x="700" y="490">400</text>
+  </g>
+
+  <text x="40" y="104" font-size="12" fill="#7a7a7a">▼ 그대로 두기</text>
+
+  <!-- 1. 도배만 (천장 몫) 36~60 -->
+  <text x="285" y="134" font-size="14" fill="#2b2b2b" text-anchor="end">그대로 두고 도배만 (천장 몫)</text>
+  <rect x="336" y="120" width="24" height="20" rx="4" fill="#5b7f6a"/>
+  <text x="368" y="135" font-size="13" fill="#3e5f4c" font-weight="700">36~60만</text>
+
+  <!-- 2. 간접등만 45~60 -->
+  <text x="285" y="180" font-size="14" fill="#2b2b2b" text-anchor="end">그대로 두고 간접등만 추가</text>
+  <rect x="345" y="166" width="15" height="20" rx="4" fill="#5b7f6a"/>
+  <text x="368" y="181" font-size="13" fill="#3e5f4c" font-weight="700">45~60만 (출장비 포함)</text>
+
+  <!-- divider -->
+  <line x1="40" y1="206" x2="760" y2="206" stroke="#e6e0d8" stroke-dasharray="4 4"/>
+  <text x="40" y="228" font-size="12" fill="#7a7a7a">▼ 철거 + 평천장</text>
+
+  <!-- 3. 전체 공사와 묶어서 60~90 -->
+  <text x="285" y="258" font-size="14" fill="#2b2b2b" text-anchor="end">철거+평탄화, 전체 공사와 묶어서</text>
+  <rect x="360" y="244" width="30" height="20" rx="4" fill="#d98b6e"/>
+  <text x="398" y="259" font-size="13" fill="#c96a4a" font-weight="700">60~90만</text>
+
+  <!-- 4. 단독 90~140 -->
+  <text x="285" y="304" font-size="14" fill="#2b2b2b" text-anchor="end">철거+평탄화 단독 (살면서 거실만)</text>
+  <rect x="390" y="290" width="50" height="20" rx="4" fill="#d98b6e"/>
+  <text x="448" y="305" font-size="13" fill="#c96a4a" font-weight="700">90~140만</text>
+
+  <!-- 5. 처짐 보강 동반 150~250 -->
+  <text x="285" y="350" font-size="14" fill="#2b2b2b" text-anchor="end">철거+평탄화 + 처짐·석고 보강</text>
+  <rect x="450" y="336" width="100" height="20" rx="4" fill="#c96a4a"/>
+  <text x="558" y="351" font-size="13" fill="#c96a4a" font-weight="700">150~250만</text>
+
+  <!-- divider -->
+  <line x1="40" y1="376" x2="760" y2="376" stroke="#e6e0d8" stroke-dasharray="4 4"/>
+  <text x="40" y="398" font-size="12" fill="#7a7a7a">▼ 철거 후 다시 만들기</text>
+
+  <!-- 6. 새 우물 + 간접조명 200~350 -->
+  <text x="285" y="428" font-size="14" fill="#2b2b2b" text-anchor="end">철거 후 새 우물천장 + 간접조명</text>
+  <rect x="500" y="414" width="150" height="20" rx="4" fill="#b8563a"/>
+  <text x="658" y="429" font-size="13" fill="#c96a4a" font-weight="700">200~350만</text>
+
+  <text x="40" y="524" font-size="12" fill="#9a9a9a">※ 실링팬 보강 5~15만·소방감지기 이설·거실 전체 도배·매입등 자재비는 별도. 등박스형은 목공이 절반(20~25만)으로 내려갑니다.</text>
+  <text x="40" y="544" font-size="12" fill="#9a9a9a">※ 단독 공사가 더 비싼 이유 = 천장 도배(30~40만)와 전기 출장(20~40만)이 따로 붙기 때문.</text>
+</svg>
