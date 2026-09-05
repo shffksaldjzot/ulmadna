@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" font-family="'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif">
+  <rect width="800" height="600" fill="#FFFFFF"/>
+  <text x="30" y="44" font-size="22" font-weight="700" fill="#2B2622">커튼 세탁 비용 — 방식별 · 창별 (세탁소 정가 기준)</text>
+  <text x="30" y="70" font-size="13" fill="#8A8078">실제 세탁소 단가·견적 데이터 기준 · 단위: 만원 · 세탁소는 펼친 원단 폭 1m당 1만 2천원(대형 1만 7천원)</text>
+
+  <!-- guide lines: x = 250 + 만원*13.5 -->
+  <g stroke="#EFEAE4" stroke-width="1">
+    <line x1="250" y1="95" x2="250" y2="500"/>
+    <line x1="385" y1="95" x2="385" y2="500"/>
+    <line x1="520" y1="95" x2="520" y2="500"/>
+    <line x1="655" y1="95" x2="655" y2="500"/>
+    <line x1="790" y1="95" x2="790" y2="500"/>
+  </g>
+  <g font-size="12" fill="#B0A69C" text-anchor="middle">
+    <text x="250" y="520">0</text>
+    <text x="385" y="520">10</text>
+    <text x="520" y="520">20</text>
+    <text x="655" y="520">30</text>
+    <text x="790" y="520">40만원</text>
+  </g>
+
+  <!-- 1. 셀프 세탁 -->
+  <g>
+    <text x="238" y="122" font-size="14" fill="#4A423C" text-anchor="end">집에서 셀프 세탁 (물세탁 라벨)</text>
+    <rect x="250" y="106" width="8" height="24" rx="3" fill="#D98B63"/>
+    <text x="268" y="123" font-size="13" font-weight="700" fill="#2B2622">세제·세탁망 값뿐 — 사실상 0원</text>
+  </g>
+
+  <!-- 2. 작은방 1세트 3.6~4.8 -->
+  <g>
+    <text x="238" y="182" font-size="14" fill="#4A423C" text-anchor="end">세탁소 · 작은방 커튼 1세트</text>
+    <rect x="299" y="166" width="16" height="24" rx="5" fill="#D98B63"/>
+    <text x="325" y="183" font-size="13" font-weight="700" fill="#2B2622">3만 6천~4만 8천원</text>
+  </g>
+
+  <!-- 3. 안방 암막 1세트 6~7.2 (대형 8.5~10.2) -->
+  <g>
+    <text x="238" y="242" font-size="14" fill="#4A423C" text-anchor="end">세탁소 · 안방 암막 1세트</text>
+    <rect x="331" y="226" width="16" height="24" rx="5" fill="#C96F4A"/>
+    <rect x="347" y="226" width="41" height="24" rx="5" fill="#C96F4A" opacity="0.35"/>
+    <text x="398" y="243" font-size="13" font-weight="700" fill="#2B2622">6만~7만 2천원 <tspan font-weight="400" fill="#8A8078">(바닥 기장 대형 8만 5천~10만 2천)</tspan></text>
+  </g>
+
+  <!-- 4. 거실 암막+속커튼 16.8~21.6 -->
+  <g>
+    <text x="238" y="302" font-size="14" fill="#4A423C" text-anchor="end">세탁소 · 거실 암막+속커튼 세트</text>
+    <rect x="477" y="286" width="65" height="24" rx="6" fill="#C96F4A"/>
+    <text x="552" y="298" font-size="13" font-weight="700" fill="#2B2622">16만 8천~21만 6천원</text>
+    <text x="552" y="314" font-size="11" fill="#8A8078">(실제 견적 18만~20만)</text>
+  </g>
+
+  <!-- 5. 거실 세트 할인일(20%) 13.4~17.3 -->
+  <g>
+    <text x="238" y="362" font-size="14" fill="#4A423C" text-anchor="end">거실 세트 · 이불세탁의 날 20% 할인</text>
+    <rect x="431" y="346" width="53" height="24" rx="6" fill="#D98B63"/>
+    <text x="494" y="363" font-size="13" font-weight="700" fill="#2B2622">13만 4천~17만 3천원</text>
+  </g>
+
+  <!-- 6. 34평/84타입 전체 30~40 -->
+  <g>
+    <text x="238" y="422" font-size="14" fill="#4A423C" text-anchor="end">34평/84타입 집 전체 (거실+안방+방2)</text>
+    <rect x="655" y="406" width="135" height="24" rx="6" fill="#A8563A"/>
+    <text x="722" y="423" font-size="13" font-weight="700" fill="#FFFFFF" text-anchor="middle">30만~40만원</text>
+  </g>
+
+  <!-- 7. 블라인드 -->
+  <g>
+    <text x="238" y="482" font-size="14" fill="#4A423C" text-anchor="end">블라인드 청소 (알루미늄·PVC·우드)</text>
+    <rect x="250" y="466" width="8" height="24" rx="3" fill="#B0A69C"/>
+    <text x="268" y="483" font-size="13" font-weight="700" fill="#2B2622">세탁 불가 · 닦는 것 — 0원 <tspan font-weight="400" fill="#8A8078">(패브릭 오염은 교체: 콤비 창 하나 5만 9천원)</tspan></text>
+  </g>
+
+  <text x="30" y="560" font-size="12" fill="#8A8078">* 세탁소 금액은 펼친 원단 폭(창 폭 × 주름 배수 1.5~2배) × 폭당 단가로 환산. 벨벳·실크·수입 원단은 드라이 별도 견적.</text>
+  <text x="30" y="580" font-size="12" fill="#8A8078">* 수거·배달 이용 시 배송비 3,800원(2만원 미만 5,000원, 5벌 이상 무료) 별도.</text>
+</svg>
