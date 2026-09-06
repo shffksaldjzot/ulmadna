@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 520" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="가스레인지 인덕션 교체 비용 시나리오별 총액 범위 막대그래프 — 최소형 30~45만원, 표준형 80~125만원, 최대형 210~250만원">
+  <rect width="860" height="520" fill="#ffffff"/>
+  <text x="40" y="46" font-size="25" font-weight="700" fill="#2b2b2b">가스레인지 인덕션 교체 비용 — 시나리오별 총액</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">가스 처리 + 전기 + 상판·가구 + 본체 합산 · 단위: 만원</text>
+
+  <!-- grid -->
+  <line x1="40" y1="420" x2="830" y2="420" stroke="#dddddd" stroke-width="2"/>
+  <line x1="40" y1="300" x2="830" y2="300" stroke="#f0f0f0" stroke-width="1"/>
+  <text x="36" y="304" font-size="12" fill="#bbb" text-anchor="end">100</text>
+  <line x1="40" y1="180" x2="830" y2="180" stroke="#f0f0f0" stroke-width="1"/>
+  <text x="36" y="184" font-size="12" fill="#bbb" text-anchor="end">200</text>
+
+  <!-- 최소형 30~45 -->
+  <rect x="120" y="366" width="120" height="18" rx="4" fill="#E0A98F"/>
+  <text x="180" y="356" font-size="17" font-weight="700" fill="#a8512f" text-anchor="middle">30~45</text>
+  <text x="180" y="450" font-size="15" font-weight="600" fill="#444" text-anchor="middle">최소형</text>
+  <text x="180" y="470" font-size="12" fill="#999" text-anchor="middle">가스 막음 2~3 · 전기 0~5</text>
+  <text x="180" y="488" font-size="12" fill="#999" text-anchor="middle">타공 0 · 본체 28~35</text>
+
+  <!-- 표준형 80~125 -->
+  <rect x="370" y="270" width="120" height="54" rx="4" fill="#C26B4A"/>
+  <text x="430" y="260" font-size="17" font-weight="700" fill="#a8512f" text-anchor="middle">80~125</text>
+  <text x="430" y="450" font-size="15" font-weight="600" fill="#444" text-anchor="middle">표준형 (가장 흔함)</text>
+  <text x="430" y="470" font-size="12" fill="#999" text-anchor="middle">배관 절단 3~8 · 전기 10~25</text>
+  <text x="430" y="488" font-size="12" fill="#999" text-anchor="middle">확장 타공 10~30 · 본체 60</text>
+
+  <!-- 최대형 210~250 -->
+  <rect x="620" y="120" width="120" height="48" rx="4" fill="#8F4A30"/>
+  <text x="680" y="110" font-size="17" font-weight="700" fill="#a8512f" text-anchor="middle">210~250</text>
+  <text x="680" y="450" font-size="15" font-weight="600" fill="#444" text-anchor="middle">최대형 (구축 풀세팅)</text>
+  <text x="680" y="470" font-size="12" fill="#999" text-anchor="middle">배관 철거 10~15 · 전기 65~95</text>
+  <text x="680" y="488" font-size="12" fill="#999" text-anchor="middle">전체 타공+장내림 38 · 본체 100</text>
+
+  <text x="40" y="512" font-size="13" fill="#a0a0a0">※ 실제 설치 단가표·견적 빅데이터 기준. 최대형 전기는 매립 전용선 35~45 + 한전 증설 30~50 합산. 렌탈·무료설치 이벤트는 별도.</text>
+</svg>
