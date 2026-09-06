@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" role="img" aria-label="타일 종류·등급별 박스당 자재비 범위 막대그래프 — 도기질 자기질 포세린 타일 가격 비교">
+  <rect width="720" height="400" fill="#faf7f4"/>
+  <text x="24" y="40" font-size="20" font-weight="700" fill="#2b2b2b">타일 종류·등급별 자재비 (1박스 ≈ 1.44㎡ 기준)</text>
+  <text x="24" y="62" font-size="13" fill="#8a8175">단위: 만원/박스 · 실제 견적·유통가 기준, 배송비·로스 10% 별도</text>
+
+  <!-- gridlines: 0~14만원, 1만원 = 36px, x0=200 -->
+  <g stroke="#e7ddd3" stroke-width="1">
+    <line x1="200" y1="80" x2="200" y2="330"/>
+    <line x1="272" y1="80" x2="272" y2="330"/>
+    <line x1="344" y1="80" x2="344" y2="330"/>
+    <line x1="416" y1="80" x2="416" y2="330"/>
+    <line x1="488" y1="80" x2="488" y2="330"/>
+    <line x1="560" y1="80" x2="560" y2="330"/>
+    <line x1="632" y1="80" x2="632" y2="330"/>
+    <line x1="704" y1="80" x2="704" y2="330"/>
+  </g>
+  <g font-size="11" fill="#a89e92" text-anchor="middle">
+    <text x="200" y="348">0</text>
+    <text x="272" y="348">2</text>
+    <text x="344" y="348">4</text>
+    <text x="416" y="348">6</text>
+    <text x="488" y="348">8</text>
+    <text x="560" y="348">10</text>
+    <text x="632" y="348">12</text>
+    <text x="704" y="348">14</text>
+  </g>
+
+  <!-- row labels -->
+  <g font-size="13" fill="#3a3a3a" text-anchor="end">
+    <text x="188" y="104">도기질 벽타일 300×600</text>
+    <text x="188" y="144">자기질 바닥 300각</text>
+    <text x="188" y="184">보급형 포세린 600각</text>
+    <text x="188" y="224">디자인·프리미엄 수입 600각</text>
+    <text x="188" y="264">유럽산(이태리·스페인) 600각</text>
+    <text x="188" y="304">외부용 20T 600각</text>
+  </g>
+
+  <g>
+    <!-- 도기질 1.8~2.7 -->
+    <rect x="265" y="92" width="32" height="18" rx="4" fill="#e6a98f"/>
+    <text x="303" y="106" font-size="11" fill="#6b5d52">1.8~2.7</text>
+    <!-- 자기질 300각 2.0~2.7 -->
+    <rect x="272" y="132" width="25" height="18" rx="4" fill="#e6a98f"/>
+    <text x="303" y="146" font-size="11" fill="#6b5d52">2.0~2.7</text>
+    <!-- 보급 포세린 2.5~3.5 -->
+    <rect x="290" y="172" width="36" height="18" rx="4" fill="#d98b6a"/>
+    <text x="332" y="186" font-size="11" fill="#6b5d52">2.5~3.5</text>
+    <!-- 프리미엄 4~6 -->
+    <rect x="344" y="212" width="72" height="18" rx="4" fill="#cf7a55"/>
+    <text x="422" y="226" font-size="11" fill="#6b5d52">4~6+</text>
+    <!-- 유럽산 9~12 -->
+    <rect x="524" y="252" width="108" height="18" rx="4" fill="#a84e2c"/>
+    <text x="638" y="266" font-size="11" fill="#6b5d52">9~12+</text>
+    <!-- 20T 4~8 -->
+    <rect x="344" y="292" width="144" height="18" rx="4" fill="#c0653f"/>
+    <text x="494" y="306" font-size="11" fill="#6b5d52">4~8 (중국산 4 / 이태리 8)</text>
+  </g>
+
+  <text x="24" y="378" font-size="12" fill="#8a8175">※ 1평(3.3㎡)에 약 2.3박스. 박스 가격 × 2.3 = 평당 자재비. 보급형 포세린은 평당 약 6만~8만원.</text>
+</svg>
