@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 440" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <rect width="800" height="440" fill="#fdfaf7"/>
+  <text x="40" y="44" font-size="21" font-weight="700" fill="#2d2a26">방충망 프레임 교체 비용 — 망만·틀·창호 3단계 총액 비교</text>
+  <text x="40" y="70" font-size="13" fill="#8a8378">34평/84타입 · 창 7~8짝 기준 총액 (가로축은 로그 눈금: 오른쪽으로 갈수록 한 칸이 3배)</text>
+
+  <!-- log grid : x = 190 + (log10(만원) - log10(3)) * 198.3 -->
+  <g stroke="#e8e2da" stroke-width="1">
+    <line x1="234" y1="92" x2="234" y2="352"/>
+    <line x1="294" y1="92" x2="294" y2="352"/>
+    <line x1="388" y1="92" x2="388" y2="352"/>
+    <line x1="492" y1="92" x2="492" y2="352"/>
+    <line x1="587" y1="92" x2="587" y2="352"/>
+    <line x1="690" y1="92" x2="690" y2="352"/>
+  </g>
+  <g font-size="12" fill="#a09888" text-anchor="middle">
+    <text x="234" y="372">5만</text>
+    <text x="294" y="372">10만</text>
+    <text x="388" y="372">30만</text>
+    <text x="492" y="372">100만</text>
+    <text x="587" y="372">300만</text>
+    <text x="690" y="372">1,000만</text>
+  </g>
+
+  <!-- 1. 셀프 망만 5만~7만 -->
+  <text x="178" y="118" font-size="14" font-weight="600" fill="#2d2a26" text-anchor="end">① 망만 셀프(재료비)</text>
+  <rect x="234" y="103" width="29" height="20" rx="6" fill="#e0b48e"/>
+  <text x="272" y="118" font-size="12.5" fill="#6b6459">5만~7만원 · 망+가스켓+롤러</text>
+
+  <!-- 2. 업체 망만 25만~45만 (미세망 최대 80만) -->
+  <text x="178" y="170" font-size="14" font-weight="600" fill="#2d2a26" text-anchor="end">② 망만 업체 시공</text>
+  <rect x="372" y="155" width="51" height="20" rx="6" fill="#d9a173"/>
+  <rect x="423" y="155" width="49" height="20" rx="6" fill="#d9a173" opacity="0.45"/>
+  <text x="481" y="170" font-size="12.5" fill="#6b6459">25만~45만원 (미세·발수망 상위 사양 최대 80만)</text>
+
+  <!-- 3. 틀까지 교체 40만~100만 -->
+  <text x="178" y="222" font-size="14" font-weight="600" fill="#2d2a26" text-anchor="end">③ 방충망 틀까지 교체</text>
+  <rect x="413" y="207" width="79" height="20" rx="6" fill="#c96f4a"/>
+  <text x="501" y="222" font-size="12.5" fill="#6b6459">40만~100만원 · 대형 틀 12만~15만/짝 맞춤 제작</text>
+
+  <!-- 4. 창호 부분(외창만) 600만~850만 -->
+  <text x="178" y="274" font-size="14" font-weight="600" fill="#2d2a26" text-anchor="end">④ 창호 부분 교체(외창만)</text>
+  <rect x="646" y="259" width="30" height="20" rx="6" fill="#b5573a"/>
+  <text x="640" y="274" font-size="12.5" fill="#6b6459" text-anchor="end">600만~850만원 · 방충망은 새 창에 포함</text>
+
+  <!-- 5. 창호 전체 850만~1,300만 -->
+  <text x="178" y="326" font-size="14" font-weight="600" fill="#2d2a26" text-anchor="end">⑤ 창호 전체 교체</text>
+  <rect x="676" y="311" width="36" height="20" rx="6" fill="#9c4a30"/>
+  <text x="670" y="326" font-size="12.5" fill="#6b6459" text-anchor="end">850만~1,300만원 · 철거·양중·부가세 포함 여부 확인</text>
+
+  <text x="40" y="404" font-size="12" fill="#8a8378">※ 실제 시공 사례·견적 빅데이터 기준. ①~③은 방충망 공사, ④~⑤는 창호 공사라 단위가 다릅니다.</text>
+  <text x="40" y="424" font-size="12" fill="#8a8378">   창호를 바꾸면 방충망이 새로 딸려오므로 ④·⑤ 계획이 있으면 ②·③에 먼저 돈을 쓰지 않는 게 원칙입니다.</text>
+</svg>
