@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 600" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="전기 용량 증설 비용 해결 경로별 가격 범위 차트 — 한전 시설부담금 3kW→5kW 18~22만원, 업체 시공비 30~50만원, 단독·빌라 3→5kW 총액 50~80만원, 아파트 세대 증설 30~100만원, 회로 분리 전용회로 25~45만원, 분전반 내부 교체 15~30만원">
+  <rect width="860" height="600" fill="#ffffff"/>
+  <text x="40" y="46" font-size="25" font-weight="700" fill="#2b2b2b">전기 용량 증설 비용 — 해결 경로별 실제 가격 범위</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">가정용 단상 · 3kW→5kW 기준 · 부가세 별도 · 단위: 만원</text>
+
+  <!-- grid: x scale 0~100만원 → x=300 + v*5 -->
+  <g stroke="#e6e6e6" stroke-width="1">
+    <line x1="300" y1="100" x2="300" y2="520"/>
+    <line x1="400" y1="100" x2="400" y2="520"/>
+    <line x1="500" y1="100" x2="500" y2="520"/>
+    <line x1="600" y1="100" x2="600" y2="520"/>
+    <line x1="700" y1="100" x2="700" y2="520"/>
+    <line x1="800" y1="100" x2="800" y2="520"/>
+  </g>
+  <g font-size="12" fill="#a0a0a0" text-anchor="middle">
+    <text x="300" y="538">0</text>
+    <text x="400" y="538">20</text>
+    <text x="500" y="538">40</text>
+    <text x="600" y="538">60</text>
+    <text x="700" y="538">80</text>
+    <text x="800" y="538">100</text>
+  </g>
+
+  <!-- 1 한전 시설부담금 18~22 -->
+  <text x="285" y="132" font-size="15" font-weight="600" fill="#444" text-anchor="end">한전 시설부담금 (3→5kW, 공중 저압)</text>
+  <rect x="390" y="115" width="20" height="24" rx="4" fill="#d9967d"/>
+  <text x="420" y="132" font-size="14" fill="#a8512f">18~22</text>
+
+  <!-- 2 업체 시공비 30~50 -->
+  <text x="285" y="192" font-size="15" font-weight="600" fill="#444" text-anchor="end">업체 시공비 (인입선+메인 차단기 교체)</text>
+  <rect x="450" y="175" width="100" height="24" rx="4" fill="#d9967d"/>
+  <text x="560" y="192" font-size="14" fill="#a8512f">30~50</text>
+
+  <!-- 3 단독·빌라 총액 50~80 -->
+  <text x="285" y="252" font-size="15" font-weight="700" fill="#2b2b2b" text-anchor="end">단독주택·빌라 3→5kW 증설 총액</text>
+  <rect x="550" y="235" width="150" height="24" rx="4" fill="#C26B4A"/>
+  <text x="710" y="252" font-size="14" font-weight="700" fill="#a8512f">50~80</text>
+
+  <!-- 4 아파트 세대 증설 30~100 -->
+  <text x="285" y="312" font-size="15" font-weight="700" fill="#2b2b2b" text-anchor="end">아파트 세대 증설 (관리사무소 경유)</text>
+  <rect x="450" y="295" width="350" height="24" rx="4" fill="#C26B4A"/>
+  <text x="810" y="312" font-size="14" font-weight="700" fill="#a8512f">30~100</text>
+
+  <!-- 5 회로 분리 25~45 -->
+  <text x="285" y="372" font-size="15" font-weight="600" fill="#444" text-anchor="end">회로 분리 (전용회로 1개 신설)</text>
+  <rect x="425" y="355" width="100" height="24" rx="4" fill="#8f8f8f"/>
+  <text x="535" y="372" font-size="14" fill="#555">25~45</text>
+
+  <!-- 6 분전반 내부 교체 15~30 -->
+  <text x="285" y="432" font-size="15" font-weight="600" fill="#444" text-anchor="end">분전반 내부 교체 (메인+분기, 함 유지)</text>
+  <rect x="375" y="415" width="75" height="24" rx="4" fill="#8f8f8f"/>
+  <text x="460" y="432" font-size="14" fill="#555">15~30</text>
+
+  <g font-size="12" fill="#8a8a8a">
+    <text x="300" y="480">▬ 계약전력 증설 경로(주황) · ▬ 증설 없이 끝나는 경로(회색)</text>
+    <text x="300" y="500">차단기가 떨어지는 집 대부분은 회색 경로에서 끝납니다. 메인 차단기가 반복해서 떨어질 때만 주황 경로를 검토하세요.</text>
+  </g>
+  <text x="40" y="575" font-size="12" fill="#a0a0a0">실제 견적 빅데이터 1,000건+ · 한전 공개 단가 · 전기 업체 공개 단가 교차 정리 (2026년 9월 기준)</text>
+</svg>
