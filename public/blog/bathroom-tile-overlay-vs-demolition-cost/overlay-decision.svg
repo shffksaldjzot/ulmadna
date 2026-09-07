@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 470" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" role="img" aria-label="우리 집 욕실 덧방 가능 여부 판정 순서도">
+  <rect width="720" height="470" fill="#faf7f4"/>
+  <text x="24" y="38" font-size="20" font-weight="700" fill="#2b2b2b">우리 집 욕실, 덧방해도 될까 — 5단계 판정</text>
+  <text x="24" y="60" font-size="13" fill="#8a8175">하나라도 '아니오'면 그 시점에서 철거 쪽으로 넘어갑니다</text>
+
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#a89e92"/>
+    </marker>
+  </defs>
+
+  <!-- step boxes (left column) -->
+  <g font-size="13" fill="#2b2b2b">
+    <rect x="24" y="84" width="400" height="48" rx="8" fill="#ffffff" stroke="#e7ddd3"/>
+    <text x="40" y="104" font-weight="700">① 두드림 테스트</text>
+    <text x="40" y="122" fill="#6b6259">벽·바닥 전체를 두드려 '통통' 빈 소리가 넓게 나지 않는다</text>
+
+    <rect x="24" y="152" width="400" height="48" rx="8" fill="#ffffff" stroke="#e7ddd3"/>
+    <text x="40" y="172" font-weight="700">② 누수 이력</text>
+    <text x="40" y="190" fill="#6b6259">아랫집 천장 얼룩·누수 연락·보수 실리콘 자국이 없다</text>
+
+    <rect x="24" y="220" width="400" height="48" rx="8" fill="#ffffff" stroke="#e7ddd3"/>
+    <text x="40" y="240" font-weight="700">③ 덧방 이력·UBR</text>
+    <text x="40" y="258" fill="#6b6259">문선보다 타일이 튀어나오지 않았고, 벽이 플라스틱 소리가 아니다</text>
+
+    <rect x="24" y="288" width="400" height="48" rx="8" fill="#ffffff" stroke="#e7ddd3"/>
+    <text x="40" y="308" font-weight="700">④ 문턱 단차</text>
+    <text x="40" y="326" fill="#6b6259">바닥이 1.5cm 올라와도 문·슬리퍼가 안 걸리고 물이 안 넘친다</text>
+
+    <rect x="24" y="356" width="400" height="48" rx="8" fill="#ffffff" stroke="#e7ddd3"/>
+    <text x="40" y="376" font-weight="700">⑤ 배수 구배</text>
+    <text x="40" y="394" fill="#6b6259">샤워 후 물이 고이지 않고 배수구로 잘 빠진다</text>
+  </g>
+
+  <!-- down arrows between steps -->
+  <g stroke="#a89e92" stroke-width="1.5" marker-end="url(#arr)">
+    <line x1="224" y1="132" x2="224" y2="150"/>
+    <line x1="224" y1="200" x2="224" y2="218"/>
+    <line x1="224" y1="268" x2="224" y2="286"/>
+    <line x1="224" y1="336" x2="224" y2="354"/>
+  </g>
+  <g font-size="10" fill="#7a9a6d" font-weight="700">
+    <text x="232" y="146">예</text>
+    <text x="232" y="214">예</text>
+    <text x="232" y="282">예</text>
+    <text x="232" y="350">예</text>
+  </g>
+
+  <!-- 'no' arrows to right column -->
+  <g stroke="#b6584a" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr)">
+    <line x1="424" y1="108" x2="470" y2="108"/>
+    <line x1="424" y1="176" x2="470" y2="176"/>
+    <line x1="424" y1="244" x2="470" y2="244"/>
+    <line x1="424" y1="312" x2="470" y2="312"/>
+    <line x1="424" y1="380" x2="470" y2="380"/>
+  </g>
+  <g font-size="10" fill="#b6584a" font-weight="700">
+    <text x="436" y="102">아니오</text>
+    <text x="436" y="170">아니오</text>
+    <text x="436" y="238">아니오</text>
+    <text x="436" y="306">아니오</text>
+    <text x="436" y="374">아니오</text>
+  </g>
+
+  <!-- right outcome: demolition -->
+  <rect x="476" y="84" width="220" height="320" rx="10" fill="#fbeeea" stroke="#e8c3ba"/>
+  <text x="586" y="120" font-size="15" font-weight="700" fill="#b6584a" text-anchor="middle">올철거 + 방수</text>
+  <text x="586" y="142" font-size="12" fill="#6b6259" text-anchor="middle">기본형 350만~500만원</text>
+  <text x="586" y="160" font-size="12" fill="#6b6259" text-anchor="middle">중급형 500만~700만원</text>
+  <g font-size="11" fill="#6b6259" text-anchor="middle">
+    <text x="586" y="200">① 들뜸 넓음 → 새 타일까지 같이 탈락</text>
+    <text x="586" y="220">② 누수 → 덧방은 문제를 덮을 뿐</text>
+    <text x="586" y="240">③ 2단 덧방·UBR → 하중·구조상 불가</text>
+    <text x="586" y="260">④ 문턱 부족 → 물 넘침·문 걸림</text>
+    <text x="586" y="280">⑤ 구배 불량 → 바닥은 뜯어야 해결</text>
+  </g>
+  <text x="586" y="330" font-size="11" fill="#8a8175" text-anchor="middle">④⑤만 걸리면 벽 덧방 +</text>
+  <text x="586" y="348" font-size="11" fill="#8a8175" text-anchor="middle">바닥만 철거·방수 조합도 가능</text>
+  <text x="586" y="384" font-size="11" fill="#8a8175" text-anchor="middle">기간 4~6일 · 방수 양생 24시간+</text>
+
+  <!-- bottom outcome: overlay OK -->
+  <rect x="24" y="420" width="400" height="36" rx="8" fill="#eef3ea" stroke="#c9d9c1"/>
+  <text x="224" y="443" font-size="14" font-weight="700" fill="#4f7a3f" text-anchor="middle">5개 모두 '예' → 덧방 OK (230만~450만원 · 2~3일)</text>
+</svg>
