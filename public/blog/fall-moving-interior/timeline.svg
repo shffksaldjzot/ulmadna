@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 560" font-family="Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" role="img" aria-label="가을 이사철 인테리어 입주일 역산 일정표 — D-12주 실측부터 D-day 입주까지, 30평대 올수리 기준">
+  <rect width="860" height="560" fill="#fdfaf7"/>
+  <text x="40" y="48" font-size="24" font-weight="700" fill="#2b2b2b">가을 이사철 인테리어 — 입주일(D) 역산 일정표</text>
+  <text x="40" y="74" font-size="14" fill="#8a8a8a">30평대(74·84타입) 올수리 기준 · 공사 4~6주는 전체 12주 일정의 절반일 뿐</text>
+
+  <!-- week grid: D-12 ... D, 13 columns from x=250 to x=820 (step ~43.8) -->
+  <g stroke="#e8ddd4" stroke-width="1">
+    <line x1="250" y1="96" x2="250" y2="470"/>
+    <line x1="345" y1="96" x2="345" y2="470"/>
+    <line x1="440" y1="96" x2="440" y2="470"/>
+    <line x1="535" y1="96" x2="535" y2="470"/>
+    <line x1="630" y1="96" x2="630" y2="470"/>
+    <line x1="725" y1="96" x2="725" y2="470"/>
+    <line x1="820" y1="96" x2="820" y2="470"/>
+  </g>
+  <g font-size="12" fill="#8a8a8a" text-anchor="middle">
+    <text x="250" y="112">D-12주</text>
+    <text x="345" y="112">D-10주</text>
+    <text x="440" y="112">D-8주</text>
+    <text x="535" y="112">D-6주</text>
+    <text x="630" y="112">D-4주</text>
+    <text x="725" y="112">D-2주</text>
+    <text x="820" y="112">D-day</text>
+  </g>
+
+  <!-- rows: 1 week = 47.5px -->
+  <!-- 1. 실측·설계·비교견적 D-12 ~ D-10 -->
+  <text x="40" y="150" font-size="14" font-weight="600" fill="#2b2b2b">실측·설계·비교견적 3~5곳</text>
+  <rect x="250" y="136" width="95" height="20" rx="6" fill="#c06b4f"/>
+  <text x="352" y="151" font-size="12" fill="#8a8a8a">2~3주 · 같은 조건으로 견적</text>
+
+  <!-- 2. 계약·자재 확정·선발주 D-10 ~ D-9 -->
+  <text x="40" y="190" font-size="14" font-weight="600" fill="#2b2b2b">계약 · 자재 확정 · 선발주</text>
+  <rect x="345" y="176" width="48" height="20" rx="6" fill="#c06b4f"/>
+  <text x="400" y="191" font-size="12" fill="#8a8a8a">창호 2~4주 · 맞춤가구 4~8주 리드타임</text>
+
+  <!-- 3. 관리사무소 신고·동의서 D-9 ~ D-8 -->
+  <text x="40" y="230" font-size="14" font-weight="600" fill="#2b2b2b">관리사무소 신고 · 동의서</text>
+  <rect x="393" y="216" width="47" height="20" rx="6" fill="#d98e6f"/>
+  <text x="447" y="231" font-size="12" fill="#8a8a8a">1~2주 · 행위허가 필요 시 2~4주</text>
+
+  <!-- 4. 실제 공사 D-8 ~ D-3 (5주) -->
+  <text x="40" y="270" font-size="14" font-weight="600" fill="#2b2b2b">실제 공사 (철거→설비→목공→마감)</text>
+  <rect x="440" y="256" width="237" height="20" rx="6" fill="#c06b4f"/>
+  <text x="684" y="271" font-size="12" fill="#8a8a8a">4~6주 · 추석 연휴 -3~5일</text>
+
+  <!-- 5. 준공 검수·하자보수 D-3 ~ D-2 -->
+  <text x="40" y="310" font-size="14" font-weight="600" fill="#2b2b2b">준공 검수 · 하자 보수</text>
+  <rect x="677" y="296" width="48" height="20" rx="6" fill="#d98e6f"/>
+  <text x="732" y="311" font-size="12" fill="#8a8a8a">1주 · 0으로 잡으면 하자 안고 입주</text>
+
+  <!-- 6. 입주청소·베이크아웃 D-2 ~ D-1 -->
+  <text x="40" y="350" font-size="14" font-weight="600" fill="#2b2b2b">입주 청소 · 베이크아웃</text>
+  <rect x="725" y="336" width="47" height="20" rx="6" fill="#d98e6f"/>
+  <text x="779" y="351" font-size="12" fill="#8a8a8a">3~5일</text>
+
+  <!-- 7. 이사·가구 입고 D-1 ~ D -->
+  <text x="40" y="390" font-size="14" font-weight="600" fill="#2b2b2b">이사 · 가구·가전 입고</text>
+  <rect x="772" y="376" width="48" height="20" rx="6" fill="#8a8a8a"/>
+
+  <!-- bracket: 보이지 않는 시간 -->
+  <line x1="250" y1="424" x2="440" y2="424" stroke="#c06b4f" stroke-width="2"/>
+  <line x1="677" y1="424" x2="820" y2="424" stroke="#c06b4f" stroke-width="2"/>
+  <text x="345" y="446" font-size="12" fill="#c06b4f" text-anchor="middle">공사 전 4주 (설계·발주·행정)</text>
+  <text x="748" y="446" font-size="12" fill="#c06b4f" text-anchor="middle">공사 후 3주 (검수·청소·입주)</text>
+  <line x1="440" y1="424" x2="677" y2="424" stroke="#dddddd" stroke-width="2"/>
+  <text x="558" y="446" font-size="12" fill="#8a8a8a" text-anchor="middle">공사 5주</text>
+
+  <text x="40" y="500" font-size="13" fill="#2b2b2b" font-weight="600">예: 11월 말 입주 목표 → 9월 첫째 주가 실측 마지노선</text>
+  <text x="40" y="522" font-size="12" fill="#a0a0a0">※ 10월 말 입주는 부분 시공(도배·바닥·조명 2~5일, 욕실 1칸 5~7일)만 현실적. 수입 주방(8~16주)·수입 석재(6~8주) 포함 시 별도 가산.</text>
+  <text x="40" y="542" font-size="12" fill="#a0a0a0">※ 관리사무소 절차·행위허가는 돈으로 당길 수 없는 시간. 실제 견적·일정 빅데이터 1,000건+ 기준.</text>
+</svg>
