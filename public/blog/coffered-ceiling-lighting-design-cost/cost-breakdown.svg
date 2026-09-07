@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif">
+  <rect width="800" height="560" fill="#fffdf9"/>
+  <text x="40" y="44" font-size="22" font-weight="700" fill="#2b2b2b">우물천장 간접조명 비용 — 항목별 구성 (34평/84타입 거실, 목공 신설 풀세트)</text>
+  <text x="40" y="68" font-size="13" fill="#7a7a7a">단위: 만원 · 실제 견적 빅데이터 1,000건+ 기준 · 막대 = 최소~최대 범위</text>
+
+  <!-- grid -->
+  <g stroke="#e6e0d8" stroke-width="1">
+    <line x1="300" y1="90" x2="300" y2="470"/>
+    <line x1="400" y1="90" x2="400" y2="470"/>
+    <line x1="500" y1="90" x2="500" y2="470"/>
+    <line x1="600" y1="90" x2="600" y2="470"/>
+    <line x1="700" y1="90" x2="700" y2="470"/>
+  </g>
+  <g font-size="12" fill="#9a9a9a" text-anchor="middle">
+    <text x="300" y="490">0</text>
+    <text x="400" y="490">50</text>
+    <text x="500" y="490">100</text>
+    <text x="600" y="490">150</text>
+    <text x="700" y="490">200</text>
+  </g>
+
+  <!-- rows: x = 300 + value*2  (1만원 = 2px) -->
+  <!-- 1. 목공 50~100 -->
+  <text x="285" y="118" font-size="14" fill="#2b2b2b" text-anchor="end">목공 (우물 박스·실링팬 보강)</text>
+  <rect x="400" y="104" width="100" height="20" rx="4" fill="#c96a4a"/>
+  <text x="508" y="119" font-size="13" fill="#c96a4a" font-weight="700">50~100만</text>
+
+  <!-- 2. 전기 인건비 60~90 -->
+  <text x="285" y="166" font-size="14" fill="#2b2b2b" text-anchor="end">전기 인건비 (타공·배선·회로 분리)</text>
+  <rect x="420" y="152" width="60" height="20" rx="4" fill="#c96a4a"/>
+  <text x="488" y="167" font-size="13" fill="#c96a4a" font-weight="700">60~90만 (2회 방문)</text>
+
+  <!-- 3. 도배 20~40 -->
+  <text x="285" y="214" font-size="14" fill="#2b2b2b" text-anchor="end">천장 도배 (우물 부분~전체)</text>
+  <rect x="340" y="200" width="40" height="20" rx="4" fill="#d98b6e"/>
+  <text x="388" y="215" font-size="13" fill="#c96a4a" font-weight="700">20~40만</text>
+
+  <!-- 4. 실링팬 본체 16~60 -->
+  <text x="285" y="262" font-size="14" fill="#2b2b2b" text-anchor="end">실링팬 본체 (선택)</text>
+  <rect x="332" y="248" width="88" height="20" rx="4" fill="#d98b6e"/>
+  <text x="428" y="263" font-size="13" fill="#c96a4a" font-weight="700">16~60만</text>
+
+  <!-- 5. 간접등 자재 5~25 -->
+  <text x="285" y="310" font-size="14" fill="#2b2b2b" text-anchor="end">간접등 자재 (T5 2줄 → COB)</text>
+  <rect x="310" y="296" width="40" height="20" rx="4" fill="#e8b39c"/>
+  <text x="358" y="311" font-size="13" fill="#c96a4a" font-weight="700">5~25만</text>
+
+  <!-- 6. 매립등 자재 5~25 -->
+  <text x="285" y="358" font-size="14" fill="#2b2b2b" text-anchor="end">매립등 자재 (3인치 일반 → 2인치 디밍, 12구)</text>
+  <rect x="310" y="344" width="40" height="20" rx="4" fill="#e8b39c"/>
+  <text x="358" y="359" font-size="13" fill="#c96a4a" font-weight="700">5~25만</text>
+
+  <!-- 7. 옵션 추가금 0~50 -->
+  <text x="285" y="406" font-size="14" fill="#2b2b2b" text-anchor="end">옵션 (길이·라운드·센서·커튼박스)</text>
+  <rect x="300" y="392" width="100" height="20" rx="4" fill="#e8b39c"/>
+  <text x="408" y="407" font-size="13" fill="#c96a4a" font-weight="700">0~50만</text>
+
+  <!-- total -->
+  <line x1="40" y1="430" x2="760" y2="430" stroke="#e6e0d8" stroke-width="1"/>
+  <text x="285" y="456" font-size="14" font-weight="700" fill="#2b2b2b" text-anchor="end">합계 (실링팬 제외)</text>
+  <text x="300" y="456" font-size="15" font-weight="700" fill="#c96a4a">약 150만~350만원 → 조명 자재는 전체의 10% 안팎, 나머지는 사람 손값</text>
+
+  <text x="40" y="530" font-size="12" fill="#9a9a9a">※ 기존 우물천장을 살려 간접등만 넣으면 목공·도배가 빠져 45만~80만원. 값을 가르는 건 등기구가 아니라 목공·전기 범위.</text>
+</svg>
