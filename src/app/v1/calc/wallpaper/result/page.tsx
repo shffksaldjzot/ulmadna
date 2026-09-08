@@ -56,7 +56,8 @@ function buildSummary(state: WallpaperFormState): string {
     parts.push('면적 직접 입력');
   }
   parts.push(state.ceiling ? '천장 포함' : '천장 미포함');
-  parts.push(state.paperType);
+  // 새 화면에서 paperType이 선택 전(undefined)일 수도 있게 바뀌어 기본값 실크로 채운다
+  parts.push(state.paperType ?? '실크');
   return parts.join(' · ');
 }
 

@@ -10,13 +10,67 @@
 // 작성일: 2026년 08월 28일
 // ──────────────────────────────────────────────
 
+// ──────────────────────────────────────────────
+// 새 화면(즉답 + 정밀 폼) 전용 타입 — 2026년 09월 08일 절충안 재구성
+//
+// 옛 화면(WallpaperInputForm.tsx, 삭제 예정)이 쓰던 `rooms`(name·widthM·depthM·doors 모양)와
+// 새 정밀 폼이 쓰는 방 모양({w,d,h,openings})은 서로 다르다. 같은 필드 이름을 쓰면
+// 옛 화면 파일이 아직 코드베이스에 남아 있는 동안(삭제 전) 타입이 충돌해 빌드가 깨지므로,
+// 새 정밀 폼 전용 방 배열은 이름을 `preciseRooms`로 따로 둔다.
+// (옛 `rooms` 필드는 옛 화면·결과 페이지가 여전히 쓰므로 그대로 남겨 둔다)
+// ──────────────────────────────────────────────
+
+/** 정밀 폼 — 문·창 하나 (개구부). 폭·높이는 항상 cm로 저장한다 */
+export interface WallpaperOpening {
+  kind: 'door' | 'window';
+  /** 폭 (cm) */
+  w: number;
+  /** 높이 (cm) */
+  h: number;
+  /** 같은 규격 개수 */
+  count: number;
+}
+
+/** 정밀 폼 — 방 하나(실측). 가로·세로·높이는 항상 m로 저장한다(화면 표시 단위와 무관) */
+export interface PreciseRoomInput {
+  /** 가로 (m) */
+  w: number;
+  /** 세로 (m) */
+  d: number;
+  /** 높이 (m). 없으면 폼 공통 높이(heightM)를 쓴다 */
+  h?: number;
+  openings: WallpaperOpening[];
+}
+
+/**
+ * 화면에 필요한 벽지 제품 정보만 골라 담은 모양 (page.tsx가 서버 제품 마스터에서 골라 내려준다).
+ * 제품 마스터(src/server/calc/data/wallpaper-products.ts) 조사가 아직 진행 중이라 규격·가격이
+ * 미확인인 제품이 섞여 있다 — 그런 칸은 null로 내려오니 화면에서 "조사 중"으로 표시하거나 걸러야 한다.
+ */
+export interface WallpaperProductOption {
+  code: string;
+  brand: string;
+  name: string;
+  kind: '합지' | '실크';
+  /** 롤 폭 (cm). 미확인이면 null */
+  widthCm: number | null;
+  /** 롤 길이 (m). 미확인이면 null */
+  lengthM: number | null;
+  /** 무늬 리피트 (cm). 0=무지 확인됨, null=미확인 */
+  repeatCm: number | null;
+  /** 원 / 롤. priceMin·priceMax 중간값(웹 조사). 둘 다 미확인이면 null */
+  price: number | null;
+  /** 화면 표기용 출처 문구 (예: "웹 조사 기준 · 2026.9") */
+  sourceLabel: string;
+}
+
 /** 도배 계산기 입력 폼이 들고 있는 값의 모양 (서버 계산 입력과 거의 동일) */
 export interface WallpaperFormState {
   mode: '평형' | '실측' | '면적';
   // 평형 모드
   pyeong?: number;
   bay?: 2 | 3 | 4;
-  // 실측 모드
+  // 실측 모드 (옛 화면 전용 모양 — 삭제 전까지 유지)
   rooms?: { name: string; widthM: number; depthM: number; doors?: number }[];
   heightM?: number;
   // 면적 모드
@@ -24,9 +78,25 @@ export interface WallpaperFormState {
   // 공통
   scope: '전체' | '거실주방' | string[];
   ceiling: boolean;
-  paperType: '합지' | '실크';
+  paperType?: '합지' | '실크';
   product?: { rollPrice: number; widthCm: number; lengthM: number; repeatCm?: number };
   region?: string;
+
+  // ── 여기부터 새 화면(즉답+정밀 폼) 전용 칸. 없으면 기본값으로 취급한다(하위호환) ──
+  /** 정밀 폼 치수 입력 단위 표시(화면 전용, 저장값 자체는 항상 m). 기본 'm' */
+  unit?: 'mm' | 'm';
+  /** 정밀 폼 입력 방식 — 방별 실측 / 벽 길이 직접입력. 기본 'room' */
+  entry?: 'room' | 'length';
+  /** 도배 대상 — 벽만 / 천장만 / 둘 다. 기본 'both' */
+  target?: 'wall' | 'ceiling' | 'both';
+  /** 제품 마스터에서 고른 제품 코드. 없으면 종류 평균가(paperType 기준) */
+  productCode?: string;
+  /** 정밀 폼 - 방별 실측 (entry === 'room'일 때 사용) */
+  preciseRooms?: PreciseRoomInput[];
+  /** 정밀 폼 - 벽 둘레 직접 입력 (entry === 'length'일 때 사용, m) */
+  wallLength?: number;
+  /** 정밀 폼 - 벽 길이 입력 모드에서 천장까지 계산할 때 천장 면적 직접 입력 (㎡) */
+  directCeilingSqm?: number;
 }
 
 /** 평형 모드 기본값 — 목업 예시(34평 3베이 실크 천장포함)와 맞춘다 */
@@ -37,6 +107,9 @@ export const DEFAULT_WALLPAPER_FORM: WallpaperFormState = {
   scope: '전체',
   ceiling: true,
   paperType: '실크',
+  unit: 'm',
+  entry: 'room',
+  target: 'both',
 };
 
 /** 문자열을 URL에 안전한 base64(base64url)로 바꾼다 */
