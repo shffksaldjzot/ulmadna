@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 560" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="시스템 에어컨 전기요금 — 34평/84타입 4대 기준 여름 한 달 사용 패턴별 청구액 차트: 거실 1대 저녁 위주 3만7천원, 거실 1대 하루 8시간 약 11만7천원, 2대 저녁~아침 + 주말 종일 14만3천원, 4대 하루 8시간 18만~19만원, 4대 종일·22도 38만~50만원 이상">
+  <rect width="860" height="560" fill="#ffffff"/>
+  <text x="40" y="46" font-size="24" font-weight="700" fill="#2b2b2b">시스템 에어컨 전기요금 — 34평/84타입 4대, 여름 한 달 청구액</text>
+  <text x="40" y="74" font-size="14" fill="#8a8a8a">2026년 7~8월 주택용 누진 기준 · 집 전체 청구액(에어컨 외 가전 포함) · 단위: 만원</text>
+
+  <!-- grid: 0~50만원 → x = 300 + v*10 -->
+  <g stroke="#e6e6e6" stroke-width="1">
+    <line x1="300" y1="100" x2="300" y2="470"/>
+    <line x1="400" y1="100" x2="400" y2="470"/>
+    <line x1="500" y1="100" x2="500" y2="470"/>
+    <line x1="600" y1="100" x2="600" y2="470"/>
+    <line x1="700" y1="100" x2="700" y2="470"/>
+    <line x1="800" y1="100" x2="800" y2="470"/>
+  </g>
+  <g font-size="12" fill="#a0a0a0" text-anchor="middle">
+    <text x="300" y="490">0</text>
+    <text x="400" y="490">10</text>
+    <text x="500" y="490">20</text>
+    <text x="600" y="490">30</text>
+    <text x="700" y="490">40</text>
+    <text x="800" y="490">50</text>
+  </g>
+
+  <!-- ① 거실 1대, 저녁 위주 26~27도 (실측) 3.77 -->
+  <text x="285" y="125" font-size="14" font-weight="600" fill="#444" text-anchor="end">① 거실 1대, 집에 있을 때만 26~27도</text>
+  <text x="285" y="143" font-size="12" fill="#999" text-anchor="end">실측 · 275kWh</text>
+  <rect x="300" y="118" width="38" height="24" rx="4" fill="#C26B4A"/>
+  <text x="348" y="135" font-size="14" fill="#a8512f" font-weight="600">3만7,700원</text>
+
+  <!-- ② 거실 1대 하루 8시간 (계산, 기존 250kWh) 11.75 -->
+  <text x="285" y="195" font-size="14" font-weight="600" fill="#444" text-anchor="end">② 거실 1대, 하루 8시간</text>
+  <text x="285" y="213" font-size="12" fill="#999" text-anchor="end">계산 · 평소 250kWh 쓰는 집 → 520kWh</text>
+  <rect x="300" y="188" width="118" height="24" rx="4" fill="#C26B4A"/>
+  <text x="428" y="205" font-size="14" fill="#a8512f" font-weight="600">약 11만7,500원</text>
+
+  <!-- ③ 2대 저녁~아침 + 주말 종일 (실측 8월) 14.28 -->
+  <text x="285" y="265" font-size="14" font-weight="600" fill="#444" text-anchor="end">③ 2대, 저녁~아침 + 주말 종일 25~26도</text>
+  <text x="285" y="283" font-size="12" fill="#999" text-anchor="end">실측 8월 · 583kWh</text>
+  <rect x="300" y="258" width="143" height="24" rx="4" fill="#C26B4A"/>
+  <text x="453" y="275" font-size="14" fill="#a8512f" font-weight="600">14만2,830원</text>
+
+  <!-- ④ 4대 하루 8시간 (계산) 18~19 -->
+  <text x="285" y="335" font-size="14" font-weight="600" fill="#444" text-anchor="end">④ 4대 전부, 하루 8시간</text>
+  <text x="285" y="353" font-size="12" fill="#999" text-anchor="end">계산 · 약 712kWh</text>
+  <rect x="300" y="328" width="180" height="24" rx="4" fill="#C26B4A"/>
+  <rect x="480" y="328" width="10" height="24" rx="4" fill="#d9967d"/>
+  <text x="500" y="345" font-size="14" fill="#a8512f" font-weight="600">18만~19만원</text>
+
+  <!-- ⑤ 4대 종일 22도 / 방마다 켜둠 (실측) 38~50+ -->
+  <text x="285" y="405" font-size="14" font-weight="600" fill="#444" text-anchor="end">⑤ 4대 종일 22도 · 방마다 켜둔 채 한 달</text>
+  <text x="285" y="423" font-size="12" fill="#999" text-anchor="end">실측 · '전기요금 폭탄' 사례</text>
+  <rect x="300" y="398" width="380" height="24" rx="4" fill="#C26B4A"/>
+  <rect x="680" y="398" width="120" height="24" rx="4" fill="#d9967d"/>
+  <text x="540" y="415" font-size="14" fill="#ffffff" font-weight="600" text-anchor="middle">38만~50만원+</text>
+
+  <!-- 450kWh 3단계 안내 -->
+  <line x1="300" y1="440" x2="800" y2="440" stroke="#e6e6e6" stroke-width="1"/>
+  <text x="40" y="520" font-size="12" fill="#8a8a8a">진한 색 = 확인된 금액, 옅은 색 = 조건에 따른 범위 · 순수 에어컨 몫은 평소 요금(보통 4만~6만원대)을 뺀 값</text>
+  <text x="40" y="540" font-size="12" fill="#8a8a8a">출처: 실제 고지서·계산 사례 및 한전 주택용(저압) 2026년 하계 요금 기준 · 얼마드나 정리</text>
+</svg>
