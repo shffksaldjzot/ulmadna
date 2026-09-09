@@ -49,8 +49,6 @@ export interface QuickAnswerProps {
    *  undefined면 "벽지를 고르면 바로 나와요" 메시지를 큰 숫자 자리에 보여준다 */
   paperType: '합지' | '실크' | undefined;
   /** 지역(선택). 비용에만 영향 */
-  region: string | undefined;
-  onRegionChange: (v: string | undefined) => void;
   /** 구축(재도배) 여부. 기본 false(신축·빈집) */
   isOld: boolean;
   onIsOldChange: (v: boolean) => void;
@@ -76,8 +74,6 @@ export default function QuickAnswer({
   target,
   onTargetChange,
   paperType,
-  region,
-  onRegionChange,
   isOld,
   onIsOldChange,
   result,
@@ -182,8 +178,6 @@ export default function QuickAnswer({
       <ConditionChips
         target={target}
         onTargetChange={onTargetChange}
-        region={region}
-        onRegionChange={onRegionChange}
         isOld={isOld}
         onIsOldChange={onIsOldChange}
       />

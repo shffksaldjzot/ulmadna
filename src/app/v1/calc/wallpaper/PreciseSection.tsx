@@ -72,8 +72,6 @@ export interface PreciseSectionProps {
   onDirectCeilingSqmChange: (v: number | '') => void;
 
   /** 아래 ConditionChips(범위·지역·상태)로 그대로 전달한다 */
-  region: string | undefined;
-  onRegionChange: (v: string | undefined) => void;
   isOld: boolean;
   onIsOldChange: (v: boolean) => void;
 
@@ -108,8 +106,6 @@ export default function PreciseSection(props: PreciseSectionProps) {
     onWallLengthChange,
     directCeilingSqm,
     onDirectCeilingSqmChange,
-    region,
-    onRegionChange,
     isOld,
     onIsOldChange,
     lengthOpenings,
@@ -230,8 +226,6 @@ export default function PreciseSection(props: PreciseSectionProps) {
       <ConditionChips
         target={target}
         onTargetChange={onTargetChange}
-        region={region}
-        onRegionChange={onRegionChange}
         isOld={isOld}
         onIsOldChange={onIsOldChange}
       />

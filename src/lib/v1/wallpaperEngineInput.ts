@@ -259,7 +259,7 @@ export function toEngineInput(
   // 엔진이 wall 플래그를 받아 벽 면적을 0으로 만들어 "천장만"도 제대로 계산한다.
   const wall = target !== 'ceiling';
   const ceiling = target !== 'wall';
-  const region = state.region;
+  // 지역은 2026-09-09 형아 결정으로 계산에서 뺐다(전부 수도권 기준). 옛 공유 링크에 region이 남아 있어도 무시한다.
   // 구축(재도배) 여부 — 세 입력 방식(실측/면적/평형) 모두에 동일하게 실어 보낸다
   const isOld = state.isOld ?? false;
   // view가 없는 옛 공유 링크는 resolveView가 정밀 값 유무로 추정한다(검사관 2라운드 지적 2번)
@@ -290,7 +290,6 @@ export function toEngineInput(
             scope: '전체',
             wall,
             ceiling,
-            region,
             isOld,
           },
           paper,
@@ -314,7 +313,6 @@ export function toEngineInput(
           },
           wall,
           ceiling,
-          region,
           isOld,
         },
         paper,
@@ -338,7 +336,6 @@ export function toEngineInput(
         scope: '전체',
         wall,
         ceiling,
-        region,
         isOld,
       },
       paper,

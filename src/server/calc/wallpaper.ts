@@ -455,7 +455,8 @@ export function calcWallpaper(input: WallpaperCalcInput): WallpaperCalcResult {
   // ── 10) 근거 한 줄 ──
   // TODO: 표본 통계(완공 확인 견적 N건)가 붙으면 mode를 '표본'으로 바꾸고 표본 수를 넣는다.
   const costMode: '표본' | '산식' = '산식';
-  const regionLabel = input.region ?? '전국';
+  // 지역 입력이 없으면(2026-09-09부터 화면에서 지역을 안 받는다) 일당이 수도권 밴드라 그렇게 적는다
+  const regionLabel = input.region ?? '수도권 기준';
   const basisLine = `${baseMonthLabel()} 기준 · 산식 · ${regionLabel}`;
 
   return {

@@ -15,15 +15,12 @@
 'use client';
 
 import Chip from '@/components/v1/Chip';
-import RegionPicker from '@/components/v1/RegionPicker';
 
 export interface ConditionChipsProps {
   /** 도배 대상 — 벽+천장 / 벽만 (이 화면은 두 개만 노출) */
   target: 'wall' | 'ceiling' | 'both';
   onTargetChange: (v: 'wall' | 'ceiling' | 'both') => void;
   /** 지역(선택). 비용에만 영향 */
-  region: string | undefined;
-  onRegionChange: (v: string | undefined) => void;
   /** 구축(재도배) 여부. 기본 false(신축·빈집) */
   isOld: boolean;
   onIsOldChange: (v: boolean) => void;
@@ -32,8 +29,6 @@ export interface ConditionChipsProps {
 export default function ConditionChips({
   target,
   onTargetChange,
-  region,
-  onRegionChange,
   isOld,
   onIsOldChange,
 }: ConditionChipsProps) {
@@ -58,11 +53,8 @@ export default function ConditionChips({
         </div>
       </div>
 
-      {/* 지역 — 비용에만 영향, 안 골라도 계산은 된다 */}
-      <div className="flex flex-col gap-1">
-        <span className="text-[14px] text-v1-text-label">지역</span>
-        <RegionPicker value={region} onChange={onRegionChange} />
-      </div>
+      {/* 지역 칩은 2026-09-09 형아 결정으로 뺐다 — 계산은 전부 수도권 기준. 지역은 나중에 광고 배너를
+          접속 IP 기준으로 띄울 때 쓴다. */}
 
       {/* 상태 — 신축·빈집 / 구축·재도배 */}
       <div className="flex flex-col gap-1">
