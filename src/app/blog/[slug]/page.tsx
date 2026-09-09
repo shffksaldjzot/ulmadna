@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import CalculatorCta from "@/components/blog/CalculatorCta";
 import { notFound } from "next/navigation";
 import { getPost, getAllSlugs, getAllPostMeta } from "@/lib/blog";
 import { detectCategories, getCategory } from "@/lib/blog-categories";
@@ -227,9 +228,15 @@ export default async function BlogPost({
               </details>
             )}
 
+            {/* 도배 글이면 목차 아래에 도배 물량 계산기 한 줄 배너 (2026-09-09 형아 지시) */}
+            {post.calculator && <CalculatorCta calculator={post.calculator} variant="mini" />}
+
             <div className="blog-body" dangerouslySetInnerHTML={{ __html: post.html }} />
             {/* 스포일러 캔버스 효과(점진적 향상) — .blog-spoiler 강화 */}
             <BlogSpoilerInk />
+
+            {/* 본문 끝 — 다 읽은 사람에게 "그래서 우리 집은?" 계산기 카드 */}
+            {post.calculator && <CalculatorCta calculator={post.calculator} variant="card" />}
 
             {ADSENSE_SLOTS.blogInArticle && (
               <div className="blog-ad">
@@ -263,7 +270,12 @@ export default async function BlogPost({
                 <strong>우리집은 얼마 들까?</strong>
                 <span>로그인·개인정보 없이 1분 만에 공정별 예상 견적을 확인하세요.</span>
               </div>
-              <Link href="/" className="blog-cta-btn">무료 견적 내보기 →</Link>
+              <div className="blog-cta-btns">
+                {post.calculator && (
+                  <Link href="/v1/calc/wallpaper" className="blog-cta-btn blog-cta-btn-calc">도배 물량 계산기 →</Link>
+                )}
+                <Link href="/" className="blog-cta-btn">무료 견적 내보기 →</Link>
+              </div>
             </aside>
 
             <script

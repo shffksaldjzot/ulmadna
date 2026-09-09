@@ -7,6 +7,7 @@
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
+import { detectCalculator, type CalculatorKey } from "./blog-calculators";
 import { unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkGfm from "remark-gfm";
@@ -40,6 +41,10 @@ export interface PostMeta {
   //        대신 주소(URL)를 직접 아는 사람은 그대로 볼 수 있어요 — 검토용 링크 공유가 목적입니다.
   // 프런트매터에 draft가 없는 기존 글은 전부 false(=평소대로 공개)라 아무 영향이 없습니다.
   draft: boolean;
+  // 이 글에 붙일 공정 물량 계산기 (예: "wallpaper" = 도배 물량 계산기). 없으면 null.
+  // 프런트매터 `calculator:` 로 직접 정하거나, 없으면 제목·태그 신호 단어로 자동 판정한다.
+  // (lib/blog-calculators.ts 참고, 2026년 09월 09일)
+  calculator: CalculatorKey | null;
 }
 
 export interface Heading {
@@ -78,6 +83,7 @@ function readMeta(file: string): PostMeta {
     tags: Array.isArray(data.tags) ? data.tags : [],
     readingTime: calcReadingTime(content),
     draft: data.draft === true, // 프런트매터에 draft: true 라고 적힌 글만 비공개 처리
+    calculator: detectCalculator(data.title ?? slug, Array.isArray(data.tags) ? data.tags : [], data.calculator),
   };
 }
 
@@ -250,6 +256,7 @@ export async function getPost(slug: string): Promise<Post | null> {
     thumbnail: data.thumbnail ?? null,
     tags: Array.isArray(data.tags) ? data.tags : [],
     draft: data.draft === true, // 비공개(검토용) 글이면 상세 페이지에서 noindex 처리
+    calculator: detectCalculator(data.title ?? slug, Array.isArray(data.tags) ? data.tags : [], data.calculator),
     html,
     faq,
     headings,

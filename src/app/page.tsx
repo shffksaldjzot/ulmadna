@@ -134,8 +134,13 @@ export default function Home() {
               <span aria-hidden="true">→</span>
             </a>
 
+          </div>
+
+          {/* 오른쪽(PC) / 아래(모바일): 공정별 계산기 타일 — 형아 그림(docs/image.png)의 히어로 상자 오른쪽 빈 자리를 채운다 */}
+          <div className="w-full lg:w-[46%]">
+            <p className="text-xs text-gold font-medium tracking-widest mb-2">공정별 물량 계산기</p>
             {/* 모바일 3열 → PC 5열. 준비 중 타일은 회색·클릭 불가 */}
-            <ul className="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-4 max-w-xl" aria-label="공정별 계산기">
+            <ul className="grid grid-cols-3 sm:grid-cols-5 gap-2" aria-label="공정별 계산기">
               {PROCESS_TILES.map((tile) =>
                 tile.href ? (
                   <li key={tile.name}>
