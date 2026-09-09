@@ -1,7 +1,7 @@
 // ──────────────────────────────────────────────
 // v1 허브 — 홈
 // 디자인 가이드 v4 아트보드 03(모바일) · 04(PC 1200px) 기준.
-// 검색창 → 계산기 타일 8개 → 인기 글 3 → 인기 질문 3(더미) → 광고 → 하단 고지.
+// 검색창 → 공정별 물량 계산기 타일 10개(ProcessTiles) → 인기 글 3 → 인기 질문 3(더미) → 광고 → 하단 고지.
 // PC(lg 이상)는 좌 2단 콘텐츠 + 우 사이드(광고 · 많이 찾는 시세).
 //
 // 작성일: 2026년 08월 28일
@@ -10,7 +10,7 @@
 import Link from 'next/link';
 import TopNav from '@/components/v1/TopNav';
 import BottomTab from '@/components/v1/BottomTab';
-import CalcTile from '@/components/v1/CalcTile';
+import ProcessTiles from './ProcessTiles';
 import SectionHeader from '@/components/v1/SectionHeader';
 import AdSlot from '@/components/v1/AdSlot';
 import Disclaimer from '@/components/v1/Disclaimer';
@@ -18,17 +18,7 @@ import ListRow from '@/components/v1/ListRow';
 import HomeSearch from './HomeSearch';
 import { getAllPostMeta } from '@/lib/blog';
 
-// 아직 만들지 않은 계산기는 href를 비워 둔다 → CalcTile이 "준비 중"으로 표시
-const CALC_TILES = [
-  { name: '도배 계산기', href: '/v1/calc/wallpaper' },
-  { name: '바닥재 계산기' },
-  { name: '커튼 계산기' },
-  { name: '샷시 계산기' },
-  { name: '욕실 계산기' },
-  { name: '주방 계산기' },
-  { name: '전기·조명 계산기' },
-  { name: '올수리 계산기', gold: true },
-];
+// 계산기 타일은 ProcessTiles.tsx (2026-09-09 형아 지시: 롤백 전 홈 히어로의 공정 타일 10개를 여기서 보여준다)
 
 // 질문 게시판은 아직 없어서, 목업과 같은 예시 3건을 그대로 쓴다(로렘 금지 원칙 준수)
 const SAMPLE_QUESTIONS = [
@@ -56,14 +46,7 @@ export default function V1HomePage() {
         <div className="lg:hidden px-4 py-4 flex flex-col gap-6">
           <HomeSearch />
 
-          <section className="flex flex-col gap-3">
-            <h2 className="text-[20px] font-bold text-foreground">계산기</h2>
-            <div className="grid grid-cols-2 gap-[10px]">
-              {CALC_TILES.map((t) => (
-                <CalcTile key={t.name} {...t} />
-              ))}
-            </div>
-          </section>
+          <ProcessTiles />
 
           <section className="flex flex-col gap-3">
             <SectionHeader title="인기 글" moreHref="/blog" />
@@ -100,14 +83,7 @@ export default function V1HomePage() {
         {/* ── PC: 2단(1fr / 300px) ── */}
         <div className="hidden lg:grid grid-cols-[1fr_300px] gap-8 px-8 py-8">
           <div className="flex flex-col gap-8">
-            <section className="flex flex-col gap-3">
-              <h2 className="text-[20px] font-bold text-foreground">계산기</h2>
-              <div className="grid grid-cols-4 gap-3">
-                {CALC_TILES.map((t) => (
-                  <CalcTile key={t.name} {...t} />
-                ))}
-              </div>
-            </section>
+            <ProcessTiles />
 
             <div className="grid grid-cols-2 gap-6">
               <section className="flex flex-col gap-3">
