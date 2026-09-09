@@ -8,6 +8,7 @@ import InputPanel from '@/components/calculator/InputPanel';
 import ResultPanel from '@/components/calculator/ResultPanel';
 import AdSlot from '@/components/ads/AdSlot';
 import InteriorResourceLinks from '@/components/common/InteriorResourceLinks';
+import ProcessTiles from '@/app/v1/ProcessTiles';
 
 export default function Home() {
   const { data: session } = useSession();
@@ -93,21 +94,13 @@ export default function Home() {
         </div>
       </header>
 
-      {/* ───── 히어로 섹션 ───── */}
+      {/* ───── 히어로 섹션 = 공정별 물량 계산기 타일 ─────
+          2026-09-09 형아 지시(docs/image.png · image copy 3.png): "우리 집 인테리어, 얼마 드나?" 문구 블록은 치우고
+          그 자리에 /v1 허브와 똑같은 "공정별 물량 계산기" 타일(도배 열림 · 나머지 회색 준비 중)을 넣는다.
+          부품은 src/app/v1/ProcessTiles.tsx 하나를 같이 쓴다(두 화면이 항상 같은 모양이 되도록). */}
       <section className="bg-cream">
-        <div className="max-w-[1400px] mx-auto px-4 lg:px-8 py-10 lg:py-16 flex flex-col lg:flex-row items-center gap-8">
-          <div className="flex-1">
-            <p className="text-xs text-gold font-medium tracking-widest mb-3">
-              무료 인테리어 견적 계산기
-            </p>
-            <h1 className="text-3xl lg:text-4xl font-bold text-brown leading-tight">
-              우리 집 인테리어,<br />얼마 드나?
-            </h1>
-            <p className="text-sm text-gray-500 mt-3 leading-relaxed">
-              회원가입과 개인정보 없이 누구나 쉽게!
-            </p>
-          </div>
-{/* 인테리어 이미지 제거됨 */}
+        <div className="max-w-[1400px] mx-auto px-4 lg:px-8 py-8 lg:py-10">
+          <ProcessTiles />
         </div>
       </section>
 
