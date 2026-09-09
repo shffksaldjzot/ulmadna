@@ -200,7 +200,8 @@ export default function PaperPicker({
               'text-[16px] text-foreground focus:outline-none focus:border-brown'
             }
           >
-            <option value="">제품 안 고름 (종류 평균가로 계산)</option>
+            {/* 2026-09-09 형아 지시: 첫 줄 문구는 "제품 선택"으로만 (안 고르면 종류 평균가로 계산되는 건 그대로) */}
+            <option value="">제품 선택</option>
             {list.map((p) => (
               <option key={p.code} value={p.code}>
                 {p.brand} {p.name} · {formatRollPrice(p.price as number)}
