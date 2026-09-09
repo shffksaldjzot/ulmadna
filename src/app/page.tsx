@@ -9,24 +9,6 @@ import ResultPanel from '@/components/calculator/ResultPanel';
 import AdSlot from '@/components/ads/AdSlot';
 import InteriorResourceLinks from '@/components/common/InteriorResourceLinks';
 
-/**
- * 홈 히어로에 보여줄 공정별 계산기 타일.
- * href 가 있으면 열린 계산기, 없으면 회색 "준비 중" 타일이다.
- * 순서는 개발 예정 순서(형아 지시 2026-09-09: 미장 → 조적 → 방수 → 커튼 → 바닥재 → 샷시 → 욕실 → 주방 → 전기)
- */
-const PROCESS_TILES: { name: string; href?: string }[] = [
-  { name: '도배', href: '/v1/calc/wallpaper' },
-  { name: '미장' },
-  { name: '조적' },
-  { name: '방수' },
-  { name: '커튼' },
-  { name: '바닥재' },
-  { name: '샷시' },
-  { name: '욕실' },
-  { name: '주방' },
-  { name: '전기' },
-];
-
 export default function Home() {
   const { data: session } = useSession();
   const { state, dispatch } = useCalculator();
@@ -111,37 +93,21 @@ export default function Home() {
         </div>
       </header>
 
-      {/* ───── 히어로 섹션 = 공정별 물량 계산기 타일 ─────
-          2026-09-09 형아 결정: 옛 문구("우리 집 인테리어, 얼마 드나?"·바로가기 버튼)는 전부 없애고
-          공정 타일만 남긴다. 도배는 열림, 나머지는 회색 "준비 중"(클릭 불가). 모바일 3열 → PC 5열. */}
+      {/* ───── 히어로 섹션 ───── */}
       <section className="bg-cream">
-        <div className="max-w-[1400px] mx-auto px-4 lg:px-8 py-8 lg:py-10">
-          <h1 className="text-sm font-semibold text-gold tracking-widest mb-3">공정별 물량 계산기</h1>
-          <ul className="grid grid-cols-3 sm:grid-cols-5 gap-2" aria-label="공정별 계산기">
-            {PROCESS_TILES.map((tile) =>
-              tile.href ? (
-                <li key={tile.name}>
-                  <a
-                    href={tile.href}
-                    className="flex flex-col items-center justify-center h-16 rounded-xl border border-gold/60 bg-white text-brown text-sm font-semibold hover:bg-white/70 transition-colors"
-                  >
-                    {tile.name}
-                    <span className="text-[10px] font-medium text-gold mt-0.5">지금 계산</span>
-                  </a>
-                </li>
-              ) : (
-                <li key={tile.name}>
-                  <div
-                    aria-disabled="true"
-                    className="flex flex-col items-center justify-center h-16 rounded-xl border border-gray-200 bg-gray-100 text-gray-400 text-sm font-medium cursor-not-allowed select-none"
-                  >
-                    {tile.name}
-                    <span className="text-[10px] mt-0.5">준비 중</span>
-                  </div>
-                </li>
-              ),
-            )}
-          </ul>
+        <div className="max-w-[1400px] mx-auto px-4 lg:px-8 py-10 lg:py-16 flex flex-col lg:flex-row items-center gap-8">
+          <div className="flex-1">
+            <p className="text-xs text-gold font-medium tracking-widest mb-3">
+              무료 인테리어 견적 계산기
+            </p>
+            <h1 className="text-3xl lg:text-4xl font-bold text-brown leading-tight">
+              우리 집 인테리어,<br />얼마 드나?
+            </h1>
+            <p className="text-sm text-gray-500 mt-3 leading-relaxed">
+              회원가입과 개인정보 없이 누구나 쉽게!
+            </p>
+          </div>
+{/* 인테리어 이미지 제거됨 */}
         </div>
       </section>
 
