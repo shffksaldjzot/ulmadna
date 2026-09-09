@@ -13,11 +13,11 @@
 // ──────────────────────────────────────────────
 // 새 화면(즉답 + 정밀 폼) 전용 타입 — 2026년 09월 08일 절충안 재구성
 //
-// 옛 화면(WallpaperInputForm.tsx, 삭제 예정)이 쓰던 `rooms`(name·widthM·depthM·doors 모양)와
-// 새 정밀 폼이 쓰는 방 모양({w,d,h,openings})은 서로 다르다. 같은 필드 이름을 쓰면
-// 옛 화면 파일이 아직 코드베이스에 남아 있는 동안(삭제 전) 타입이 충돌해 빌드가 깨지므로,
-// 새 정밀 폼 전용 방 배열은 이름을 `preciseRooms`로 따로 둔다.
-// (옛 `rooms` 필드는 옛 화면·결과 페이지가 여전히 쓰므로 그대로 남겨 둔다)
+// 옛 화면(WallpaperInputForm.tsx, 2026-09-09 삭제됨)이 쓰던 `rooms`(name·widthM·depthM·doors
+// 모양)와 새 정밀 폼이 쓰는 방 모양({w,d,h,openings})은 서로 다르다. 같은 필드 이름을 쓰면
+// 타입이 충돌하므로 새 정밀 폼 전용 방 배열은 이름을 `preciseRooms`로 따로 둔다.
+// (옛 `rooms` 필드는 아주 옛날에 공유된 링크를 여전히 풀 수 있어야 해서 타입만 남겨 둔다 —
+//  지금 화면 어디서도 이 필드를 쓰지 않는다)
 // ──────────────────────────────────────────────
 
 /** 정밀 폼 — 문·창 하나 (개구부). 폭·높이는 항상 cm로 저장한다 */
@@ -101,26 +101,18 @@ export interface WallpaperFormState {
   isOld?: boolean;
   /** 정밀 폼 - 벽 길이 모드에서 쓰는 문·창 목록. 훅이 면적으로 환산해 벽 면적에서 뺀다 */
   lengthOpenings?: WallpaperOpening[];
+  /**
+   * 화면 모드 — "간단하게 계산하기"(simple) / "정확하게 계산하기"(precise). 기본 'simple'.
+   * 2026-09-09 화면 재배치(벽지 최우선 A안)로 새로 생겼다. 공유 링크에도 그대로 실려서
+   * 결과 페이지가 같은 모드로 계산한다.
+   */
+  view?: 'simple' | 'precise';
 }
 
-/** 평형 모드 기본값 — 목업 예시(34평 3베이 실크 천장포함)와 맞춘다 */
-export const DEFAULT_WALLPAPER_FORM: WallpaperFormState = {
-  mode: '평형',
-  pyeong: 34,
-  bay: 3,
-  scope: '전체',
-  ceiling: true,
-  paperType: '실크',
-  unit: 'm',
-  entry: 'room',
-  target: 'both',
-};
-
 /**
- * 새 화면(즉답 + 정밀 폼) 초기값 — 2026년 09월 09일 B 지시서.
- * 옛 DEFAULT_WALLPAPER_FORM과 달리 paperType을 일부러 넣지 않는다: 즉답 단계에서는
- * 벽지 종류를 아직 안 고른 상태(undefined)로 시작해 합지~실크 범위를 합쳐 보여준다
- * (useWallpaperCalc의 종류 병합 로직이 처리한다).
+ * 새 화면(벽지 최우선 + 즉답/정밀) 초기값.
+ * 벽지 종류(paperType)는 일부러 안 넣는다 — 2026-09-09부터 벽지 종류를 안 고르면
+ * 계산 자체를 하지 않는 규칙으로 바뀌었다(예전의 "합지~실크 합집합 즉답"은 폐기).
  */
 export const DEFAULT_CALC_FORM: WallpaperFormState = {
   mode: '평형',
@@ -132,6 +124,7 @@ export const DEFAULT_CALC_FORM: WallpaperFormState = {
   entry: 'room',
   target: 'both',
   isOld: false,
+  view: 'simple',
 };
 
 /** 문자열을 URL에 안전한 base64(base64url)로 바꾼다 */

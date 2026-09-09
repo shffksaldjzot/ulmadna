@@ -1,32 +1,62 @@
 // ──────────────────────────────────────────────
-// 벽지 제품 카탈로그 초안 (도배 계산기용)
+// 벽지 제품 카탈로그 (도배 계산기용)
 //
-// 이 파일은 데이터만 담은 초안이다. 아직 계산기 엔진(schema/wallpaper.ts,
-// pricing/wallpaper.ts, cutting/rollWall.ts)에는 연결하지 않았다.
-// 엔진 코드는 이 작업에서 절대 수정하지 않았다 — 필드명만 엔진 스키마에 맞췄다.
+// 출처: 형아(사용자)가 직접 정리한 엑셀
+//   C:\dotori\02_ulmadna\docs\도메인지식\대한민국_벽지_부자재_DB_2026-09-09.xlsx
+//   시트 '벽지_컬렉션_DB' (조사 기준일 2026-09-09, 전체 51행)
+// 이 파일은 그 엑셀을 그대로 옮긴 데이터다. 숫자를 손으로 고치지 말고,
+// 값이 바뀌면 엑셀을 먼저 고친 뒤 다시 옮겨라.
 //
-// 조사 방법: 국내 5개 브랜드(LX Z:IN·신한벽지·개나리벽지·제일벽지·서울벽지)를
-// 웹 조사(공개 정보)로 확인. 확인 안 된 값은 전부 null + note에 "미확인" 표기.
-// 절대 추측으로 숫자를 채우지 않았다.
+// ── 엑셀 컬럼 → 이 파일 필드 매핑 규칙 ──────────────
+//   폭(mm) ÷ 10                       → widthCm      (엔진 RollSpec이 cm 단위라서)
+//   롤길이(m)                          → lengthM
+//   widthCm/100 × lengthM (계산)       → sqmPerRoll   (엔진 재단이 실제로 쓰는 값)
+//   명목평수(엑셀은 계산 평수)를 반올림   → pyeongPerRollLabel
+//                                       (엑셀 '명목평수' 칸에는 6.625㎡ → 2.004 같은
+//                                        계산값이 들어 있어서, 유통에서 부르는 표기
+//                                        평수(소폭 2평 / 장폭·실크 5평)로 반올림했다.
+//                                        '표준규격_계산식' 시트의 '유통 명목평수'와 일치)
+//   시장최저(원/롤) → priceMin, 시장최고(원/롤) → priceMax
+//                                       (둘 다 없으면 대표가 → 환산롤가격 순으로
+//                                        단일값을 넣고 min = max 로 둔다)
+//   분류                                → paperType
+//                                       소폭합지·장폭합지 → '합지'
+//                                       실크(일반/중급/고급)·방염실크 → '실크'
+//                                       (엑셀의 세부 분류 원문은 note에 그대로 남겼다)
+//   규격확인수준                        → needsReview (아래 규칙)
+//   규격출처URL·가격출처URL             → sourceUrls (두 개)
+//   조사일                              → surveyDate ('2026-09-09' 고정)
+//   무늬 리피트                         → repeatCm 는 전부 null.
+//                                       이 엑셀에는 리피트 칸 자체가 없다(미확인).
 //
-// 상세 조사 표·출처·형아 검수 필요 항목은 아래 문서에 정리했다:
+// ── needsReview 판정 규칙 (엑셀 '규격확인수준' 값 기준) ──
+//   1) 값에 '미확인'이 들어가면            → true  (검수 필요)
+//   2) 그 외에 '확인'이 들어가면           → false (그대로 써도 됨)
+//   3) 둘 다 아니면                        → true  (검수 필요)
+//   이관된 38건에 실제로 나온 값과 판정:
+//     false — 공식/유통 규격 확인(3) · 대표제품 규격 확인(3) · 대표제품/공식 규격 확인(1)
+//             · 동일 유형/제품 규격 확인(1) · 동일 컬렉션 규격 확인(6)
+//             · 유형 표준 + 유통확인(2) · 유형 표준 + 카테고리 확인(8) · 제품/유통 규격 확인(3)
+//     true  — 유형 표준(9) · 유형 분류 기반(1) · 유형 표준 + 고급실크 카테고리(1)
+//   ※ 'KSW 그랑디'만 규칙 3에 걸려 검수 필요로 잡힌다.
+//      뜻은 '유형 표준 + 카테고리 확인'과 사실상 같은데 엑셀 표기에 '확인' 글자가 없어서다.
+//      엑셀 표기를 '유형 표준 + 고급실크 카테고리 확인'으로 고치면 자동으로 풀린다.
+//
+// ── 엑셀 51행 중 13건은 옮기지 않았다 (이유별) ──
+//   가격 표본이 없어서 (4건)
+//     GNI 개나리 방염벽지 · 서울벽지 카라 · 신한벽지 에상스 · 코스모스벽지 모던
+//   폭·롤길이가 없어서 (4건, 제품마다 규격이 달라 엑셀에도 안 적혀 있음)
+//     여명벽지 질석/스톤 · 지사 · 초경 · 콜크 (천연/특수 벽지)
+//   폭·롤길이·가격이 전부 없어서 (4건, 주요 유통처 노출 0)
+//     그린벽지 · 에덴바이오벽지 · 나무&케어벽지 · 신성벽지
+//   합지도 실크도 아니라서 (1건)
+//     LX Z:IN 뮤럴 M-series (1m × 2.4m 패널 — 롤 계산 구조에 안 맞음)
+//
+// 이전 초안(2026-09-08 웹 조사 18건)은 이 파일에서 전부 걷어냈다.
+// 초안 내용은 아래 문서에 그대로 남아 있다:
 //   C:\dotori\02_ulmadna\docs\도메인지식\01-1_벽지제품_초안_20260908.md
 //
-// ── 엔진 스키마와 안 맞아 판단이 필요했던 점 (문서 4절과 동일) ──
-//   1) 폭 단위: 조사는 mm 단위로 했지만 엔진 필드명(RollSpec.widthCm)이
-//      cm 단위라서 mm ÷ 10 으로 환산해 widthCm에 저장했다(값 손실 없음).
-//   2) 평당 커버 이중 표기: 브랜드가 마케팅용으로 쓰는 "1롤 5평"(반올림된 값,
-//      pyeongPerRollLabel)과 엔진이 실제 재단에 쓰는 계산값
-//      (sqmPerRoll = widthCm/100 × lengthM)이 정확히 안 맞는 경우가 많아
-//      두 필드를 따로 뒀다. 엔진 연결 시에는 sqmPerRoll을 써야 한다.
-//   3) 가격은 엔진(DirectProduct.rollPrice)이 숫자 하나만 받지만, 시세 조사라
-//      범위로만 나온 값이 많아 priceMin/priceMax 두 필드로 저장했다.
-//   4) 리피트: 엔진(RollSpec.repeatCm)은 숫자이고 "0 = 무지"라는 규칙인데,
-//      조사 결과에는 "리피트 여부 자체를 확인 못 함"(미확인)과
-//      "무지라서 리피트가 없음"(확인된 0)이 섞여 있어 number | null로 두었다.
-//      null = 미확인, 0 = 무지(리피트 없음) 확인됨.
-//
-// 작성일: 2026년 09월 08일
+// 작성일: 2026년 09월 09일
 // ──────────────────────────────────────────────
 
 import type { PaperType } from '../schema/wallpaper-coefficients';
@@ -55,395 +85,844 @@ export interface WallpaperProduct {
    */
   sqmPerRoll: number | null;
   /**
-   * 브랜드가 마케팅용으로 표기한 "1롤 O평" 값 (참고용, 반올림된 값이라
-   * sqmPerRoll과 정확히 일치하지 않을 수 있다). 표기 없으면 null.
+   * 유통에서 부르는 "1롤 O평" 표기 (참고용, 반올림된 값이라
+   * sqmPerRoll과 정확히 일치하지 않는다). 표기 없으면 null.
    */
   pyeongPerRollLabel: number | null;
   /**
    * 무늬 리피트(패턴 반복 간격, cm) — 엔진 RollSpec.repeatCm과 동일 단위.
    * null = 리피트 여부 자체가 미확인, 0 = 무지(리피트 없음) 확인됨,
    * 양수 = 리피트 길이 확인됨.
+   * 지금은 전부 null이다 — 형아 엑셀에 리피트 칸이 없다.
    */
   repeatCm: number | null;
   /** 소비자가 최저 (원/롤). 미확인이면 null */
   priceMin: number | null;
   /** 소비자가 최고 (원/롤). 미확인이면 null (단일 확인가면 min과 동일값) */
   priceMax: number | null;
-  /** 가격 신뢰도·편차에 대한 한글 메모 */
+  /** 가격이 어떻게 나온 값인지 한글 메모 */
   priceNote: string;
-  /** 출처 URL 목록 (실제로 확인한 페이지만) */
+  /** 출처 URL 목록 (규격 출처 · 가격 출처) */
   sourceUrls: string[];
   /** 조사일 */
   surveyDate: string;
-  /** 형아(사용자) 검수가 꼭 필요한 항목인지 */
+  /** 형아(사용자) 검수가 꼭 필요한 항목인지 — true면 화면 목록에서 빠진다 */
   needsReview: boolean;
-  /** 한글 비고 — 미확인 필드, 출처 신뢰도, 특이사항 등 */
+  /** 한글 비고 — 엑셀 분류·판매상태·규격확인수준·비고를 합친 값 */
   note: string;
 }
 
 /**
- * 브랜드별 실크 2~3개 + 합지 1~2개 대표 컬렉션 초안 (총 18건).
- * 상세 조사 근거는 01-1_벽지제품_초안_20260908.md 참고.
+ * 형아 엑셀 '벽지_컬렉션_DB' 51행 중 계산에 쓸 수 있는 38건.
+ * (합지 17건 · 실크 21건. 이 중 needsReview=false 인 27건만 화면 목록에 뜬다)
  */
 export const WALLPAPER_PRODUCTS: WallpaperProduct[] = [
-  // ── LX Z:IN (엘엑스 지인, 구 LG하우시스) ──────────────────
+  // ── LX Z:IN ────────────────────────────────────
   {
-    id: 'lxzin_bestee',
+    id: 'lxzin_fiance53',
     brand: 'LX Z:IN',
-    line: '베스띠(실크벽지 베스트)',
-    paperType: '실크',
-    widthCm: 106, // 1060mm → 106cm 환산
-    lengthM: 15.6,
-    sqmPerRoll: 16.5, // 1.06 × 15.6 = 16.536 반올림
-    pyeongPerRollLabel: null, // 브랜드가 "O평" 표기한 걸 못 찾음 (계산상 약 5평)
-    repeatCm: 0, // 무지 계열 패턴으로 확인됨
-    priceMin: 43700,
-    priceMax: 43700,
-    priceNote: '단일 판매처 확인가. 색상별 편차는 추가 조사 필요',
-    sourceUrls: ['https://www.lxzin.com/zin/product/100515'],
-    surveyDate: '2026-09-08',
+    line: '휘앙세53',
+    paperType: '합지',
+    widthCm: 53,
+    lengthM: 12.5,
+    sqmPerRoll: 6.625,
+    pyeongPerRollLabel: 2,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 4310,
+    priceMax: 4550,
+    priceNote: '시장 최저~최고 표본 · 20롤/박스 91,000원 → 롤당 4,550원 환산 · 대표가 4,550원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/%EC%84%9C%EC%9A%B8%EB%B2%BD%EC%A7%80-%EC%BD%94%EC%A7%80-9187-3-1%EB%B0%95%EC%8A%A420%EB%A1%A4-%EC%86%8C%ED%8F%AD%ED%95%A9%EC%A7%80%EB%B2%BD%EC%A7%80/11904/',
+      'https://daumdeco.co.kr/category/%EB%B2%BD%EC%A7%80-%5B%EC%A2%85%EB%A5%98%EB%B3%84%5D/329/',
+    ],
+    surveyDate: '2026-09-09',
     needsReview: false,
-    note: '규격·가격 모두 공식 판매 페이지에서 확인',
+    note: '엑셀 분류 소폭합지 · 판매상태 판매중 · 규격확인수준 유형 표준 + 유통확인 · 활성 SKU 15건 · 박스가 환산 롤당 약 4,550원',
+  },
+  {
+    id: 'lxzin_fiance93',
+    brand: 'LX Z:IN',
+    line: '휘앙세93',
+    paperType: '합지',
+    widthCm: 93,
+    lengthM: 17.75,
+    sqmPerRoll: 16.5075,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 25400,
+    priceMax: 25400,
+    priceNote: '시장 최저~최고 표본 · 대표가 25,400원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/gni%EA%B0%9C%EB%82%98%EB%A6%AC-%EC%8A%A4%ED%83%80%EC%9D%BC-28365-1-%EC%86%8C%ED%94%84%ED%8A%B8%ED%9A%8C%EB%B2%BD-%EB%A6%AC%EC%96%BC-%ED%99%94%EC%9D%B4%ED%8A%B8-1%EB%A1%A45%ED%8F%89-%EC%9E%A5%ED%8F%AD%ED%95%A9%EC%A7%80-%EB%B2%BD%EC%A7%80-24-25%EB%85%84/12508/',
+      'https://daumdeco.co.kr/category/%EB%B2%BD%EC%A7%80-%5B%EC%A2%85%EB%A5%98%EB%B3%84%5D/329/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: false,
+    note: '엑셀 분류 장폭합지 · 판매상태 판매중 · 규격확인수준 공식/유통 규격 확인 · 활성 SKU 208건',
+  },
+  {
+    id: 'lxzin_base_therapy',
+    brand: 'LX Z:IN',
+    line: '베이스/테라피',
+    paperType: '실크',
+    widthCm: 106,
+    lengthM: 15.6,
+    sqmPerRoll: 16.536,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 42300,
+    priceMax: 43000,
+    priceNote: '시장 최저~최고 표본 · 대표가 43,000원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/did%EB%B2%BD%EC%A7%80-no9-%EB%82%98%EC%9D%B8-95017-3-%EC%9D%B4%ED%83%88%EB%A6%AC%EC%95%88%EC%8A%A4%ED%83%80%EC%BD%94-%EB%B2%A0%EC%9D%B4%EC%A7%80-%EC%B5%9C%EA%B3%A0%EA%B8%89%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80/15760/',
+      'https://daumdeco.co.kr/category/%EB%B2%BD%EC%A7%80-%5B%EC%A2%85%EB%A5%98%EB%B3%84%5D/329/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: false,
+    note: '엑셀 분류 실크(일반) · 판매상태 판매중 · 규격확인수준 대표제품 규격 확인 · 활성 SKU 142건 · 구 테라피/현 베이스 표기 혼용',
+  },
+  {
+    id: 'lxzin_best',
+    brand: 'LX Z:IN',
+    line: '베스트',
+    paperType: '실크',
+    widthCm: 106,
+    lengthM: 15.6,
+    sqmPerRoll: 16.536,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 49300,
+    priceMax: 49300,
+    priceNote: '시장 최저~최고 표본 · 대표가 49,300원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/did%EB%B2%BD%EC%A7%80-no9-%EB%82%98%EC%9D%B8-95017-3-%EC%9D%B4%ED%83%88%EB%A6%AC%EC%95%88%EC%8A%A4%ED%83%80%EC%BD%94-%EB%B2%A0%EC%9D%B4%EC%A7%80-%EC%B5%9C%EA%B3%A0%EA%B8%89%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80/15760/',
+      'https://daumdeco.co.kr/category/%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80-%EC%A4%91%EA%B8%89/348/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: false,
+    note: '엑셀 분류 실크(중급) · 판매상태 판매중 · 규격확인수준 유형 표준 + 카테고리 확인 · 활성 SKU 208건 · 일부 T계열 8평 상품 존재',
   },
   {
     id: 'lxzin_giafabric',
     brand: 'LX Z:IN',
-    line: '지아패브릭(실크벽지 패브릭)',
+    line: '지아패브릭',
     paperType: '실크',
     widthCm: 106,
-    lengthM: 15.5, // 베스띠(15.6m)와 0.1m 차이 — 오차인지 실제 규격차인지 미확인
-    sqmPerRoll: 16.4, // 1.06 × 15.5 = 16.43 반올림
-    pyeongPerRollLabel: null,
-    repeatCm: null, // 미확인
-    priceMin: 48000,
-    priceMax: 48000,
-    priceNote: '단일 확인가. 옥수수 유래 PLA 코팅·오코텍스 인증 프리미엄 라인이라 색상별 가격차 가능',
-    sourceUrls: ['https://www.lxzin.com/zin/product/100040', 'https://www.lxzin.com/zin/product/100125'],
-    surveyDate: '2026-09-08',
-    needsReview: true,
-    note: '길이(15.5m)가 베스띠(15.6m)와 미묘하게 달라 형아 검수 필요. 리피트 미확인',
+    lengthM: 15.6,
+    sqmPerRoll: 16.536,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 49300,
+    priceMax: 49300,
+    priceNote: '시장 최저~최고 표본 · 대표가 49,300원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/did%EB%B2%BD%EC%A7%80-no9-%EB%82%98%EC%9D%B8-95017-3-%EC%9D%B4%ED%83%88%EB%A6%AC%EC%95%88%EC%8A%A4%ED%83%80%EC%BD%94-%EB%B2%A0%EC%9D%B4%EC%A7%80-%EC%B5%9C%EA%B3%A0%EA%B8%89%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80/15760/',
+      'https://daumdeco.co.kr/category/%EC%A7%80%EC%95%84%ED%8C%A8%EB%B8%8C%EB%A6%AD-%5B%EC%A4%91%EA%B8%89%EC%8B%A4%ED%81%AC%5D/460/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: false,
+    note: '엑셀 분류 실크(중급) · 판매상태 판매중 · 규격확인수준 유형 표준 + 카테고리 확인 · 활성 SKU 97건',
   },
   {
     id: 'lxzin_diamant',
     brand: 'LX Z:IN',
-    line: '디아망(고급 라인)',
-    paperType: '실크',
-    widthCm: null, // 공식 페이지에 mm 표기 없이 "1롤 5평"만 확인됨 — 추측 금지
-    lengthM: null,
-    sqmPerRoll: null,
-    pyeongPerRollLabel: 5, // "1롤(5평)" 표기 확인
-    repeatCm: null,
-    priceMin: 68500,
-    priceMax: 68500,
-    priceNote: '"모던회벽" 색상 한 건만 확인 — 라인 전체 대표값인지 불확실',
-    sourceUrls: [
-      'https://www.lxzin.com/zin/product/13396',
-      'https://jangpanmart.com/product/lx%ED%95%98%EC%9A%B0%EC%8B%9C%EC%8A%A4-lg%EB%B2%BD%EC%A7%80-%EB%94%94%EC%95%84%EB%A7%9D-%ED%94%84%EB%A6%AC%EB%AF%B8%EC%97%84-%EC%8B%A4%ED%81%AC-%EB%B2%BD%EC%A7%80-%ED%8C%A8%EB%B8%8C%EB%A6%AD-pr003-06-%ED%81%AC%EB%A1%9C%EC%89%90-%ED%99%94%EC%9D%B4%ED%8A%B8/3251/',
-    ],
-    surveyDate: '2026-09-08',
-    needsReview: true,
-    note: '폭·길이 mm 미확인, 가격도 색상 한정 — 형아 검수 필요',
-  },
-  {
-    id: 'lxzin_finance93',
-    brand: 'LX Z:IN',
-    line: '휘앙세93',
-    paperType: '합지',
-    widthCm: 93, // 930mm → 93cm
-    lengthM: 17.75,
-    sqmPerRoll: 16.5, // 0.93 × 17.75 = 16.5075 반올림
-    pyeongPerRollLabel: null,
-    repeatCm: null,
-    priceMin: null, // 21,000원 vs "5~9만원대" 상충 — 신뢰도 낮아 비움
-    priceMax: null,
-    priceNote: '출처마다 21,000원과 5~9만원대로 3배 이상 차이. 어느 쪽도 신뢰 확정 못 해 비워둠',
-    sourceUrls: [
-      'https://www.lxzin.com/zin/product/101019',
-      'https://www.lxzin.com/styling/style-trend/detail/2800',
-      'https://roomstore.co.kr/product/1%EB%A1%A4-%EB%8B%A8%EC%9C%84-%EC%B9%9C%ED%99%98%EA%B2%BD-%ED%95%A9%EC%A7%80%EB%B2%BD%EC%A7%80-%EC%85%80%ED%94%84-%EB%8F%84%EB%B0%B0%EC%A7%80-%EB%AA%A8%EC%9D%8C%EC%A0%84/4275/',
-    ],
-    surveyDate: '2026-09-08',
-    needsReview: true,
-    note: '가격 상충 — 형아 검수 필요. 폭·길이는 공식 규격 페이지로 확인됨',
-  },
-
-  // ── 신한벽지 (KCC 계열) ──────────────────────────────────
-  {
-    id: 'shinhan_living',
-    brand: '신한벽지',
-    line: '리빙',
-    paperType: '실크',
-    widthCm: null,
-    lengthM: null,
-    sqmPerRoll: null,
-    pyeongPerRollLabel: null,
-    repeatCm: null,
-    priceMin: null,
-    priceMax: null,
-    priceNote: '"42,000원부터"라는 최저가 시작값만 확인, 정확한 롤당 단가 미확인',
-    sourceUrls: [
-      'https://www.shinhanwall.co.kr/brands/view.html?depth1=1&depth2=4',
-      'https://search.danawa.com/dsearch.php?query=%EC%8B%A0%ED%95%9C%EB%B2%BD%EC%A7%80',
-    ],
-    surveyDate: '2026-09-08',
-    needsReview: true,
-    note: '공식 페이지에 컬렉션 이미지만 있고 규격·가격 스펙이 없음. 전면 재조사 필요',
-  },
-  {
-    id: 'shinhan_sketch',
-    brand: '신한벽지',
-    line: '스케치(항곰팡이)',
-    paperType: '실크',
-    widthCm: null, // mm/m 스펙이 상품 상세 이미지 안에만 있어 텍스트로 못 뽑음
-    lengthM: null,
-    sqmPerRoll: 16.5, // "1롤 5평" 표기에서 역산(5평 × 3.3058㎡ ≈ 16.5㎡) — mm 실측 아님
-    pyeongPerRollLabel: 5,
-    repeatCm: null,
-    priceMin: 42900,
-    priceMax: 42900,
-    priceNote: '2024년 패턴(15106-3) 한 건 확인가. 항곰팡이 기능은 검색 요약에서만 확인됨',
-    sourceUrls: [
-      'https://daumdeco.com/product/%EC%8B%A0%ED%95%9C%EB%B2%BD%EC%A7%80-%EC%8A%A4%EC%BC%80%EC%B9%98-15106-3-%EC%A6%90%EA%B1%B0%EC%9A%B4-%EC%86%8C%EC%8B%9D-1%EB%A1%A45%ED%8F%89-%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80-24%EB%85%84/11740/',
-    ],
-    surveyDate: '2026-09-08',
-    needsReview: true,
-    note: 'sqmPerRoll은 평 표기 역산값이지 브랜드 mm 스펙이 아님. 폭·길이 mm 재조사 필요',
-  },
-  {
-    id: 'shinhan_hapji_unnamed',
-    brand: '신한벽지',
-    line: '합지(라인업명 미확정, "아이리스"로 추정)',
-    paperType: '합지',
-    widthCm: null,
-    lengthM: null,
-    sqmPerRoll: null,
-    pyeongPerRollLabel: null,
-    repeatCm: null,
-    priceMin: null,
-    priceMax: null,
-    priceNote: '가격 정보 전혀 확인 못함',
-    sourceUrls: ['https://zzro.kr/blog-79'],
-    surveyDate: '2026-09-08',
-    needsReview: true,
-    note: '출처 페이지가 403으로 직접 열람 불가(검색 스니펫만). 라인업 이름 자체도 재확인 필요',
-  },
-
-  // ── 개나리벽지 (GNI) ─────────────────────────────────────
-  {
-    id: 'gnaeri_lohas_avenue',
-    brand: '개나리벽지',
-    line: '로하스+ / 에비뉴',
-    paperType: '실크',
-    widthCm: 106, // 1060mm → 106cm
-    lengthM: 15.5,
-    sqmPerRoll: 16.4, // 1.06 × 15.5 = 16.43 반올림
-    pyeongPerRollLabel: 5, // "약 5평" 자재로 표기
-    repeatCm: null,
-    priceMin: 32364,
-    priceMax: 55390,
-    priceNote: '두 라인업이 유통몰에서 묶여 판매돼 가격 편차가 큼. 개별 라인 분리 재조사 필요',
-    sourceUrls: [
-      'https://zzro.kr/product-papering-gaenari-avenue',
-      'https://j-flooring.co.kr/category/%EC%8B%A4%ED%81%AC-%EB%A1%9C%ED%95%98%EC%8A%A4/390/',
-    ],
-    surveyDate: '2026-09-08',
-    needsReview: true,
-    note: '가격 편차 큼 — 형아 검수 필요. 리피트 미확인',
-  },
-  {
-    id: 'gnaeri_artbook',
-    brand: '개나리벽지',
-    line: '아트북(친환경 무지)',
+    line: '디아망',
     paperType: '실크',
     widthCm: 106,
     lengthM: 15.6,
-    sqmPerRoll: 16.5,
-    pyeongPerRollLabel: 5, // 판매처 표기
-    repeatCm: 0, // "무지벽지 컬렉션"이라는 설명 근거 — mm 실측 리피트 확인은 아님
-    priceMin: 36500,
-    priceMax: 36500,
-    priceNote: '단일 확인가(자재로 표기). 품번별로 다를 수 있음',
-    sourceUrls: ['https://prod.danawa.com/info/?pcode=35229776', 'https://zzro.kr/blog-59'],
-    surveyDate: '2026-09-08',
+    sqmPerRoll: 16.536,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 68500,
+    priceMax: 68500,
+    priceNote: '시장 최저~최고 표본 · 대표가 68,500원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/did%EB%B2%BD%EC%A7%80-no9-%EB%82%98%EC%9D%B8-95017-3-%EC%9D%B4%ED%83%88%EB%A6%AC%EC%95%88%EC%8A%A4%ED%83%80%EC%BD%94-%EB%B2%A0%EC%9D%B4%EC%A7%80-%EC%B5%9C%EA%B3%A0%EA%B8%89%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80/15760/',
+      'https://daumdeco.co.kr/category/LX-%EB%94%94%EC%95%84%EB%A7%9D/405/',
+    ],
+    surveyDate: '2026-09-09',
     needsReview: false,
-    note: '옥수수 유래 수지 코팅 친환경 컬렉션. repeatCm=0은 "무지" 설명에 근거한 것이지 mm 실측 확인은 아님',
+    note: '엑셀 분류 실크(고급) · 판매상태 판매중 · 규격확인수준 공식/유통 규격 확인 · 활성 SKU 84건 · 대표상품 배송비 별도',
   },
+  {
+    id: 'lxzin_diamant_fortis',
+    brand: 'LX Z:IN',
+    line: '디아망포티스',
+    paperType: '실크',
+    widthCm: 106,
+    lengthM: 15.6,
+    sqmPerRoll: 16.536,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 70700,
+    priceMax: 70700,
+    priceNote: '시장 최저~최고 표본 · 대표가 70,700원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/did%EB%B2%BD%EC%A7%80-no9-%EB%82%98%EC%9D%B8-95017-3-%EC%9D%B4%ED%83%88%EB%A6%AC%EC%95%88%EC%8A%A4%ED%83%80%EC%BD%94-%EB%B2%A0%EC%9D%B4%EC%A7%80-%EC%B5%9C%EA%B3%A0%EA%B8%89%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80/15760/',
+      'https://daumdeco.co.kr/category/lx-%EB%94%94%EC%95%84%EB%A7%9D%ED%8F%AC%ED%8B%B0%EC%8A%A4/473/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: false,
+    note: '엑셀 분류 실크(고급) · 판매상태 판매중 · 규격확인수준 공식/유통 규격 확인 · 활성 SKU 64건',
+  },
+  {
+    id: 'lxzin_bangyeom',
+    brand: 'LX Z:IN',
+    line: '방염벽지',
+    paperType: '실크',
+    widthCm: 106,
+    lengthM: 15.6,
+    sqmPerRoll: 16.536,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 78200,
+    priceMax: 78200,
+    priceNote: '시장 최저~최고 표본 · 대표가 78,200원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/did%EB%B2%BD%EC%A7%80-no9-%EB%82%98%EC%9D%B8-95017-3-%EC%9D%B4%ED%83%88%EB%A6%AC%EC%95%88%EC%8A%A4%ED%83%80%EC%BD%94-%EB%B2%A0%EC%9D%B4%EC%A7%80-%EC%B5%9C%EA%B3%A0%EA%B8%89%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80/15760/',
+      'https://daumdeco.co.kr/category/%EB%B2%BD%EC%A7%80-%5B%EC%A2%85%EB%A5%98%EB%B3%84%5D/329/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: false,
+    note: '엑셀 분류 방염실크 · 판매상태 판매중 · 규격확인수준 유형 표준 + 유통확인 · 활성 SKU 61건 · 10평 천장용 별도 상품 존재',
+  },
+  // ── GNI 개나리 ────────────────────────────────────
   {
     id: 'gnaeri_story',
-    brand: '개나리벽지',
-    line: '스토리(소폭합지)',
+    brand: 'GNI 개나리',
+    line: '스토리',
     paperType: '합지',
-    widthCm: 53, // 530mm → 53cm
+    widthCm: 53,
     lengthM: 12.5,
-    sqmPerRoll: 6.6, // 0.53 × 12.5 = 6.625 반올림
-    pyeongPerRollLabel: null,
-    repeatCm: null,
-    priceMin: null, // 98,010~110,000원 검색됐으나 1롤가/세트가 구분 불가해 비움
-    priceMax: null,
-    priceNote: '검색된 가격이 1롤 단가인지 세트(여러 장) 단가인지 페이지에서 구분 못 함 — 실거래가 재확인 필요',
-    sourceUrls: ['https://m.danawa.com/product/product.html?code=14585447', 'https://www.11st.co.kr/products/2229530659'],
-    surveyDate: '2026-09-08',
-    needsReview: true,
-    note: '가격 신뢰도 낮음 — 형아 검수 필요',
-  },
-
-  // ── 제일벽지 ──────────────────────────────────────────────
-  {
-    id: 'jeil_basicplus',
-    brand: '제일벽지',
-    line: '베이직플러스',
-    paperType: '실크',
-    widthCm: null, // "광폭" 표기만 확인, 정확한 mm은 못 찾음 — 추측 금지
-    lengthM: null,
-    sqmPerRoll: null,
-    pyeongPerRollLabel: 5, // "1롤 5평(약 16.5㎡)" 표기 확인
-    repeatCm: null,
-    priceMin: 31364,
-    priceMax: 41000,
-    priceNote: '색상·판매처별 편차. 다나와 통합검색 기준',
+    sqmPerRoll: 6.625,
+    pyeongPerRollLabel: 2,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 4310,
+    priceMax: 4715,
+    priceNote: '시장 최저~최고 표본 · 20롤/박스 94,300원 → 롤당 4,715원 환산 · 대표가 4,715원',
     sourceUrls: [
-      'https://www.jeilwallpaper.com/kor/%EC%A0%9C%ED%92%88%EC%86%8C%EA%B0%9C/%EC%8B%A4%ED%81%AC-%EB%B8%8C%EB%9E%9C%EB%93%9C/%ED%85%8D%EC%8A%A4%EC%B3%90/jeilwallpaper.com',
-      'https://search.danawa.com/dsearch.php?query=%EB%B2%BD%EC%A7%80',
+      'https://daumdeco.co.kr/product/gni%EA%B0%9C%EB%82%98%EB%A6%AC%EB%B2%BD%EC%A7%80-%EC%8A%A4%ED%86%A0%EB%A6%AC-25120-2-%EC%98%A4%EB%A6%AC%EC%A7%84-%EC%95%84%EC%9D%B4%EB%B3%B4%EB%A6%AC-1%EB%B0%95%EC%8A%A420%EB%A1%A4-%EC%86%8C%ED%8F%AD%ED%95%A9%EC%A7%80%EB%B2%BD%EC%A7%80/11200/category/417/display/1/',
+      'https://daumdeco.co.kr/product/gni%EA%B0%9C%EB%82%98%EB%A6%AC%EB%B2%BD%EC%A7%80-%EC%8A%A4%ED%86%A0%EB%A6%AC-25120-2-%EC%98%A4%EB%A6%AC%EC%A7%84-%EC%95%84%EC%9D%B4%EB%B3%B4%EB%A6%AC-1%EB%B0%95%EC%8A%A420%EB%A1%A4-%EC%86%8C%ED%8F%AD%ED%95%A9%EC%A7%80%EB%B2%BD%EC%A7%80/11200/category/417/display/1/',
     ],
-    surveyDate: '2026-09-08',
-    needsReview: true,
-    note: '정확한 폭·길이 mm 표기를 브랜드 공식 페이지에서 못 찾음',
+    surveyDate: '2026-09-09',
+    needsReview: false,
+    note: '엑셀 분류 소폭합지 · 판매상태 판매중 · 규격확인수준 동일 컬렉션 규격 확인 · 활성 SKU 21건 · 시점별 박스가 86,200~94,300원',
   },
   {
-    id: 'jeil_j_platinum',
-    brand: '제일벽지',
-    line: '제이 플래티넘(구 제이 프리미엄)',
-    paperType: '실크',
-    widthCm: null,
-    lengthM: null,
-    sqmPerRoll: null,
-    pyeongPerRollLabel: null,
-    repeatCm: null,
-    priceMin: null,
-    priceMax: null,
-    priceNote: '가격 정보 전혀 확인 못함. 베이직플러스보다 고가일 것으로 추정되나 확인된 수치 아님',
-    sourceUrls: [
-      'https://www.hankyung.com/article/202408306575O',
-      'https://www.jeilwallpaper.com/kor/%EC%A0%9C%ED%92%88%EC%86%8C%EA%B0%9C/%EC%8B%A4%ED%81%AC-%EB%B8%8C%EB%9E%9C%EB%93%9C/%EC%A0%9C%EC%9D%B4-%ED%94%8C%EB%9E%98%ED%8B%B0%EB%84%98/jeilwallpaper.com',
-    ],
-    surveyDate: '2026-09-08',
-    needsReview: true,
-    note: '고급/프리미엄 라인 존재만 확인, 규격·가격 전부 미확인',
-  },
-  {
-    id: 'jeil_happyday',
-    brand: '제일벽지',
-    line: '해피데이',
+    id: 'gnaeri_style',
+    brand: 'GNI 개나리',
+    line: '스타일',
     paperType: '합지',
-    widthCm: 93, // 국내 합지 광폭 표준값에서 유추한 것 — 브랜드 공식 확인 아님
+    widthCm: 93,
     lengthM: 17.75,
-    sqmPerRoll: 16.5,
-    pyeongPerRollLabel: null,
-    repeatCm: null,
-    priceMin: 23380,
-    priceMax: 23380,
-    priceNote: '출처 페이지가 403으로 직접 열람 불가(검색 스니펫만) — 재검증 필수',
-    sourceUrls: ['https://zzro.kr/product-papering-jeil-happyday'],
-    surveyDate: '2026-09-08',
-    needsReview: true,
-    note: '폭·길이가 해피데이 전용 공식 확인이 아니라 국내 합지 광폭 표준(93×17.75) 추정값. 형아 검수 필요',
+    sqmPerRoll: 16.5075,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 25000,
+    priceMax: 26100,
+    priceNote: '시장 최저~최고 표본 · 대표가 26,100원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/gni%EA%B0%9C%EB%82%98%EB%A6%AC-%EC%8A%A4%ED%83%80%EC%9D%BC-28365-1-%EC%86%8C%ED%94%84%ED%8A%B8%ED%9A%8C%EB%B2%BD-%EB%A6%AC%EC%96%BC-%ED%99%94%EC%9D%B4%ED%8A%B8-1%EB%A1%A45%ED%8F%89-%EC%9E%A5%ED%8F%AD%ED%95%A9%EC%A7%80-%EB%B2%BD%EC%A7%80-24-25%EB%85%84/12508/',
+      'https://daumdeco.co.kr/product/gni%EA%B0%9C%EB%82%98%EB%A6%AC-%EC%8A%A4%ED%83%80%EC%9D%BC-28365-1-%EC%86%8C%ED%94%84%ED%8A%B8%ED%9A%8C%EB%B2%BD-%EB%A6%AC%EC%96%BC-%ED%99%94%EC%9D%B4%ED%8A%B8-1%EB%A1%A45%ED%8F%89-%EC%9E%A5%ED%8F%AD%ED%95%A9%EC%A7%80-%EB%B2%BD%EC%A7%80-24-25%EB%85%84/12508/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: false,
+    note: '엑셀 분류 장폭합지 · 판매상태 판매중 · 규격확인수준 동일 컬렉션 규격 확인 · 활성 SKU 167건 · 일부 SKU 25,000원',
   },
   {
-    id: 'jeil_sense',
-    brand: '제일벽지',
-    line: '센스(소폭)',
+    id: 'gnaeri_trendy',
+    brand: 'GNI 개나리',
+    line: '트랜디',
     paperType: '합지',
-    widthCm: 53, // 마찬가지로 403 페이지 스니펫 근거, 신뢰도 낮음
-    lengthM: null,
-    sqmPerRoll: null,
-    pyeongPerRollLabel: null,
-    repeatCm: null,
-    priceMin: null,
-    priceMax: null,
-    priceNote: '가격 정보 전혀 확인 못함',
-    sourceUrls: ['https://zzro.kr/blog-85'],
-    surveyDate: '2026-09-08',
-    needsReview: true,
-    note: '출처 페이지 직접 열람 불가(403). 폭 값도 재확인 필요',
+    widthCm: 93,
+    lengthM: 17.75,
+    sqmPerRoll: 16.5075,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 25000,
+    priceMax: 26100,
+    priceNote: '시장 최저~최고 표본 · 대표가 26,100원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/gni%EA%B0%9C%EB%82%98%EB%A6%AC-%EC%8A%A4%ED%83%80%EC%9D%BC-28365-1-%EC%86%8C%ED%94%84%ED%8A%B8%ED%9A%8C%EB%B2%BD-%EB%A6%AC%EC%96%BC-%ED%99%94%EC%9D%B4%ED%8A%B8-1%EB%A1%A45%ED%8F%89-%EC%9E%A5%ED%8F%AD%ED%95%A9%EC%A7%80-%EB%B2%BD%EC%A7%80-24-25%EB%85%84/12508/',
+      'https://daumdeco.co.kr/category/%EB%B2%BD%EC%A7%80-%5B%EC%A2%85%EB%A5%98%EB%B3%84%5D/329/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: false,
+    note: '엑셀 분류 장폭합지 · 판매상태 판매중 · 규격확인수준 동일 유형/제품 규격 확인 · 활성 SKU 123건',
   },
-
-  // ── 서울벽지 ──────────────────────────────────────────────
+  {
+    id: 'gnaeri_artbook',
+    brand: 'GNI 개나리',
+    line: '아트북',
+    paperType: '실크',
+    widthCm: 106,
+    lengthM: 15.6,
+    sqmPerRoll: 16.536,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 40700,
+    priceMax: 40700,
+    priceNote: '시장 최저~최고 표본 · 대표가 40,700원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/did%EB%B2%BD%EC%A7%80-no9-%EB%82%98%EC%9D%B8-95017-3-%EC%9D%B4%ED%83%88%EB%A6%AC%EC%95%88%EC%8A%A4%ED%83%80%EC%BD%94-%EB%B2%A0%EC%9D%B4%EC%A7%80-%EC%B5%9C%EA%B3%A0%EA%B8%89%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80/15760/',
+      'https://daumdeco.co.kr/category/GNI-%EC%95%84%ED%8A%B8%EB%B6%81/433/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: false,
+    note: '엑셀 분류 실크(일반) · 판매상태 판매중 · 규격확인수준 제품/유통 규격 확인 · 활성 SKU 140건 · 천장용 일부 SKU는 별도 가격',
+  },
+  {
+    id: 'gnaeri_lohas',
+    brand: 'GNI 개나리',
+    line: '로하스',
+    paperType: '실크',
+    widthCm: 106,
+    lengthM: 15.6,
+    sqmPerRoll: 16.536,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 42400,
+    priceMax: 47700,
+    priceNote: '시장 최저~최고 표본 · 대표가 46,700원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/did%EB%B2%BD%EC%A7%80-no9-%EB%82%98%EC%9D%B8-95017-3-%EC%9D%B4%ED%83%88%EB%A6%AC%EC%95%88%EC%8A%A4%ED%83%80%EC%BD%94-%EB%B2%A0%EC%9D%B4%EC%A7%80-%EC%B5%9C%EA%B3%A0%EA%B8%89%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80/15760/',
+      'https://daumdeco.co.kr/category/%EB%A1%9C%ED%95%98%EC%8A%A4-%EC%A4%91%EA%B8%89%EC%8B%A4%ED%81%AC/463/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: false,
+    note: '엑셀 분류 실크(중급) · 판매상태 판매중 · 규격확인수준 제품/유통 규격 확인 · 활성 SKU 124건 · 판매처/SKU별 가격 편차',
+  },
+  {
+    id: 'gnaeri_primo',
+    brand: 'GNI 개나리',
+    line: '프리모',
+    paperType: '실크',
+    widthCm: 106,
+    lengthM: 15.6,
+    sqmPerRoll: 16.536,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 59700,
+    priceMax: 59700,
+    priceNote: '시장 최저~최고 표본 · 대표가 59,700원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/did%EB%B2%BD%EC%A7%80-no9-%EB%82%98%EC%9D%B8-95017-3-%EC%9D%B4%ED%83%88%EB%A6%AC%EC%95%88%EC%8A%A4%ED%83%80%EC%BD%94-%EB%B2%A0%EC%9D%B4%EC%A7%80-%EC%B5%9C%EA%B3%A0%EA%B8%89%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80/15760/',
+      'https://daumdeco.co.kr/category/GNI-%ED%94%84%EB%A6%AC%EB%AA%A8/408/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: false,
+    note: '엑셀 분류 실크(고급) · 판매상태 판매중 · 규격확인수준 제품/유통 규격 확인 · 활성 SKU 135건',
+  },
+  // ── did ────────────────────────────────────────────
+  {
+    id: 'did_theone_sopok',
+    brand: 'did',
+    line: '더원 소폭',
+    paperType: '합지',
+    widthCm: 53,
+    lengthM: 12.5,
+    sqmPerRoll: 6.625,
+    pyeongPerRollLabel: 2,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 4660,
+    priceMax: 4660,
+    priceNote: '시장 최저~최고 표본 · 20롤/박스 93,200원 → 롤당 4,660원 환산 · 대표가 4,660원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/%EC%84%9C%EC%9A%B8%EB%B2%BD%EC%A7%80-%EC%BD%94%EC%A7%80-9187-3-1%EB%B0%95%EC%8A%A420%EB%A1%A4-%EC%86%8C%ED%8F%AD%ED%95%A9%EC%A7%80%EB%B2%BD%EC%A7%80/11904/',
+      'https://daumdeco.co.kr/category/%EB%B2%BD%EC%A7%80-%5B%EC%A2%85%EB%A5%98%EB%B3%84%5D/329/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: true,
+    note: '엑셀 분류 소폭합지 · 판매상태 판매중 · 규격확인수준 유형 표준 · 활성 SKU 16건',
+  },
+  {
+    id: 'did_theone_jangpok',
+    brand: 'did',
+    line: '더원 장폭',
+    paperType: '합지',
+    widthCm: 93,
+    lengthM: 17.75,
+    sqmPerRoll: 16.5075,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 23900,
+    priceMax: 23900,
+    priceNote: '시장 최저~최고 표본 · 대표가 23,900원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/gni%EA%B0%9C%EB%82%98%EB%A6%AC-%EC%8A%A4%ED%83%80%EC%9D%BC-28365-1-%EC%86%8C%ED%94%84%ED%8A%B8%ED%9A%8C%EB%B2%BD-%EB%A6%AC%EC%96%BC-%ED%99%94%EC%9D%B4%ED%8A%B8-1%EB%A1%A45%ED%8F%89-%EC%9E%A5%ED%8F%AD%ED%95%A9%EC%A7%80-%EB%B2%BD%EC%A7%80-24-25%EB%85%84/12508/',
+      'https://daumdeco.co.kr/category/%EB%B2%BD%EC%A7%80-%5B%EC%A2%85%EB%A5%98%EB%B3%84%5D/329/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: true,
+    note: '엑셀 분류 장폭합지 · 판매상태 판매중 · 규격확인수준 유형 표준 · 활성 SKU 131건',
+  },
+  {
+    id: 'did_five5',
+    brand: 'did',
+    line: '파이브5',
+    paperType: '실크',
+    widthCm: 106,
+    lengthM: 15.6,
+    sqmPerRoll: 16.536,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 34800,
+    priceMax: 38000,
+    priceNote: '시장 최저~최고 표본 · 대표가 34,800원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/did%EB%B2%BD%EC%A7%80-no9-%EB%82%98%EC%9D%B8-95017-3-%EC%9D%B4%ED%83%88%EB%A6%AC%EC%95%88%EC%8A%A4%ED%83%80%EC%BD%94-%EB%B2%A0%EC%9D%B4%EC%A7%80-%EC%B5%9C%EA%B3%A0%EA%B8%89%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80/15760/',
+      'https://daumdeco.co.kr/category/did-%ED%8C%8C%EC%9D%B4%EB%B8%8C5/453/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: false,
+    note: '엑셀 분류 실크(일반) · 판매상태 판매중 · 규격확인수준 유형 표준 + 카테고리 확인 · 활성 SKU 71건 · 34,800~38,000원 표본',
+  },
+  {
+    id: 'did_seven7',
+    brand: 'did',
+    line: '세븐7',
+    paperType: '실크',
+    widthCm: 106,
+    lengthM: 15.6,
+    sqmPerRoll: 16.536,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 40200,
+    priceMax: 43500,
+    priceNote: '시장 최저~최고 표본 · 대표가 43,500원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/did%EB%B2%BD%EC%A7%80-no9-%EB%82%98%EC%9D%B8-95017-3-%EC%9D%B4%ED%83%88%EB%A6%AC%EC%95%88%EC%8A%A4%ED%83%80%EC%BD%94-%EB%B2%A0%EC%9D%B4%EC%A7%80-%EC%B5%9C%EA%B3%A0%EA%B8%89%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80/15760/',
+      'https://daumdeco.co.kr/category/%EC%84%B8%EB%B8%907-%5B%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80%5D/457/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: false,
+    note: '엑셀 분류 실크(중급) · 판매상태 판매중 · 규격확인수준 유형 표준 + 카테고리 확인 · 활성 SKU 96건 · 40,200~43,500원 표본',
+  },
+  {
+    id: 'did_nine9',
+    brand: 'did',
+    line: '나인9',
+    paperType: '실크',
+    widthCm: 106,
+    lengthM: 15.6,
+    sqmPerRoll: 16.536,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 59800,
+    priceMax: 59800,
+    priceNote: '시장 최저~최고 표본 · 대표가 59,800원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/did%EB%B2%BD%EC%A7%80-no9-%EB%82%98%EC%9D%B8-95017-3-%EC%9D%B4%ED%83%88%EB%A6%AC%EC%95%88%EC%8A%A4%ED%83%80%EC%BD%94-%EB%B2%A0%EC%9D%B4%EC%A7%80-%EC%B5%9C%EA%B3%A0%EA%B8%89%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80/15760/',
+      'https://daumdeco.co.kr/product/did%EB%B2%BD%EC%A7%80-no9-%EB%82%98%EC%9D%B8-95017-3-%EC%9D%B4%ED%83%88%EB%A6%AC%EC%95%88%EC%8A%A4%ED%83%80%EC%BD%94-%EB%B2%A0%EC%9D%B4%EC%A7%80-%EC%B5%9C%EA%B3%A0%EA%B8%89%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80/15760/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: false,
+    note: '엑셀 분류 실크(고급) · 판매상태 판매중 · 규격확인수준 동일 컬렉션 규격 확인 · 활성 SKU 90건 · 106cm×15.6m 직접 확인',
+  },
+  // ── KS벽지 ──────────────────────────────────────────
+  {
+    id: 'ks_thehome',
+    brand: 'KS벽지',
+    line: '더홈',
+    paperType: '합지',
+    widthCm: 53,
+    lengthM: 12.5,
+    sqmPerRoll: 6.625,
+    pyeongPerRollLabel: 2,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 4550,
+    priceMax: 4550,
+    priceNote: '시장 최저~최고 표본 · 20롤/박스 91,000원 → 롤당 4,550원 환산 · 대표가 4,550원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/%EC%84%9C%EC%9A%B8%EB%B2%BD%EC%A7%80-%EC%BD%94%EC%A7%80-9187-3-1%EB%B0%95%EC%8A%A420%EB%A1%A4-%EC%86%8C%ED%8F%AD%ED%95%A9%EC%A7%80%EB%B2%BD%EC%A7%80/11904/',
+      'https://daumdeco.co.kr/category/%EB%B2%BD%EC%A7%80-%5B%EC%A2%85%EB%A5%98%EB%B3%84%5D/329/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: true,
+    note: '엑셀 분류 소폭합지 · 판매상태 판매중 · 규격확인수준 유형 표준 · 활성 SKU 20건',
+  },
+  {
+    id: 'ks_belluce',
+    brand: 'KS벽지',
+    line: '벨루체',
+    paperType: '합지',
+    widthCm: 93,
+    lengthM: 17.75,
+    sqmPerRoll: 16.5075,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 22800,
+    priceMax: 22800,
+    priceNote: '시장 최저~최고 표본 · 대표가 22,800원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/gni%EA%B0%9C%EB%82%98%EB%A6%AC-%EC%8A%A4%ED%83%80%EC%9D%BC-28365-1-%EC%86%8C%ED%94%84%ED%8A%B8%ED%9A%8C%EB%B2%BD-%EB%A6%AC%EC%96%BC-%ED%99%94%EC%9D%B4%ED%8A%B8-1%EB%A1%A45%ED%8F%89-%EC%9E%A5%ED%8F%AD%ED%95%A9%EC%A7%80-%EB%B2%BD%EC%A7%80-24-25%EB%85%84/12508/',
+      'https://daumdeco.co.kr/category/%EB%B2%BD%EC%A7%80-%5B%EC%A2%85%EB%A5%98%EB%B3%84%5D/329/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: true,
+    note: '엑셀 분류 장폭합지 · 판매상태 판매중 · 규격확인수준 유형 표준 · 활성 SKU 205건',
+  },
+  {
+    id: 'ks_theview',
+    brand: 'KS벽지',
+    line: '더뷰',
+    paperType: '실크',
+    widthCm: 106,
+    lengthM: 15.6,
+    sqmPerRoll: 16.536,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 37500,
+    priceMax: 37500,
+    priceNote: '시장 최저~최고 표본 · 대표가 37,500원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/did%EB%B2%BD%EC%A7%80-no9-%EB%82%98%EC%9D%B8-95017-3-%EC%9D%B4%ED%83%88%EB%A6%AC%EC%95%88%EC%8A%A4%ED%83%80%EC%BD%94-%EB%B2%A0%EC%9D%B4%EC%A7%80-%EC%B5%9C%EA%B3%A0%EA%B8%89%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80/15760/',
+      'https://daumdeco.co.kr/category/ks-%EB%8D%94%EB%B7%B0/436/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: false,
+    note: '엑셀 분류 실크(일반) · 판매상태 판매중 · 규격확인수준 유형 표준 + 카테고리 확인 · 활성 SKU 130건',
+  },
+  {
+    id: 'ks_irum',
+    brand: 'KS벽지',
+    line: '이룸',
+    paperType: '실크',
+    widthCm: 106,
+    lengthM: 15.6,
+    sqmPerRoll: 16.536,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 37500,
+    priceMax: 37500,
+    priceNote: '시장 최저~최고 표본 · 대표가 37,500원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/did%EB%B2%BD%EC%A7%80-no9-%EB%82%98%EC%9D%B8-95017-3-%EC%9D%B4%ED%83%88%EB%A6%AC%EC%95%88%EC%8A%A4%ED%83%80%EC%BD%94-%EB%B2%A0%EC%9D%B4%EC%A7%80-%EC%B5%9C%EA%B3%A0%EA%B8%89%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80/15760/',
+      'https://daumdeco.co.kr/category/%EB%B2%BD%EC%A7%80-%5B%EC%A2%85%EB%A5%98%EB%B3%84%5D/329/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: false,
+    note: '엑셀 분류 실크(일반) · 판매상태 판매중 · 규격확인수준 대표제품 규격 확인 · 활성 SKU 113건',
+  },
+  // ── 서울벽지 ──────────────────────────────────────────
+  {
+    id: 'seoul_cozy',
+    brand: '서울벽지',
+    line: '코지',
+    paperType: '합지',
+    widthCm: 53,
+    lengthM: 12.5,
+    sqmPerRoll: 6.625,
+    pyeongPerRollLabel: 2,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 4310,
+    priceMax: 4310,
+    priceNote: '시장 최저~최고 표본 · 20롤/박스 86,200원 → 롤당 4,310원 환산 · 대표가 4,310원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/%EC%84%9C%EC%9A%B8%EB%B2%BD%EC%A7%80-%EC%BD%94%EC%A7%80-9187-3-1%EB%B0%95%EC%8A%A420%EB%A1%A4-%EC%86%8C%ED%8F%AD%ED%95%A9%EC%A7%80%EB%B2%BD%EC%A7%80/11904/',
+      'https://daumdeco.co.kr/product/%EC%84%9C%EC%9A%B8%EB%B2%BD%EC%A7%80-%EC%BD%94%EC%A7%80-9187-3-1%EB%B0%95%EC%8A%A420%EB%A1%A4-%EC%86%8C%ED%8F%AD%ED%95%A9%EC%A7%80%EB%B2%BD%EC%A7%80/11904/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: false,
+    note: '엑셀 분류 소폭합지 · 판매상태 판매중 · 규격확인수준 동일 컬렉션 규격 확인 · 활성 SKU 62건 · 1롤 2평, 53cm×12.5m',
+  },
+  {
+    id: 'seoul_reno',
+    brand: '서울벽지',
+    line: '레노',
+    paperType: '합지',
+    widthCm: 93,
+    lengthM: 17.75,
+    sqmPerRoll: 16.5075,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 21800,
+    priceMax: 21800,
+    priceNote: '시장 최저~최고 표본 · 대표가 21,800원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/gni%EA%B0%9C%EB%82%98%EB%A6%AC-%EC%8A%A4%ED%83%80%EC%9D%BC-28365-1-%EC%86%8C%ED%94%84%ED%8A%B8%ED%9A%8C%EB%B2%BD-%EB%A6%AC%EC%96%BC-%ED%99%94%EC%9D%B4%ED%8A%B8-1%EB%A1%A45%ED%8F%89-%EC%9E%A5%ED%8F%AD%ED%95%A9%EC%A7%80-%EB%B2%BD%EC%A7%80-24-25%EB%85%84/12508/',
+      'https://daumdeco.co.kr/category/%EB%B2%BD%EC%A7%80-%5B%EC%A2%85%EB%A5%98%EB%B3%84%5D/329/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: true,
+    note: '엑셀 분류 장폭합지 · 판매상태 판매중 · 규격확인수준 유형 표준 · 활성 SKU 199건',
+  },
   {
     id: 'seoul_plain',
     brand: '서울벽지',
     line: '플레인',
     paperType: '실크',
-    widthCm: 106, // 1060mm → 106cm
+    widthCm: 106,
     lengthM: 15.6,
-    sqmPerRoll: 16.5,
-    pyeongPerRollLabel: 5, // 공식 컬렉션 페이지 "1롤/5평" 표기
-    repeatCm: 0, // 무지 디자인으로 공식 확인
-    priceMin: 24940,
-    priceMax: 38500,
-    priceNote: '판매처(니아트·다나와)마다 편차 있음',
+    sqmPerRoll: 16.536,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 36000,
+    priceMax: 36000,
+    priceNote: '시장 최저~최고 표본 · 대표가 36,000원',
     sourceUrls: [
-      'http://www.seoulwallpaper.co.kr/collection/collection.php?search_category=2',
-      'https://niart.kr/product/%EC%84%9C%EC%9A%B8%EB%B2%BD%EC%A7%80-%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80-%ED%94%8C%EB%A0%88%EC%9D%B8-395-4/',
+      'https://daumdeco.co.kr/product/did%EB%B2%BD%EC%A7%80-no9-%EB%82%98%EC%9D%B8-95017-3-%EC%9D%B4%ED%83%88%EB%A6%AC%EC%95%88%EC%8A%A4%ED%83%80%EC%BD%94-%EB%B2%A0%EC%9D%B4%EC%A7%80-%EC%B5%9C%EA%B3%A0%EA%B8%89%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80/15760/',
+      'https://daumdeco.co.kr/category/%EC%84%9C%EC%9A%B8-%ED%94%8C%EB%A0%88%EC%9D%B8/437/',
     ],
-    surveyDate: '2026-09-08',
+    surveyDate: '2026-09-09',
     needsReview: false,
-    note: '규격·가격 모두 공식 페이지 + 판매처로 교차 확인됨',
+    note: '엑셀 분류 실크(일반) · 판매상태 판매중 · 규격확인수준 대표제품/공식 규격 확인 · 활성 SKU 118건',
+  },
+  // ── 신한벽지 ──────────────────────────────────────────
+  {
+    id: 'shinhan_fineheim',
+    brand: '신한벽지',
+    line: '파인하임',
+    paperType: '합지',
+    widthCm: 53,
+    lengthM: 12.5,
+    sqmPerRoll: 6.625,
+    pyeongPerRollLabel: 2,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 4310,
+    priceMax: 4550,
+    priceNote: '시장 최저~최고 표본 · 20롤/박스 91,000원 → 롤당 4,550원 환산 · 대표가 4,550원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/%EC%8B%A0%ED%95%9C%EB%B2%BD%EC%A7%80-%ED%8C%8C%EC%9D%B8%ED%95%98%EC%9E%84-4305-4-%EC%84%A4%EB%A6%AC%EB%B0%98-%EB%8B%A4%ED%81%AC%EA%B7%B8%EB%A0%88%EC%9D%B4-1%EB%B0%95%EC%8A%A420%EB%A1%A4-%EC%86%8C%ED%8F%AD%ED%95%A9%EC%A7%80%EB%B2%BD%EC%A7%80/11272/',
+      'https://daumdeco.co.kr/product/%EC%8B%A0%ED%95%9C%EB%B2%BD%EC%A7%80-%ED%8C%8C%EC%9D%B8%ED%95%98%EC%9E%84-4305-4-%EC%84%A4%EB%A6%AC%EB%B0%98-%EB%8B%A4%ED%81%AC%EA%B7%B8%EB%A0%88%EC%9D%B4-1%EB%B0%95%EC%8A%A420%EB%A1%A4-%EC%86%8C%ED%8F%AD%ED%95%A9%EC%A7%80%EB%B2%BD%EC%A7%80/11272/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: false,
+    note: '엑셀 분류 소폭합지 · 판매상태 판매중 · 규격확인수준 동일 컬렉션 규격 확인 · 활성 SKU 66건 · SKU별 박스가 편차',
   },
   {
-    id: 'seoul_kara',
-    brand: '서울벽지',
-    line: '카라',
+    id: 'shinhan_iris',
+    brand: '신한벽지',
+    line: '아이리스',
+    paperType: '합지',
+    widthCm: 93,
+    lengthM: 17.75,
+    sqmPerRoll: 16.5075,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 26100,
+    priceMax: 26100,
+    priceNote: '시장 최저~최고 표본 · 대표가 26,100원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/gni%EA%B0%9C%EB%82%98%EB%A6%AC-%EC%8A%A4%ED%83%80%EC%9D%BC-28365-1-%EC%86%8C%ED%94%84%ED%8A%B8%ED%9A%8C%EB%B2%BD-%EB%A6%AC%EC%96%BC-%ED%99%94%EC%9D%B4%ED%8A%B8-1%EB%A1%A45%ED%8F%89-%EC%9E%A5%ED%8F%AD%ED%95%A9%EC%A7%80-%EB%B2%BD%EC%A7%80-24-25%EB%85%84/12508/',
+      'https://daumdeco.co.kr/category/%EB%B2%BD%EC%A7%80-%5B%EC%A2%85%EB%A5%98%EB%B3%84%5D/329/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: true,
+    note: '엑셀 분류 장폭합지 · 판매상태 판매중 · 규격확인수준 유형 표준 · 활성 SKU 145건',
+  },
+  {
+    id: 'shinhan_sketch',
+    brand: '신한벽지',
+    line: '스케치',
     paperType: '실크',
     widthCm: 106,
-    lengthM: 15.6, // 공식 규격표 기준값. 일부 판매처는 15.5m로 표기(오차 가능)
-    sqmPerRoll: 16.5,
+    lengthM: 15.6,
+    sqmPerRoll: 16.536,
     pyeongPerRollLabel: 5,
-    repeatCm: null, // 패턴형이라 있을 가능성 높으나 mm 수치 미확인
-    priceMin: 46000,
-    priceMax: 46000,
-    priceNote: '패턴(2326-1) 한 건 확인가',
-    sourceUrls: ['https://www.decomoa.com/goods/goods_view.php?goodsNo=1000052650'],
-    surveyDate: '2026-09-08',
-    needsReview: true,
-    note: '길이가 출처마다 15.5m/15.6m로 소폭 다름. 리피트 mm 미확인',
-  },
-  {
-    id: 'seoul_daisy',
-    brand: '서울벽지',
-    line: '데이지(항균)',
-    paperType: '합지',
-    widthCm: 91, // 910mm → 91cm
-    lengthM: 18.2,
-    sqmPerRoll: 16.6, // 0.91 × 18.2 = 16.562 반올림
-    pyeongPerRollLabel: 5, // 공식 컬렉션 페이지 "1롤/5평" 표기
-    repeatCm: null,
-    priceMin: null,
-    priceMax: null,
-    priceNote: '공식 컬렉션 페이지에 가격 자체가 표기돼 있지 않음',
-    sourceUrls: ['http://www.seoulwallpaper.co.kr/collection/collection.php?search_category=3'],
-    surveyDate: '2026-09-08',
-    needsReview: true,
-    note: '규격은 공식 확인, 소비자가는 판매처 재조사 필요',
-  },
-  {
-    id: 'seoul_narrow_hapji',
-    brand: '서울벽지',
-    line: '소폭합지(9186-1 계열)',
-    paperType: '합지',
-    widthCm: 53, // 530mm → 53cm
-    lengthM: 12.5,
-    sqmPerRoll: 6.6, // 0.53 × 12.5 = 6.625 반올림
-    pyeongPerRollLabel: null, // 박스단위(20롤/약40평) 역산 시 약 2평 — 브랜드 공식 롤당 표기 아님
-    repeatCm: null,
-    priceMin: 5350,
-    priceMax: 5950,
-    priceNote: '박스가(약 107,000원) ÷ 20롤로 역산한 값. 개별 판매가와 다를 수 있음',
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 42900,
+    priceMax: 57800,
+    priceNote: '시장 최저~최고 표본 · 대표가 42,900원',
     sourceUrls: [
-      'https://m.decomoa.com/goods/goods_view.php?goodsNo=1000049621',
-      'https://www.11st.co.kr/products/8481171989',
+      'https://daumdeco.co.kr/product/did%EB%B2%BD%EC%A7%80-no9-%EB%82%98%EC%9D%B8-95017-3-%EC%9D%B4%ED%83%88%EB%A6%AC%EC%95%88%EC%8A%A4%ED%83%80%EC%BD%94-%EB%B2%A0%EC%9D%B4%EC%A7%80-%EC%B5%9C%EA%B3%A0%EA%B8%89%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80/15760/',
+      'https://daumdeco.co.kr/category/%EC%8B%A0%ED%95%9C-%EC%8A%A4%EC%BC%80%EC%B9%98/431/',
     ],
-    surveyDate: '2026-09-08',
+    surveyDate: '2026-09-09',
+    needsReview: false,
+    note: '엑셀 분류 실크(일반) · 판매상태 판매중 · 규격확인수준 유형 표준 + 카테고리 확인 · 활성 SKU 128건 · 일부 2026 SKU 고가 표본 존재',
+  },
+  {
+    id: 'shinhan_living',
+    brand: '신한벽지',
+    line: '리빙',
+    paperType: '실크',
+    widthCm: 106,
+    lengthM: 15.6,
+    sqmPerRoll: 16.536,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 41300,
+    priceMax: 48900,
+    priceNote: '시장 최저~최고 표본 · 대표가 43,500원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/did%EB%B2%BD%EC%A7%80-no9-%EB%82%98%EC%9D%B8-95017-3-%EC%9D%B4%ED%83%88%EB%A6%AC%EC%95%88%EC%8A%A4%ED%83%80%EC%BD%94-%EB%B2%A0%EC%9D%B4%EC%A7%80-%EC%B5%9C%EA%B3%A0%EA%B8%89%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80/15760/',
+      'https://daumdeco.co.kr/category/%EB%A6%AC%EB%B9%99-%5B%EC%8B%A4%ED%81%AC%5D/430/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: false,
+    note: '엑셀 분류 실크(중급) · 판매상태 판매중 · 규격확인수준 대표제품 규격 확인 · 활성 SKU 135건 · 41,300~48,900원 표본',
+  },
+  {
+    id: 'shinhan_facade',
+    brand: '신한벽지',
+    line: '파사드',
+    paperType: '실크',
+    widthCm: 106,
+    lengthM: 15.6,
+    sqmPerRoll: 16.536,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 59700,
+    priceMax: 59700,
+    priceNote: '시장 최저~최고 표본 · 대표가 59,700원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/did%EB%B2%BD%EC%A7%80-no9-%EB%82%98%EC%9D%B8-95017-3-%EC%9D%B4%ED%83%88%EB%A6%AC%EC%95%88%EC%8A%A4%ED%83%80%EC%BD%94-%EB%B2%A0%EC%9D%B4%EC%A7%80-%EC%B5%9C%EA%B3%A0%EA%B8%89%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80/15760/',
+      'https://daumdeco.co.kr/category/%25EC%258B%25A0%25ED%2595%259C-%25ED%258C%258C%25EC%2582%25AC%25EB%2593%259C/486/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: false,
+    note: '엑셀 분류 실크(고급) · 판매상태 판매중 · 규격확인수준 유형 표준 + 카테고리 확인 · 활성 SKU 90건',
+  },
+  {
+    id: 'shinhan_bangyeom',
+    brand: '신한벽지',
+    line: '방염',
+    paperType: '실크',
+    widthCm: 106,
+    lengthM: 15.6,
+    sqmPerRoll: 16.536,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 66200,
+    priceMax: 66200,
+    priceNote: '시장 최저~최고 표본 · 대표가 66,200원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/did%EB%B2%BD%EC%A7%80-no9-%EB%82%98%EC%9D%B8-95017-3-%EC%9D%B4%ED%83%88%EB%A6%AC%EC%95%88%EC%8A%A4%ED%83%80%EC%BD%94-%EB%B2%A0%EC%9D%B4%EC%A7%80-%EC%B5%9C%EA%B3%A0%EA%B8%89%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80/15760/',
+      'https://daumdeco.co.kr/category/%EB%B2%BD%EC%A7%80-%5B%EC%A2%85%EB%A5%98%EB%B3%84%5D/329/',
+    ],
+    surveyDate: '2026-09-09',
     needsReview: true,
-    note: '롤당 평수·단가 모두 박스 단위 역산값 — 형아 검수 필요',
+    note: '엑셀 분류 방염실크 · 판매상태 판매중 · 규격확인수준 유형 표준 · 활성 SKU 72건',
+  },
+  // ── 코스모스벽지 ──────────────────────────────────────
+  {
+    id: 'cosmos_artron',
+    brand: '코스모스벽지',
+    line: '아트론',
+    paperType: '합지',
+    widthCm: 53,
+    lengthM: 12.5,
+    sqmPerRoll: 6.625,
+    pyeongPerRollLabel: 2,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 4550,
+    priceMax: 4550,
+    priceNote: '시장 최저~최고 표본 · 20롤/박스 91,000원 → 롤당 4,550원 환산 · 대표가 4,550원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/%EC%84%9C%EC%9A%B8%EB%B2%BD%EC%A7%80-%EC%BD%94%EC%A7%80-9187-3-1%EB%B0%95%EC%8A%A420%EB%A1%A4-%EC%86%8C%ED%8F%AD%ED%95%A9%EC%A7%80%EB%B2%BD%EC%A7%80/11904/',
+      'https://daumdeco.co.kr/category/%EB%B2%BD%EC%A7%80-%5B%EC%A2%85%EB%A5%98%EB%B3%84%5D/329/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: true,
+    note: '엑셀 분류 소폭합지 · 판매상태 판매중 · 규격확인수준 유형 표준 · 활성 SKU 49건',
+  },
+  {
+    id: 'cosmos_alice',
+    brand: '코스모스벽지',
+    line: '앨리스',
+    paperType: '합지',
+    widthCm: 93,
+    lengthM: 17.75,
+    sqmPerRoll: 16.5075,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 22800,
+    priceMax: 22800,
+    priceNote: '시장 최저~최고 표본 · 대표가 22,800원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/gni%EA%B0%9C%EB%82%98%EB%A6%AC-%EC%8A%A4%ED%83%80%EC%9D%BC-28365-1-%EC%86%8C%ED%94%84%ED%8A%B8%ED%9A%8C%EB%B2%BD-%EB%A6%AC%EC%96%BC-%ED%99%94%EC%9D%B4%ED%8A%B8-1%EB%A1%A45%ED%8F%89-%EC%9E%A5%ED%8F%AD%ED%95%A9%EC%A7%80-%EB%B2%BD%EC%A7%80-24-25%EB%85%84/12508/',
+      'https://daumdeco.co.kr/category/%EB%B2%BD%EC%A7%80-%5B%EC%A2%85%EB%A5%98%EB%B3%84%5D/329/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: true,
+    note: '엑셀 분류 장폭합지 · 판매상태 판매중 · 규격확인수준 유형 표준 · 활성 SKU 225건 · 타일벽지 등 특수상품 별도',
+  },
+  {
+    id: 'cosmos_soho',
+    brand: '코스모스벽지',
+    line: '소호',
+    paperType: '실크',
+    widthCm: 106,
+    lengthM: 15.6,
+    sqmPerRoll: 16.536,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 36600,
+    priceMax: 38000,
+    priceNote: '시장 최저~최고 표본 · 대표가 38,000원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/did%EB%B2%BD%EC%A7%80-no9-%EB%82%98%EC%9D%B8-95017-3-%EC%9D%B4%ED%83%88%EB%A6%AC%EC%95%88%EC%8A%A4%ED%83%80%EC%BD%94-%EB%B2%A0%EC%9D%B4%EC%A7%80-%EC%B5%9C%EA%B3%A0%EA%B8%89%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80/15760/',
+      'https://daumdeco.co.kr/category/%EC%86%8C%ED%98%B8%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80/441/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: false,
+    note: '엑셀 분류 실크(중급) · 판매상태 판매중 · 규격확인수준 유형 표준 + 카테고리 확인 · 활성 SKU 103건',
+  },
+  // ── 제일벽지 ──────────────────────────────────────────
+  {
+    id: 'jeil_happyday',
+    brand: '제일벽지',
+    line: '해피데이',
+    paperType: '합지',
+    widthCm: 93,
+    lengthM: 17.75,
+    sqmPerRoll: 16.5075,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 49500,
+    priceMax: 49500,
+    priceNote: '시장 최저~최고 표본 · 대표가 49,500원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/gni%EA%B0%9C%EB%82%98%EB%A6%AC-%EC%8A%A4%ED%83%80%EC%9D%BC-28365-1-%EC%86%8C%ED%94%84%ED%8A%B8%ED%9A%8C%EB%B2%BD-%EB%A6%AC%EC%96%BC-%ED%99%94%EC%9D%B4%ED%8A%B8-1%EB%A1%A45%ED%8F%89-%EC%9E%A5%ED%8F%AD%ED%95%A9%EC%A7%80-%EB%B2%BD%EC%A7%80-24-25%EB%85%84/12508/',
+      'https://daumdeco.co.kr/category/%EB%B2%BD%EC%A7%80-%5B%EC%A2%85%EB%A5%98%EB%B3%84%5D/329/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: true,
+    note: '엑셀 분류 장폭합지 · 판매상태 판매중(재고변동 큼) · 규격확인수준 유형 분류 기반 · 활성 SKU 209건 · 브랜드 페이지와 유형 카테고리 노출 수 불일치',
+  },
+  // ── 현대L&C ────────────────────────────────────────
+  {
+    id: 'hyundai_cutie',
+    brand: '현대L&C',
+    line: '큐티에',
+    paperType: '합지',
+    widthCm: 93,
+    lengthM: 17.75,
+    sqmPerRoll: 16.5075,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 22800,
+    priceMax: 22800,
+    priceNote: '시장 최저~최고 표본 · 대표가 22,800원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/%ED%98%84%EB%8C%80-%ED%81%90%ED%8B%B0%EC%97%90-1091-3-%EC%8A%A4%ED%83%80%EC%BD%94%ED%8E%98%EC%9D%B8%ED%8A%B8-%EC%BD%98%ED%81%AC%EB%A6%AC%ED%8A%B8-1%EB%A1%A45%ED%8F%89-%EC%9E%A5%ED%8F%AD%ED%95%A9%EC%A7%80%EB%B2%BD%EC%A7%80-23-25%EB%85%84/13471/category/480/display/1/',
+      'https://daumdeco.co.kr/product/%ED%98%84%EB%8C%80-%ED%81%90%ED%8B%B0%EC%97%90-1091-3-%EC%8A%A4%ED%83%80%EC%BD%94%ED%8E%98%EC%9D%B8%ED%8A%B8-%EC%BD%98%ED%81%AC%EB%A6%AC%ED%8A%B8-1%EB%A1%A45%ED%8F%89-%EC%9E%A5%ED%8F%AD%ED%95%A9%EC%A7%80%EB%B2%BD%EC%A7%80-23-25%EB%85%84/13471/category/480/display/1/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: false,
+    note: '엑셀 분류 장폭합지 · 판매상태 판매중 · 규격확인수준 동일 컬렉션 규격 확인 · 활성 SKU 109건 · 93cm×17.75m 직접 확인',
+  },
+  // ── KSW ────────────────────────────────────────────
+  {
+    id: 'ksw_grandi',
+    brand: 'KSW',
+    line: '그랑디',
+    paperType: '실크',
+    widthCm: 106,
+    lengthM: 15.6,
+    sqmPerRoll: 16.536,
+    pyeongPerRollLabel: 5,
+    repeatCm: null, // 엑셀에 리피트 칸 없음(미확인)
+    priceMin: 54300,
+    priceMax: 54300,
+    priceNote: '시장 최저~최고 표본 · 대표가 54,300원',
+    sourceUrls: [
+      'https://daumdeco.co.kr/product/did%EB%B2%BD%EC%A7%80-no9-%EB%82%98%EC%9D%B8-95017-3-%EC%9D%B4%ED%83%88%EB%A6%AC%EC%95%88%EC%8A%A4%ED%83%80%EC%BD%94-%EB%B2%A0%EC%9D%B4%EC%A7%80-%EC%B5%9C%EA%B3%A0%EA%B8%89%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80/15760/',
+      'https://daumdeco.co.kr/category/%EC%8B%A4%ED%81%AC%EB%B2%BD%EC%A7%80-%EA%B3%A0%EA%B8%89/349/',
+    ],
+    surveyDate: '2026-09-09',
+    needsReview: true,
+    note: '엑셀 분류 실크(고급) · 판매상태 판매중 · 규격확인수준 유형 표준 + 고급실크 카테고리 · 활성 SKU 76건',
   },
 ];

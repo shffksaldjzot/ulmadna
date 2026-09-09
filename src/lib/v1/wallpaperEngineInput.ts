@@ -78,6 +78,21 @@ function validPreciseRooms(state: WallpaperFormState): PreciseRoomInput[] {
 }
 
 /**
+ * 화면 모드(view)를 정한다. state.view가 있으면 그대로 쓰고, 없으면(2026-09-09 재배치
+ * 이전에 만들어진 옛 공유 링크) 정밀 입력(방별 실측 또는 벽 길이)이 유효할 때만 'precise'로
+ * 추정하고, 아니면 'simple'로 본다.
+ *
+ * toEngineInput·describePreciseInput 둘 다 이 함수 하나로 view를 정한다 — 각자 따로 추정하면
+ * 계산 규칙과 요약줄·배지 판정이 어긋날 수 있다(검사관 2라운드 지적 1·2번).
+ */
+export function resolveView(state: WallpaperFormState): 'simple' | 'precise' {
+  if (state.view) return state.view;
+  const hasValidRoom = state.entry === 'room' && validPreciseRooms(state).length > 0;
+  const hasValidLength = state.entry === 'length' && isPositive(state.wallLength);
+  return hasValidRoom || hasValidLength ? 'precise' : 'simple';
+}
+
+/**
  * describePreciseInput()의 반환 모양 — 정밀 폼(방별 실측 / 벽 길이)이 지금 유효한
  * 입력을 갖고 있는지, 있다면 어떤 방식인지. 없으면(둘 다 비었거나 전부 빈 값) null.
  */
@@ -91,9 +106,14 @@ export type PreciseInputInfo = { kind: 'room'; count: number } | { kind: 'length
  * QuickAnswer(평형·베이 칩 잠금 여부)·PreciseSection(펼침 배지)·buildSummary(요약줄)가
  * 전부 이 함수 하나로 판정한다 — 각자 따로 세면 판정이 어긋난다(검사관 지적 N4: 예전엔
  * result/page.tsx의 buildSummary가 빈 방 카드까지 방 개수로 세는 버그가 있었다).
- * toEngineInput도 "방별 실측이 유효한가"를 이 함수와 같은 규칙(validPreciseRooms)으로 판정한다.
+ *
+ * 2026-09-09 검사관 2라운드 지적 1번 수리: resolveView(state)가 'simple'이면(모드가 명시적으로
+ * simple이거나, view가 없는 옛 링크인데 정밀 값이 무효한 경우) 정밀 값이 남아 있어도 무조건
+ * null이다 — toEngineInput이 simple 모드에서 정밀 값을 무시하는 것과 같은 규칙이어야
+ * 요약줄·배지가 실제 계산과 어긋나지 않는다.
  */
 export function describePreciseInput(state: WallpaperFormState): PreciseInputInfo {
+  if (resolveView(state) === 'simple') return null;
   if (state.entry === 'room' && state.preciseRooms && state.preciseRooms.length > 0) {
     const count = validPreciseRooms(state).length;
     if (count > 0) return { kind: 'room', count };
@@ -102,6 +122,27 @@ export function describePreciseInput(state: WallpaperFormState): PreciseInputInf
     return { kind: 'length' };
   }
   return null;
+}
+
+/**
+ * 공유 링크로 인코딩하기 전에, 지금 화면 모드에서 안 쓰는 값을 지운 사본을 만든다
+ * (용량 절감 + 다른 모드의 옛 값이 딸려가 혼동을 주지 않도록). 폼 상태 원본은 안 건드린다 —
+ * WallpaperCalculator가 들고 있는 form은 그대로라 모드를 되돌리면 지웠던 값이 다시 쓰인다.
+ */
+export function trimFormForShare(state: WallpaperFormState): WallpaperFormState {
+  const trimmed: WallpaperFormState = { ...state };
+  if (resolveView(state) === 'simple') {
+    delete trimmed.preciseRooms;
+    delete trimmed.wallLength;
+    delete trimmed.lengthOpenings;
+    delete trimmed.directCeilingSqm;
+    delete trimmed.entry;
+    delete trimmed.unit;
+  } else {
+    delete trimmed.pyeong;
+    delete trimmed.bay;
+  }
+  return trimmed;
 }
 
 /**
@@ -136,33 +177,36 @@ function flattenOpenings(openings: WallpaperOpening[]): { widthCm: number; heigh
 
 /** 벽지 종류·제품 선택을 엔진 요청 칸(paperType/product)으로 정리한 결과 */
 export interface PaperSelection {
-  /** 두 종류를 병렬로 불러 범위를 합칠지 (벽지 종류를 아직 안 골랐을 때) */
-  mergeBoth: boolean;
-  paperType?: '합지' | '실크';
+  paperType: '합지' | '실크';
   product?: WallpaperProductRequest;
 }
 
 /**
  * 벽지 종류/제품 선택 상태를 정리한다.
+ * 2026-09-09 화면 재배치(벽지 최우선 A안): 벽지 종류를 안 골랐으면 null을 돌려준다 —
+ * 예전의 "종류를 아직 안 고르면 합지·실크를 둘 다 계산해 범위를 합친다"(병합 즉답)는
+ * 폐기했다. 벽지 카드가 화면 맨 위 1번 카드가 되면서 종류부터 고르는 흐름으로 바뀌었기 때문.
  *   1) productCode가 있고 목록에서 찾아지면 그 제품 규격으로 (규격·가격 중 하나라도 없으면
  *      규격 없이 종류만 넘겨 평균가로 대체 — 조사 미완료 제품 대응)
- *   2) 아니면 paperType이 골라져 있으면 그대로
- *   3) 둘 다 없으면(즉답 단계, 아직 종류를 안 고른 상태) 병합 호출
+ *   2) 아니면 직접 입력(product)이 있으면 그대로
+ *   3) 아니면 종류만
  */
-export function resolvePaperSelection(state: WallpaperFormState, products: WallpaperProductOption[]): PaperSelection {
+export function resolvePaperSelection(state: WallpaperFormState, products: WallpaperProductOption[]): PaperSelection | null {
+  if (!state.paperType) return null; // 벽지 종류를 안 골랐다 — 계산하지 않는다
+  const paperType = state.paperType;
+
   if (state.productCode) {
     const found = products.find((p) => p.code === state.productCode);
-    // 안전장치(검사관 지적): 종류를 바꿨는데 예전 제품 코드가 안 지워진 채로 남아 있으면
-    // (화면 쪽 버그·공유 링크 손상 등) 여기서 한 번 더 막는다 — 고른 종류와 제품 종류가
-    // 다르면 그 제품은 무시하고 방금 고른 종류(paperType)로 계산한다.
-    if (found && state.paperType && found.kind !== state.paperType) {
-      return { mergeBoth: false, paperType: state.paperType };
+    // 안전장치: 종류를 바꿨는데 예전 제품 코드가 안 지워진 채로 남아 있으면(화면 쪽 버그·
+    // 공유 링크 손상 등) 여기서 한 번 더 막는다 — 고른 종류와 제품 종류가 다르면 그 제품은
+    // 무시하고 방금 고른 종류(paperType)로만 계산한다.
+    if (found && found.kind !== paperType) {
+      return { paperType };
     }
     if (found) {
       const hasFullSpec = isPositive(found.widthCm ?? undefined) && isPositive(found.lengthM ?? undefined) && isPositive(found.price ?? undefined);
       return {
-        mergeBoth: false,
-        paperType: found.kind,
+        paperType,
         product: hasFullSpec
           ? {
               rollPrice: found.price as number,
@@ -179,22 +223,22 @@ export function resolvePaperSelection(state: WallpaperFormState, products: Wallp
   }
 
   if (state.product) {
-    // 옛 화면의 "직접 입력" 필드가 채워져 있으면 그대로 사용
-    return { mergeBoth: false, paperType: state.paperType ?? '실크', product: state.product };
+    // "직접 입력" 필드가 채워져 있으면 그대로 사용
+    return { paperType, product: state.product };
   }
 
-  if (state.paperType) {
-    return { mergeBoth: false, paperType: state.paperType };
-  }
-
-  // 종류를 아직 하나도 안 골랐다 — 즉답 단계, 합지·실크 병합
-  return { mergeBoth: true };
+  return { paperType };
 }
 
 /**
  * 폼 상태 → 엔진 요청.
- * 우선순위: 정밀 폼(방별 실측 또는 벽 길이)이 유효하면 그 값, 아니면 즉답 평형.
- * 둘 다 비어 있으면 null(호출하지 않음 — 빈 상태 착시 방지).
+ *
+ * 2026-09-09 화면 재배치(벽지 최우선 A안) 규칙:
+ *   1) 벽지 종류를 안 골랐으면 null(계산 안 함) — resolvePaperSelection이 판정한다.
+ *   2) view === 'precise'(정확하게 계산하기): 방별 실측 또는 벽 길이 중 유효한 값이 있을
+ *      때만 계산한다. **평형으로 폴백하지 않는다** — 정밀 모드는 정밀 값이 없으면 그냥 없다.
+ *   3) view === 'simple'(간단하게 계산하기, 기본값): 평형만 본다. 정밀 폼에 값이 남아
+ *      있어도(예: 정밀 모드를 썼다가 간단 모드로 돌아온 경우) 무시한다.
  *
  * useWallpaperCalc(클라이언트 훅)와 result/page.tsx(공유 링크 결과, 서버 컴포넌트) 둘 다
  * 이 함수 하나로 계산 규칙을 맞춘다 — 두 곳이 각자 변환 로직을 두면 즉답 화면과 공유 결과
@@ -204,6 +248,10 @@ export function toEngineInput(
   state: WallpaperFormState,
   products: WallpaperProductOption[],
 ): { base: Omit<WallpaperCalcRequest, 'paperType' | 'product'>; paper: PaperSelection } | null {
+  // 벽지 종류를 안 골랐으면 다른 값이 다 차 있어도 계산하지 않는다(새 규칙)
+  const paper = resolvePaperSelection(state, products);
+  if (!paper) return null;
+
   const target = state.target ?? 'both';
   // ceiling 플래그는 대상이 '벽만'이 아니면 켠다.
   // ⚠️ target==='ceiling'(천장만)도 지금은 'both'와 같게 취급한다 — 엔진이 "천장만" 물량을
@@ -211,35 +259,57 @@ export function toEngineInput(
   //    완전한 "천장만" 지원은 엔진 쪽 후속 작업이 필요하다(README 위험 3 참고).
   const ceiling = target !== 'wall';
   const region = state.region;
-  const paper = resolvePaperSelection(state, products);
   // 구축(재도배) 여부 — 세 입력 방식(실측/면적/평형) 모두에 동일하게 실어 보낸다
   const isOld = state.isOld ?? false;
+  // view가 없는 옛 공유 링크는 resolveView가 정밀 값 유무로 추정한다(검사관 2라운드 지적 2번)
+  const view = resolveView(state);
 
-  // 1) 정밀 폼 — 방별 실측
-  // 2026-09-09 검사관 지적 수리: 방 카드가 있어도 전부 빈 값(가로·세로 미입력)이면
-  // 예전엔 여기서 null을 돌려줘 즉답(평형)까지 같이 사라졌다. 이제는 유효한 방이 하나도
-  // 없으면 이 블록을 건너뛰고 아래 벽 길이·평형 즉답으로 자연스럽게 넘어간다.
-  if (state.entry === 'room' && state.preciseRooms && state.preciseRooms.length > 0) {
-    const validRooms = validPreciseRooms(state);
-    if (validRooms.length > 0) {
-      const rooms: WallpaperRoomRequest[] = validRooms.map((r, i) => {
-        // 문도 창과 함께 실제 규격으로 windows[]에 넣는다(위 flattenOpenings 설명 참고) — doors는 항상 안 씀
-        const windows = flattenOpenings(r.openings);
+  if (view === 'precise') {
+    // 1) 방별 실측
+    if (state.entry === 'room' && state.preciseRooms && state.preciseRooms.length > 0) {
+      const validRooms = validPreciseRooms(state);
+      if (validRooms.length > 0) {
+        const rooms: WallpaperRoomRequest[] = validRooms.map((r, i) => {
+          // 문도 창과 함께 실제 규격으로 windows[]에 넣는다(위 flattenOpenings 설명 참고) — doors는 항상 안 씀
+          const windows = flattenOpenings(r.openings);
+          return {
+            name: `방${i + 1}`,
+            widthM: r.w,
+            depthM: r.d,
+            heightM: r.h,
+            doors: undefined,
+            windows: windows.length > 0 ? windows : undefined,
+          };
+        });
         return {
-          name: `방${i + 1}`,
-          widthM: r.w,
-          depthM: r.d,
-          heightM: r.h,
-          doors: undefined,
-          windows: windows.length > 0 ? windows : undefined,
+          base: {
+            mode: '실측',
+            rooms,
+            heightM: state.heightM ?? DEFAULT_CEILING_HEIGHT_M,
+            scope: '전체',
+            ceiling,
+            region,
+            isOld,
+          },
+          paper,
         };
-      });
+      }
+    }
+
+    // 2) 벽 길이(둘레) 직접 입력
+    if (state.entry === 'length' && isPositive(state.wallLength)) {
+      const height = state.heightM ?? DEFAULT_CEILING_HEIGHT_M;
+      // 문·창 차감: 벽 길이 모드의 개구부 목록(lengthOpenings)을 면적으로 환산해 뺀다
+      const openingAreaM2 = sumOpeningAreaM2(state.lengthOpenings);
+      const wallSqm = Math.max(0, state.wallLength * height - openingAreaM2);
       return {
         base: {
-          mode: '실측',
-          rooms,
-          heightM: state.heightM ?? DEFAULT_CEILING_HEIGHT_M,
-          scope: '전체',
+          mode: '면적',
+          areas: {
+            wallSqm,
+            ceilingSqm: target !== 'wall' ? state.directCeilingSqm : undefined,
+            perimeterM: state.wallLength,
+          },
           ceiling,
           region,
           isOld,
@@ -247,35 +317,15 @@ export function toEngineInput(
         paper,
       };
     }
-    // 유효한 방이 없다 — 아래로 흘러 벽 길이·평형 즉답을 시도한다
+
+    // 정밀 입력이 유효하지 않다 — 간단 모드(평형)로 폴백하지 않는다(새 규칙)
+    return null;
   }
 
-  // 2) 정밀 폼 — 벽 길이(둘레) 직접 입력
-  if (state.entry === 'length' && isPositive(state.wallLength)) {
-    const height = state.heightM ?? DEFAULT_CEILING_HEIGHT_M;
-    // 문·창 차감: 벽 길이 모드의 개구부 목록(lengthOpenings)을 면적으로 환산해 뺀다
-    const openingAreaM2 = sumOpeningAreaM2(state.lengthOpenings);
-    const wallSqm = Math.max(0, state.wallLength * height - openingAreaM2);
-    return {
-      base: {
-        mode: '면적',
-        areas: {
-          wallSqm,
-          ceilingSqm: target !== 'wall' ? state.directCeilingSqm : undefined,
-          perimeterM: state.wallLength,
-        },
-        ceiling,
-        region,
-        isOld,
-      },
-      paper,
-    };
-  }
-
-  // 3) 즉답 — 평형
-  // 2026-09-09 검사관 지적 수리: 서버가 5평 미만은 거부한다(route.ts min:5). 1~4평처럼
-  // 애매한 값을 그대로 보내면 매번 "계산에 실패했어요"만 뜨니, 여기서 아예 걸러 null로
-  // 돌려준다 — 화면(QuickAnswer)이 그 범위를 알아채 "5평부터 계산해요" 안내로 바꿔 보여준다.
+  // view === 'simple' — 평형만 본다.
+  // 서버가 5평 미만은 거부한다(route.ts min:5). 1~4평처럼 애매한 값을 그대로 보내면 매번
+  // "계산에 실패했어요"만 뜨니, 여기서 아예 걸러 null로 돌려준다 — 화면(QuickAnswer)이 그
+  // 범위를 알아채 "5평부터 계산해요" 안내로 바꿔 보여준다.
   if (isPositive(state.pyeong) && state.pyeong >= MIN_PYEONG) {
     return {
       base: {
@@ -291,6 +341,6 @@ export function toEngineInput(
     };
   }
 
-  // 입력이 하나도 없다 — 계산하지 않는다
+  // 평형이 없다 — 계산하지 않는다
   return null;
 }

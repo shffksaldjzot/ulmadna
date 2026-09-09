@@ -12,7 +12,8 @@ interface SegmentOption<T extends string> {
 
 interface SegmentProps<T extends string> {
   options: SegmentOption<T>[];
-  value: T;
+  /** 고른 값. undefined를 주면 아무 탭도 활성화하지 않는다(예: 벽지 종류 미선택 상태) */
+  value: T | undefined;
   onChange: (v: T) => void;
   className?: string;
 }

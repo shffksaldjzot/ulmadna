@@ -10,8 +10,10 @@
 //     매 타이핑마다 서버를 때리면 낭비니 디바운스, 느린 응답이 먼저 온 옛 요청으로
 //     최신 화면을 덮어쓰면 안 되니 취소, 같은 조건을 왔다갔다 할 때(칩 다시 누르기 등)
 //     매번 다시 계산하지 않도록 캐시를 둔다.
-//   - 벽지 종류(합지/실크)를 아직 안 고른 즉답 단계에서는 두 종류를 병렬로 계산해
-//     "가장 넓은 범위"(최저=합지 최저, 최고=실크 최고)로 보여준다(형아 결정 1번 추천안).
+//   - 2026-09-09 화면 재배치: 벽지 종류를 안 고르면 애초에 계산을 안 한다(toEngineInput이
+//     null을 돌려줌). 예전엔 종류 미선택 시 합지·실크를 둘 다 계산해 범위를 합치는
+//     "병합 즉답"이 있었지만, 벽지가 1번 카드로 맨 위에 오면서 폐기했다 — 이제 한 번에
+//     한 종류만 계산한다.
 //
 // ⚠️ 이 파일은 클라이언트 훅이라 src/server/** 를 import 하지 않는다(단가 유출 금지 규칙).
 //    서버 계산 결과(WallpaperCalcResult)의 모양을 아래에 그대로 옮겨 적어 둔다 —
@@ -90,7 +92,7 @@ export interface WallpaperCalcResultDTO {
   };
 }
 
-/** 금액 범위 (즉답 단계 · 종류 병합용) */
+/** 금액 범위 (카드3 큰 숫자에 쓴다. 지금은 항상 result.cost.min~max와 같다) */
 export interface WallpaperRange {
   min: number;
   max: number;
@@ -99,9 +101,9 @@ export interface WallpaperRange {
 // ── 훅이 밖으로 돌려주는 상태 ──
 
 export interface UseWallpaperCalcResult {
-  /** 마지막으로 성공한 계산 결과. 종류 병합 호출이면 실크(상한) 쪽 상세를 대표로 담는다 */
+  /** 마지막으로 성공한 계산 결과 */
   result: WallpaperCalcResultDTO | null;
-  /** 결과 화면 큰 숫자에 쓰는 금액 범위(단일 호출이면 result.cost.min~max와 같다) */
+  /** 결과 화면 큰 숫자에 쓰는 금액 범위(= result.cost.min~max) */
   range: WallpaperRange | null;
   loading: boolean;
   error: string | null;
@@ -171,7 +173,6 @@ export function useWallpaperCalc(state: WallpaperFormState, products: WallpaperP
 
     const cacheKey = JSON.stringify({
       base: engineInput.base,
-      merge: engineInput.paper.mergeBoth,
       paperType: engineInput.paper.paperType,
       product: engineInput.paper.product,
     });
@@ -197,22 +198,12 @@ export function useWallpaperCalc(state: WallpaperFormState, products: WallpaperP
       setLoading(true);
       setError(null);
 
-      const run = engineInput.paper.mergeBoth
-        ? Promise.all([
-            fetchWallpaper({ ...engineInput.base, paperType: '합지' }, controller.signal),
-            fetchWallpaper({ ...engineInput.base, paperType: '실크' }, controller.signal),
-          ]).then(([lo, hi]) => ({
-            // 합지 쪽 최저 ~ 실크 쪽 최고로 범위를 넓게 잡는다(형아 결정 1번 추천안)
-            result: hi,
-            range: { min: lo.cost.min, max: hi.cost.max },
-          }))
-        : fetchWallpaper(
-            { ...engineInput.base, paperType: engineInput.paper.paperType, product: engineInput.paper.product },
-            controller.signal,
-          ).then((r) => ({ result: r, range: { min: r.cost.min, max: r.cost.max } }));
-
-      run
-        .then(({ result: r, range: rg }) => {
+      fetchWallpaper(
+        { ...engineInput.base, paperType: engineInput.paper.paperType, product: engineInput.paper.product },
+        controller.signal,
+      )
+        .then((r) => {
+          const rg: WallpaperRange = { min: r.cost.min, max: r.cost.max };
           cacheRef.current.set(cacheKey, { result: r, range: rg });
           setResult(r);
           setRange(rg);

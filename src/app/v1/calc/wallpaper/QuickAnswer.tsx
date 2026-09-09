@@ -1,10 +1,16 @@
 // ──────────────────────────────────────────────
-// v1 허브 — 도배 계산기: 즉답 블록
-// 평형 하나만 넣으면 그 자리에서 바로 범위 견적이 뜨는 첫 화면 (설계 정본 0-C절 제1 차별점).
-// 그 아래 "범위·벽지·지역·상태" 칩 4줄을 답할수록 즉답 범위가 좁아진다.
+// v1 허브 — 도배 계산기: "간단하게 계산하기" 카드
+//
+// 2026-09-09 화면 재배치(벽지 최우선 A안):
+//   벽지 종류는 이제 이 카드 위에 있는 벽지 카드(PaperPicker)에서 고른다. 여기는 평형·베이
+//   + 즉답 큰 숫자 + 범위·지역·상태 칩(ConditionChips)만 담당한다.
+//   예전에 있던 "정밀 폼이 유효하면 평형·베이 칩을 잠그는" 로직은 삭제했다 — 이제 "간단하게
+//   계산하기"와 "정확하게 계산하기"가 아예 다른 카드라서 이 카드가 보일 때는 정밀 폼 값이
+//   따로 없다(WallpaperCalculator가 모드에 따라 이 카드나 PreciseSection 둘 중 하나만 그린다).
 //
 // 작성일: 2026년 09월 08일
 // 채움: 2026년 09월 09일 (B 지시서)
+// 재배치: 2026년 09월 09일 (벽지 최우선 A안)
 // ──────────────────────────────────────────────
 
 'use client';
@@ -13,10 +19,9 @@ import { useState } from 'react';
 import Card from '@/components/v1/Card';
 import Chip from '@/components/v1/Chip';
 import NumberField from '@/components/v1/NumberField';
-import RegionPicker from '@/components/v1/RegionPicker';
 import { formatManRange, formatNum } from '@/lib/v1/money';
-import type { PreciseInputInfo } from '@/lib/v1/wallpaperEngineInput';
 import type { WallpaperCalcResultDTO, WallpaperRange } from '@/lib/v1/useWallpaperCalc';
+import ConditionChips from './ConditionChips';
 
 // 평형 칩 목록 — 설계 정본 59/74/84 비율표와 매칭되는 대표 평형
 const PYEONG_CHIPS: readonly number[] = [18, 24, 25, 30, 34, 40, 45];
@@ -30,7 +35,7 @@ export interface QuickAnswerProps {
   /** 베이 수(2·3·4). 기본 3 */
   bay: 2 | 3 | 4;
   onBayChange: (v: 2 | 3 | 4) => void;
-  /** 즉답 금액 범위. 벽지 종류를 아직 안 고르면 합지~실크 폭까지 넓게 잡힌 값이 들어온다 */
+  /** 즉답 금액 범위 */
   range: WallpaperRange | null;
   loading: boolean;
   /** 계산 실패 메시지. 있으면 큰 숫자 자리에 실패 문구를 보여준다(재시도 버튼 없음) */
@@ -40,9 +45,9 @@ export interface QuickAnswerProps {
   /** 도배 대상 — 벽+천장 / 벽만 (이 화면은 두 개만 노출) */
   target: 'wall' | 'both';
   onTargetChange: (v: 'wall' | 'both') => void;
-  /** 벽지 종류. undefined = "아직 몰라요"(즉답 단계 기본, 합지~실크 합집합) */
+  /** 벽지 종류. 위 벽지 카드(PaperPicker)에서 고른 값을 읽기만 한다(여기서 바꾸지 않음) —
+   *  undefined면 "벽지를 고르면 바로 나와요" 메시지를 큰 숫자 자리에 보여준다 */
   paperType: '합지' | '실크' | undefined;
-  onPaperTypeChange: (v: '합지' | '실크' | undefined) => void;
   /** 지역(선택). 비용에만 영향 */
   region: string | undefined;
   onRegionChange: (v: string | undefined) => void;
@@ -51,8 +56,12 @@ export interface QuickAnswerProps {
   onIsOldChange: (v: boolean) => void;
   /** 롤·면적 줄에 쓰는 계산 결과(물량 상세) */
   result: WallpaperCalcResultDTO | null;
-  /** 정밀 폼(방별 실측/벽 길이)이 지금 유효한지. 있으면 평형·베이 칩을 잠근다(정밀 폼이 우선이라서) */
-  precise?: PreciseInputInfo;
+  /**
+   * 결과가 없을 때(!range) 보여줄 한 줄. WallpaperCalculator가 폼 상태를 보고 미리 계산해
+   * 내려준다 — "벽지를 고르면 바로 나와요"(paperType 없음) 또는 "평형을 고르면 바로
+   * 나와요"(벽지는 골랐는데 평형 없음). 결과 패널·하단 바와 문구를 통일하기 위해서다.
+   */
+  emptyMessage: string;
 }
 
 export default function QuickAnswer({
@@ -67,13 +76,12 @@ export default function QuickAnswer({
   target,
   onTargetChange,
   paperType,
-  onPaperTypeChange,
   region,
   onRegionChange,
   isOld,
   onIsOldChange,
   result,
-  precise = null,
+  emptyMessage,
 }: QuickAnswerProps) {
   // "직접 입력" 모드 여부 — 값이 프리셋과 같은지로 매번 다시 판단하지 않고 명시적 상태로 든다.
   // (검사관 지적 N1: 예전엔 값 비교로 판단해서 "18"까지 친 순간 18평 프리셋과 같아져
@@ -85,78 +93,68 @@ export default function QuickAnswer({
   );
   // 로딩 중이거나 이전 값을 보여주는 중이면 큰 숫자를 지우지 않고 옅게만 표시한다(깜빡임 방지 규칙)
   const dim = loading || stale;
-  // 정밀 폼(방별 실측 또는 벽 길이)이 유효하면 평형·베이 칩은 눌러도 소용없는 죽은 버튼이 된다
-  // — 아예 잠그고(옅게 + 클릭 막음) 이유를 한 줄로 알려준다(검사관 지적 4번·N2)
-  const preciseLocked = precise !== null;
   // 직접 입력한 평형이 1~4처럼 서버가 거부하는 범위(5 미만)면 호출 전에 미리 알려준다(검사관 지적 10번)
   const pyeongTooSmall = typeof pyeong === 'number' && pyeong > 0 && pyeong < 5;
 
   return (
     <Card>
-      {/* 1)+2) 평형·베이 — 정밀 폼(방별 실측/벽 길이)이 유효하면 그게 우선이라 둘 다 잠그고
-          이유를 한 줄로 알려준다 */}
-      <div className={preciseLocked ? 'opacity-50 pointer-events-none' : undefined}>
-        <h2 className="text-[20px] font-bold text-foreground">우리 집 몇 평?</h2>
-        {/* 가로 스크롤 대신 줄바꿈으로 둔다(검사관 지적) — 360px 화면에서 칩 8개가 두 줄로
-            접힌다. 순서는 [직접 입력][18][24][25][30][34][40][45]를 그대로 유지한다 */}
-        <div className="flex flex-wrap gap-2 mt-2">
+      {/* 1) 평형 — 제목 없이 라벨만(20/700 큰 제목은 벽지 카드가 이미 맨 위에 있어 중복이라 뺐다) */}
+      <span className="text-[16px] font-semibold text-foreground">평형</span>
+      {/* 가로 스크롤 대신 줄바꿈으로 둔다 — 360px 화면에서 칩 8개가 두 줄로 접힌다.
+          순서는 [직접 입력][18][24][25][30][34][40][45]를 그대로 유지한다 */}
+      <div className="flex flex-wrap gap-2">
+        <Chip
+          selected={directMode}
+          onClick={() => {
+            setDirectMode(true);
+            onPyeongChange('');
+          }}
+        >
+          직접 입력
+        </Chip>
+        {PYEONG_CHIPS.map((p) => (
           <Chip
-            selected={directMode}
+            key={p}
+            selected={!directMode && pyeong === p}
             onClick={() => {
-              setDirectMode(true);
-              onPyeongChange('');
+              setDirectMode(false);
+              onPyeongChange(p);
             }}
           >
-            직접 입력
+            {p}평
           </Chip>
-          {PYEONG_CHIPS.map((p) => (
-            <Chip
-              key={p}
-              selected={!directMode && pyeong === p}
-              onClick={() => {
-                setDirectMode(false);
-                onPyeongChange(p);
-              }}
-            >
-              {p}평
-            </Chip>
-          ))}
-        </div>
-        {directMode && (
-          <NumberField
-            value={pyeong}
-            onChange={onPyeongChange}
-            suffix="평"
-            placeholder="평형을 입력하세요"
-            aria-label="평형 직접 입력"
-            className="mt-2 w-full"
-          />
-        )}
-
-        {/* 베이(구조) — 물량 정확도에 영향을 주는 값이라 평형 바로 아래에 둔다 */}
-        <div className="flex items-center gap-2 flex-wrap mt-2">
-          <span className="text-[16px] font-semibold text-foreground">베이</span>
-          {BAY_CHIPS.map((b) => (
-            <Chip key={b} selected={bay === b} onClick={() => onBayChange(b)}>
-              {b}베이
-            </Chip>
-          ))}
-        </div>
+        ))}
       </div>
-      {precise?.kind === 'room' && (
-        <p className="text-[14px] text-v1-text-secondary">실측 {precise.count}개 방으로 계산 중</p>
-      )}
-      {precise?.kind === 'length' && (
-        <p className="text-[14px] text-v1-text-secondary">벽 길이로 계산 중</p>
+      {directMode && (
+        <NumberField
+          value={pyeong}
+          onChange={onPyeongChange}
+          suffix="평"
+          placeholder="평형을 입력하세요"
+          aria-label="평형 직접 입력"
+          className="w-full"
+        />
       )}
 
-      {/* 3) 즉답 큰 숫자 — 실패/5평 미만/빈값/정상 네 가지 상태만 있다 */}
+      {/* 2) 베이(구조) — 물량 정확도에 영향을 주는 값이라 평형 바로 아래에 둔다 */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-[16px] font-semibold text-foreground">베이</span>
+        {BAY_CHIPS.map((b) => (
+          <Chip key={b} selected={bay === b} onClick={() => onBayChange(b)}>
+            {b}베이
+          </Chip>
+        ))}
+      </div>
+
+      {/* 3) 즉답 큰 숫자 — 실패/벽지 미선택/5평 미만/평형 없음/정상 다섯 가지 상태만 있다 */}
       {error ? (
         <p className="text-[16px] text-foreground">계산에 실패했어요</p>
+      ) : !paperType ? (
+        <p className="text-[16px] text-v1-text-secondary">{emptyMessage}</p>
       ) : pyeongTooSmall ? (
         <p className="text-[16px] text-v1-text-secondary">5평부터 계산해요</p>
       ) : !range ? (
-        <p className="text-[16px] text-v1-text-secondary">평형을 고르면 바로 나와요</p>
+        <p className="text-[16px] text-v1-text-secondary">{emptyMessage}</p>
       ) : (
         <>
           <div
@@ -179,52 +177,15 @@ export default function QuickAnswer({
         </>
       )}
 
-      {/* 4) 칩 4줄 — 답할수록 즉답 범위가 좁아진다("더 정확하게" 유도 문구는 여기서 쓰지 않는다) */}
-      <div className="flex flex-col gap-3 pt-2 border-t border-v1-line-2">
-        <div className="flex flex-col gap-1">
-          <span className="text-[14px] text-v1-text-label">범위</span>
-          <div className="flex gap-2">
-            <Chip selected={target === 'both'} onClick={() => onTargetChange('both')}>
-              벽+천장
-            </Chip>
-            <Chip selected={target === 'wall'} onClick={() => onTargetChange('wall')}>
-              벽만
-            </Chip>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <span className="text-[14px] text-v1-text-label">벽지</span>
-          <div className="flex gap-2">
-            <Chip selected={paperType === undefined} onClick={() => onPaperTypeChange(undefined)}>
-              아직 몰라요
-            </Chip>
-            <Chip selected={paperType === '합지'} onClick={() => onPaperTypeChange('합지')}>
-              합지
-            </Chip>
-            <Chip selected={paperType === '실크'} onClick={() => onPaperTypeChange('실크')}>
-              실크
-            </Chip>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <span className="text-[14px] text-v1-text-label">지역</span>
-          <RegionPicker value={region} onChange={onRegionChange} />
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <span className="text-[14px] text-v1-text-label">상태</span>
-          <div className="flex gap-2">
-            <Chip selected={!isOld} onClick={() => onIsOldChange(false)}>
-              신축·빈집
-            </Chip>
-            <Chip selected={isOld} onClick={() => onIsOldChange(true)}>
-              구축·재도배
-            </Chip>
-          </div>
-        </div>
-      </div>
+      {/* 4) 범위·지역·상태 칩 3줄 — "정확하게 계산하기" 카드와 공유하는 부품 */}
+      <ConditionChips
+        target={target}
+        onTargetChange={onTargetChange}
+        region={region}
+        onRegionChange={onRegionChange}
+        isOld={isOld}
+        onIsOldChange={onIsOldChange}
+      />
     </Card>
   );
 }

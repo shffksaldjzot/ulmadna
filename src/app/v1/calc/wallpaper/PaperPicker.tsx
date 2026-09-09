@@ -1,15 +1,18 @@
 // ──────────────────────────────────────────────
-// v1 허브 — 도배 계산기: 벽지 제품 고르기
+// v1 허브 — 도배 계산기: 벽지 카드 (종류 + 제품 고르기)
 //
 // 이 파일이 하는 일:
-//   즉답 블록에서 벽지 종류(합지/실크)를 이미 골랐을 때만 나타나서, 그 종류의 제품을 고르게 한다.
-//   한 줄을 누르면 그 제품의 규격·판매가로 계산하고, 같은 줄을 다시 누르면 선택이 풀린다
-//   (종류 평균가로 돌아간다). 마지막 줄 "직접 입력"은 목록에 없는 벽지를 직접 적는 자리다.
-//   목록 제품과 직접 입력은 둘 중 하나만 살아 있다.
+//   화면 맨 위 1번 카드 — 벽지 종류(합지/실크)부터 고른다. 종류를 고르면 그 아래 제품
+//   목록이 나온다. 한 줄을 누르면 그 제품의 규격·판매가로 계산하고, 같은 줄을 다시 누르면
+//   선택이 풀린다(종류 평균가로 돌아간다). 마지막 줄 "직접 입력"은 목록에 없는 벽지를
+//   직접 적는 자리다. 목록 제품과 직접 입력은 둘 중 하나만 살아 있다.
 //
-//   2026년 09월 09일 검수 반영:
-//     · 종류 세그먼트(아직 몰라요/합지/실크) 삭제 — 즉답 블록 칩과 중복이라 한 곳에서만 고른다.
-//       종류를 안 골랐으면 이 카드 자체를 그리지 않는다.
+//   2026-09-09 화면 재배치(벽지 최우선 A안):
+//     · 종류 세그먼트를 이 카드 안으로 다시 들여왔다(즉답 블록 칩 4줄에 있던 걸 옮김) —
+//       이제 벽지가 화면 첫 카드라 종류를 여기서 바로 고른다. "아직 몰라요" 칩은 없앴다
+//       (기본이 미선택이라 굳이 옵션으로 안 둬도 된다).
+//     · 종류를 안 골라도 이 카드는 항상 그려진다(세그먼트를 보여줘야 하니까). 종류를
+//       안 골랐을 때만 제품 목록 자리를 비워 둔다(안내문 없이 — 설명글 최소화 원칙).
 //     · 규격·가격이 확인된 제품만 보여 준다. 조사가 덜 끝났거나 "확인 필요"가 붙은 제품은
 //       목록에서 아예 뺀다("조사 중"·"확인 중" 같은 미완성 흔적을 손님에게 보이지 않는다).
 //
@@ -17,12 +20,14 @@
 //   바깥 product 값이 바뀌면 그 값에 맞춰 다시 채운다).
 //
 // 작성일: 2026년 09월 09일
+// 재배치: 2026년 09월 09일 (벽지 최우선 A안)
 // ──────────────────────────────────────────────
 
 'use client';
 
 import { useState } from 'react';
 import Card from '@/components/v1/Card';
+import Segment from '@/components/v1/Segment';
 import NumberField from '@/components/v1/NumberField';
 import { IconChevronDown, IconChevronUp } from '@/components/v1/icons';
 import type { WallpaperProductOption } from '@/lib/v1/wallpaperQuery';
@@ -39,7 +44,7 @@ type CustomFields = {
 };
 
 export interface PaperPickerProps {
-  /** 벽지 종류. undefined면 아직 안 고른 상태 — 이때는 이 카드를 그리지 않는다 */
+  /** 벽지 종류. undefined면 아직 안 고른 상태 — 이때는 세그먼트만 보이고 제품 목록은 비운다 */
   paperType: '합지' | '실크' | undefined;
   onPaperTypeChange: (v: '합지' | '실크' | undefined) => void;
 
@@ -85,6 +90,7 @@ function toFields(product: CustomProduct | undefined): CustomFields {
 
 export default function PaperPicker({
   paperType,
+  onPaperTypeChange,
   productCode,
   onProductCodeChange,
   products,
@@ -151,16 +157,25 @@ export default function PaperPicker({
     onProductCodeChange(productCode === code ? undefined : code);
   }
 
-  // 종류를 아직 안 골랐으면(즉답에서 "아직 몰라요") 이 카드는 통째로 안 보인다
-  if (paperType === undefined) return null;
-
-  // 고른 종류 중 손님에게 보여도 되는 제품만 남긴다
-  const list = products.filter((p) => p.kind === paperType && isShowable(p));
+  // 고른 종류 중 손님에게 보여도 되는 제품만 남긴다(종류를 안 골랐으면 빈 목록)
+  const list = paperType ? products.filter((p) => p.kind === paperType && isShowable(p)) : [];
 
   return (
     <Card>
-      <h2 className="text-[20px] font-bold text-foreground">벽지 제품</h2>
+      <h2 className="text-[20px] font-bold text-foreground">벽지</h2>
 
+      {/* 종류 — 기본 미선택. 고르기 전엔 아무 탭도 활성화하지 않는다 */}
+      <Segment
+        options={[
+          { value: '합지', label: '합지' },
+          { value: '실크', label: '실크' },
+        ]}
+        value={paperType}
+        onChange={onPaperTypeChange}
+      />
+
+      {/* 종류를 안 골랐으면 제품 목록 자리를 비워 둔다(안내문 없이 — 설명글 최소화 원칙) */}
+      {paperType && (
       <div className="flex flex-col">
         {list.map((p) => {
           const selected = productCode === p.code;
@@ -266,6 +281,7 @@ export default function PaperPicker({
           </div>
         )}
       </div>
+      )}
     </Card>
   );
 }

@@ -17,14 +17,14 @@ import Button from '@/components/v1/Button';
 import Disclaimer from '@/components/v1/Disclaimer';
 import Toast, { showToast } from '@/components/v1/Toast';
 import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
-import { type WallpaperFormState, type WallpaperProductOption, encodeWallpaperForm } from '@/lib/v1/wallpaperQuery';
-import { resolvePaperSelection } from '@/lib/v1/wallpaperEngineInput';
+import { type WallpaperFormState, encodeWallpaperForm } from '@/lib/v1/wallpaperQuery';
+import { trimFormForShare } from '@/lib/v1/wallpaperEngineInput';
 import type { WallpaperCalcResultDTO, WallpaperCostLine, WallpaperRange } from '@/lib/v1/useWallpaperCalc';
 
 export interface ResultPanelProps {
   /** 마지막 성공 결과 (물량·부자재·비용 구성 전부 포함) */
   result: WallpaperCalcResultDTO | null;
-  /** 결과 화면 큰 숫자에 쓰는 금액 범위. 종류 병합 호출이면 result.cost.min~max보다 넓다 */
+  /** 결과 화면 큰 숫자에 쓰는 금액 범위(= result.cost.min~max) */
   range: WallpaperRange | null;
   loading: boolean;
   error: string | null;
@@ -32,13 +32,12 @@ export interface ResultPanelProps {
   stale: boolean;
   /** "결과 공유" 버튼이 링크를 만들 때 쓰는 현재 폼 상태 */
   form: WallpaperFormState;
-  /** 합집합(벽지 종류 미선택) 여부를 훅과 똑같은 규칙(resolvePaperSelection)으로 다시 판정할 때 쓴다 */
-  products: WallpaperProductOption[];
-}
-
-/** 원 단위 금액을 1,000원 단위로 반올림 (서버 roundWon과 같은 규칙) */
-function roundWon(n: number): number {
-  return Math.round(n / 1000) * 1000;
+  /**
+   * 결과가 없을 때(!result) 보여줄 한 줄 안내. WallpaperCalculator가 폼 상태를 보고
+   * "벽지를 고르면 바로 나와요" / "평형을 고르면 바로 나와요" / "치수를 넣으면 나와요" 중
+   * 하나로 미리 계산해 내려준다(즉답 자리·결과 패널·하단 바가 모두 같은 문구를 쓰기 위해).
+   */
+  emptyMessage: string;
 }
 
 /** 비용 구성 한 줄을 "28롤 × 3.2만 = 90만" 또는 범위 문자열로 만든다 (result/page.tsx와 같은 규칙) */
@@ -55,17 +54,17 @@ function formatCostLineAmount(line: WallpaperCostLine): string {
   return formatManRange(line.amountMin, line.amountMax);
 }
 
-export default function ResultPanel({ result, range, loading, error, stale, form, products }: ResultPanelProps) {
+export default function ResultPanel({ result, range, loading, error, stale, form, emptyMessage }: ResultPanelProps) {
   // "링크를 복사했어요" 같은 짧은 토스트 메시지
   const [toast, setToast] = useState<string | null>(null);
 
-  // 빈 상태 — 아직 계산할 값이 없거나(평형 미입력) 계산이 실패했을 때는 카드 1장만 보여준다
+  // 빈 상태 — 아직 계산할 값이 없거나(벽지 미선택 / 평형 미입력 / 치수 미입력) 계산이
+  // 실패했을 때는 카드 1장만 보여준다. 어떤 문구를 보여줄지는 WallpaperCalculator가
+  // 폼 상태를 보고 emptyMessage로 미리 정해서 내려준다.
   if (!result) {
     return (
       <Card>
-        <p className="text-[16px] text-v1-text-secondary">
-          {error ? '계산에 실패했어요' : '평형을 고르면 결과가 나와요'}
-        </p>
+        <p className="text-[16px] text-v1-text-secondary">{error ? '계산에 실패했어요' : emptyMessage}</p>
       </Card>
     );
   }
@@ -80,15 +79,8 @@ export default function ResultPanel({ result, range, loading, error, stale, form
         : `추정 로스 ${quantity.lossPct}%`;
 
   // 큰 숫자는 훅이 계산해 준 범위(범위가 없으면 이 결과 자체의 min~max)를 쓴다.
-  // 종류 병합 호출(paperType 미선택)일 때는 이 range가 result.cost보다 넓다.
+  // 지금은 항상 한 번만 계산하므로 range는 사실상 늘 result.cost.min~max와 같다.
   const bigRange = range ?? { min: cost.min, max: cost.max };
-
-  // 종류를 아직 안 골라 합지·실크를 둘 다 계산한 상태인지 — 훅(useWallpaperCalc)이 쓰는 것과
-  // 똑같은 판정 함수(resolvePaperSelection)를 그대로 써서 어긋나지 않게 한다.
-  const isMerged = resolvePaperSelection(form, products).mergeBoth;
-  // 합집합이면 result.cost.mid는 "실크 단독" 값이라 부정확하다(검사관 지적 8번).
-  // 화면에 보여준 범위(bigRange)의 중앙값을 1,000원 단위로 반올림해 대신 쓴다.
-  const midWon = isMerged ? roundWon((bigRange.min + bigRange.max) / 2) : cost.mid;
 
   // 로딩 중이거나 이전 값을 보여주는 중이거나, 방금 계산이 실패해 예전 값을 그대로 보여주는
   // 중이면 카드 전체를 옅게 한다(깜빡임 방지 규칙 + 검사관 지적 12번)
@@ -96,7 +88,9 @@ export default function ResultPanel({ result, range, loading, error, stale, form
 
   /** "결과 공유" — 모바일은 공유 시트가 있으면 그것부터, 아니면 링크 복사 */
   async function handleShare() {
-    const url = `${window.location.origin}/v1/calc/wallpaper/result?d=${encodeWallpaperForm(form)}`;
+    // 지금 모드에서 안 쓰는 값(예: simple인데 실측 방 목록)은 링크에 안 싣는다 — 폼 상태
+    // 원본(form)은 그대로 두고 공유용 사본만 깎는다(검사관 2라운드 지적 3번)
+    const url = `${window.location.origin}/v1/calc/wallpaper/result?d=${encodeWallpaperForm(trimFormForShare(form))}`;
     const nav = navigator as Navigator & { share?: (data: ShareData) => Promise<void> };
     if (nav.share) {
       try {
@@ -197,7 +191,7 @@ export default function ResultPanel({ result, range, loading, error, stale, form
             )}
           </div>
           <p className="text-[16px] font-semibold text-v1-text-secondary tabular-nums">
-            중간 {toMan(midWon).toLocaleString('ko-KR')}만원
+            중간 {toMan(cost.mid).toLocaleString('ko-KR')}만원
           </p>
           <p className="text-[16px] text-foreground tabular-nums">{cost.basisLine}</p>
           <Collapsible title="구성 보기">
