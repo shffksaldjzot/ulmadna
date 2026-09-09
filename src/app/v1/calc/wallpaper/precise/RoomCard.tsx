@@ -30,9 +30,30 @@ interface RoomCardProps {
   onChange: (v: PreciseRoomInput) => void;
   /** 이 방 카드를 지운다 */
   onRemove: () => void;
+  /** 폼 공통 높이(m) — 이 방 높이가 비어 있으면 이 값으로 벽 면적을 계산해 보여준다 */
+  heightM: number;
+  /** 범위 — 벽·천장 중 켜진 것만 계산값 줄에 보여준다 */
+  target: 'wall' | 'ceiling' | 'both';
 }
 
-export default function RoomCard({ index, room, unit, onChange, onRemove }: RoomCardProps) {
+/** 소수 첫째 자리 반올림 */
+function r1(n: number): number {
+  return Math.round(n * 10) / 10;
+}
+
+export default function RoomCard({ index, room, unit, onChange, onRemove, heightM, target }: RoomCardProps) {
+  // ── 이 방의 벽·천장 면적 미리보기 (엔진과 같은 규칙: 벽 = 둘레×높이 − 문·창, 천장 = 가로×세로) ──
+  // 2026-09-09 형아 지적: 방 크기 모드에서 천장 면적 입력칸이 없어 천장이 빠진 줄로 보였다.
+  // 천장은 가로×세로로 자동이므로 칸 대신 계산값을 바로 보여준다.
+  const w = room.w ?? 0;
+  const d = room.d ?? 0;
+  const h = room.h ?? heightM;
+  const openingSqm = room.openings.reduce((s, o) => s + (o.w / 100) * (o.h / 100) * o.count, 0);
+  const wallSqm = w > 0 && d > 0 ? Math.max(0, 2 * (w + d) * h - openingSqm) : 0;
+  const ceilingSqm = w > 0 && d > 0 ? w * d : 0;
+  const previewParts: string[] = [];
+  if (target !== 'ceiling') previewParts.push(`벽 ${r1(wallSqm)}㎡`);
+  if (target !== 'wall') previewParts.push(`천장 ${r1(ceilingSqm)}㎡ (가로×세로 자동)`);
   /** 저장값(m) → 화면 숫자. 0은 "아직 안 적음"이라 빈 칸으로 그린다 */
   function show(meters: number | undefined): number | '' {
     if (meters === undefined || meters === 0) return '';
@@ -84,6 +105,10 @@ export default function RoomCard({ index, room, unit, onChange, onRemove }: Room
             onChange={(v) => onChange({ ...room, d: store(v) })}
           />
         </div>
+        {/* 가로·세로를 다 적으면 이 방의 벽·천장 면적을 바로 보여준다 */}
+        {wallSqm > 0 || ceilingSqm > 0 ? (
+          <p className="text-[14px] text-v1-text-disabled tabular-nums">{previewParts.join(' · ')}</p>
+        ) : null}
       </div>
 
       {/* 이 방만 천장이 높거나 낮을 때만 펼쳐서 적는 칸(비우면 폼 공통 높이를 쓴다) */}

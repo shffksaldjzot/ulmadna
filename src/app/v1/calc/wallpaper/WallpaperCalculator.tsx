@@ -33,6 +33,7 @@ import { formatManRange, formatNum } from '@/lib/v1/money';
 import QuickAnswer from './QuickAnswer';
 import PreciseSection from './PreciseSection';
 import PaperPicker from './PaperPicker';
+import ConditionChips from './ConditionChips';
 import ResultPanel from './ResultPanel';
 
 interface WallpaperCalculatorProps {
@@ -117,6 +118,8 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
             // 목록에 없는 벽지를 직접 입력(롤당 가격·폭·길이·무늬 반복)
             product={form.product}
             onProductChange={(v) => patch({ product: v })}
+            // 범위(벽·천장) 칩은 벽지 선택 바로 아래(2026-09-09 형아 지시)
+            footer={<ConditionChips target={form.target ?? 'both'} onTargetChange={(v) => patch({ target: v })} />}
           />
 
           {/* 카드 2 — 모드에 따라 하나만 그린다 */}
@@ -131,7 +134,6 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
               error={error}
               stale={stale}
               target={form.target ?? 'both'}
-              onTargetChange={(v) => patch({ target: v })}
               paperType={form.paperType}
               result={result}
               emptyMessage={emptyMessage}
@@ -143,7 +145,6 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
               unit={form.unit ?? 'm'}
               onUnitChange={(v) => patch({ unit: v })}
               target={form.target ?? 'both'}
-              onTargetChange={(v) => patch({ target: v })}
               heightM={form.heightM ?? ''}
               onHeightChange={(v) => patch({ heightM: v === '' ? undefined : v })}
               rooms={form.preciseRooms ?? []}

@@ -25,7 +25,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import Card from '@/components/v1/Card';
 import Segment from '@/components/v1/Segment';
 import NumberField from '@/components/v1/NumberField';
@@ -62,6 +62,8 @@ export interface PaperPickerProps {
   /** 직접 입력한 벽지 (롤당 가격·폭·길이·무늬 반복) */
   product?: CustomProduct;
   onProductChange?: (v: CustomProduct | undefined) => void;
+  /** 카드 맨 아래에 붙일 것 — 범위(벽·천장) 칩 (2026-09-09 형아 지시: 범위는 벽지 선택 바로 아래) */
+  footer?: ReactNode;
 }
 
 /** 롤당 가격(원) → 화면 표기 "4.4만/롤". 만 단위 소수 첫째 자리까지, .0이면 떼고 보여 준다 */
@@ -99,6 +101,7 @@ export default function PaperPicker({
   products,
   product,
   onProductChange,
+  footer,
 }: PaperPickerProps) {
   // 직접 입력 칸 펼침 여부 — 이미 직접 입력한 값이 있으면 펼친 채로 시작한다
   const [customOpen, setCustomOpen] = useState(product !== undefined);
@@ -269,6 +272,8 @@ export default function PaperPicker({
         )}
       </div>
       )}
+      {/* 범위(벽·천장) 칩 — 벽지 종류를 고른 뒤에만 보인다 */}
+      {paperType && footer}
     </Card>
   );
 }

@@ -21,7 +21,6 @@ import Chip from '@/components/v1/Chip';
 import NumberField from '@/components/v1/NumberField';
 import { formatManRange, formatNum } from '@/lib/v1/money';
 import type { WallpaperCalcResultDTO, WallpaperRange } from '@/lib/v1/useWallpaperCalc';
-import ConditionChips from './ConditionChips';
 
 // 평형 칩 목록 — 설계 정본 59/74/84 비율표와 매칭되는 대표 평형
 const PYEONG_CHIPS: readonly number[] = [18, 24, 25, 30, 34, 40, 45];
@@ -44,7 +43,6 @@ export interface QuickAnswerProps {
   stale?: boolean;
   /** 도배 대상 — 벽+천장 / 벽만 (이 화면은 두 개만 노출) */
   target: 'wall' | 'ceiling' | 'both';
-  onTargetChange: (v: 'wall' | 'ceiling' | 'both') => void;
   /** 벽지 종류. 위 벽지 카드(PaperPicker)에서 고른 값을 읽기만 한다(여기서 바꾸지 않음) —
    *  undefined면 "벽지를 고르면 바로 나와요" 메시지를 큰 숫자 자리에 보여준다 */
   paperType: '합지' | '실크' | undefined;
@@ -70,7 +68,6 @@ export default function QuickAnswer({
   error,
   stale,
   target,
-  onTargetChange,
   paperType,
   result,
   emptyMessage,
@@ -170,11 +167,6 @@ export default function QuickAnswer({
         </>
       )}
 
-      {/* 4) 범위·지역·상태 칩 3줄 — "정확하게 계산하기" 카드와 공유하는 부품 */}
-      <ConditionChips
-        target={target}
-        onTargetChange={onTargetChange}
-      />
     </Card>
   );
 }

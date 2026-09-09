@@ -37,7 +37,7 @@ import type { PreciseRoomInput, WallpaperOpening } from '@/lib/v1/wallpaperQuery
 import RoomCard from './precise/RoomCard';
 import OpeningTable from './precise/OpeningTable';
 import { toDisplay, toMeters, heightPlaceholder } from './precise/units';
-import ConditionChips from './ConditionChips';
+import { DEFAULT_CEILING_HEIGHT_M } from '@/lib/v1/wallpaperDefaults';
 
 export interface PreciseSectionProps {
   /** 입력 방식 — 방별 실측 / 벽 길이 직접 입력 */
@@ -53,7 +53,6 @@ export interface PreciseSectionProps {
    * 보여준다. 이 프롭은 벽 길이 모드에서 "천장 면적" 칸을 열지 말지 판단하는 데만 쓴다.
    */
   target: 'wall' | 'ceiling' | 'both';
-  onTargetChange: (v: 'wall' | 'ceiling' | 'both') => void;
 
   /** 공통 천장 높이 (m). 비우면 훅이 기본 2.3m로 계산한다 */
   heightM: number | '';
@@ -95,7 +94,6 @@ export default function PreciseSection(props: PreciseSectionProps) {
     unit,
     onUnitChange,
     target,
-    onTargetChange,
     heightM,
     onHeightChange,
     rooms,
@@ -170,6 +168,9 @@ export default function PreciseSection(props: PreciseSectionProps) {
                 unit={unit}
                 onChange={(v) => onRoomsChange(rooms.map((r, j) => (j === i ? v : r)))}
                 onRemove={() => onRoomsChange(rooms.filter((_, j) => j !== i))}
+                // 벽·천장 면적 미리보기용 — 공통 높이(비었으면 기본 2.3m)와 범위
+                heightM={heightM === '' ? DEFAULT_CEILING_HEIGHT_M : heightM}
+                target={target}
               />
             ))}
             <button
@@ -218,11 +219,6 @@ export default function PreciseSection(props: PreciseSectionProps) {
         </>
       )}
 
-      {/* 6. 범위·지역·상태 칩 3줄 — "간단하게 계산하기" 카드와 공유하는 부품 */}
-      <ConditionChips
-        target={target}
-        onTargetChange={onTargetChange}
-      />
     </Card>
   );
 }
