@@ -228,7 +228,7 @@ export default function PreciseSection(props: PreciseSectionProps) {
 
       {/* 6. 범위·지역·상태 칩 3줄 — "간단하게 계산하기" 카드와 공유하는 부품 */}
       <ConditionChips
-        target={target === 'wall' ? 'wall' : 'both'}
+        target={target}
         onTargetChange={onTargetChange}
         region={region}
         onRegionChange={onRegionChange}

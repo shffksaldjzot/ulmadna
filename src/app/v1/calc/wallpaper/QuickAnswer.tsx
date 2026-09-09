@@ -43,8 +43,8 @@ export interface QuickAnswerProps {
   /** 다음 결과가 오기 전까지 이전 값을 보여주는 중이라는 표시(깜빡임 방지용, loading과 같은 취급) */
   stale?: boolean;
   /** 도배 대상 — 벽+천장 / 벽만 (이 화면은 두 개만 노출) */
-  target: 'wall' | 'both';
-  onTargetChange: (v: 'wall' | 'both') => void;
+  target: 'wall' | 'ceiling' | 'both';
+  onTargetChange: (v: 'wall' | 'ceiling' | 'both') => void;
   /** 벽지 종류. 위 벽지 카드(PaperPicker)에서 고른 값을 읽기만 한다(여기서 바꾸지 않음) —
    *  undefined면 "벽지를 고르면 바로 나와요" 메시지를 큰 숫자 자리에 보여준다 */
   paperType: '합지' | '실크' | undefined;
@@ -168,7 +168,8 @@ export default function QuickAnswer({
           {result && (
             <>
               <p className="text-[16px] text-foreground tabular-nums">
-                {formatNum(result.quantity.rolls)}롤 · 벽 {result.quantity.wallSqm}㎡
+                {formatNum(result.quantity.rolls)}롤
+                {target !== 'ceiling' && ` · 벽 ${result.quantity.wallSqm}㎡`}
                 {target !== 'wall' && ` · 천장 ${result.quantity.ceilingSqm}㎡`}
               </p>
               <p className="text-[14px] text-v1-text-disabled tabular-nums">{result.cost.basisLine}</p>

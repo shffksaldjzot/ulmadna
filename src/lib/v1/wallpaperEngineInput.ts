@@ -59,6 +59,8 @@ export interface WallpaperCalcRequest {
   heightM?: number;
   areas?: WallpaperAreasRequest;
   scope?: '전체' | '거실주방' | string[];
+  /** 벽 포함 여부(기본 켬). 끄면 천장만 */
+  wall?: boolean;
   ceiling?: boolean;
   paperType?: '합지' | '실크';
   product?: WallpaperProductRequest;
@@ -253,10 +255,9 @@ export function toEngineInput(
   if (!paper) return null;
 
   const target = state.target ?? 'both';
-  // ceiling 플래그는 대상이 '벽만'이 아니면 켠다.
-  // ⚠️ target==='ceiling'(천장만)도 지금은 'both'와 같게 취급한다 — 엔진이 "천장만" 물량을
-  //    따로 뽑는 모드를 아직 안 갖고 있어서(치수 모듈이 항상 벽 면적도 같이 계산),
-  //    완전한 "천장만" 지원은 엔진 쪽 후속 작업이 필요하다(README 위험 3 참고).
+  // 벽·천장은 각각 켜고 끈다(2026-09-09 형아 지시). 'wall'=벽만, 'ceiling'=천장만, 'both'=둘 다.
+  // 엔진이 wall 플래그를 받아 벽 면적을 0으로 만들어 "천장만"도 제대로 계산한다.
+  const wall = target !== 'ceiling';
   const ceiling = target !== 'wall';
   const region = state.region;
   // 구축(재도배) 여부 — 세 입력 방식(실측/면적/평형) 모두에 동일하게 실어 보낸다
@@ -287,6 +288,7 @@ export function toEngineInput(
             rooms,
             heightM: state.heightM ?? DEFAULT_CEILING_HEIGHT_M,
             scope: '전체',
+            wall,
             ceiling,
             region,
             isOld,
@@ -310,6 +312,7 @@ export function toEngineInput(
             ceilingSqm: target !== 'wall' ? state.directCeilingSqm : undefined,
             perimeterM: state.wallLength,
           },
+          wall,
           ceiling,
           region,
           isOld,
@@ -333,6 +336,7 @@ export function toEngineInput(
         pyeong: state.pyeong,
         bay: state.bay ?? 3,
         scope: '전체',
+        wall,
         ceiling,
         region,
         isOld,

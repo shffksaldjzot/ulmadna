@@ -70,6 +70,8 @@ export interface WallpaperCalcInput {
   // ── 공통 ──
   /** 시공 범위. 기본 전체 */
   scope?: WallpaperScope;
+  /** 벽 포함 여부. 기본 켬. 끄면 "천장만" 계산 (2026-09-09 형아 지시: 벽·천장 각각 토글) */
+  wall?: boolean;
   /** 천장 포함 여부. 기본 켬 */
   ceiling?: boolean;
   /** 벽지 종류. 기본 실크 */
@@ -248,6 +250,7 @@ export function calcWallpaper(input: WallpaperCalcInput): WallpaperCalcResult {
   // ── 0) 입력 기본값 정리 ──
   const mode: DimensionMode = input.mode ?? '평형';
   const scope: WallpaperScope = input.scope ?? '전체';
+  const wall = input.wall ?? true;
   const ceiling = input.ceiling ?? true;
   const paperType: PaperType = input.paperType ?? '실크';
   const isOld = input.isOld ?? false;
@@ -268,7 +271,8 @@ export function calcWallpaper(input: WallpaperCalcInput): WallpaperCalcResult {
   const scopeKeys = resolveScopeKeys(scope, allKeys);
   const selected: RoomDims[] = dims.rooms.filter((r) => scopeKeys.includes(r.key));
 
-  const wallSqm = r1(selected.reduce((s, r) => s + r.wallSqm, 0));
+  // 벽을 끄면(천장만) 벽 면적을 0으로 — 부직포·본드처럼 벽 면적에 붙는 부자재도 자연히 빠진다
+  const wallSqm = wall ? r1(selected.reduce((s, r) => s + r.wallSqm, 0)) : 0;
   const ceilingSqm = ceiling ? r1(selected.reduce((s, r) => s + r.ceilingSqm, 0)) : 0;
   const totalSqm = r1(wallSqm + ceilingSqm);
   const perimeterM = r1(selected.reduce((s, r) => s + r.perimeterM, 0));
@@ -293,7 +297,8 @@ export function calcWallpaper(input: WallpaperCalcInput): WallpaperCalcResult {
     wallSqm,
     ceilingSqm,
     spec,
-    measured: dims.canRealCut ? { wallHeightM: dims.heightM, perimeterM } : undefined,
+    // 벽을 끈 천장만 계산은 벽 폭 재단이 의미 없으니 면적 추정 방식으로 돌린다
+    measured: dims.canRealCut && wall ? { wallHeightM: dims.heightM, perimeterM } : undefined,
     lossModeLabel: mode === '면적' ? '면적' : undefined,
   });
   const rolls = cutting.units;
@@ -436,13 +441,13 @@ export function calcWallpaper(input: WallpaperCalcInput): WallpaperCalcResult {
 
   // ── 9) 실별 롤 배분 ──
   const rollAlloc = allocateRolls(
-    selected.map((r) => ({ key: r.key, weight: r.wallSqm + (ceiling ? r.ceilingSqm : 0) })),
+    selected.map((r) => ({ key: r.key, weight: (wall ? r.wallSqm : 0) + (ceiling ? r.ceilingSqm : 0) })),
     rolls,
   );
   const byRoom: RoomQuantity[] = selected.map((r) => ({
     key: r.key,
     name: r.name,
-    wallSqm: r1(r.wallSqm),
+    wallSqm: wall ? r1(r.wallSqm) : 0,
     ceilingSqm: ceiling ? r1(r.ceilingSqm) : 0,
     rolls: rollAlloc[r.key] ?? 0,
   }));

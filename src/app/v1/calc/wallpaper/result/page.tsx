@@ -71,8 +71,8 @@ function buildSummary(state: WallpaperFormState): string {
     parts.push(Array.isArray(state.scope) ? '방 고르기' : state.scope === '거실주방' ? '거실·주방' : '전체');
   }
 
-  // 대상이 "벽만"이면 그 문구로, 아니면 기존 천장 포함/미포함 문구를 그대로 쓴다
-  parts.push(state.target === 'wall' ? '벽만' : state.ceiling ? '천장 포함' : '천장 미포함');
+  // 범위 — 벽만 / 천장만 / 벽+천장 (2026-09-09 벽·천장 각각 토글)
+  parts.push(state.target === 'wall' ? '벽만' : state.target === 'ceiling' ? '천장만' : '벽+천장');
 
   // 구축(재도배)이면 한 마디 더 붙인다
   if (state.isOld) parts.push('구축');

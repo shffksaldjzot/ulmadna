@@ -19,8 +19,8 @@ import RegionPicker from '@/components/v1/RegionPicker';
 
 export interface ConditionChipsProps {
   /** 도배 대상 — 벽+천장 / 벽만 (이 화면은 두 개만 노출) */
-  target: 'wall' | 'both';
-  onTargetChange: (v: 'wall' | 'both') => void;
+  target: 'wall' | 'ceiling' | 'both';
+  onTargetChange: (v: 'wall' | 'ceiling' | 'both') => void;
   /** 지역(선택). 비용에만 영향 */
   region: string | undefined;
   onRegionChange: (v: string | undefined) => void;
@@ -39,15 +39,21 @@ export default function ConditionChips({
 }: ConditionChipsProps) {
   return (
     <div className="flex flex-col gap-3 pt-2 border-t border-v1-line-2">
-      {/* 범위 — 벽+천장 / 벽만 */}
+      {/* 범위 — 벽·천장을 각각 켜고 끈다 (2026-09-09 형아 지시). 둘 다 끄는 건 막는다(마지막 하나는 안 꺼짐) */}
       <div className="flex flex-col gap-1">
         <span className="text-[14px] text-v1-text-label">범위</span>
         <div className="flex gap-2">
-          <Chip selected={target === 'both'} onClick={() => onTargetChange('both')}>
-            벽+천장
+          <Chip
+            selected={target !== 'ceiling'}
+            onClick={() => onTargetChange(target === 'both' ? 'ceiling' : target === 'ceiling' ? 'both' : 'wall')}
+          >
+            벽
           </Chip>
-          <Chip selected={target === 'wall'} onClick={() => onTargetChange('wall')}>
-            벽만
+          <Chip
+            selected={target !== 'wall'}
+            onClick={() => onTargetChange(target === 'both' ? 'wall' : target === 'wall' ? 'both' : 'ceiling')}
+          >
+            천장
           </Chip>
         </div>
       </div>

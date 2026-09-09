@@ -194,6 +194,27 @@ describe('로스 모드 전환', () => {
   });
 });
 
+describe('천장만 (벽 끄기) — 2026-09-09 벽·천장 각각 토글', () => {
+  it('wall:false 면 벽 면적이 0이고 천장만으로 롤·시공이 나온다', () => {
+    const r = calcWallpaper({ mode: '평형', pyeong: 34, bay: 3, paperType: '실크', wall: false, ceiling: true });
+    expect(r.quantity.wallSqm).toBe(0);
+    expect(r.quantity.ceilingSqm).toBeGreaterThan(0);
+    expect(r.quantity.rolls).toBeGreaterThanOrEqual(1);
+    const keys = r.submaterials.map((s) => s.key);
+    // 벽 면적에 붙는 부자재(부직포·본드)는 빠진다
+    expect(keys).not.toContain('nonwoven');
+    expect(keys).not.toContain('bond');
+    const labor = r.cost.breakdown.find((b) => b.key === 'labor')!;
+    expect(labor.qty).toBeGreaterThanOrEqual(1);
+  });
+
+  it('천장만 롤 수는 벽+천장보다 적다', () => {
+    const both = calcWallpaper({ mode: '평형', pyeong: 34, bay: 3, paperType: '실크' });
+    const ceilingOnly = calcWallpaper({ mode: '평형', pyeong: 34, bay: 3, paperType: '실크', wall: false });
+    expect(ceilingOnly.quantity.rolls).toBeLessThan(both.quantity.rolls);
+  });
+});
+
 describe('인건 — 최소 1품', () => {
   it('아주 작은 공사도 1품 아래로 내려가지 않는다', () => {
     const tiny = calcLabor({ wallSqm: 3, ceilingSqm: 0, paperType: '합지', isOld: false });

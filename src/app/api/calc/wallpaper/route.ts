@@ -158,6 +158,7 @@ function parseInput(body: unknown): WallpaperCalcInput {
     heightM: num(body.heightM, 'heightM', { min: 1.5, max: 6 }),
     areas: parseAreas(body.areas),
     scope: parseScope(body.scope),
+    wall: bool(body.wall, 'wall'),
     ceiling: bool(body.ceiling, 'ceiling'),
     paperType: oneOf(body.paperType, 'paperType', ['합지', '실크'] as const),
     product: parseProduct(body.product),

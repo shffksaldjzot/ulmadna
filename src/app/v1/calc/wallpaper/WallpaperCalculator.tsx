@@ -130,7 +130,7 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
               loading={loading}
               error={error}
               stale={stale}
-              target={form.target === 'wall' ? 'wall' : 'both'}
+              target={form.target ?? 'both'}
               onTargetChange={(v) => patch({ target: v })}
               paperType={form.paperType}
               region={form.region}
