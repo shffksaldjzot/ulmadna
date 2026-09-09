@@ -79,12 +79,16 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
   const { result, range, loading, error, stale } = useWallpaperCalc(form, products);
 
   // 결과가 없을 때(!result) 즉답 자리·결과 패널·모바일 하단 바가 다 같이 쓰는 한 줄.
-  // 원인 우선순위: 벽지 종류 미선택 > (모드별) 평형 없음 / 치수 없음.
+  // 원인 우선순위: 벽지 종류 미선택 > (간단 모드) 제품 미선택 > (모드별) 평형 없음 / 치수 없음.
+  // 2026-09-09 형아 지시: 간단하게 계산하기는 제품을 골라야 금액이 나온다.
+  const hasProduct = !!form.productCode || !!form.product;
   const emptyMessage = !form.paperType
     ? '벽지를 고르면 바로 나와요'
     : view === 'precise'
       ? '치수를 넣으면 나와요'
-      : '평형을 고르면 바로 나와요';
+      : !hasProduct
+        ? '벽지 제품을 고르면 바로 나와요'
+        : '평형을 고르면 바로 나와요';
 
   /** 모바일 하단 요약 바 "결과 보기" — 결과 패널로 부드럽게 스크롤 */
   function scrollToResult() {
@@ -104,7 +108,7 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
           <div className="flex flex-col gap-2">
             <Segment options={VIEW_OPTIONS} value={view} onChange={(v) => patch({ view: v })} />
             <p className="text-[14px] text-v1-text-secondary">
-              {view === 'simple' ? '벽지와 평형만으로 바로 나와요' : '실측과 벽지 제품까지 반영해요'}
+              {view === 'simple' ? '벽지 제품과 평형만으로 바로 나와요' : '실측과 벽지 제품까지 반영해요'}
             </p>
           </div>
 

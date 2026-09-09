@@ -270,6 +270,10 @@ export function toEngineInput(
   // view가 없는 옛 공유 링크는 resolveView가 정밀 값 유무로 추정한다(검사관 2라운드 지적 2번)
   const view = resolveView(state);
 
+  // 2026-09-09 형아 지시: "간단하게 계산하기"는 벽지 제품(목록 선택 또는 직접 입력)까지 골라야 계산한다.
+  // 종류만 고른 상태에서는 금액이 안 나와야 하므로 아예 요청을 만들지 않는다(화면은 안내 문구만).
+  if (view === 'simple' && !paper.product) return null;
+
   if (view === 'precise') {
     // 1) 방별 실측
     if (state.entry === 'room' && state.preciseRooms && state.preciseRooms.length > 0) {

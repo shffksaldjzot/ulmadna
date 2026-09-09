@@ -22,7 +22,17 @@ const NO_PRODUCTS: WallpaperProductOption[] = [];
 describe('toEngineInput', () => {
   // DEFAULT_CALC_FORM은 paperType이 없는 상태다(2026-09-09 화면 재배치 — 벽지 최우선 A안).
   // 아래 대부분의 테스트는 계산이 실제로 되는 경로를 보고 싶은 것이므로 paperType을 따로 얹는다.
-  const SILK: WallpaperFormState = { ...DEFAULT_CALC_FORM, paperType: '실크' };
+  // 2026-09-09 형아 지시: 간단 모드는 벽지 제품까지 골라야 계산하므로 직접 입력 제품을 얹어 둔다
+  const SILK: WallpaperFormState = {
+    ...DEFAULT_CALC_FORM,
+    paperType: '실크',
+    product: { rollPrice: 40000, widthCm: 106, lengthM: 15.6 },
+  };
+
+  it('간단 모드에서 벽지 종류만 고르고 제품을 안 고르면 계산하지 않는다(null) — 2026-09-09 형아 지시', () => {
+    const noProduct: WallpaperFormState = { ...DEFAULT_CALC_FORM, paperType: '실크' };
+    expect(toEngineInput(noProduct, NO_PRODUCTS)).toBeNull();
+  });
 
   it('벽지 종류를 안 골랐으면 다른 값이 다 차 있어도 계산하지 않는다(null) — 병합 즉답 폐기', () => {
     // 예전엔 종류 미선택 시 합지·실크를 둘 다 계산해 범위를 합치는 "병합 즉답"이 있었지만,
@@ -142,8 +152,16 @@ describe('toEngineInput', () => {
         sourceLabel: '웹 조사 기준 · 2026.9',
       },
     ];
-    // productCode는 실크 제품인데 paperType은 합지로 바뀐 상태(정상 배선이면 안 생기는 조합)
-    const state: WallpaperFormState = { ...DEFAULT_CALC_FORM, paperType: '합지', productCode: 'silk_a' };
+    // productCode는 실크 제품인데 paperType은 합지로 바뀐 상태(정상 배선이면 안 생기는 조합).
+    // 간단 모드는 제품이 없으면 계산 자체를 안 하므로(2026-09-09 규칙) 정밀 모드로 확인한다.
+    const state: WallpaperFormState = {
+      ...DEFAULT_CALC_FORM,
+      paperType: '합지',
+      productCode: 'silk_a',
+      view: 'precise',
+      entry: 'room',
+      preciseRooms: [{ w: 4, d: 3, openings: [] }],
+    };
     const input = toEngineInput(state, products);
     expect(input!.paper.paperType).toBe('합지');
     // 실크 제품 규격이 섞여 들어가면 안 된다
@@ -238,7 +256,12 @@ describe('resolveView (view가 없는 옛 공유 링크 추정)', () => {
 
   it('view가 없는 옛 링크인데 정밀 입력도 무효하면 simple로 추정해 평형을 본다', () => {
     const { view: _unused, ...withoutView } = DEFAULT_CALC_FORM;
-    const state: WallpaperFormState = { ...withoutView, paperType: '실크' };
+    // 간단 모드는 제품이 있어야 계산하므로(2026-09-09 규칙) 직접 입력 제품을 얹는다
+    const state: WallpaperFormState = {
+      ...withoutView,
+      paperType: '실크',
+      product: { rollPrice: 40000, widthCm: 106, lengthM: 15.6 },
+    };
     expect(resolveView(state)).toBe('simple');
     const input = toEngineInput(state, NO_PRODUCTS);
     expect(input!.base.mode).toBe('평형');
