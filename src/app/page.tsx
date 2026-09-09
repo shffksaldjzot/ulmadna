@@ -2,16 +2,15 @@
 
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import { useSession, signOut } from 'next-auth/react';
 import { useCalculator } from '@/hooks/useCalculator';
 import InputPanel from '@/components/calculator/InputPanel';
 import ResultPanel from '@/components/calculator/ResultPanel';
 import AdSlot from '@/components/ads/AdSlot';
 import InteriorResourceLinks from '@/components/common/InteriorResourceLinks';
 import ProcessTiles from '@/app/v1/ProcessTiles';
+import TopNav from '@/components/v1/TopNav';
 
 export default function Home() {
-  const { data: session } = useSession();
   const { state, dispatch } = useCalculator();
 
   // 결과 카드 가시성 추적 — 결과부 도달 시 모바일 하단 고정바 숨김 (v2 명세 §7.2)
@@ -34,70 +33,13 @@ export default function Home() {
 
   return (
     <>
-      {/* ───── 헤더 ───── */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div className="max-w-[1400px] mx-auto px-4 lg:px-8 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <a href="/">
-              <Image
-                src="/ulmadna_logo.png"
-                alt="얼마드나"
-                width={130}
-                height={44}
-                priority
-                className="cursor-pointer"
-              />
-            </a>
-            <span className="hidden md:inline-block text-[10px] text-gray-400 border border-gray-200 rounded-full px-3 py-1">
-              완전 무료 · 회원가입 없음 · 전화번호 없음
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <a
-              href="/blog"
-              className="text-xs font-semibold text-gray-600 hover:text-brown border border-gray-200 px-4 py-2 rounded-full transition-colors"
-            >
-              블로그
-            </a>
-            {session?.user ? (
-              <>
-                <a
-                  href="/my-estimates"
-                  className="text-xs text-gray-500 hover:text-brown border border-gray-200 px-4 py-2 rounded-full transition-colors"
-                >
-                  내 견적서
-                </a>
-                <button
-                  onClick={() => signOut({ callbackUrl: '/' })}
-                  className="text-xs text-gray-400 hover:text-brown transition-colors"
-                >
-                  로그아웃
-                </button>
-                <span className="text-xs text-brown font-medium">
-                  {session.user.name}님
-                </span>
-              </>
-            ) : (
-              <>
-                <span className="hidden sm:block text-xs text-gray-400">
-                  완전 무료 · 개인정보 없음
-                </span>
-                <button
-                  onClick={() => window.location.href = '/login'}
-                  className="text-xs text-gray-500 hover:text-brown border border-gray-200 px-4 py-2 rounded-full transition-colors"
-                >
-                  로그인
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      </header>
+      {/* ───── 헤더 — v1·계산기와 같은 공용 상단바 (2026-09-09 형아 지시: 통일) ───── */}
+      <TopNav />
 
-      {/* AD-H: 히어로 ↔ 계산기 사이 (v2 명세 §4). 현재 house ad 플레이스홀더 노출 */}
+      {/* AD-H: 헤더 ↔ 계산기 사이 (v2 명세 §4). 현재 house ad 플레이스홀더 노출 */}
       <AdSlot id="AD-H" />
 
-      {/* ───── 메인: 입력 (55~60%) + 결과 (40~45%) ───── */}
+      {/* ───── 메인: 타일 + 입력 (55~60%) + 결과 (40~45%) ───── */}
       <main className="max-w-[1400px] mx-auto overflow-hidden">
         {/* ───── 공정별 물량 계산기 타일 (2026-09-09 형아 지시) ─────
             "우리 집 인테리어, 얼마 드나?" 문구 자리. 타일 묶음의 양 끝을 아래 입력 카드의 양 끝에 맞춘다(image copy 4.png).
@@ -107,6 +49,13 @@ export default function Home() {
         <div className="w-full lg:w-[58%]">
           <div className="px-4 lg:px-0 lg:mx-2 pt-6 pb-2 lg:pt-8 lg:pb-4">
             <ProcessTiles />
+          </div>
+        </div>
+
+        {/* 견적 계산기 제목 — 타일 제목과 같은 글씨·같은 정렬 (2026-09-09 형아 지시: 빨간 상자 자리에 "인테리어 견적 계산기") */}
+        <div className="w-full lg:w-[58%]">
+          <div className="px-4 lg:px-0 lg:mx-2 pt-2 pb-1">
+            <h2 className="text-[20px] font-bold text-foreground">인테리어 견적 계산기</h2>
           </div>
         </div>
 

@@ -169,11 +169,11 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
 
         {/* 오른쪽 — 결과. PC는 스크롤해도 따라오게 sticky, 화면보다 길면 패널 안에서만 스크롤.
             scroll-mt-16: "결과 보기"로 스크롤했을 때 위 고정 내비(TopNav)에 안 가리게 여유를 둔다.
-            lg:top-[81px]: PC 전역 헤더(TopNav 64px≈65px) + 여백 16px만큼 내려서 붙인다.
+            lg:top-[84px]: PC 전역 헤더(TopNav 64px≈65px) + 여백 16px만큼 내려서 붙인다.
             max-h도 그만큼 빼서 화면 밖으로 안 넘친다 */}
         <div
           ref={resultRef}
-          className="scroll-mt-16 lg:sticky lg:top-[81px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto"
+          className="scroll-mt-16 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto"
         >
           <ResultPanel
             result={result}
