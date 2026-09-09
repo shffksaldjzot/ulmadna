@@ -9,6 +9,24 @@ import ResultPanel from '@/components/calculator/ResultPanel';
 import AdSlot from '@/components/ads/AdSlot';
 import InteriorResourceLinks from '@/components/common/InteriorResourceLinks';
 
+/**
+ * 홈 히어로에 보여줄 공정별 계산기 타일.
+ * href 가 있으면 열린 계산기, 없으면 회색 "준비 중" 타일이다.
+ * 순서는 개발 예정 순서(형아 지시 2026-09-09: 미장 → 조적 → 방수 → 커튼 → 바닥재 → 샷시 → 욕실 → 주방 → 전기)
+ */
+const PROCESS_TILES: { name: string; href?: string }[] = [
+  { name: '도배', href: '/v1/calc/wallpaper' },
+  { name: '미장' },
+  { name: '조적' },
+  { name: '방수' },
+  { name: '커튼' },
+  { name: '바닥재' },
+  { name: '샷시' },
+  { name: '욕실' },
+  { name: '주방' },
+  { name: '전기' },
+];
+
 export default function Home() {
   const { data: session } = useSession();
   const { state, dispatch } = useCalculator();
@@ -106,6 +124,42 @@ export default function Home() {
             <p className="text-sm text-gray-500 mt-3 leading-relaxed">
               회원가입과 개인정보 없이 누구나 쉽게!
             </p>
+
+            {/* 공정별 물량 계산기 진입 — 2026-09-09 형아 결정: 도배는 바로가기, 나머지는 회색 "준비 중" 타일 */}
+            <a
+              href="/v1/calc/wallpaper"
+              className="inline-flex items-center gap-2 mt-5 px-5 py-3 rounded-xl bg-brown text-white text-sm font-semibold shadow-sm hover:bg-brown-hover active:bg-brown-press transition-colors"
+            >
+              도배 물량 계산기 바로가기
+              <span aria-hidden="true">→</span>
+            </a>
+
+            {/* 모바일 3열 → PC 5열. 준비 중 타일은 회색·클릭 불가 */}
+            <ul className="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-4 max-w-xl" aria-label="공정별 계산기">
+              {PROCESS_TILES.map((tile) =>
+                tile.href ? (
+                  <li key={tile.name}>
+                    <a
+                      href={tile.href}
+                      className="flex flex-col items-center justify-center h-16 rounded-xl border border-gold/60 bg-white text-brown text-sm font-semibold hover:bg-cream transition-colors"
+                    >
+                      {tile.name}
+                      <span className="text-[10px] font-medium text-gold mt-0.5">지금 계산</span>
+                    </a>
+                  </li>
+                ) : (
+                  <li key={tile.name}>
+                    <div
+                      aria-disabled="true"
+                      className="flex flex-col items-center justify-center h-16 rounded-xl border border-gray-200 bg-gray-100 text-gray-400 text-sm font-medium cursor-not-allowed select-none"
+                    >
+                      {tile.name}
+                      <span className="text-[10px] mt-0.5">준비 중</span>
+                    </div>
+                  </li>
+                ),
+              )}
+            </ul>
           </div>
 {/* 인테리어 이미지 제거됨 */}
         </div>

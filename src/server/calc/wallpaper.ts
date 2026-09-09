@@ -273,9 +273,6 @@ export function calcWallpaper(input: WallpaperCalcInput): WallpaperCalcResult {
   const totalSqm = r1(wallSqm + ceilingSqm);
   const perimeterM = r1(selected.reduce((s, r) => s + r.perimeterM, 0));
 
-  // 전체 대비 시공 비율 (인건 품수를 줄일 때 쓴다)
-  const fullTotal = dims.totals.wallSqm + dims.totals.ceilingSqm;
-  const scopeRatio = fullTotal > 0 ? Math.min(1, totalSqm / fullTotal) : 1;
 
   // ── 3) 벽지 규격 정하기 (제품 직접 입력이 있으면 그 규격) ──
   const spec: RollSpec = input.product
@@ -305,12 +302,13 @@ export function calcWallpaper(input: WallpaperCalcInput): WallpaperCalcResult {
   const perimeterIsMeasured = selected.length > 0 && selected.every((r) => !r.estimated);
 
   // ── 5) 인건 ──
+  // 벽·천장 면적은 이미 시공 범위와 천장 포함 여부가 반영된 값이다
   const labor = calcLabor({
-    supplyPyeong: dims.supplyPyeong,
+    wallSqm,
+    ceilingSqm,
     paperType,
-    ceiling,
     isOld,
-    scopeRatio,
+    rollPrice: input.product?.rollPrice,
     region: input.region,
   });
 

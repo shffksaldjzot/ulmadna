@@ -184,24 +184,55 @@ describe('로스 모드 전환', () => {
 
 describe('인건 — 최소 1품', () => {
   it('아주 작은 공사도 1품 아래로 내려가지 않는다', () => {
-    const tiny = calcLabor({ supplyPyeong: 1, paperType: '합지', ceiling: false, isOld: false });
+    const tiny = calcLabor({ wallSqm: 3, ceilingSqm: 0, paperType: '합지', isOld: false });
     expect(tiny.manDays).toBe(1);
 
-    const zero = calcLabor({ supplyPyeong: 0, paperType: '실크', ceiling: true, isOld: false });
+    const zero = calcLabor({ wallSqm: 0, ceilingSqm: 0, paperType: '실크', isOld: false });
     expect(zero.manDays).toBeGreaterThanOrEqual(1);
   });
 
   it('작은 면적 계산에도 시공 줄이 1품 이상으로 들어간다', () => {
-    const result = calcWallpaper({ mode: '면적', areas: { wallSqm: 2, ceilingSqm: 0 }, ceiling: false });
+    const result = calcWallpaper({ mode: '면적', areas: { wallSqm: 5, ceilingSqm: 0 }, paperType: '합지' });
     const labor = result.cost.breakdown.find((b) => b.key === 'labor');
     expect(labor).toBeDefined();
     expect(labor!.qty).toBeGreaterThanOrEqual(1);
   });
 
   it('실크가 합지보다 품이 많이 든다', () => {
-    const silk = calcLabor({ supplyPyeong: 34, paperType: '실크', ceiling: true, isOld: false });
-    const hapji = calcLabor({ supplyPyeong: 34, paperType: '합지', ceiling: true, isOld: false });
+    const silk = calcLabor({ wallSqm: 175.2, ceilingSqm: 75.8, paperType: '실크', isOld: false });
+    const hapji = calcLabor({ wallSqm: 175.2, ceilingSqm: 75.8, paperType: '합지', isOld: false });
     expect(silk.manDays).toBeGreaterThan(hapji.manDays);
+  });
+
+  // 2026-09-09 형아 확정 계수 검산 — 견적서 35건 실데이터(세부설계서 공정8)
+  it('34평(84타입) 실크 신축은 견적서 실데이터 213만 근처(7품 안팎)로 나온다', () => {
+    const silk = calcLabor({ wallSqm: 175.2, ceilingSqm: 75.8, paperType: '실크', isOld: false });
+    expect(silk.baseAmount).toBeGreaterThan(2_000_000);
+    expect(silk.baseAmount).toBeLessThan(2_300_000);
+    expect(silk.manDays).toBeGreaterThanOrEqual(6.5);
+    expect(silk.manDays).toBeLessThanOrEqual(8);
+  });
+
+  it('구축은 밑작업(퍼티·초배)만큼 신축보다 품이 늘고, 견적서 구축 구간(238~263만) 안이다', () => {
+    const fresh = calcLabor({ wallSqm: 175.2, ceilingSqm: 75.8, paperType: '실크', isOld: false });
+    const old = calcLabor({ wallSqm: 175.2, ceilingSqm: 75.8, paperType: '실크', isOld: true });
+    expect(old.manDays).toBeGreaterThan(fresh.manDays);
+    expect(old.baseAmount).toBeGreaterThan(2_300_000);
+    expect(old.baseAmount).toBeLessThan(2_700_000);
+  });
+
+  it('디아망급(롤 단가 55,000원 이상) 실크는 일반 실크보다 노무가 조금 더 든다', () => {
+    const normal = calcLabor({ wallSqm: 175.2, ceilingSqm: 75.8, paperType: '실크', isOld: false, rollPrice: 40000 });
+    const premium = calcLabor({ wallSqm: 175.2, ceilingSqm: 75.8, paperType: '실크', isOld: false, rollPrice: 63000 });
+    expect(premium.applied.rateKey).toBe('실크고급');
+    expect(premium.baseAmount).toBeGreaterThan(normal.baseAmount);
+  });
+
+  it('천장을 빼면 천장 면적만큼 품이 줄고, 품수는 반나절(0.5) 단위다', () => {
+    const withCeiling = calcLabor({ wallSqm: 175.2, ceilingSqm: 75.8, paperType: '실크', isOld: false });
+    const noCeiling = calcLabor({ wallSqm: 175.2, ceilingSqm: 0, paperType: '실크', isOld: false });
+    expect(noCeiling.manDays).toBeLessThan(withCeiling.manDays);
+    expect((withCeiling.manDays * 2) % 1).toBe(0);
   });
 
   it('표준품셈 하한 검산이 34평 실크 인건비 아래에서 말이 되는 값을 낸다', () => {

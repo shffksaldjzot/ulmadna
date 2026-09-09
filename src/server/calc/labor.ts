@@ -1,28 +1,34 @@
 // ──────────────────────────────────────────────
-// 인건 계산 모듈 — 일당 × 일수
+// 인건 계산 모듈 — 도배 면적 × 평당 노무 단가
 //
-// 기본 생각:
-//   인건비 = 품수 × 일당.  1품 = 1인 1일.
-//   품수는 "물량 ÷ 하루 생산성"으로 구한다.
-//     실크 → (공급 평수 × 3 ÷ 15) + 1  (실무자 공유 공식, 천장·초배·퍼티 포함 전제)
-//     합지 → 2인 1조가 하루 30평 → 조 일수 × 2인
-//   여기에 천장 제외·구축·지역 조건을 곱하고, 마지막에 올림(최소 1품)한다.
+// 기본 생각 (2026년 09월 09일 형아 확정, 견적서 35건 실데이터 기반):
+//   인건비 = 벽 도배평 × 벽 단가 + 천장 도배평 × 천장 단가 (+ 구축이면 밑작업 추가)
+//   품수   = 인건비 ÷ 기준 일당 30만 (반나절 단위 올림, 최소 1품)
+//   실제 금액은 품수 × 지역별 일당 밴드(단가 파일)로 화면에 나간다.
+//
+// 예전 방식("(공급평 × 3 ÷ 15) + 1품" 실무자 공식)은 34평 실크가 9품(구축)까지 나와
+// 견적서 실데이터(신축 7품·구축 8~9품)보다 조금 높았다. 이제 면적에 비례하므로
+// 부분 도배·천장 제외도 면적이 줄어드는 만큼 자연스럽게 품이 준다.
 //
 // 표준품셈(인·일/㎡ × 노임단가)은 화면에 쓰지 않고 laborSanityFloor()로 하한 검산만 한다.
 // 관급 기준이라 민간 관행 단가와 배율이 다르기 때문이다.
 //
-// 작성일: 2026년 08월 28일
-// 근거: docs/도메인지식/01_도배.md 4절, docs/도메인지식/00_표준품셈_공통.md 2-1·3절
+// 작성일: 2026년 08월 28일 · 개정: 2026년 09월 09일
+// 근거: _dev-docs/얼마드나_전공정_세부설계서.md 공정8, src/data/ulmadna_db.json labor_rates,
+//       docs/도메인지식/00_표준품셈_공통.md 2-1·3절
 // ──────────────────────────────────────────────
 
 import 'server-only';
 
 import {
-  SILK_LABOR_FORMULA,
-  HAPJI_PYEONG_PER_TEAM_DAY,
+  LABOR_WON_PER_PYEONG,
+  PREMIUM_SILK_ROLL_PRICE_THRESHOLD,
+  CEILING_SHARE_FOR_BLEND,
+  OLD_BUILDING_PREP_WON_PER_PYEONG,
+  BASE_DAILY_WAGE,
+  MAN_DAY_STEP,
   TEAM_SIZE,
-  NO_CEILING_LABOR_MULT,
-  OLD_BUILDING_LABOR_MULT,
+  SQM_PER_PYEONG,
   SPEC_PAPERHANGER_PER_SQM,
   SPEC_HELPER_PER_SQM,
   SPEC_CEILING_SURCHARGE,
@@ -54,35 +60,42 @@ export function regionLaborMult(region?: string): Coefficient {
 
 /** 인건 계산에 넣는 값들 */
 export interface LaborInput {
-  /** 공급 평형 (품수 공식이 공급 평수를 쓴다) */
-  supplyPyeong: number;
+  /** 벽 도배 면적 (㎡) — 시공 범위가 이미 반영된 값 */
+  wallSqm: number;
+  /** 천장 도배 면적 (㎡) — 천장을 뺐으면 0 */
+  ceilingSqm: number;
   /** 벽지 종류 */
   paperType: PaperType;
-  /** 천장 포함 여부 */
-  ceiling: boolean;
-  /** 구축(재도배) 여부 */
+  /** 구축(재도배) 여부 — 퍼티·초배 밑작업이 붙는다 */
   isOld: boolean;
-  /** 시공 범위 비율 (전체=1, 거실·주방만=0.4 등). 부분 도배면 품수도 줄어든다 */
-  scopeRatio?: number;
+  /** 고른 제품의 롤 단가 (원, 선택) — 디아망급 고급 실크 판정에 쓴다 */
+  rollPrice?: number;
   /** 지역 (선택) */
   region?: string;
 }
 
 /** 인건 계산 결과 */
 export interface LaborResult {
-  /** 품수 (올림, 최소 1) */
+  /** 품수 (반나절 단위 올림, 최소 1) */
   manDays: number;
   /** 참고용 조 일수 (2인 1조 기준) */
   teamDays: number;
-  /** 보정 전 기본 품수 (반올림 전) */
+  /** 올림 전 품수 (소수 1자리) */
   rawManDays: number;
-  /** 화면 "구성 보기"에 붙일 근거 문장 */
+  /** 기준 일당(30만)으로 계산한 인건비 (원) — 검증용. 화면 금액은 품수 × 지역 일당 밴드 */
+  baseAmount: number;
+  /** 화면 "구성 보기"에 붙일 근거 문장 (서버 안에서만 쓴다) */
   basis: string;
-  /** 어떤 보정이 얼마나 곱해졌는지 (검증용) */
+  /** 어떤 값이 얼마나 쓰였는지 (검증용) */
   applied: {
-    scopeRatio: number;
-    ceilingMult: number;
-    oldMult: number;
+    /** 쓰인 노무 단가 종류 */
+    rateKey: PaperType | '실크고급';
+    /** 벽 단가 (원/도배평) */
+    wallRate: number;
+    /** 천장 단가 (원/도배평) */
+    ceilingRate: number;
+    /** 구축 밑작업 단가 (원/도배평, 신축이면 0) */
+    prepRate: number;
     regionMult: number;
   };
 }
@@ -92,59 +105,68 @@ function r1(n: number): number {
   return Math.round(n * 10) / 10;
 }
 
+/** 벽지 종류·제품 가격으로 노무 단가 키를 고른다 */
+export function pickLaborRateKey(paperType: PaperType, rollPrice?: number): PaperType | '실크고급' {
+  if (paperType === '실크' && rollPrice != null && rollPrice >= PREMIUM_SILK_ROLL_PRICE_THRESHOLD.value) {
+    return '실크고급';
+  }
+  return paperType;
+}
+
+/**
+ * 혼합 단가(천장 포함 평균)를 벽 단가·천장 단가로 나눈다.
+ * 천장은 표준품셈대로 30% 가산이고, 혼합 단가 안에는 천장이 약 30% 섞여 있다.
+ */
+function splitRate(blended: number): { wallRate: number; ceilingRate: number } {
+  const wallRate = blended / (1 + SPEC_CEILING_SURCHARGE.value * CEILING_SHARE_FOR_BLEND.value);
+  return {
+    wallRate: Math.round(wallRate),
+    ceilingRate: Math.round(wallRate * (1 + SPEC_CEILING_SURCHARGE.value)),
+  };
+}
+
 /**
  * 도배 품수를 계산한다.
- * 결과 manDays 는 이미 올림된 정수이고 최소 1품이 보장된다.
+ * 결과 manDays 는 반나절(0.5품) 단위로 올림된 값이고 최소 1품이 보장된다.
  */
 export function calcLabor(input: LaborInput): LaborResult {
-  const scopeRatio = input.scopeRatio ?? 1;
-  // 부분 도배면 그만큼 줄어든 "실질 평수"로 공식을 돌린다
-  const effectivePyeong = Math.max(0, input.supplyPyeong * scopeRatio);
+  const wallPyeong = Math.max(0, input.wallSqm) / SQM_PER_PYEONG;
+  const ceilingPyeong = Math.max(0, input.ceilingSqm) / SQM_PER_PYEONG;
+  const workPyeong = wallPyeong + ceilingPyeong;
 
-  // ── 1) 종류별 기본 품수 ──
-  let raw: number;
-  let formulaText: string;
-  if (input.paperType === '실크') {
-    // 실크: (평수 × 3 ÷ 15) + 1
-    raw =
-      (effectivePyeong * SILK_LABOR_FORMULA.multiplier) / SILK_LABOR_FORMULA.divisor +
-      SILK_LABOR_FORMULA.addOn;
-    formulaText = `실크 품수 공식 (${r1(effectivePyeong)}평 × 3 ÷ 15) + 1 = ${r1(raw)}품`;
-  } else {
-    // 합지: 2인 1조가 하루 30평 → 조 일수 × 2인
-    const teamDaysRaw = effectivePyeong / HAPJI_PYEONG_PER_TEAM_DAY.value;
-    raw = teamDaysRaw * TEAM_SIZE.value;
-    formulaText = `합지 2인 1조 하루 ${HAPJI_PYEONG_PER_TEAM_DAY.value}평 → ${r1(effectivePyeong)}평 ÷ ${HAPJI_PYEONG_PER_TEAM_DAY.value} × ${TEAM_SIZE.value}인 = ${r1(raw)}품`;
-  }
+  // ── 1) 종류별 평당 노무 단가 (벽·천장 분리) ──
+  const rateKey = pickLaborRateKey(input.paperType, input.rollPrice);
+  const { wallRate, ceilingRate } = splitRate(LABOR_WON_PER_PYEONG[rateKey].value);
+  const baseWon = wallPyeong * wallRate + ceilingPyeong * ceilingRate;
 
-  // ── 2) 조건 보정 ──
-  // 천장을 빼면 품이 준다 (공식이 천장 포함 전제라 덜어 준다)
-  const ceilingMult = input.ceiling ? 1 : NO_CEILING_LABOR_MULT.value;
-  // 구축은 기존 벽지 제거·퍼티·네바리로 품이 는다
-  const oldMult = input.isOld ? OLD_BUILDING_LABOR_MULT.value : 1;
-  // 지역 보정
-  const regionCoef = regionLaborMult(input.region);
-  const regionMult = regionCoef.value;
+  // ── 2) 구축 밑작업(퍼티·초배) 추가 ──
+  const prepRate = input.isOld ? OLD_BUILDING_PREP_WON_PER_PYEONG.value : 0;
+  const prepWon = workPyeong * prepRate;
 
-  const adjusted = raw * ceilingMult * oldMult * regionMult;
+  // ── 3) 지역 보정 ──
+  const regionMult = regionLaborMult(input.region).value;
+  const baseAmount = Math.round((baseWon + prepWon) * regionMult);
 
-  // ── 3) 올림 + 최소 1품 ──
-  const manDays = Math.max(1, Math.ceil(adjusted));
+  // ── 4) 품수 환산: 기준 일당 30만 → 반나절 단위 올림, 최소 1품 ──
+  const rawManDays = baseAmount / BASE_DAILY_WAGE.value;
+  const manDays = Math.max(1, Math.ceil(rawManDays / MAN_DAY_STEP) * MAN_DAY_STEP);
   const teamDays = r1(manDays / TEAM_SIZE.value);
 
-  // ── 4) 근거 문장 ──
-  const parts: string[] = [formulaText];
-  if (!input.ceiling) parts.push(`천장 제외 ×${ceilingMult}`);
-  if (input.isOld) parts.push(`구축 가산 ×${oldMult}`);
+  // ── 5) 근거 문장 (서버 안에서만 쓴다 — 화면 note에는 결과 품수만 나간다) ──
+  const parts: string[] = [
+    `${rateKey} 벽 ${r1(wallPyeong)}평 × ${wallRate.toLocaleString()}원 + 천장 ${r1(ceilingPyeong)}평 × ${ceilingRate.toLocaleString()}원`,
+  ];
+  if (input.isOld) parts.push(`구축 밑작업 ${r1(workPyeong)}평 × ${prepRate.toLocaleString()}원`);
   if (regionMult !== 1) parts.push(`${input.region ?? ''} 보정 ×${regionMult}`);
-  parts.push(`올림 → ${manDays}품 (2인 1조 약 ${teamDays}일)`);
+  parts.push(`= ${baseAmount.toLocaleString()}원 ÷ 일당 ${BASE_DAILY_WAGE.value.toLocaleString()}원 → ${manDays}품 (2인 1조 약 ${teamDays}일)`);
 
   return {
     manDays,
     teamDays,
-    rawManDays: r1(raw),
+    rawManDays: r1(rawManDays),
+    baseAmount,
     basis: parts.join(' · '),
-    applied: { scopeRatio, ceilingMult, oldMult, regionMult },
+    applied: { rateKey, wallRate, ceilingRate, prepRate, regionMult },
   };
 }
 

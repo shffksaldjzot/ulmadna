@@ -271,47 +271,79 @@ export const SILICONE_M_PER_CARTRIDGE: Coefficient = {
   source: '설계 정본 2-D절 (카트리지 300ml). 도포 폭·두께에 따라 8~14m — 중앙값 11m 추정',
 };
 
-// ── 5. 인건 계수 (01_도배.md 4절) ────────────────
+// ── 5. 인건 계수 (견적서 35건 실데이터 기반, 2026년 09월 09일 형아 확정) ──
+//
+// 예전 방식(실무자 공유 공식 "(공급평 × 3 ÷ 15) + 1품")을 버리고,
+// 셀인카페 견적서 35건(EST-001~035)에서 뽑은 "도배 면적 평당 노무 단가"로 바꿨다.
+// 근거: _dev-docs/얼마드나_전공정_세부설계서.md 공정8 · src/data/ulmadna_db.json labor_rates
+//
+//   인건비 = 벽 도배평 × 벽 단가 + 천장 도배평 × 천장 단가 (+ 구축이면 밑작업 추가)
+//   품수   = 인건비 ÷ 기준 일당 30만 (반나절 단위 올림, 최소 1품)
+//
+// 검산(34평 84타입 실크, 도배면적 251㎡ = 76.1도배평):
+//   신축 76.1 × 28,000 ≈ 213만(7.1품) — 세부설계서 213만과 일치
+//   구축 213만 + 76.1 × 5,000 ≈ 251만(8.4품) — 견적서 구축 238~263만 사이
+
+/** 도배 면적(평)당 노무 단가 — 천장 포함 혼합 단가(원/도배평) */
+export const LABOR_WON_PER_PYEONG: Record<PaperType | '실크고급', Coefficient> = {
+  합지: {
+    value: 15000,
+    grade: 'C',
+    source: '세부설계서 공정8 합지 인건 15,000원/도배평 (리서치값, 견적서 직접 근거 없음)',
+  },
+  실크: {
+    value: 28000,
+    grade: 'B',
+    source: '세부설계서 공정8 실크(베스띠) 인건 28,000원/도배평 — EST-022·025',
+  },
+  // 디아망급 고급 실크는 초배·퍼티·부직포까지 포함해 조금 더 든다
+  실크고급: {
+    value: 30000,
+    grade: 'B',
+    source: '세부설계서 공정8 디아망 인건 30,000원/도배평 — EST-010·020·021',
+  },
+};
+
+/** 제품 롤 단가가 이 값 이상이면 "고급 실크(디아망급)" 노무 단가를 쓴다 (원/롤) */
+export const PREMIUM_SILK_ROLL_PRICE_THRESHOLD: Coefficient = {
+  value: 55000,
+  grade: 'C',
+  source: 'EST-035 디아망 롤 63,000원 vs 일반 실크 유통가 34,800~70,700원 사이 경계 — 추정',
+};
 
 /**
- * 실크 도배 품수 공식의 계수.
- * 품수 = (공급 평수 × 3 ÷ 15) + 1
- * 전제: 천장 포함 전체 초배 + 퍼티 포함.
+ * 혼합 단가를 벽·천장으로 나눌 때 쓰는 천장 비중.
+ * 84타입 천장 75.8㎡ ÷ 도배 합계 251㎡ ≈ 0.30 (v2 확정데이터 9절).
+ * 벽 단가 = 혼합 단가 ÷ (1 + 천장 가산 0.3 × 천장 비중), 천장 단가 = 벽 단가 × 1.3
  */
-export const SILK_LABOR_FORMULA = {
-  multiplier: 3,
-  divisor: 15,
-  addOn: 1,
-  grade: 'B' as EvidenceGrade,
-  source: '01_도배.md 4-2 (실무자 공유 공식). 32평이면 약 7~8품',
+export const CEILING_SHARE_FOR_BLEND: Coefficient = {
+  value: 0.3,
+  grade: 'A',
+  source: 'v2 확정데이터 9절 (84타입 천장 75.8㎡ / 합계 251㎡). 천장 30% 가산은 표준품셈 5-3-7',
 };
 
-/** 합지 도배 — 2인 1조가 하루에 처리하는 공급 평수 */
-export const HAPJI_PYEONG_PER_TEAM_DAY: Coefficient = {
-  value: 30,
+/** 구축(재도배) 밑작업(퍼티·초배) 추가 노무 — 도배 면적 평당 (원/도배평) */
+export const OLD_BUILDING_PREP_WON_PER_PYEONG: Coefficient = {
+  value: 5000,
   grade: 'B',
-  source: '설계 정본 2-D절 · 01_도배.md 4-3 (합지 하루 약 30평, 2인 1조 관행)',
+  source: '세부설계서 공정8 퍼티 20~30만(EST-025) · 퍼티+초배 40~60만(EST-005) ÷ 30평 도배면적 70.8평 = 2,800~8,500 → 중앙 5,000',
 };
+
+/** 품수 환산 기준 일당 (원/품) — 견적서 35건 도배 일당 */
+export const BASE_DAILY_WAGE: Coefficient = {
+  value: 300000,
+  grade: 'A',
+  source: 'ulmadna_db.json labor_rates.wallpaper daily_rate 300,000 (EST-025·035 자재/노무 분리 견적서). 개나리 자재상 1품 308,000원 교차',
+};
+
+/** 품수 올림 단위 (0.5 = 반나절) */
+export const MAN_DAY_STEP = 0.5;
 
 /** 도배 1조 인원 (2인 1조가 관행) */
 export const TEAM_SIZE: Coefficient = {
   value: 2,
   grade: 'A',
   source: '01_도배.md 4-3 (도배는 통상 2인 1조)',
-};
-
-/** 천장을 뺐을 때 품수에 곱하는 계수 (품수 공식이 천장 포함 전제라 덜어 준다) */
-export const NO_CEILING_LABOR_MULT: Coefficient = {
-  value: 0.8,
-  grade: 'C',
-  source: '표준품셈 5-3-7 "천장은 품에 30% 가산"을 뒤집어 추정. 정량 비율은 01_도배.md 4-4에서 미확인',
-};
-
-/** 구축(재도배)일 때 품수에 곱하는 가산 계수 */
-export const OLD_BUILDING_LABOR_MULT: Coefficient = {
-  value: 1.15,
-  grade: 'C',
-  source: '설계 정본 2-D절 "구축은 퍼티·바인더·네바리 증가(증가율 수치 없음, 시공팀 확인)". 15% 가산은 추정',
 };
 
 // ── 6. 표준품셈 인건 하한 검산용 (화면에 쓰지 않음) ──
