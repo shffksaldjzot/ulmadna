@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" role="img" aria-label="34평 84타입 타일 자재비 시나리오별 범위 막대그래프 — 도기질 조합부터 유럽산 대형 포세린 타일 가격까지">
+  <rect width="720" height="420" fill="#faf7f4"/>
+  <text x="24" y="40" font-size="20" font-weight="700" fill="#2b2b2b">34평/84타입 타일 자재비 — 조합별 총액 범위</text>
+  <text x="24" y="62" font-size="13" fill="#8a8175">단위: 만원 · 욕실 2칸 + 거실·주방 13평 + 현관 1평 · 로스 10~15% 포함, 시공비 별도</text>
+
+  <!-- grid: 0~1000만원, 0.5px/만원, x0=200 -->
+  <g stroke="#e7ddd3" stroke-width="1">
+    <line x1="200" y1="82" x2="200" y2="350"/>
+    <line x1="300" y1="82" x2="300" y2="350"/>
+    <line x1="400" y1="82" x2="400" y2="350"/>
+    <line x1="500" y1="82" x2="500" y2="350"/>
+    <line x1="600" y1="82" x2="600" y2="350"/>
+    <line x1="700" y1="82" x2="700" y2="350"/>
+  </g>
+  <g font-size="11" fill="#a89e92" text-anchor="middle">
+    <text x="200" y="368">0</text>
+    <text x="300" y="368">200</text>
+    <text x="400" y="368">400</text>
+    <text x="500" y="368">600</text>
+    <text x="600" y="368">800</text>
+    <text x="700" y="368">1,000</text>
+  </g>
+
+  <!-- row labels -->
+  <g font-size="13" fill="#3a3a3a" text-anchor="end">
+    <text x="188" y="106">A 경제형 (도기질+자기질)</text>
+    <text x="188" y="156">B 욕실만 600각 포세린</text>
+    <text x="188" y="206">C 욕실+거실 600각 보급</text>
+    <text x="188" y="256">D 프리미엄 수입 600×1200</text>
+    <text x="188" y="306">E 유럽산 대형타일</text>
+  </g>
+
+  <!-- bars (min~max) -->
+  <g>
+    <!-- A 90~110 -->
+    <rect x="245" y="94" width="10" height="18" rx="4" fill="#e6a98f"/>
+    <text x="262" y="108" font-size="12" fill="#6b5d52">90~110</text>
+    <!-- B 100~150 -->
+    <rect x="250" y="144" width="25" height="18" rx="4" fill="#e6a98f"/>
+    <text x="282" y="158" font-size="12" fill="#6b5d52">100~150</text>
+    <!-- C 180~270 -->
+    <rect x="290" y="194" width="45" height="18" rx="4" fill="#d98b6a"/>
+    <text x="342" y="208" font-size="12" fill="#6b5d52">180~270</text>
+    <!-- D 300~470 -->
+    <rect x="350" y="244" width="85" height="18" rx="4" fill="#c9714f"/>
+    <text x="442" y="258" font-size="12" fill="#6b5d52">300~470</text>
+    <!-- E 670~940 -->
+    <rect x="535" y="294" width="135" height="18" rx="4" fill="#b25a3a"/>
+    <text x="600" y="330" font-size="12" fill="#6b5d52" text-anchor="middle">670~940</text>
+  </g>
+
+  <text x="24" y="400" font-size="11" fill="#a89e92">얼마드나 실제 견적 빅데이터 1,000건+ 및 유통가 기준 · 자재비만(접착제·인건비·철거 제외)</text>
+</svg>
