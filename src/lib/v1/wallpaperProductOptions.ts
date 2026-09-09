@@ -17,12 +17,6 @@
 import type { WallpaperProduct } from '@/server/calc/data/wallpaper-products';
 import type { WallpaperProductOption } from './wallpaperQuery';
 
-/** 조사일("2026-09-08") → 화면 표기("2026.9") */
-function surveyMonthLabel(surveyDate: string): string {
-  const [y, m] = surveyDate.split('-');
-  return `${y}.${Number(m)}`;
-}
-
 /** priceMin·priceMax(둘 다 null일 수 있음) → 화면에 쓸 대표 가격 하나 */
 function representativePrice(min: number | null, max: number | null): number | null {
   if (min != null && max != null) return Math.round((min + max) / 2);
@@ -45,6 +39,7 @@ export function toWallpaperProductOptions(products: readonly WallpaperProduct[])
     lengthM: p.lengthM,
     repeatCm: p.repeatCm,
     price: representativePrice(p.priceMin, p.priceMax),
-    sourceLabel: `웹 조사 기준 · ${surveyMonthLabel(p.surveyDate)}${p.needsReview ? ' · 확인 필요' : ''}`,
+    // 2026-09-09 형아 지시: 조사 기준일·"웹 조사 기준" 문구는 화면에 쓰지 않는다. 검수 안 끝난 제품 표시만 남긴다
+    sourceLabel: p.needsReview ? '확인 필요' : '',
   }));
 }

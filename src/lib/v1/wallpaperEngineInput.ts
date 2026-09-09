@@ -213,8 +213,8 @@ export function resolvePaperSelection(state: WallpaperFormState, products: Wallp
               widthCm: found.widthCm as number,
               lengthM: found.lengthM as number,
               repeatCm: found.repeatCm ?? undefined,
-              // 제품 마스터에서 고른 제품이면 "브랜드 이름 · 웹 조사 기준 · 2026.9" 형태로 출처를 밝힌다
-              sourceLabel: `${found.brand} ${found.name} · ${found.sourceLabel}`,
+              // 제품 마스터에서 고른 제품이면 "브랜드 이름"으로 출처를 밝힌다 (조사 기준일은 쓰지 않음 — 2026-09-09 형아 지시)
+              sourceLabel: found.sourceLabel ? `${found.brand} ${found.name} · ${found.sourceLabel}` : `${found.brand} ${found.name}`,
             }
           : undefined,
       };

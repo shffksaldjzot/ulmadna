@@ -29,8 +29,11 @@ import { useState } from 'react';
 import Card from '@/components/v1/Card';
 import Segment from '@/components/v1/Segment';
 import NumberField from '@/components/v1/NumberField';
-import { IconChevronDown, IconChevronUp } from '@/components/v1/icons';
+import { IconChevronDown } from '@/components/v1/icons';
 import type { WallpaperProductOption } from '@/lib/v1/wallpaperQuery';
+
+/** 드롭다운에서 "직접 입력" 줄의 값 (제품 코드와 겹치지 않는 문자열) */
+const CUSTOM_VALUE = '__custom__';
 
 /** 직접 입력한 벽지 한 개의 모양 (폼 상태 product 칸과 같은 모양) */
 type CustomProduct = { rollPrice: number; widthCm: number; lengthM: number; repeatCm?: number };
@@ -135,30 +138,34 @@ export default function PaperPicker({
     }
   }
 
-  /** 직접 입력 펼치기·접기 — 펼치면 목록 선택을 풀고, 접으면 직접 입력값을 지운다 */
-  function toggleCustom() {
-    if (customOpen) {
-      setCustomOpen(false);
-      setLastProduct(undefined);
-      onProductChange?.(undefined);
+  /**
+   * 드롭다운에서 고른 값 하나로 세 가지 상태를 정리한다(둘 중 하나만 살아 있다는 규칙 유지).
+   *   ''            → 제품 안 고름: 목록 선택·직접 입력 둘 다 지운다 → 종류 평균가
+   *   CUSTOM_VALUE  → 직접 입력 펼침: 목록 선택은 지우고, 이미 적어 둔 값이 있으면 다시 반영
+   *   제품 코드     → 그 제품: 직접 입력은 접고 지운다
+   */
+  function onSelect(value: string) {
+    if (value === CUSTOM_VALUE) {
+      setCustomOpen(true);
+      onProductCodeChange(undefined);
+      updateCustom({});
       return;
     }
-    setCustomOpen(true);
-    onProductCodeChange(undefined);
-    // 접었다 다시 펼쳤을 때 값이 이미 다 차 있으면 그대로 다시 반영한다
-    updateCustom({});
-  }
-
-  /** 목록 제품 고르기 — 직접 입력은 접고 지운다(둘 중 하나만 살아 있다) */
-  function pickProduct(code: string) {
     setCustomOpen(false);
     setLastProduct(undefined);
     onProductChange?.(undefined);
-    onProductCodeChange(productCode === code ? undefined : code);
+    onProductCodeChange(value === '' ? undefined : value);
   }
 
   // 고른 종류 중 손님에게 보여도 되는 제품만 남긴다(종류를 안 골랐으면 빈 목록)
-  const list = paperType ? products.filter((p) => p.kind === paperType && isShowable(p)) : [];
+  // 정렬은 브랜드순(영문 브랜드 GNI·LX 먼저, 그다음 가나다) → 같은 브랜드 안에서는 싼 것부터 (2026-09-09 형아 지시)
+  const list = paperType
+    ? products
+        .filter((p) => p.kind === paperType && isShowable(p))
+        .sort((a, b) => a.brand.localeCompare(b.brand, 'en') || (a.price as number) - (b.price as number))
+    : [];
+  // 드롭다운 아래에 출처 한 줄을 보여 주려고 고른 제품을 찾아 둔다
+  const selectedProduct = productCode ? list.find((p) => p.code === productCode) : undefined;
 
   return (
     <Card>
@@ -174,64 +181,43 @@ export default function PaperPicker({
         onChange={onPaperTypeChange}
       />
 
-      {/* 종류를 안 골랐으면 제품 목록 자리를 비워 둔다(안내문 없이 — 설명글 최소화 원칙) */}
+      {/* 종류를 안 골랐으면 제품 선택 자리를 비워 둔다(안내문 없이 — 설명글 최소화 원칙) */}
       {paperType && (
-      <div className="flex flex-col">
-        {list.map((p) => {
-          const selected = productCode === p.code;
-          return (
-            <button
-              key={p.code}
-              type="button"
-              onClick={() => pickProduct(p.code)}
-              aria-pressed={selected}
-              className={
-                'w-full text-left flex items-stretch gap-3 border-t border-v1-line-2 ' +
-                'transition-colors duration-150 ' +
-                (selected ? 'bg-v1-card-soft' : '')
-              }
-            >
-              {/* 고른 줄 표시 — 왼쪽 브라운 세로선 3px */}
-              <span className={`w-[3px] flex-none ${selected ? 'bg-brown' : 'bg-transparent'}`} />
-
-              <span className="flex-1 min-w-0 flex items-start justify-between gap-3 py-3 pr-1">
-                <span className="flex flex-col gap-1 min-w-0">
-                  <span className="text-[16px] text-foreground">
-                    {p.brand} {p.name}
-                  </span>
-                  <span className="text-[14px] text-v1-text-disabled">{p.sourceLabel}</span>
-                </span>
-
-                <span className="text-[16px] text-foreground tabular-nums flex-none">
-                  {formatRollPrice(p.price as number)}
-                </span>
-              </span>
-            </button>
-          );
-        })}
-
-        {/* 마지막 줄 — 목록에 없는 벽지를 직접 적는다 */}
-        <button
-          type="button"
-          onClick={toggleCustom}
-          aria-expanded={customOpen}
-          className={
-            'w-full text-left flex items-stretch gap-3 border-t border-v1-line-2 ' +
-            'transition-colors duration-150 ' +
-            (customOpen ? 'bg-v1-card-soft' : '')
-          }
-        >
-          {/* 펼친 동안은 목록 선택과 같은 방식으로 왼쪽 세로선을 세운다 */}
-          <span className={`w-[3px] flex-none ${customOpen ? 'bg-brown' : 'bg-transparent'}`} />
-          <span className="flex-1 min-w-0 flex items-center justify-between gap-3 min-h-11 py-3 pr-1">
-            <span className="text-[16px] text-foreground">직접 입력</span>
-            {customOpen ? (
-              <IconChevronUp className="text-v1-text-label" />
-            ) : (
-              <IconChevronDown className="text-v1-text-label" />
-            )}
+      <div className="flex flex-col pt-3">
+        {/* 제품 드롭다운 — 2026-09-09 형아 지시: 제품이 세로로 쭉 나오지 말고 드롭다운으로 고르게.
+            첫 줄(빈 값) = 제품 안 고름 → 종류 평균가로 계산. 마지막 줄 "직접 입력" = 아래 입력칸 펼침. */}
+        <label className="text-[14px] text-v1-text-label pb-1" htmlFor="paper-product-select">
+          벽지 제품
+        </label>
+        <div className="relative">
+          <select
+            id="paper-product-select"
+            aria-label="벽지 제품"
+            value={customOpen ? CUSTOM_VALUE : (productCode ?? '')}
+            onChange={(e) => onSelect(e.target.value)}
+            className={
+              'w-full h-11 appearance-none rounded-lg border border-v1-line-2 bg-white pl-3 pr-10 ' +
+              'text-[16px] text-foreground focus:outline-none focus:border-brown'
+            }
+          >
+            <option value="">제품 안 고름 (종류 평균가로 계산)</option>
+            {list.map((p) => (
+              <option key={p.code} value={p.code}>
+                {p.brand} {p.name} · {formatRollPrice(p.price as number)}
+              </option>
+            ))}
+            <option value={CUSTOM_VALUE}>직접 입력</option>
+          </select>
+          {/* 오른쪽 화살표 — 브라우저 기본 화살표는 appearance-none 으로 감추고 우리 아이콘을 얹는다 */}
+          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+            <IconChevronDown className="text-v1-text-label" />
           </span>
-        </button>
+        </div>
+
+        {/* 고른 제품의 출처 한 줄 (드롭다운 안에는 못 넣어서 아래에 따로) */}
+        {selectedProduct?.sourceLabel && (
+          <span className="text-[14px] text-v1-text-disabled pt-1">{selectedProduct.sourceLabel}</span>
+        )}
 
         {customOpen && (
           <div className="flex flex-col gap-2 pt-3 pl-3">

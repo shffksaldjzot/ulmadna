@@ -111,62 +111,37 @@ export default function Home() {
         </div>
       </header>
 
-      {/* ───── 히어로 섹션 ───── */}
+      {/* ───── 히어로 섹션 = 공정별 물량 계산기 타일 ─────
+          2026-09-09 형아 결정: 옛 문구("우리 집 인테리어, 얼마 드나?"·바로가기 버튼)는 전부 없애고
+          공정 타일만 남긴다. 도배는 열림, 나머지는 회색 "준비 중"(클릭 불가). 모바일 3열 → PC 5열. */}
       <section className="bg-cream">
-        <div className="max-w-[1400px] mx-auto px-4 lg:px-8 py-10 lg:py-16 flex flex-col lg:flex-row items-center gap-8">
-          <div className="flex-1">
-            <p className="text-xs text-gold font-medium tracking-widest mb-3">
-              무료 인테리어 견적 계산기
-            </p>
-            <h1 className="text-3xl lg:text-4xl font-bold text-brown leading-tight">
-              우리 집 인테리어,<br />얼마 드나?
-            </h1>
-            <p className="text-sm text-gray-500 mt-3 leading-relaxed">
-              회원가입과 개인정보 없이 누구나 쉽게!
-            </p>
-
-            {/* 공정별 물량 계산기 진입 — 2026-09-09 형아 결정: 도배는 바로가기, 나머지는 회색 "준비 중" 타일 */}
-            <a
-              href="/v1/calc/wallpaper"
-              className="inline-flex items-center gap-2 mt-5 px-5 py-3 rounded-xl bg-brown text-white text-sm font-semibold shadow-sm hover:bg-brown-hover active:bg-brown-press transition-colors"
-            >
-              도배 물량 계산기 바로가기
-              <span aria-hidden="true">→</span>
-            </a>
-
-          </div>
-
-          {/* 오른쪽(PC) / 아래(모바일): 공정별 계산기 타일 — 형아 그림(docs/image.png)의 히어로 상자 오른쪽 빈 자리를 채운다 */}
-          <div className="w-full lg:w-[46%]">
-            <p className="text-xs text-gold font-medium tracking-widest mb-2">공정별 물량 계산기</p>
-            {/* 모바일 3열 → PC 5열. 준비 중 타일은 회색·클릭 불가 */}
-            <ul className="grid grid-cols-3 sm:grid-cols-5 gap-2" aria-label="공정별 계산기">
-              {PROCESS_TILES.map((tile) =>
-                tile.href ? (
-                  <li key={tile.name}>
-                    <a
-                      href={tile.href}
-                      className="flex flex-col items-center justify-center h-16 rounded-xl border border-gold/60 bg-white text-brown text-sm font-semibold hover:bg-cream transition-colors"
-                    >
-                      {tile.name}
-                      <span className="text-[10px] font-medium text-gold mt-0.5">지금 계산</span>
-                    </a>
-                  </li>
-                ) : (
-                  <li key={tile.name}>
-                    <div
-                      aria-disabled="true"
-                      className="flex flex-col items-center justify-center h-16 rounded-xl border border-gray-200 bg-gray-100 text-gray-400 text-sm font-medium cursor-not-allowed select-none"
-                    >
-                      {tile.name}
-                      <span className="text-[10px] mt-0.5">준비 중</span>
-                    </div>
-                  </li>
-                ),
-              )}
-            </ul>
-          </div>
-{/* 인테리어 이미지 제거됨 */}
+        <div className="max-w-[1400px] mx-auto px-4 lg:px-8 py-8 lg:py-10">
+          <h1 className="text-sm font-semibold text-gold tracking-widest mb-3">공정별 물량 계산기</h1>
+          <ul className="grid grid-cols-3 sm:grid-cols-5 gap-2" aria-label="공정별 계산기">
+            {PROCESS_TILES.map((tile) =>
+              tile.href ? (
+                <li key={tile.name}>
+                  <a
+                    href={tile.href}
+                    className="flex flex-col items-center justify-center h-16 rounded-xl border border-gold/60 bg-white text-brown text-sm font-semibold hover:bg-white/70 transition-colors"
+                  >
+                    {tile.name}
+                    <span className="text-[10px] font-medium text-gold mt-0.5">지금 계산</span>
+                  </a>
+                </li>
+              ) : (
+                <li key={tile.name}>
+                  <div
+                    aria-disabled="true"
+                    className="flex flex-col items-center justify-center h-16 rounded-xl border border-gray-200 bg-gray-100 text-gray-400 text-sm font-medium cursor-not-allowed select-none"
+                  >
+                    {tile.name}
+                    <span className="text-[10px] mt-0.5">준비 중</span>
+                  </div>
+                </li>
+              ),
+            )}
+          </ul>
         </div>
       </section>
 
