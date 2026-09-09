@@ -232,6 +232,10 @@ describe('제품 직접 입력', () => {
     const line = result.cost.breakdown.find((b) => b.key === 'wallpaper');
     expect(line!.unitPriceMin).toBe(41234);
     expect(line!.unitPriceMax).toBe(41234);
+    // 2026-09-09 검사관 지적 수리: note는 제품 출처(sourceLabel)가 있으면 그것, 제품은 있는데
+    // 출처가 없으면(사용자가 값을 직접 타이핑) "직접 입력", 제품 자체가 없으면 "종류 평균가"다
+    // (단가 출처 문장·내부 문서명 노출 금지 규칙) — 이 테스트는 sourceLabel 없이 직접
+    // 입력했으니 "직접 입력"이 나와야 한다("평균가"라고 하면 사실과 다른 말이 된다).
     expect(line!.note).toContain('직접 입력');
   });
 
@@ -276,6 +280,14 @@ describe('응답에 새면 안 되는 값', () => {
 
   it('재단 산식 내부값이 응답에 없다', () => {
     for (const word of ['stripsPerRoll', 'stripsNeeded', 'cutLenM', 'leftoverM', 'rawManDays', 'applied']) {
+      expect(json).not.toContain(word);
+    }
+  });
+
+  it('내부 문서명·단가 출처 문장·품수 산식이 응답에 없다 (2026-09-09 검사관 지적)', () => {
+    // 예전엔 note에 "01_도배.md 4-1 ..." 같은 내부 근거 문서명과 "실크 품수 공식 (34평 × 3 ÷ 15) + 1 = ..."
+    // 같은 산식 문장이 그대로 나갔다. 지금은 note가 "도배공 N품 · 2인 1조 약 N일"처럼 결과만 보여준다.
+    for (const word of ['01_도배.md', '품수 공식', '유통가', '노임단가', '견적표 역산']) {
       expect(json).not.toContain(word);
     }
   });

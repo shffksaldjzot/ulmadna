@@ -97,6 +97,10 @@ export interface WallpaperFormState {
   wallLength?: number;
   /** 정밀 폼 - 벽 길이 입력 모드에서 천장까지 계산할 때 천장 면적 직접 입력 (㎡) */
   directCeilingSqm?: number;
+  /** 구축(재도배) 여부. 엔진 isOld로 그대로 전달한다. 기본 false(신축·빈집) */
+  isOld?: boolean;
+  /** 정밀 폼 - 벽 길이 모드에서 쓰는 문·창 목록. 훅이 면적으로 환산해 벽 면적에서 뺀다 */
+  lengthOpenings?: WallpaperOpening[];
 }
 
 /** 평형 모드 기본값 — 목업 예시(34평 3베이 실크 천장포함)와 맞춘다 */
@@ -110,6 +114,24 @@ export const DEFAULT_WALLPAPER_FORM: WallpaperFormState = {
   unit: 'm',
   entry: 'room',
   target: 'both',
+};
+
+/**
+ * 새 화면(즉답 + 정밀 폼) 초기값 — 2026년 09월 09일 B 지시서.
+ * 옛 DEFAULT_WALLPAPER_FORM과 달리 paperType을 일부러 넣지 않는다: 즉답 단계에서는
+ * 벽지 종류를 아직 안 고른 상태(undefined)로 시작해 합지~실크 범위를 합쳐 보여준다
+ * (useWallpaperCalc의 종류 병합 로직이 처리한다).
+ */
+export const DEFAULT_CALC_FORM: WallpaperFormState = {
+  mode: '평형',
+  pyeong: 34,
+  bay: 3,
+  scope: '전체',
+  ceiling: true,
+  unit: 'm',
+  entry: 'room',
+  target: 'both',
+  isOld: false,
 };
 
 /** 문자열을 URL에 안전한 base64(base64url)로 바꾼다 */

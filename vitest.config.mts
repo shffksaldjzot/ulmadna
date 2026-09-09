@@ -1,5 +1,5 @@
 // ──────────────────────────────────────────────
-// vitest 설정 — 서버 계산 모듈 테스트용
+// vitest 설정 — 서버 계산 모듈 + 클라이언트 순수 함수 테스트용
 //
 // 두 가지만 손봐 준다.
 //   1) '@/...' 경로 별칭을 tsconfig 와 똑같이 맞춘다
@@ -7,6 +7,8 @@
 //      (Next.js 밖에서 그냥 불러오면 일부러 에러를 던지는 표식 패키지라서)
 //
 // 작성일: 2026년 08월 28일
+// 2026년 09월 09일: src/lib/**도 포함하도록 include를 넓힘
+//   (도배 계산기 훅의 순수 함수 toEngineInput 테스트, src/lib/v1/__tests__/useWallpaperCalc.test.ts)
 // ──────────────────────────────────────────────
 import path from 'node:path';
 import { defineConfig } from 'vitest/config';
@@ -21,8 +23,9 @@ export default defineConfig({
     },
   },
   test: {
-    // 서버 계산 모듈 테스트만 돌린다 (Next 페이지·컴포넌트는 대상 아님)
-    include: ['src/server/**/*.test.ts'],
+    // 서버 계산 모듈 + src/lib + 화면 폴더 안의 순수 함수 테스트를 돌린다
+    // (src/app 쪽은 정밀 폼 단위 변환처럼 React 없는 순수 함수 테스트만 넣는다 — 컴포넌트는 대상 아님)
+    include: ['src/server/**/*.test.ts', 'src/lib/**/*.test.ts', 'src/app/**/*.test.ts'],
     environment: 'node',
   },
 });

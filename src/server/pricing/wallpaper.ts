@@ -218,6 +218,8 @@ export interface DirectProduct {
   lengthM: number;
   /** 패턴 리피트 (cm, 선택) */
   repeatCm?: number;
+  /** 화면 표기용 출처 문구(제품 마스터에서 골랐으면 "브랜드 이름 · 웹 조사 기준 · 2026.9" 형태). 없으면 "사용자 직접 입력" */
+  sourceLabel?: string;
 }
 
 /**
@@ -232,7 +234,8 @@ export function getWallpaperRollPriceBand(paperType: PaperType, product?: Direct
       max: product.rollPrice,
       unitLabel: '원/롤',
       기준일: '2026년 08월 28일',
-      출처: '사용자 직접 입력',
+      // 제품 마스터에서 고른 제품이면 그 출처 문구를, 그냥 직접 입력이면 기본 문구를 쓴다
+      출처: product.sourceLabel ?? '사용자 직접 입력',
       등급: 'A',
       비고: '직접 입력값 — 시세 통계에는 반영하지 않는다',
     };

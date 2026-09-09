@@ -131,6 +131,8 @@ function parseProduct(v: unknown) {
     widthCm: num(v.widthCm, 'product.widthCm', { min: 20, max: 400, required: true }) as number,
     lengthM: num(v.lengthM, 'product.lengthM', { min: 1, max: 100, required: true }) as number,
     repeatCm: num(v.repeatCm, 'product.repeatCm', { min: 0, max: 200 }),
+    // 제품 마스터에서 고른 제품이면 화면이 만든 출처 문구가 실려 온다(길이만 방어적으로 자른다)
+    sourceLabel: typeof v.sourceLabel === 'string' ? v.sourceLabel.slice(0, 120) : undefined,
   };
 }
 

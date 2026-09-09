@@ -226,9 +226,16 @@ function baseMonthLabel(now: Date = new Date()): string {
   return `${now.getFullYear()}.${now.getMonth() + 1}`;
 }
 
-/** 근거 등급이 C면 "추정" 꼬리표를 붙인다 */
-function gradeTag(grade: EvidenceGrade): string {
-  return grade === 'C' ? ' (추정)' : '';
+/**
+ * 근거 문장(basis)에 등급 꼬리표를 붙여 "구성 보기" note로 만든다.
+ * 등급이 C(추정)면 " · 추정"을 붙이되, basis에 이미 "추정"이 들어 있으면(예: 부자재
+ * 계수 자체가 "· 추정"을 포함) 중복으로 붙이지 않는다(검사관 지적 — "추정 · 추정" 방지).
+ * ⚠️ 여기 basis는 물량 산출 계수(예: "0.02kg/㎡")만 담고, 내부 문서명·단가 출처·업자가
+ *    밴드 문장은 절대 넣지 않는다(단가·산식 보호 규칙).
+ */
+function noteFor(basis: string, grade: EvidenceGrade): string {
+  if (grade !== 'C') return basis;
+  return basis.includes('추정') ? basis : `${basis} · 추정`;
 }
 
 // ── 본체 ──────────────────────────────────────
@@ -277,7 +284,8 @@ export function calcWallpaper(input: WallpaperCalcInput): WallpaperCalcResult {
         lengthM: input.product.lengthM,
         repeatCm: input.product.repeatCm ?? 0,
         sqmPerRoll: r1((input.product.widthCm / 100) * input.product.lengthM),
-        source: '사용자 직접 입력 규격',
+        // 제품 마스터에서 고른 제품이면 그 출처 문구를, 순수 직접 입력이면 기본 문구를 쓴다
+        source: input.product.sourceLabel ?? '사용자 직접 입력 규격',
       }
     : DEFAULT_ROLL_SPEC[paperType];
 
@@ -344,16 +352,12 @@ export function calcWallpaper(input: WallpaperCalcInput): WallpaperCalcResult {
   let sumMin = 0;
   let sumMax = 0;
 
-  /** 구성 보기에 한 줄 추가하는 도우미 */
-  const pushLine = (
-    key: string,
-    name: string,
-    qty: number,
-    unit: string,
-    band: PriceBand,
-    basis: string,
-    grade: EvidenceGrade,
-  ) => {
+  /**
+   * 구성 보기에 한 줄 추가하는 도우미.
+   * note는 호출한 쪽에서 이미 완성해서 넘긴다 — 단가 밴드의 내부 출처 문장(band.출처, 도메인
+   * 문서명 등)은 여기서도, 어디서도 응답에 넣지 않는다(단가·산식 보호 규칙, 검사관 지적).
+   */
+  const pushLine = (key: string, name: string, qty: number, unit: string, band: PriceBand, note: string) => {
     const amountMin = Math.round(qty * band.min);
     const amountMax = Math.round(qty * band.max);
     sumMin += amountMin;
@@ -367,7 +371,7 @@ export function calcWallpaper(input: WallpaperCalcInput): WallpaperCalcResult {
       unitPriceMax: band.max,
       amountMin,
       amountMax,
-      note: `${basis} · 단가 ${band.출처}${gradeTag(grade)}`,
+      note,
     });
   };
 
@@ -376,22 +380,28 @@ export function calcWallpaper(input: WallpaperCalcInput): WallpaperCalcResult {
     if (!got) continue;
 
     if (item.key === 'wallpaper') {
-      // 벽지 — 제품 직접 입력이 있으면 그 가격
+      // 벽지 — 제품 직접 입력이 있으면 그 가격.
+      // note: 제품 출처(sourceLabel)가 있으면 그것 / 제품은 있는데 출처가 없으면(사용자가 롤당
+      // 가격을 직접 타이핑한 경우) "직접 입력"("평균가"라고 하면 틀린 말이라 구분) / 제품 자체가
+      // 없으면(종류만 고름) "종류 평균가"
       const band = getWallpaperRollPriceBand(paperType, input.product);
-      pushLine(item.key, `${paperType} 벽지`, got.qty, item.unit, band, got.basis, band.등급);
+      const note = input.product?.sourceLabel ?? (input.product ? '직접 입력' : '종류 평균가');
+      pushLine(item.key, `${paperType} 벽지`, got.qty, item.unit, band, note);
       continue;
     }
 
     if (item.key === 'labor') {
-      // 시공 — 지역별 일당
+      // 시공 — 지역별 일당. note는 품수 산식 문장(labor.basis) 대신 결과 품수·조 일수만 보여준다
       const band = getDailyWageBand(input.region);
-      pushLine(item.key, item.name, got.qty, item.unit, band, labor.basis, band.등급);
+      const note = `도배공 ${labor.manDays}품 · 2인 1조 약 ${labor.teamDays}일`;
+      pushLine(item.key, item.name, got.qty, item.unit, band, note);
       continue;
     }
 
     if (item.key === 'removal') {
-      // 기존 벽지 제거
-      pushLine(item.key, item.name, got.qty, item.unit, REMOVAL_PRICE_PER_SQM, got.basis, REMOVAL_PRICE_PER_SQM.등급);
+      // 기존 벽지 제거 — "추정" 여부는 물량 근거 등급(item.evidenceGrade) 기준(검사관 지적 N7,
+      // 아래 부자재와 같은 이유: 단가 밴드 등급과 물량 계수 등급은 서로 다른 걸 재는 값이다)
+      pushLine(item.key, item.name, got.qty, item.unit, REMOVAL_PRICE_PER_SQM, noteFor(got.basis, item.evidenceGrade));
       continue;
     }
 
@@ -400,13 +410,16 @@ export function calcWallpaper(input: WallpaperCalcInput): WallpaperCalcResult {
       continue;
     }
 
-    // 나머지 부자재
+    // 나머지 부자재 — note는 물량 계수 근거(basis)만, 단가 출처는 안 붙인다.
+    // "추정" 여부는 단가 밴드 등급(band.등급, 전부 C)이 아니라 물량 근거 등급(item.evidenceGrade)으로
+    // 판단한다 — 부자재 카드(SubmaterialLine.grade)도 item.evidenceGrade를 쓰므로 두 카드의
+    // "추정" 표기 기준이 이제 하나로 맞는다(검사관 지적 N7).
     const band = getSubmaterialPriceBand(item.key);
     if (!band) continue;
-    pushLine(item.key, item.name, got.qty, item.unit, band, got.basis, band.등급);
+    pushLine(item.key, item.name, got.qty, item.unit, band, noteFor(got.basis, item.evidenceGrade));
   }
 
-  // 일반경비 — 위 합계에 비율로 붙인다
+  // 일반경비 — 위 합계에 비율로 붙인다. note는 경비율 문구까지만(출처 문서·추정 꼬리표는 안 붙인다)
   const overheadMin = Math.round(sumMin * OVERHEAD_RATE.min);
   const overheadMax = Math.round(sumMax * OVERHEAD_RATE.max);
   breakdown.push({
@@ -418,7 +431,7 @@ export function calcWallpaper(input: WallpaperCalcInput): WallpaperCalcResult {
     unitPriceMax: Math.round(OVERHEAD_RATE.max * 100),
     amountMin: overheadMin,
     amountMax: overheadMax,
-    note: `자재 + 부자재 + 시공 합계의 ${Math.round(OVERHEAD_RATE.min * 100)}~${Math.round(OVERHEAD_RATE.max * 100)}% · ${OVERHEAD_RATE.출처} (추정)`,
+    note: `자재·부자재·시공 합계의 ${Math.round(OVERHEAD_RATE.min * 100)}~${Math.round(OVERHEAD_RATE.max * 100)}%`,
   });
   sumMin += overheadMin;
   sumMax += overheadMax;

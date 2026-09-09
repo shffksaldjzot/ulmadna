@@ -14,17 +14,24 @@
 //     "가장 넓은 범위"(최저=합지 최저, 최고=실크 최고)로 보여준다(형아 결정 1번 추천안).
 //
 // ⚠️ 이 파일은 클라이언트 훅이라 src/server/** 를 import 하지 않는다(단가 유출 금지 규칙).
-//    서버 계산 결과(WallpaperCalcResult)와 입력(WallpaperCalcInput)의 모양을
-//    아래에 그대로 옮겨 적어 둔다 — src/server/calc/wallpaper.ts가 바뀌면 이쪽도 같이 확인할 것.
+//    서버 계산 결과(WallpaperCalcResult)의 모양을 아래에 그대로 옮겨 적어 둔다 —
+//    src/server/calc/wallpaper.ts가 바뀌면 이쪽도 같이 확인할 것.
+//
+// "폼 상태 → 엔진 요청" 변환(toEngineInput)은 순수 함수라 ./wallpaperEngineInput.ts로 옮겼다.
+//   그 파일은 'use client'가 없어 공유 링크 결과 화면(result/page.tsx, 서버 컴포넌트)도 같이
+//   가져다 쓴다 — 즉답 화면과 공유 결과 화면이 같은 규칙으로 계산되게 하기 위해서다.
 //
 // 작성일: 2026년 09월 08일
+// 2026년 09월 09일: toEngineInput 등을 wallpaperEngineInput.ts로 분리
 // ──────────────────────────────────────────────
 
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import type { WallpaperFormState, WallpaperProductOption, WallpaperOpening } from './wallpaperQuery';
-import { DEFAULT_CEILING_HEIGHT_M } from './wallpaperDefaults';
+import type { WallpaperFormState, WallpaperProductOption } from './wallpaperQuery';
+// 폼 상태 → 엔진 요청 변환은 순수 함수라 서버 결과 페이지(result/page.tsx)와 공유한다.
+// (그 파일은 'use client' 훅을 못 쓰는 서버 컴포넌트라 이 로직만 따로 뺐다)
+import { toEngineInput, type WallpaperCalcRequest } from './wallpaperEngineInput';
 
 // ── 서버 응답 모양 (src/server/calc/wallpaper.ts WallpaperCalcResult를 그대로 옮겨 적음) ──
 
@@ -89,44 +96,6 @@ export interface WallpaperRange {
   max: number;
 }
 
-// ── 서버 요청 모양 (src/server/calc/wallpaper.ts WallpaperCalcInput 중 이 훅이 실제로 쓰는 칸만) ──
-
-interface WallpaperRoomRequest {
-  name: string;
-  widthM: number;
-  depthM: number;
-  heightM?: number;
-  doors?: number;
-  windows?: { widthCm: number; heightCm: number }[];
-}
-
-interface WallpaperAreasRequest {
-  wallSqm?: number;
-  ceilingSqm?: number;
-  perimeterM?: number;
-}
-
-interface WallpaperProductRequest {
-  rollPrice: number;
-  widthCm: number;
-  lengthM: number;
-  repeatCm?: number;
-}
-
-interface WallpaperCalcRequest {
-  mode: '평형' | '실측' | '면적';
-  pyeong?: number;
-  bay?: 2 | 3 | 4;
-  rooms?: WallpaperRoomRequest[];
-  heightM?: number;
-  areas?: WallpaperAreasRequest;
-  scope?: '전체' | '거실주방' | string[];
-  ceiling?: boolean;
-  paperType?: '합지' | '실크';
-  product?: WallpaperProductRequest;
-  region?: string;
-}
-
 // ── 훅이 밖으로 돌려주는 상태 ──
 
 export interface UseWallpaperCalcResult {
@@ -138,165 +107,6 @@ export interface UseWallpaperCalcResult {
   error: string | null;
   /** 다음 결과가 오기 전까지 화면에 남겨 둔 "이전" 값이라는 표시 (깜빡임 방지용) */
   stale: boolean;
-}
-
-/** 소수점 반올림 없이 그대로 두되 undefined는 걸러낸다 */
-function isPositive(n: number | undefined): n is number {
-  return typeof n === 'number' && Number.isFinite(n) && n > 0;
-}
-
-/**
- * 정밀 폼의 개구부 목록(door/window, 개수 포함)을 엔진이 받는 모양으로 편다.
- * 문은 규격을 따로 안 받는 엔진 규칙(표준 문 규격 고정)에 맞춰 개수만 합산하고,
- * 창은 count만큼 같은 규격의 창을 여러 개 나열한다.
- */
-function flattenOpenings(openings: WallpaperOpening[]): { doors: number; windows: { widthCm: number; heightCm: number }[] } {
-  let doors = 0;
-  const windows: { widthCm: number; heightCm: number }[] = [];
-  for (const o of openings) {
-    if (o.kind === 'door') {
-      doors += o.count;
-    } else {
-      for (let i = 0; i < o.count; i++) windows.push({ widthCm: o.w, heightCm: o.h });
-    }
-  }
-  return { doors, windows };
-}
-
-/** 벽지 종류·제품 선택을 엔진 요청 칸(paperType/product)으로 정리한 결과 */
-interface PaperSelection {
-  /** 두 종류를 병렬로 불러 범위를 합칠지 (벽지 종류를 아직 안 골랐을 때) */
-  mergeBoth: boolean;
-  paperType?: '합지' | '실크';
-  product?: WallpaperProductRequest;
-}
-
-/**
- * 벽지 종류/제품 선택 상태를 정리한다.
- *   1) productCode가 있고 목록에서 찾아지면 그 제품 규격으로 (규격·가격 중 하나라도 없으면
- *      규격 없이 종류만 넘겨 평균가로 대체 — 조사 미완료 제품 대응)
- *   2) 아니면 paperType이 골라져 있으면 그대로
- *   3) 둘 다 없으면(즉답 단계, 아직 종류를 안 고른 상태) 병합 호출
- */
-function resolvePaperSelection(state: WallpaperFormState, products: WallpaperProductOption[]): PaperSelection {
-  if (state.productCode) {
-    const found = products.find((p) => p.code === state.productCode);
-    if (found) {
-      const hasFullSpec = isPositive(found.widthCm ?? undefined) && isPositive(found.lengthM ?? undefined) && isPositive(found.price ?? undefined);
-      return {
-        mergeBoth: false,
-        paperType: found.kind,
-        product: hasFullSpec
-          ? {
-              rollPrice: found.price as number,
-              widthCm: found.widthCm as number,
-              lengthM: found.lengthM as number,
-              repeatCm: found.repeatCm ?? undefined,
-            }
-          : undefined,
-      };
-    }
-    // 목록에 없는 코드면(캐시 어긋남 등) 아래 일반 로직으로 폴백
-  }
-
-  if (state.product) {
-    // 옛 화면의 "직접 입력" 필드가 채워져 있으면 그대로 사용
-    return { mergeBoth: false, paperType: state.paperType ?? '실크', product: state.product };
-  }
-
-  if (state.paperType) {
-    return { mergeBoth: false, paperType: state.paperType };
-  }
-
-  // 종류를 아직 하나도 안 골랐다 — 즉답 단계, 합지·실크 병합
-  return { mergeBoth: true };
-}
-
-/**
- * 폼 상태 → 엔진 요청.
- * 우선순위: 정밀 폼(방별 실측 또는 벽 길이)이 유효하면 그 값, 아니면 즉답 평형.
- * 둘 다 비어 있으면 null(호출하지 않음 — 빈 상태 착시 방지).
- */
-function toEngineInput(
-  state: WallpaperFormState,
-  products: WallpaperProductOption[],
-): { base: Omit<WallpaperCalcRequest, 'paperType' | 'product'>; paper: PaperSelection } | null {
-  const target = state.target ?? 'both';
-  // ceiling 플래그는 대상이 '벽만'이 아니면 켠다.
-  // ⚠️ target==='ceiling'(천장만)도 지금은 'both'와 같게 취급한다 — 엔진이 "천장만" 물량을
-  //    따로 뽑는 모드를 아직 안 갖고 있어서(치수 모듈이 항상 벽 면적도 같이 계산),
-  //    완전한 "천장만" 지원은 엔진 쪽 후속 작업이 필요하다(README 위험 3 참고).
-  const ceiling = target !== 'wall';
-  const region = state.region;
-  const paper = resolvePaperSelection(state, products);
-
-  // 1) 정밀 폼 — 방별 실측
-  if (state.entry === 'room' && state.preciseRooms && state.preciseRooms.length > 0) {
-    const validRooms = state.preciseRooms.filter((r) => isPositive(r.w) && isPositive(r.d));
-    if (validRooms.length === 0) return null;
-    const rooms: WallpaperRoomRequest[] = validRooms.map((r, i) => {
-      const { doors, windows } = flattenOpenings(r.openings);
-      return {
-        name: `방${i + 1}`,
-        widthM: r.w,
-        depthM: r.d,
-        heightM: r.h,
-        doors: doors || undefined,
-        windows: windows.length > 0 ? windows : undefined,
-      };
-    });
-    return {
-      base: {
-        mode: '실측',
-        rooms,
-        heightM: state.heightM ?? DEFAULT_CEILING_HEIGHT_M,
-        scope: '전체',
-        ceiling,
-        region,
-      },
-      paper,
-    };
-  }
-
-  // 2) 정밀 폼 — 벽 길이(둘레) 직접 입력
-  if (state.entry === 'length' && isPositive(state.wallLength)) {
-    const height = state.heightM ?? DEFAULT_CEILING_HEIGHT_M;
-    // 문·창 차감: 정밀 폼에 개구부 입력 칸이 아직 없어(이번 지시서 범위 밖) 0으로 둔다.
-    // 나중에 벽 길이 모드에도 문·창 칸이 생기면 여기서 빼면 된다.
-    const openingAreaM2 = 0;
-    const wallSqm = Math.max(0, state.wallLength * height - openingAreaM2);
-    return {
-      base: {
-        mode: '면적',
-        areas: {
-          wallSqm,
-          ceilingSqm: target !== 'wall' ? state.directCeilingSqm : undefined,
-          perimeterM: state.wallLength,
-        },
-        ceiling,
-        region,
-      },
-      paper,
-    };
-  }
-
-  // 3) 즉답 — 평형
-  if (isPositive(state.pyeong)) {
-    return {
-      base: {
-        mode: '평형',
-        pyeong: state.pyeong,
-        bay: state.bay ?? 3,
-        scope: '전체',
-        ceiling,
-        region,
-      },
-      paper,
-    };
-  }
-
-  // 입력이 하나도 없다 — 계산하지 않는다
-  return null;
 }
 
 /** POST /api/calc/wallpaper 호출 한 번 */
@@ -413,7 +223,12 @@ export function useWallpaperCalc(state: WallpaperFormState, products: WallpaperP
           setError(e instanceof Error ? e.message : '계산 중 문제가 생겼습니다');
         })
         .finally(() => {
-          setLoading(false);
+          // 검사관 지적 11번: 취소된(옛) 요청의 finally가 나중에 도착해 방금 시작한 새 요청의
+          // loading=true를 꺼버리는 경쟁 상태가 있었다. 지금 이 컨트롤러가 여전히 "현재" 요청일
+          // 때만 loading을 끈다 — 이미 새 요청이 시작돼 abortRef가 바뀌었으면 손대지 않는다.
+          if (controller === abortRef.current) {
+            setLoading(false);
+          }
         });
     }, 400);
 
