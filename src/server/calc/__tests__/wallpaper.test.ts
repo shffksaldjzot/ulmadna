@@ -66,11 +66,23 @@ describe('34평 3베이 전체 실크 (천장 포함)', () => {
     expect(result.quantity.byRoom.length).toBeGreaterThan(1);
   });
 
-  it('실크면 부직포·본드가 붙고 각초배지는 안 붙는다', () => {
+  it('실크면 부직포·본드·초배지 세트(롤당 1세트)가 붙는다', () => {
+    // 2026-09-09 형아 결정: 초배지는 "실크 1롤용 세트(5장)"로 바뀌어 실크에 붙고 합지엔 안 붙는다
     const keys = result.submaterials.map((s) => s.key);
     expect(keys).toContain('paste');
     expect(keys).toContain('nonwoven');
     expect(keys).toContain('bond');
+    expect(keys).toContain('lining_paper');
+    const lining = result.submaterials.find((s) => s.key === 'lining_paper')!;
+    expect(lining.qty).toBe(result.quantity.rolls);
+  });
+
+  it('합지면 부직포·본드·초배지 세트가 안 붙는다', () => {
+    const hapji = calcWallpaper({ mode: '평형', pyeong: 34, bay: 3, paperType: '합지' });
+    const keys = hapji.submaterials.map((s) => s.key);
+    expect(keys).toContain('paste');
+    expect(keys).not.toContain('nonwoven');
+    expect(keys).not.toContain('bond');
     expect(keys).not.toContain('lining_paper');
   });
 

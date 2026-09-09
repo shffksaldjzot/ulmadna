@@ -38,7 +38,8 @@ export function toWallpaperProductOptions(products: readonly WallpaperProduct[])
   return products.map((p) => ({
     code: p.id,
     brand: p.brand,
-    name: p.line,
+    // 소폭(53cm) 합지는 방·원룸용이라 아파트 거실엔 안 맞는다 — 이름에 표시해서 헷갈리지 않게 한다 (2026-09-09 형아 결정)
+    name: p.widthCm != null && p.widthCm <= 60 ? `${p.line} · 소폭 ${p.widthCm}cm(방 전용)` : p.line,
     kind: p.paperType,
     widthCm: p.widthCm,
     lengthM: p.lengthM,

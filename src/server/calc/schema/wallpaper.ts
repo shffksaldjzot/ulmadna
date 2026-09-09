@@ -19,8 +19,7 @@ import {
   PASTE_BAG_KG,
   NONWOVEN_AREA_MULT,
   NONWOVEN_SQM_PER_ROLL,
-  LINING_PAPER_RATIO,
-  LINING_PAPER_SQM_PER_ROLL,
+  LINING_SET_PER_ROLL,
   NEBARI_PERIMETER_MULT,
   NEBARI_M_PER_ROLL,
   BOND_KG_PER_SQM,
@@ -132,16 +131,15 @@ function calcNonwoven(ctx: SchemaCalcContext): SchemaQuantityOutput | null {
   };
 }
 
-/** 각초배지(운용지) — 합지에만. 벽 면적 × 소요 계수 ÷ 롤당 면적 */
+/** 초배지 세트 — 실크에만. 벽지 롤수 × 롤당 세트 수 (이음 부위용, 5장 1세트) */
 function calcLiningPaper(ctx: SchemaCalcContext): SchemaQuantityOutput | null {
-  if (ctx.flags.isSilk) return null; // 실크는 부직포가 그 역할
-  const wall = ctx.numbers.wallSqm;
-  if (wall <= 0) return null;
-  const need = wall * LINING_PAPER_RATIO.value;
-  const qty = Math.max(1, Math.ceil(need / LINING_PAPER_SQM_PER_ROLL.value));
+  if (!ctx.flags.isSilk) return null; // 합지는 초배지 항목 없음 (2026-09-09 형아 결정)
+  const rolls = ctx.numbers.rolls;
+  if (!rolls || rolls <= 0) return null;
+  const qty = Math.max(1, Math.ceil(rolls * LINING_SET_PER_ROLL.value));
   return {
     qty,
-    basis: `벽면적 × ${LINING_PAPER_RATIO.value} · 추정`,
+    basis: `벽지 롤당 ${LINING_SET_PER_ROLL.value}세트`,
   };
 }
 
@@ -260,7 +258,7 @@ const ITEMS: Item[] = [
     unit: '포',
     kind: '부자재',
     quantityRule: {
-      desc: '도배 평수 ÷ 14kg 포당 감당 평수(합지 20~30평 / 실크 약 20평), 올림',
+      desc: '도배 면적 평 ÷ 14kg 포당 감당 도배면적(합지 45~65평 / 실크 45평 = 공급 20~30평 / 20평), 올림',
       calc: calcPaste,
     },
     priceSource: '제품',
@@ -272,26 +270,25 @@ const ITEMS: Item[] = [
     unit: '롤',
     kind: '부자재',
     quantityRule: {
-      desc: '벽 면적 × 1.05~1.1 ÷ 롤당 99㎡(1.1m × 90m), 올림',
+      desc: '벽 면적 × 1.05~1.1 ÷ 롤당 88㎡(1.1m × 80m), 올림',
       calc: calcNonwoven,
     },
     priceSource: '제품',
     evidenceGrade: 'A',
-    appliesWhen: '실크 (합지는 각초배지로 대체)',
+    appliesWhen: '실크',
   },
   {
     key: 'lining_paper',
-    name: '초배지',
-    unit: '롤',
+    name: '초배지(이음용 세트)',
+    unit: '세트',
     kind: '부자재',
     quantityRule: {
-      desc: '벽 면적 × 0.3(추정) ÷ 롤당 27㎡(30cm × 90m), 올림',
+      desc: '실크 벽지 롤수 × 1세트(5장), 올림',
       calc: calcLiningPaper,
     },
     priceSource: '제품',
-    evidenceGrade: 'C',
-    appliesWhen: '합지',
-    note: '벽면 요철에 좌우돼 표준 계수가 없다 — 시공팀 확인 대기',
+    evidenceGrade: 'B',
+    appliesWhen: '실크 (이음 부위)',
   },
   {
     key: 'nebari',
@@ -309,10 +306,10 @@ const ITEMS: Item[] = [
   {
     key: 'bond',
     name: '본드',
-    unit: '통',
+    unit: '개',
     kind: '부자재',
     quantityRule: {
-      desc: '벽 면적 × 0.02kg/㎡(추정) ÷ 5kg 통, 올림',
+      desc: '벽 면적 × 0.02kg/㎡(추정) ÷ 800g(목공본드 1개), 올림',
       calc: calcBond,
     },
     priceSource: '제품',
