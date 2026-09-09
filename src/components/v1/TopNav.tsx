@@ -38,7 +38,8 @@ export default function TopNav({ title, backHref, rightSlot }: TopNavProps) {
             <Image src="/ulmadna_logo.png" alt="얼마드나" width={130} height={44} priority className="cursor-pointer" />
           </Link>
           <span className="hidden md:inline-block text-[10px] text-gray-400 border border-gray-200 rounded-full px-3 py-1">
-            완전 무료 · 회원가입 없음 · 전화번호 없음
+            {/* 2026-09-09 형아 지시: "회원가입 없음" 대신 "개인정보 없음" */}
+            완전 무료 · 개인정보 없음 · 전화번호 없음
           </span>
         </div>
         <div className="flex items-center gap-3">
