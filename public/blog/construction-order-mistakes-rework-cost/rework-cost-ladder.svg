@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 600" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="인테리어 공사 순서 실수별 재시공 비용 범위 차트: 도배 후 배선·콘센트 변경 30만~80만원, 줄눈 양생 48시간 미확보 타일 재시공 50만~100만원, 방수·배관 순서 오류로 욕실 전체 재시공 200만~700만원, 습식 공사 전 목공·도배 진행 시 전체 공사비의 10~15%(30평 74타입 3,000만~4,300만원 공사 기준 300만~650만원)">
+  <rect width="860" height="600" fill="#ffffff"/>
+  <text x="40" y="46" font-size="24" font-weight="700" fill="#2b2b2b">인테리어 공사 순서 실수 — 실수 유형별 재시공 비용 범위</text>
+  <text x="40" y="74" font-size="14" fill="#8a8a8a">실제 현장·견적 데이터 기준 · 막대 = 최소~최대 · 단위: 만원</text>
+
+  <!-- grid: 0~700만원 → x = 300 + v*(500/700) -->
+  <g stroke="#e6e6e6" stroke-width="1">
+    <line x1="300" y1="100" x2="300" y2="500"/>
+    <line x1="371.4" y1="100" x2="371.4" y2="500"/>
+    <line x1="442.9" y1="100" x2="442.9" y2="500"/>
+    <line x1="514.3" y1="100" x2="514.3" y2="500"/>
+    <line x1="585.7" y1="100" x2="585.7" y2="500"/>
+    <line x1="657.1" y1="100" x2="657.1" y2="500"/>
+    <line x1="728.6" y1="100" x2="728.6" y2="500"/>
+    <line x1="800" y1="100" x2="800" y2="500"/>
+  </g>
+  <g font-size="12" fill="#a0a0a0" text-anchor="middle">
+    <text x="300" y="520">0</text>
+    <text x="371.4" y="520">100</text>
+    <text x="442.9" y="520">200</text>
+    <text x="514.3" y="520">300</text>
+    <text x="585.7" y="520">400</text>
+    <text x="657.1" y="520">500</text>
+    <text x="728.6" y="520">600</text>
+    <text x="800" y="520">700</text>
+  </g>
+
+  <!-- ① 도배 후 배선·콘센트 변경 30~80 → x 321.4~357.1 -->
+  <text x="285" y="128" font-size="14" font-weight="600" fill="#444" text-anchor="end">① 도배 끝난 뒤 콘센트·배선 변경</text>
+  <text x="285" y="146" font-size="12" fill="#999" text-anchor="end">벽 뜯고 재도배</text>
+  <rect x="300" y="121" width="21.4" height="24" rx="4" fill="#f0d9cf"/>
+  <rect x="321.4" y="121" width="35.7" height="24" rx="4" fill="#C26B4A"/>
+  <text x="367" y="138" font-size="14" fill="#a8512f" font-weight="600">30만~80만원</text>
+
+  <!-- ② 줄눈 양생 미확보 타일 50~100 → x 335.7~371.4 -->
+  <text x="285" y="208" font-size="14" font-weight="600" fill="#444" text-anchor="end">② 줄눈 양생 48시간 안 지킴</text>
+  <text x="285" y="226" font-size="12" fill="#999" text-anchor="end">줄눈 들뜸 → 타일 재시공</text>
+  <rect x="300" y="201" width="35.7" height="24" rx="4" fill="#f0d9cf"/>
+  <rect x="335.7" y="201" width="35.7" height="24" rx="4" fill="#C26B4A"/>
+  <text x="381" y="218" font-size="14" fill="#a8512f" font-weight="600">50만~100만원</text>
+
+  <!-- ③ 습식 전 목공·도배 300~650 → x 514.3~764.3 -->
+  <text x="285" y="288" font-size="14" font-weight="600" fill="#444" text-anchor="end">③ 습식(타일·미장) 전에 목공·도배</text>
+  <text x="285" y="306" font-size="12" fill="#999" text-anchor="end">공사비 10~15% · 30평/74타입 3,000만~4,300만 기준</text>
+  <rect x="300" y="281" width="214.3" height="24" rx="4" fill="#f0d9cf"/>
+  <rect x="514.3" y="281" width="250" height="24" rx="4" fill="#C26B4A"/>
+  <text x="514.3" y="326" font-size="14" fill="#a8512f" font-weight="600">300만~650만원</text>
+
+  <!-- ④ 방수·배관 순서 오류 욕실 전체 200~700 → x 442.9~800 -->
+  <text x="285" y="388" font-size="14" font-weight="600" fill="#444" text-anchor="end">④ 방수 양생 건너뛰고 타일 / 배관 잘못 건드림</text>
+  <text x="285" y="406" font-size="12" fill="#999" text-anchor="end">누수 → 욕실 한 칸 통째 재시공(덧방~올철거·UBR)</text>
+  <rect x="300" y="381" width="142.9" height="24" rx="4" fill="#f0d9cf"/>
+  <rect x="442.9" y="381" width="357.1" height="24" rx="4" fill="#C26B4A"/>
+  <text x="442.9" y="426" font-size="14" fill="#a8512f" font-weight="600">200만~700만원</text>
+
+  <!-- legend -->
+  <rect x="300" y="458" width="14" height="14" rx="3" fill="#f0d9cf"/>
+  <text x="320" y="470" font-size="12" fill="#777">최소 금액까지의 구간</text>
+  <rect x="470" y="458" width="14" height="14" rx="3" fill="#C26B4A"/>
+  <text x="490" y="470" font-size="12" fill="#777">실제 발생 범위(최소~최대)</text>
+
+  <text x="40" y="560" font-size="12" fill="#999">※ 재시공에는 철거·폐기물(1톤 트럭 30만~50만원)·보양(10만~20만원)이 한 번 더 붙습니다. 34평/84타입은 면적만큼 위로 움직입니다.</text>
+  <text x="40" y="580" font-size="12" fill="#999">ulmadna.com · 개념 이해용 차트</text>
+</svg>
