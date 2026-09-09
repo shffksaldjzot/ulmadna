@@ -22,15 +22,11 @@ export interface ConditionChipsProps {
   onTargetChange: (v: 'wall' | 'ceiling' | 'both') => void;
   /** 지역(선택). 비용에만 영향 */
   /** 구축(재도배) 여부. 기본 false(신축·빈집) */
-  isOld: boolean;
-  onIsOldChange: (v: boolean) => void;
 }
 
 export default function ConditionChips({
   target,
   onTargetChange,
-  isOld,
-  onIsOldChange,
 }: ConditionChipsProps) {
   return (
     <div className="flex flex-col gap-3 pt-2 border-t border-v1-line-2">
@@ -56,18 +52,8 @@ export default function ConditionChips({
       {/* 지역 칩은 2026-09-09 형아 결정으로 뺐다 — 계산은 전부 수도권 기준. 지역은 나중에 광고 배너를
           접속 IP 기준으로 띄울 때 쓴다. */}
 
-      {/* 상태 — 신축·빈집 / 구축·재도배 */}
-      <div className="flex flex-col gap-1">
-        <span className="text-[14px] text-v1-text-label">상태</span>
-        <div className="flex gap-2">
-          <Chip selected={!isOld} onClick={() => onIsOldChange(false)}>
-            신축·빈집
-          </Chip>
-          <Chip selected={isOld} onClick={() => onIsOldChange(true)}>
-            구축·재도배
-          </Chip>
-        </div>
-      </div>
+      {/* 상태(신축/구축) 칩은 2026-09-09 형아 결정으로 뺐다 — 견적은 전부 구축 기준,
+          기존 벽지 제거만 결과 카드의 구성 보기에서 토글로 켜고 끈다. */}
     </div>
   );
 }

@@ -50,8 +50,6 @@ export interface QuickAnswerProps {
   paperType: '합지' | '실크' | undefined;
   /** 지역(선택). 비용에만 영향 */
   /** 구축(재도배) 여부. 기본 false(신축·빈집) */
-  isOld: boolean;
-  onIsOldChange: (v: boolean) => void;
   /** 롤·면적 줄에 쓰는 계산 결과(물량 상세) */
   result: WallpaperCalcResultDTO | null;
   /**
@@ -74,8 +72,6 @@ export default function QuickAnswer({
   target,
   onTargetChange,
   paperType,
-  isOld,
-  onIsOldChange,
   result,
   emptyMessage,
 }: QuickAnswerProps) {
@@ -178,8 +174,6 @@ export default function QuickAnswer({
       <ConditionChips
         target={target}
         onTargetChange={onTargetChange}
-        isOld={isOld}
-        onIsOldChange={onIsOldChange}
       />
     </Card>
   );

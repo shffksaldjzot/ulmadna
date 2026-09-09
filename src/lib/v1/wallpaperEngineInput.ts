@@ -65,8 +65,10 @@ export interface WallpaperCalcRequest {
   paperType?: '합지' | '실크';
   product?: WallpaperProductRequest;
   region?: string;
-  /** 구축(재도배) 여부. 기본 false(신축·빈집) */
+  /** 구축(재도배) 여부 — 2026-09-09부터 항상 true(견적은 전부 구축 기준) */
   isOld?: boolean;
+  /** 기존 벽지 제거 포함 여부(구성 보기 토글). 기본 true */
+  removeOld?: boolean;
 }
 
 /** 소수점 반올림 없이 그대로 두되 undefined는 걸러낸다 */
@@ -261,7 +263,10 @@ export function toEngineInput(
   const ceiling = target !== 'wall';
   // 지역은 2026-09-09 형아 결정으로 계산에서 뺐다(전부 수도권 기준). 옛 공유 링크에 region이 남아 있어도 무시한다.
   // 구축(재도배) 여부 — 세 입력 방식(실측/면적/평형) 모두에 동일하게 실어 보낸다
-  const isOld = state.isOld ?? false;
+  // 2026-09-09 형아 결정: 구축·신축 선택지를 없애고 견적은 전부 구축 기준(밑작업 포함)으로 낸다.
+  // 사용자는 구성 보기에서 항목을 보고 판단하고, 기존 벽지 제거만 토글로 켜고 끈다.
+  const isOld = true;
+  const removeOld = state.removeOld ?? true;
   // view가 없는 옛 공유 링크는 resolveView가 정밀 값 유무로 추정한다(검사관 2라운드 지적 2번)
   const view = resolveView(state);
 
@@ -291,6 +296,7 @@ export function toEngineInput(
             wall,
             ceiling,
             isOld,
+            removeOld,
           },
           paper,
         };
@@ -314,6 +320,7 @@ export function toEngineInput(
           wall,
           ceiling,
           isOld,
+          removeOld,
         },
         paper,
       };
@@ -337,6 +344,7 @@ export function toEngineInput(
         wall,
         ceiling,
         isOld,
+        removeOld,
       },
       paper,
     };

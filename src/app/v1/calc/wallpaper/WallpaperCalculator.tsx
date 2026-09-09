@@ -133,8 +133,6 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
               target={form.target ?? 'both'}
               onTargetChange={(v) => patch({ target: v })}
               paperType={form.paperType}
-              isOld={form.isOld ?? false}
-              onIsOldChange={(v) => patch({ isOld: v })}
               result={result}
               emptyMessage={emptyMessage}
             />
@@ -154,8 +152,6 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
               onWallLengthChange={(v) => patch({ wallLength: v === '' ? undefined : v })}
               directCeilingSqm={form.directCeilingSqm ?? ''}
               onDirectCeilingSqmChange={(v) => patch({ directCeilingSqm: v === '' ? undefined : v })}
-              isOld={form.isOld ?? false}
-              onIsOldChange={(v) => patch({ isOld: v })}
               // 벽 길이 모드에서 빼는 문·창 목록 — 훅(toEngineInput)이 면적으로 환산해 벽 면적에서 뺀다
               lengthOpenings={form.lengthOpenings ?? []}
               onLengthOpeningsChange={(v) => patch({ lengthOpenings: v })}
@@ -179,6 +175,7 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
             stale={stale}
             form={form}
             emptyMessage={emptyMessage}
+            onRemoveOldChange={(v) => patch({ removeOld: v })}
           />
         </div>
       </div>

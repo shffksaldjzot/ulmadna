@@ -97,8 +97,10 @@ export interface WallpaperFormState {
   wallLength?: number;
   /** 정밀 폼 - 벽 길이 입력 모드에서 천장까지 계산할 때 천장 면적 직접 입력 (㎡) */
   directCeilingSqm?: number;
-  /** 구축(재도배) 여부. 엔진 isOld로 그대로 전달한다. 기본 false(신축·빈집) */
+  /** (옛 공유 링크 호환용) 구축 여부. 2026-09-09부터 견적은 항상 구축 기준이라 계산에는 안 쓴다 */
   isOld?: boolean;
+  /** 기존 벽지 제거(철거) 포함 여부. 구성 보기의 토글로 켜고 끈다. 기본 true */
+  removeOld?: boolean;
   /** 정밀 폼 - 벽 길이 모드에서 쓰는 문·창 목록. 훅이 면적으로 환산해 벽 면적에서 뺀다 */
   lengthOpenings?: WallpaperOpening[];
   /**
@@ -123,7 +125,7 @@ export const DEFAULT_CALC_FORM: WallpaperFormState = {
   unit: 'm',
   entry: 'room',
   target: 'both',
-  isOld: false,
+  removeOld: true,
   view: 'simple',
 };
 

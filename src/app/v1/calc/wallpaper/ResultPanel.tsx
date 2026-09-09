@@ -13,6 +13,7 @@
 import { useState } from 'react';
 import Card from '@/components/v1/Card';
 import Collapsible from '@/components/v1/Collapsible';
+import Toggle from '@/components/v1/Toggle';
 import Button from '@/components/v1/Button';
 import Disclaimer from '@/components/v1/Disclaimer';
 import Toast, { showToast } from '@/components/v1/Toast';
@@ -38,6 +39,8 @@ export interface ResultPanelProps {
    * 하나로 미리 계산해 내려준다(즉답 자리·결과 패널·하단 바가 모두 같은 문구를 쓰기 위해).
    */
   emptyMessage: string;
+  /** 구성 보기의 "기존 벽지 제거" 토글 — 켜고 끄면 폼 상태(removeOld)가 바뀌어 다시 계산된다 */
+  onRemoveOldChange: (v: boolean) => void;
 }
 
 /** 비용 구성 한 줄을 "28롤 × 3.2만 = 90만" 또는 범위 문자열로 만든다 (result/page.tsx와 같은 규칙) */
@@ -54,7 +57,8 @@ function formatCostLineAmount(line: WallpaperCostLine): string {
   return formatManRange(line.amountMin, line.amountMax);
 }
 
-export default function ResultPanel({ result, range, loading, error, stale, form, emptyMessage }: ResultPanelProps) {
+export default function ResultPanel({ result, range, loading, error, stale, form, emptyMessage,
+  onRemoveOldChange, }: ResultPanelProps) {
   // "링크를 복사했어요" 같은 짧은 토스트 메시지
   const [toast, setToast] = useState<string | null>(null);
 
@@ -194,8 +198,22 @@ export default function ResultPanel({ result, range, loading, error, stale, form
             중간 {toMan(cost.mid).toLocaleString('ko-KR')}만원
           </p>
           <p className="text-[16px] text-foreground tabular-nums">{cost.basisLine}</p>
-          <Collapsible title="구성 보기">
+          {/* 구성 보기 — 2026-09-09 형아 결정: 기본으로 전부 펼쳐 보여준다(접을 수는 있다).
+              견적은 전부 구축 기준이라 맨 위에 "기존 벽지 제거" 토글을 두고 사용자가 보고 판단한다. */}
+          <Collapsible title="구성 보기" defaultOpen>
             <div className="flex flex-col">
+              <div className="py-[10px] border-b border-v1-line-2 flex items-center justify-between gap-3">
+                <div className="flex flex-col gap-[2px] min-w-0">
+                  <span className="text-[16px] text-foreground">기존 벽지 제거</span>
+                  <span className="text-[14px] text-v1-text-disabled">구축 기준 견적 · 끄면 철거비를 뺍니다</span>
+                </div>
+                <Toggle
+                  checked={form.removeOld ?? true}
+                  onChange={onRemoveOldChange}
+                  label="기존 벽지 제거 포함"
+                  className="flex-none"
+                />
+              </div>
               {cost.breakdown.map((line, i) => (
                 <div key={line.key} className={`py-[10px] ${i === cost.breakdown.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
                   <div className="flex items-center justify-between">

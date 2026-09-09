@@ -39,12 +39,17 @@ describe('toEngineInput', () => {
     expect(input!.paper.paperType).toBe('실크');
   });
 
-  it('isOld를 true(구축·재도배)로 두면 요청 바디에 그대로 실린다', () => {
-    const input = toEngineInput({ ...SILK, isOld: true }, NO_PRODUCTS);
-    expect(input!.base.isOld).toBe(true);
-    // 기본값(false)일 때도 확인
+  it('견적은 항상 구축 기준(isOld true)이고, 기존 벽지 제거는 removeOld 토글로만 바뀐다 (2026-09-09 형아 결정)', () => {
+    // 옛 링크에 isOld:false가 남아 있어도 무시하고 구축 기준으로 보낸다
+    const legacy = toEngineInput({ ...SILK, isOld: false }, NO_PRODUCTS);
+    expect(legacy!.base.isOld).toBe(true);
+    // 기본값: 철거 포함
     const defaultInput = toEngineInput(SILK, NO_PRODUCTS);
-    expect(defaultInput!.base.isOld).toBe(false);
+    expect(defaultInput!.base.removeOld).toBe(true);
+    // 토글을 끄면 철거만 빠진다(구축 기준은 그대로)
+    const noRemoval = toEngineInput({ ...SILK, removeOld: false }, NO_PRODUCTS);
+    expect(noRemoval!.base.isOld).toBe(true);
+    expect(noRemoval!.base.removeOld).toBe(false);
   });
 
   it('precise 모드 + 벽 길이 모드에서 문 1개·창 1개(120×150cm)를 빼면 벽면적이 3.69㎡ 줄어든다', () => {

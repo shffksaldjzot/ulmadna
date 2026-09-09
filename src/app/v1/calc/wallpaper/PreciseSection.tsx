@@ -72,8 +72,6 @@ export interface PreciseSectionProps {
   onDirectCeilingSqmChange: (v: number | '') => void;
 
   /** 아래 ConditionChips(범위·지역·상태)로 그대로 전달한다 */
-  isOld: boolean;
-  onIsOldChange: (v: boolean) => void;
 
   /** 벽 길이 모드에서 빼는 문·창 목록 (훅이 면적으로 환산해 벽 면적에서 뺀다) */
   lengthOpenings?: WallpaperOpening[];
@@ -106,8 +104,6 @@ export default function PreciseSection(props: PreciseSectionProps) {
     onWallLengthChange,
     directCeilingSqm,
     onDirectCeilingSqmChange,
-    isOld,
-    onIsOldChange,
     lengthOpenings,
     onLengthOpeningsChange,
   } = props;
@@ -226,8 +222,6 @@ export default function PreciseSection(props: PreciseSectionProps) {
       <ConditionChips
         target={target}
         onTargetChange={onTargetChange}
-        isOld={isOld}
-        onIsOldChange={onIsOldChange}
       />
     </Card>
   );

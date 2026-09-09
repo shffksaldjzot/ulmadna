@@ -74,8 +74,9 @@ function buildSummary(state: WallpaperFormState): string {
   // 범위 — 벽만 / 천장만 / 벽+천장 (2026-09-09 벽·천장 각각 토글)
   parts.push(state.target === 'wall' ? '벽만' : state.target === 'ceiling' ? '천장만' : '벽+천장');
 
-  // 구축(재도배)이면 한 마디 더 붙인다
-  if (state.isOld) parts.push('구축');
+  // 2026-09-09부터 견적은 전부 구축 기준. 철거를 껐을 때만 그 사실을 적는다
+  parts.push('구축 기준');
+  if (state.removeOld === false) parts.push('철거 제외');
 
   // 이 함수가 불리는 시점엔 이미 계산이 성공한 뒤라 paperType은 항상 있다(2026-09-09 새
   // 규칙 — 벽지 종류를 안 고르면 calcFromState가 null을 돌려주고 이 화면 자체가 안 그려진다).
@@ -238,7 +239,7 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
             중간 {toMan(cost.mid).toLocaleString('ko-KR')}만원
           </p>
           <p className="text-[16px] text-foreground tabular-nums">{cost.basisLine}</p>
-          <Collapsible title="구성 보기">
+          <Collapsible title="구성 보기" defaultOpen>
             <div className="flex flex-col">
               {cost.breakdown.map((line, i) => (
                 <div key={line.key} className={`py-[10px] ${i === cost.breakdown.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
