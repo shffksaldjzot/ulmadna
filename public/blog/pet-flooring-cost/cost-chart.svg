@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" font-family="Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif">
+  <rect width="800" height="520" fill="#fffdf9"/>
+  <text x="400" y="38" text-anchor="middle" font-size="20" font-weight="700" fill="#2b2b2b">펫장판 가격 — 강아지 미끄럼 방지 바닥 방법별 총액 (34평/84타입, 만원)</text>
+  <text x="400" y="60" text-anchor="middle" font-size="12" fill="#777">실제 바닥 시공면적 24~25평 기준 · 자재+시공비 · 철거·부가세 별도 · 실제 견적 데이터 1,000건+</text>
+  <!-- axis -->
+  <line x1="150" y1="90" x2="150" y2="460" stroke="#ccc"/>
+  <line x1="150" y1="460" x2="760" y2="460" stroke="#ccc"/>
+  <!-- gridlines: 0..450 => 150..735 (1.3px per 만원) -->
+  <g stroke="#eee" stroke-dasharray="3 3">
+    <line x1="280" y1="90" x2="280" y2="460"/><line x1="410" y1="90" x2="410" y2="460"/>
+    <line x1="540" y1="90" x2="540" y2="460"/><line x1="670" y1="90" x2="670" y2="460"/>
+  </g>
+  <g font-size="11" fill="#888" text-anchor="middle">
+    <text x="150" y="478">0</text><text x="280" y="478">100</text><text x="410" y="478">200</text>
+    <text x="540" y="478">300</text><text x="670" y="478">400만원</text>
+  </g>
+  <!-- rows -->
+  <g font-size="13" fill="#333">
+    <text x="140" y="120" text-anchor="end">동선만 매트·코팅제</text>
+    <rect x="151" y="104" width="13" height="24" rx="4" fill="#d9c8a3"/>
+    <text x="172" y="121" font-size="12" fill="#8a7a4e" font-weight="700">1만~10만 (바닥 교체 없음)</text>
+
+    <text x="140" y="170" text-anchor="end">일반 2.2T 장판 (비교 기준)</text>
+    <rect x="280" y="154" width="39" height="24" rx="4" fill="#bbb"/>
+    <text x="327" y="171" font-size="12" fill="#777" font-weight="700">100만~130만</text>
+
+    <text x="140" y="220" text-anchor="end">브랜드 펫 라인 (3.2T 기준)</text>
+    <rect x="391" y="204" width="71" height="24" rx="4" fill="#8faa9b"/>
+    <text x="470" y="221" font-size="12" fill="#5f7d6e" font-weight="700">185만~240만 (일반 대비 +15만~30만)</text>
+
+    <text x="140" y="270" text-anchor="end">전문 펫장판 전면 시공</text>
+    <rect x="475" y="254" width="26" height="24" rx="4" fill="#c96a4a"/>
+    <text x="509" y="271" font-size="12" fill="#c96a4a" font-weight="700">250만~260만+ (33평 실제)</text>
+
+    <text x="140" y="320" text-anchor="end">5T 프리미엄 장판</text>
+    <rect x="514" y="304" width="156" height="24" rx="4" fill="#c96a4a"/>
+    <text x="678" y="321" font-size="12" fill="#c96a4a" font-weight="700">280만~400만</text>
+
+    <text x="140" y="370" text-anchor="end">논슬립 강마루</text>
+    <rect x="410" y="354" width="163" height="24" rx="4" fill="#8faa9b"/>
+    <text x="581" y="371" font-size="12" fill="#5f7d6e" font-weight="700">200만~325만</text>
+
+    <text x="140" y="420" text-anchor="end">논슬립 SPC 마루</text>
+    <rect x="573" y="404" width="97" height="24" rx="4" fill="#8faa9b"/>
+    <text x="678" y="421" font-size="12" fill="#5f7d6e" font-weight="700">325만~400만</text>
+  </g>
+  <text x="400" y="506" text-anchor="middle" font-size="11" fill="#999">전문 펫장판 = 애견시설용 자재(자재 200만+ · 배송 10만 · 시공 40만) · 브랜드 펫 라인 = 일반 장판 대비 평당 +5천~1만원 · 슬개골 수술 양쪽 200만~400만</text>
+</svg>
