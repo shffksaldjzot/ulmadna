@@ -6,6 +6,9 @@
 
 export type { CuttingResult, CuttingKind, CuttingFn, LossMode } from './types';
 
+// 소수점 오차에 안 걸리는 올림 도우미 (재단 모듈이 공통으로 쓴다)
+export { ceilSafe, ceilSafe1, CEIL_EPSILON } from './round';
+
 // 구현 완료
 export { calcRollWall, type RollWallInput } from './rollWall';
 

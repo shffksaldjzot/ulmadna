@@ -9,6 +9,11 @@
 //   문·창은 항상 cm로 저장한다(units.ts가 그 변환을 맡는다).
 //
 // 작성일: 2026년 09월 09일
+// 2026년 09월 10일: 바닥재 계산기(U 지시서)가 이 카드를 그대로 재사용할 수 있도록
+//   optional prop `simple`을 추가했다. 바닥재 방 실측은 가로·세로만 있고 높이·문창
+//   개념이 없어서(바닥은 벽이 아니다), simple=true면 "이 방만 다르게"(높이)·문·창 표·
+//   벽 면적 미리보기를 통째로 숨기고 가로·세로 입력칸만 남긴다. 기본값 false라
+//   도배 화면(PreciseSection)은 지금까지와 똑같이 그려진다.
 // ──────────────────────────────────────────────
 
 'use client';
@@ -34,6 +39,11 @@ interface RoomCardProps {
   heightM: number;
   /** 범위 — 벽·천장 중 켜진 것만 계산값 줄에 보여준다 */
   target: 'wall' | 'ceiling' | 'both';
+  /**
+   * true면 "이 방만 다르게"(높이)·문·창 표·벽 면적 미리보기를 숨기고 가로·세로 입력칸만
+   * 보여준다(바닥재 계산기 전용). 기본 false — 안 주면 도배 화면 그대로다.
+   */
+  simple?: boolean;
 }
 
 /** 소수 첫째 자리 반올림 */
@@ -41,7 +51,7 @@ function r1(n: number): number {
   return Math.round(n * 10) / 10;
 }
 
-export default function RoomCard({ index, room, unit, onChange, onRemove, heightM, target }: RoomCardProps) {
+export default function RoomCard({ index, room, unit, onChange, onRemove, heightM, target, simple = false }: RoomCardProps) {
   // ── 이 방의 벽·천장 면적 미리보기 (엔진과 같은 규칙: 벽 = 둘레×높이 − 문·창, 천장 = 가로×세로) ──
   // 2026-09-09 형아 지적: 방 크기 모드에서 천장 면적 입력칸이 없어 천장이 빠진 줄로 보였다.
   // 천장은 가로×세로로 자동이므로 칸 대신 계산값을 바로 보여준다.
@@ -105,13 +115,14 @@ export default function RoomCard({ index, room, unit, onChange, onRemove, height
             onChange={(v) => onChange({ ...room, d: store(v) })}
           />
         </div>
-        {/* 가로·세로를 다 적으면 이 방의 벽·천장 면적을 바로 보여준다 */}
-        {wallSqm > 0 || ceilingSqm > 0 ? (
+        {/* 가로·세로를 다 적으면 이 방의 벽·천장 면적을 바로 보여준다 (바닥재는 벽 개념이 없어 simple에서 뺀다) */}
+        {!simple && (wallSqm > 0 || ceilingSqm > 0) ? (
           <p className="text-[14px] text-v1-text-disabled tabular-nums">{previewParts.join(' · ')}</p>
         ) : null}
       </div>
 
-      {/* 이 방만 천장이 높거나 낮을 때만 펼쳐서 적는 칸(비우면 폼 공통 높이를 쓴다) */}
+      {/* 이 방만 천장이 높거나 낮을 때만 펼쳐서 적는 칸(비우면 폼 공통 높이를 쓴다) — 바닥재는 높이 개념이 없어 simple에서 뺀다 */}
+      {!simple && (
       <Collapsible title="이 방만 다르게" defaultOpen={room.h !== undefined}>
         <div className="pt-2">
           <NumberField
@@ -127,8 +138,10 @@ export default function RoomCard({ index, room, unit, onChange, onRemove, height
           />
         </div>
       </Collapsible>
+      )}
 
-      {/* 문·창 — 벽 면적에서 빼는 값 */}
+      {/* 문·창 — 벽 면적에서 빼는 값 (바닥재는 문·창 차감이 없어 simple에서 뺀다) */}
+      {!simple && (
       <div className="flex flex-col gap-2 border-t border-v1-line-2 pt-3">
         <span className="text-[16px] font-semibold text-foreground">문·창</span>
         <OpeningTable
@@ -136,6 +149,7 @@ export default function RoomCard({ index, room, unit, onChange, onRemove, height
           onChange={(v: WallpaperOpening[]) => onChange({ ...room, openings: v })}
         />
       </div>
+      )}
     </div>
   );
 }
