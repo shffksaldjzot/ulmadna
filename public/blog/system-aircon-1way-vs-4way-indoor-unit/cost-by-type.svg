@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif">
+  <rect width="800" height="520" fill="#fffdf9"/>
+  <text x="40" y="44" font-size="22" font-weight="700" fill="#2b2b2b">시스템 에어컨 1way vs 4way — 구성별 실제 견적 범위</text>
+  <text x="40" y="68" font-size="13" fill="#7a7a7a">단위: 만원 · 실내기+실외기+기본 설치 합산 · VAT 별도 · 실제 견적 빅데이터 1,000건+ 기준</text>
+
+  <!-- axis: x = 300 + value*0.3 (0~1,600만) -->
+  <g stroke="#e6e0d8" stroke-width="1">
+    <line x1="300" y1="90" x2="300" y2="430"/>
+    <line x1="420" y1="90" x2="420" y2="430"/>
+    <line x1="540" y1="90" x2="540" y2="430"/>
+    <line x1="660" y1="90" x2="660" y2="430"/>
+    <line x1="780" y1="90" x2="780" y2="430"/>
+  </g>
+  <g font-size="12" fill="#9a9a9a" text-anchor="middle">
+    <text x="300" y="450">0</text>
+    <text x="420" y="450">400</text>
+    <text x="540" y="450">800</text>
+    <text x="660" y="450">1,200</text>
+    <text x="780" y="450">1,600</text>
+  </g>
+
+  <!-- 1. 20평대 1way 3대: 400~700 -->
+  <text x="285" y="118" font-size="14" fill="#2b2b2b" text-anchor="end">20평대(59타입) · 1way 3대</text>
+  <rect x="420" y="104" width="90" height="20" rx="4" fill="#6b8f71"/>
+  <text x="518" y="119" font-size="13" fill="#6b8f71" font-weight="700">400~700만</text>
+
+  <!-- 2. 30평대 1way 4대: 525~700 -->
+  <text x="285" y="178" font-size="14" fill="#2b2b2b" text-anchor="end">30평대(84타입) · 1way 4대</text>
+  <rect x="457.5" y="164" width="52.5" height="20" rx="4" fill="#6b8f71"/>
+  <text x="518" y="179" font-size="13" fill="#6b8f71" font-weight="700">525~700만 (실제 540만)</text>
+
+  <!-- 3. 40평대 1way 5대: 635~805 -->
+  <text x="285" y="238" font-size="14" fill="#2b2b2b" text-anchor="end">40평대 · 1way 5대</text>
+  <rect x="490.5" y="224" width="51" height="20" rx="4" fill="#6b8f71"/>
+  <text x="549" y="239" font-size="13" fill="#6b8f71" font-weight="700">635~805만 (실제 765만)</text>
+
+  <!-- 4. 40평대 4way 4대: 770~1,100 -->
+  <text x="285" y="298" font-size="14" fill="#2b2b2b" text-anchor="end">40평대 · 4way 4대</text>
+  <rect x="531" y="284" width="99" height="20" rx="4" fill="#c96a4a"/>
+  <text x="638" y="299" font-size="13" fill="#c96a4a" font-weight="700">770~1,100만</text>
+
+  <!-- 5. 40평대 4way 5~6대: 1,050~1,500 -->
+  <text x="285" y="358" font-size="14" fill="#2b2b2b" text-anchor="end">40평대 · 4way 5~6대</text>
+  <rect x="615" y="344" width="135" height="20" rx="4" fill="#c96a4a"/>
+  <text x="758" y="359" font-size="13" fill="#c96a4a" font-weight="700" text-anchor="start">1,050~</text>
+  <text x="758" y="375" font-size="13" fill="#c96a4a" font-weight="700" text-anchor="start">1,500만</text>
+
+  <!-- legend -->
+  <rect x="300" y="404" width="14" height="14" rx="3" fill="#6b8f71"/>
+  <text x="320" y="416" font-size="12" fill="#555">1way 조합(가정용 표준)</text>
+  <rect x="470" y="404" width="14" height="14" rx="3" fill="#c96a4a"/>
+  <text x="490" y="416" font-size="12" fill="#555">4way 조합(대용량·단내림 포함 흔함)</text>
+
+  <text x="40" y="490" font-size="12" fill="#9a9a9a">※ 같은 대수라도 실외기 마력(4HP/5HP/6HP)·브랜드 라인(10~20%)·배관 길이·단내림 목공에 따라 범위 안에서 움직입니다.</text>
+  <text x="40" y="508" font-size="12" fill="#9a9a9a">※ 4way 4~6대는 40평대 대용량 구성이 대부분이라 1way 5대와 평형이 같아도 실외기 용량 자체가 큽니다.</text>
+</svg>
