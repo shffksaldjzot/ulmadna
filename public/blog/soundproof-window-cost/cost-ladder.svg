@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <rect width="800" height="500" fill="#fdfaf7"/>
+  <text x="40" y="44" font-size="22" font-weight="700" fill="#2d2a26">방음창 설치 비용 4단계 — 어디까지 손대느냐로 갈립니다</text>
+  <text x="40" y="70" font-size="13" fill="#8a8378">자재비+시공비 포함 · 실제 견적 데이터 기준 (단위: 원)</text>
+
+  <!-- 1단계 -->
+  <rect x="40" y="96" width="720" height="72" rx="10" fill="#f3ede6"/>
+  <text x="60" y="126" font-size="13" font-weight="700" fill="#c96f4a">1단계</text>
+  <text x="112" y="126" font-size="15" font-weight="700" fill="#2d2a26">기밀 보수 — 모헤어·문풍지·창틀 실리콘</text>
+  <text x="112" y="150" font-size="12" fill="#6b6459">셀프 5천~1만원대 · 업체 창당 몇만원 · 15년 안 된 창이면 여기서 끝나는 집이 많습니다</text>
+  <text x="740" y="138" font-size="16" font-weight="700" fill="#2d2a26" text-anchor="end">1만~10만원</text>
+
+  <!-- 2단계 -->
+  <rect x="40" y="180" width="720" height="72" rx="10" fill="#efe3d8"/>
+  <text x="60" y="210" font-size="13" font-weight="700" fill="#c96f4a">2단계</text>
+  <text x="112" y="210" font-size="15" font-weight="700" fill="#2d2a26">창 한 짝만 — 접합·방음유리 교체 또는 방음 덧창</text>
+  <text x="112" y="234" font-size="12" fill="#6b6459">유리만 한 장 15만~30만원+ · 덧창(내창 추가) 창당 20만~40만원 · 방음창문 한 짝 70만~100만원+</text>
+  <text x="740" y="222" font-size="16" font-weight="700" fill="#2d2a26" text-anchor="end">15만~100만원+</text>
+
+  <!-- 3단계 -->
+  <rect x="40" y="264" width="720" height="88" rx="10" fill="#e9d6c6"/>
+  <text x="60" y="294" font-size="13" font-weight="700" fill="#c96f4a">3단계</text>
+  <text x="112" y="294" font-size="15" font-weight="700" fill="#2d2a26">집 전체 이중창 교체 — 로이·아르곤·26mm 유리 사양</text>
+  <text x="112" y="318" font-size="12" fill="#6b6459">24평/59타입 650만~900만 · 32~34평/84타입 850만~1,300만 · 42평 1,100만~1,600만</text>
+  <text x="112" y="338" font-size="12" fill="#6b6459">외부창(발코니)만 교체하면 450만~600만 / 600만~850만 / 800만~1,100만</text>
+  <text x="740" y="306" font-size="16" font-weight="700" fill="#2d2a26" text-anchor="end">650만~1,600만원</text>
+
+  <!-- 4단계 -->
+  <rect x="40" y="364" width="720" height="72" rx="10" fill="#c96f4a"/>
+  <text x="60" y="394" font-size="13" font-weight="700" fill="#fdfaf7">4단계</text>
+  <text x="112" y="394" font-size="15" font-weight="700" fill="#fdfaf7">시스템창호 전환 — 4면 가스켓 압착 기밀</text>
+  <text x="112" y="418" font-size="12" fill="#fdfaf7">같은 집 이중창 견적의 2~3배 · 대로변·상가 앞처럼 소음이 극심한 집에만 권장</text>
+  <text x="740" y="406" font-size="16" font-weight="700" fill="#fdfaf7" text-anchor="end">이중창의 2~3배</text>
+
+  <text x="40" y="468" font-size="13" fill="#c96f4a" font-weight="700">핵심: 소음의 첫 통로는 유리가 아니라 틈입니다. 1단계 진단 없이 4단계부터 견적 받으면 돈이 샙니다.</text>
+  <text x="40" y="488" font-size="12" fill="#8a8378">※ 부가세 포함 여부·철거·사다리차·보양비가 업체마다 달라 같은 사양도 10~20% 차이가 납니다.</text>
+</svg>
