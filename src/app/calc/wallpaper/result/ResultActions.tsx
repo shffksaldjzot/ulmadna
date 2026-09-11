@@ -38,7 +38,9 @@ export function ResultFab() {
 
   function handleSave() {
     if (!session?.user) {
-      router.push('/calc/login');
+      // 2026-09-11 검사관 지적: /calc/login 화면을 없애고 루트 로그인 화면을 그대로 쓰기로 해서
+      // 여기서도 리다이렉트를 한 번 거치지 않게 처음부터 /login 으로 바로 보낸다
+      router.push('/login');
       return;
     }
     // TODO: 저장한 계산 목록에 실제로 담는 백엔드 연결(내 정보 > 저장한 계산)

@@ -80,13 +80,18 @@ export function detectCalculator(
   override?: unknown,
 ): CalculatorKey[] {
   // 1) 사람이 적어 둔 값이 최우선 (자동 판정을 아예 건너뛴다)
+  //    ⚠️ `k in CALCULATORS` 대신 hasOwnProperty로 검사한다. `in`은 "toString"·"constructor"처럼
+  //    자바스크립트 객체가 원래 갖고 있는(프로토타입 체인의) 이름까지 있다고 착각할 수 있어서
+  //    (2026-09-11 검사관 지적) 진짜 우리가 등록한 키인지만 정확히 확인하는 방식으로 바꿨다.
   if (typeof override === "string") {
     if (override === "none") return [];
-    if (override in CALCULATORS) return [override as CalculatorKey];
+    if (Object.prototype.hasOwnProperty.call(CALCULATORS, override)) return [override as CalculatorKey];
     // 문자열인데 "none"도 아니고 유효한 키도 아니면(오타 등) → 자동 판정으로 넘어간다
   } else if (Array.isArray(override)) {
     // 배열로 여러 계산기를 강제 지정한 경우 — 유효한 키만 걸러서 그대로 쓴다
-    return override.filter((k): k is CalculatorKey => typeof k === "string" && k in CALCULATORS);
+    return override.filter(
+      (k): k is CalculatorKey => typeof k === "string" && Object.prototype.hasOwnProperty.call(CALCULATORS, k),
+    );
   }
   // 2) 제목+태그 신호 단어로 자동 판정 — 매치되는 계산기를 전부 모아서 돌려준다
   //    ⚠️ 여기서는 띄어쓰기를 지우지 않는다. 지우면 "수도 배관"이 "수도배관"이 되어 "도배"로 잘못 잡힌다

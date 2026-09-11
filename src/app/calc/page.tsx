@@ -20,6 +20,11 @@ import { getAllPostMeta } from '@/lib/blog';
 
 // 계산기 타일은 ProcessTiles.tsx (2026-09-09 형아 지시: 롤백 전 홈 히어로의 공정 타일 10개를 여기서 보여준다)
 
+// 2026-09-11 검사관 지적: 질문 게시판(/calc/q)·시세 페이지(/calc/price)는 아직 실제 화면이 없다.
+// 화면이 만들어질 때까지 "인기 질문"·"많이 찾는 시세" 섹션 자체를 숨겨둔다.
+// → 나중에 해당 페이지가 생기면 이 값을 true로 바꾸기만 하면 두 섹션이 다시 보인다.
+const SHOW_UNFINISHED_SECTIONS = false;
+
 // 질문 게시판은 아직 없어서, 목업과 같은 예시 3건을 그대로 쓴다(로렘 금지 원칙 준수)
 const SAMPLE_QUESTIONS = [
   { title: '34평 도배 견적 210만원 적정한가요', meta: '서울 노원구 34평 · 도배·욕실 · 답변 3' },
@@ -64,17 +69,20 @@ export default function V1HomePage() {
             </div>
           </section>
 
-          <section className="flex flex-col gap-3">
-            <SectionHeader title="인기 질문" moreHref="/calc/q" />
-            <div className="border-t border-v1-line-2">
-              {SAMPLE_QUESTIONS.map((q, i) => (
-                <div key={q.title} className={`py-[10px] ${i === SAMPLE_QUESTIONS.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
-                  <p className="text-[16px] font-bold text-foreground leading-[1.5] truncate">{q.title}</p>
-                  <p className="text-[14px] text-v1-text-secondary tabular-nums">{q.meta}</p>
-                </div>
-              ))}
-            </div>
-          </section>
+          {/* /calc/q 페이지가 아직 없어서 숨김 (2026-09-11 검사관 지적) */}
+          {SHOW_UNFINISHED_SECTIONS && (
+            <section className="flex flex-col gap-3">
+              <SectionHeader title="인기 질문" moreHref="/calc/q" />
+              <div className="border-t border-v1-line-2">
+                {SAMPLE_QUESTIONS.map((q, i) => (
+                  <div key={q.title} className={`py-[10px] ${i === SAMPLE_QUESTIONS.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
+                    <p className="text-[16px] font-bold text-foreground leading-[1.5] truncate">{q.title}</p>
+                    <p className="text-[14px] text-v1-text-secondary tabular-nums">{q.meta}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           <AdSlot />
           <Disclaimer />
@@ -85,7 +93,9 @@ export default function V1HomePage() {
           <div className="flex flex-col gap-8">
             <ProcessTiles />
 
-            <div className="grid grid-cols-2 gap-6">
+            {/* /calc/q 페이지가 아직 없어서 "인기 질문"을 숨기는 동안은 1단으로,
+                다시 켜지면 "인기 글"과 나란히 2단으로 보이게 grid-cols를 조건부로 바꾼다 */}
+            <div className={SHOW_UNFINISHED_SECTIONS ? 'grid grid-cols-2 gap-6' : 'grid grid-cols-1 gap-6'}>
               <section className="flex flex-col gap-3">
                 <SectionHeader title="인기 글" moreHref="/blog" />
                 <div className="border-t border-v1-line-2">
@@ -102,17 +112,20 @@ export default function V1HomePage() {
                 </div>
               </section>
 
-              <section className="flex flex-col gap-3">
-                <SectionHeader title="인기 질문" moreHref="/calc/q" />
-                <div className="border-t border-v1-line-2">
-                  {SAMPLE_QUESTIONS.map((q, i) => (
-                    <div key={q.title} className={`py-[10px] ${i === SAMPLE_QUESTIONS.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
-                      <p className="text-[16px] font-bold text-foreground leading-[1.5] truncate">{q.title}</p>
-                      <p className="text-[14px] text-v1-text-secondary tabular-nums">{q.meta}</p>
-                    </div>
-                  ))}
-                </div>
-              </section>
+              {/* /calc/q 페이지가 아직 없어서 숨김 (2026-09-11 검사관 지적) */}
+              {SHOW_UNFINISHED_SECTIONS && (
+                <section className="flex flex-col gap-3">
+                  <SectionHeader title="인기 질문" moreHref="/calc/q" />
+                  <div className="border-t border-v1-line-2">
+                    {SAMPLE_QUESTIONS.map((q, i) => (
+                      <div key={q.title} className={`py-[10px] ${i === SAMPLE_QUESTIONS.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
+                        <p className="text-[16px] font-bold text-foreground leading-[1.5] truncate">{q.title}</p>
+                        <p className="text-[14px] text-v1-text-secondary tabular-nums">{q.meta}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
             </div>
 
             <Disclaimer className="max-w-[720px]" />
@@ -120,16 +133,19 @@ export default function V1HomePage() {
 
           <div className="flex flex-col gap-6">
             <AdSlot size="300x250" />
-            <section className="flex flex-col gap-3">
-              <h2 className="text-[20px] font-bold text-foreground">많이 찾는 시세</h2>
-              <div className="border-t border-v1-line-2">
-                {POPULAR_PRICES.map((label, i) => (
-                  <ListRow key={label} href="/calc/price" last={i === POPULAR_PRICES.length - 1}>
-                    {label}
-                  </ListRow>
-                ))}
-              </div>
-            </section>
+            {/* /calc/price 페이지가 아직 없어서 숨김 (2026-09-11 검사관 지적) */}
+            {SHOW_UNFINISHED_SECTIONS && (
+              <section className="flex flex-col gap-3">
+                <h2 className="text-[20px] font-bold text-foreground">많이 찾는 시세</h2>
+                <div className="border-t border-v1-line-2">
+                  {POPULAR_PRICES.map((label, i) => (
+                    <ListRow key={label} href="/calc/price" last={i === POPULAR_PRICES.length - 1}>
+                      {label}
+                    </ListRow>
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         </div>
       </main>

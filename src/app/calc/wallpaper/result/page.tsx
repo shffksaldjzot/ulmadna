@@ -37,6 +37,10 @@ export const metadata = {
   title: '도배 계산기 결과 — 얼마드나',
 };
 
+// 2026-09-11 검사관 지적: 시세(/calc/price)·질문(/calc/q) 페이지가 아직 없다.
+// 페이지가 생길 때까지 이 화면의 관련 링크·하단 CTA 버튼에서 해당 링크만 숨겨둔다.
+const SHOW_UNFINISHED_LINKS = false;
+
 /**
  * 폼 상태 → 서버 계산 결과.
  * 즉답 화면의 훅과 같은 toEngineInput으로 요청을 만들어, 같은 조건이면 같은 금액이 나오게 한다.
@@ -257,15 +261,23 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
 
         <PostToBoardCheckbox />
 
-        {/* 관련 링크 5개 — 시세·글은 준비 중, 블로그 글 2개는 실제 발행 글로 연결 */}
+        {/* 관련 링크 — 시세(/calc/price)·질문(/calc/q) 페이지가 아직 없어서 숨김.
+            지금은 실제로 열리는 블로그 글 2개만 보여준다 (2026-09-11 검사관 지적) */}
         <div className="bg-white border border-v1-line rounded-[4px] px-4">
-          <ListRow href="/calc/price">시세 · 실크 벽지 평당 단가</ListRow>
+          {SHOW_UNFINISHED_LINKS && <ListRow href="/calc/price">시세 · 실크 벽지 평당 단가</ListRow>}
           <ListRow href="/blog/wallpaper-cost">글 · 도배 견적서 확인 4가지</ListRow>
-          <ListRow href="/blog/paint-vs-wallpaper-cost">글 · 합지와 실크, 무엇이 다른가</ListRow>
-          <ListRow href="/calc/q">질문 · 도배 210만원 적정한가요</ListRow>
-          <ListRow href="/calc/q" last>
-            질문 · 살림집 추가비 얼마 붙나요
+          {/* 뒤에 오는 "질문" 링크들이 숨겨진 동안은 이 행이 마지막이라 last를 켜서 구분선을 뺀다 */}
+          <ListRow href="/blog/paint-vs-wallpaper-cost" last={!SHOW_UNFINISHED_LINKS}>
+            글 · 합지와 실크, 무엇이 다른가
           </ListRow>
+          {SHOW_UNFINISHED_LINKS && (
+            <>
+              <ListRow href="/calc/q">질문 · 도배 210만원 적정한가요</ListRow>
+              <ListRow href="/calc/q" last>
+                질문 · 살림집 추가비 얼마 붙나요
+              </ListRow>
+            </>
+          )}
         </div>
 
         <Disclaimer />
@@ -276,9 +288,12 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
         <div className="flex justify-end">
           <ResultFab />
         </div>
-        <Link href="/calc/q">
-          <Button fullWidth>이 조건으로 질문하기</Button>
-        </Link>
+        {/* /calc/q 페이지가 아직 없어서 숨김 (2026-09-11 검사관 지적) */}
+        {SHOW_UNFINISHED_LINKS && (
+          <Link href="/calc/q">
+            <Button fullWidth>이 조건으로 질문하기</Button>
+          </Link>
+        )}
       </div>
     </>
   );

@@ -45,7 +45,7 @@ export default function Home() {
             "우리 집 인테리어, 얼마 드나?" 문구 자리. 타일 묶음의 양 끝을 아래 입력 카드의 양 끝에 맞춘다(image copy 4.png).
             main은 body 세로 flex 안에서 mx-auto 라 폭이 내용물 크기로 정해지므로, 별도 section에 두면 어긋난다.
             그래서 main 안에서 왼쪽 열과 같은 폭(lg:w-[58%]) + 카드와 같은 여백(lg:mx-2)을 준다.
-            부품은 /v1 허브와 같은 ProcessTiles. */}
+            부품은 /calc 허브와 같은 ProcessTiles. */}
         <div className="w-full lg:w-[58%]">
           <div className="px-4 lg:px-0 lg:mx-2 pt-6 pb-2 lg:pt-8 lg:pb-4">
             <ProcessTiles />
