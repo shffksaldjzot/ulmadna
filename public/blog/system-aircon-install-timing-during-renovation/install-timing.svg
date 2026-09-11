@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 440" width="800" height="440" font-family="'Pretendard','Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <title>시스템 에어컨 설치 순서 — 인테리어 공정표에서 에어컨이 들어가는 3번의 타이밍(선배관·본체·판넬)</title>
+  <rect width="800" height="440" fill="#fbf8f4"/>
+  <text x="400" y="36" text-anchor="middle" font-size="20" font-weight="700" fill="#2b2b2b">시스템 에어컨 설치 순서 — 인테리어 공정표 속 3번의 타이밍</text>
+  <text x="400" y="58" text-anchor="middle" font-size="12" fill="#7a7a7a">한 번에 다는 게 아니라 3번 나눠 들어갑니다 · 34평/84타입 전체 공사 기준</text>
+
+  <!-- axis -->
+  <line x1="40" y1="150" x2="756" y2="150" stroke="#d9d2c8" stroke-width="3"/>
+  <polygon points="756,143 770,150 756,157" fill="#d9d2c8"/>
+
+  <!-- ordinary nodes -->
+  <g font-size="11.5" fill="#555" text-anchor="middle" font-weight="600">
+    <circle cx="70" cy="150" r="6" fill="#bfb5a8"/>
+    <text x="70" y="182">철거</text><text x="70" y="197">·샷시</text>
+
+    <circle cx="240" cy="150" r="6" fill="#bfb5a8"/>
+    <text x="240" y="182">전기</text><text x="240" y="197">1차 배선</text>
+
+    <circle cx="325" cy="150" r="6" fill="#bfb5a8"/>
+    <text x="325" y="182">목공</text><text x="325" y="197">(천장 틀)</text>
+
+    <circle cx="495" cy="150" r="6" fill="#bfb5a8"/>
+    <text x="495" y="182">타일</text><text x="495" y="197">·필름</text>
+
+    <circle cx="580" cy="150" r="6" fill="#bfb5a8"/>
+    <text x="580" y="182">도배</text>
+
+    <circle cx="735" cy="150" r="6" fill="#bfb5a8"/>
+    <text x="735" y="182">마루·가구</text><text x="735" y="197">·조명·청소</text>
+  </g>
+
+  <!-- aircon nodes (highlight) -->
+  <g text-anchor="middle">
+    <circle cx="155" cy="150" r="11" fill="#c96a45"/>
+    <text x="155" y="154" font-size="11" font-weight="700" fill="#fff">1</text>
+    <text x="155" y="125" font-size="13" font-weight="700" fill="#c96a45">에어컨 ① 선배관</text>
+    <text x="155" y="108" font-size="11" fill="#c96a45">철거 직후 · 목공 전 필수</text>
+
+    <circle cx="410" cy="150" r="11" fill="#c96a45"/>
+    <text x="410" y="154" font-size="11" font-weight="700" fill="#fff">2</text>
+    <text x="410" y="125" font-size="13" font-weight="700" fill="#c96a45">에어컨 ② 본체 안착</text>
+    <text x="410" y="108" font-size="11" fill="#c96a45">석고보드 치기 전 · 통수·기밀 시험</text>
+
+    <circle cx="660" cy="150" r="11" fill="#c96a45"/>
+    <text x="660" y="154" font-size="11" font-weight="700" fill="#fff">3</text>
+    <text x="660" y="125" font-size="13" font-weight="700" fill="#c96a45">에어컨 ③ 판넬·시운전</text>
+    <text x="660" y="108" font-size="11" fill="#c96a45">도배 끝난 뒤</text>
+  </g>
+
+  <!-- cards -->
+  <g>
+    <rect x="40" y="225" width="225" height="130" rx="12" fill="#fff" stroke="#e8e0d6"/>
+    <text x="152" y="250" text-anchor="middle" font-size="13" font-weight="700" fill="#c96a45">① 선배관 (1일, 기사 3~4명)</text>
+    <g font-size="11.5" fill="#444" text-anchor="middle">
+      <text x="152" y="273">냉매 동관·드레인·전원·통신선 매립</text>
+      <text x="152" y="291">외벽 코어 타공, 실외기 배관 인출</text>
+      <text x="152" y="309">천장 속 깊이 실측 → 단내림 여부 확정</text>
+      <text x="152" y="327">단내림 길이·타공 사이즈를 목공팀에 전달</text>
+    </g>
+
+    <rect x="287" y="225" width="225" height="130" rx="12" fill="#fff" stroke="#e8e0d6"/>
+    <text x="399" y="250" text-anchor="middle" font-size="13" font-weight="700" fill="#c96a45">② 본체 안착 (반나절)</text>
+    <g font-size="11.5" fill="#444" text-anchor="middle">
+      <text x="399" y="273">천장 틀에 맞춰 개구부 타공·본체 걸기</text>
+      <text x="399" y="291">드레인팬 통수 시험·수평·구배 확인</text>
+      <text x="399" y="309">질소 기밀 테스트, 배관 보온 사진 확보</text>
+      <text x="399" y="327">단내림 없으면 ①과 합쳐 2회 방문</text>
+    </g>
+
+    <rect x="534" y="225" width="226" height="130" rx="12" fill="#fff" stroke="#e8e0d6"/>
+    <text x="647" y="250" text-anchor="middle" font-size="13" font-weight="700" fill="#c96a45">③ 판넬·시운전 (2~3시간)</text>
+    <g font-size="11.5" fill="#444" text-anchor="middle">
+      <text x="647" y="273">도배 후 판넬(덮개) 결합·전기 결선</text>
+      <text x="647" y="291">진공·냉매 충전, 냉방 30분 시운전</text>
+      <text x="647" y="309">기사 재방문 대당 5만 vs 도배팀 10만</text>
+      <text x="647" y="327">따로 부르면 출장비 22만 추가되기도</text>
+    </g>
+  </g>
+
+  <!-- warning -->
+  <rect x="40" y="375" width="720" height="44" rx="10" fill="#fdf1ec" stroke="#f0c9b8"/>
+  <text x="400" y="393" text-anchor="middle" font-size="12.5" font-weight="700" fill="#b3532f">①을 목공 뒤로 미루면 천장을 다시 뜯습니다 — 목공·도배 복구 50만~200만원+, 배관 노출·단내림 추가</text>
+  <text x="400" y="410" text-anchor="middle" font-size="11" fill="#8a6a5a">실제 견적 빅데이터 1,000건+ 기준 · 샷시 교체 시 철거 → 샷시 → 에어컨 ① 순서</text>
+</svg>
