@@ -56,7 +56,7 @@ export default function V1LoginPage() {
           </Button>
         </form>
 
-        <Button variant="secondary" fullWidth onClick={() => signIn('kakao', { callbackUrl: '/v1' })}>
+        <Button variant="secondary" fullWidth onClick={() => signIn('kakao', { callbackUrl: '/calc' })}>
           카카오로 로그인
         </Button>
 
@@ -68,7 +68,7 @@ export default function V1LoginPage() {
           >
             비밀번호 찾기
           </button>
-          <Link href="/v1/signup" className="text-[16px] font-semibold text-brown underline underline-offset-4">
+          <Link href="/calc/signup" className="text-[16px] font-semibold text-brown underline underline-offset-4">
             가입하기
           </Link>
         </div>

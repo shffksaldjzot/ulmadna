@@ -84,7 +84,7 @@ export default function TopNav({ title, backHref, rightSlot }: TopNavProps) {
       {title && (
         <div className="lg:hidden border-t border-gray-100 px-4 h-11 flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
-            <Link href={backHref ?? '/v1'} aria-label="뒤로가기" className="text-brown flex-none">
+            <Link href={backHref ?? '/calc'} aria-label="뒤로가기" className="text-brown flex-none">
               <IconBack />
             </Link>
             <h1 className="text-[18px] font-bold text-foreground truncate">{title}</h1>

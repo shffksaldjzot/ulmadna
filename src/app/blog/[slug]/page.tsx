@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import CalculatorCta from "@/components/blog/CalculatorCta";
+import { CALCULATORS } from "@/lib/blog-calculators";
 import { notFound } from "next/navigation";
 import { getPost, getAllSlugs, getAllPostMeta } from "@/lib/blog";
 import { detectCategories, getCategory } from "@/lib/blog-categories";
@@ -228,15 +229,20 @@ export default async function BlogPost({
               </details>
             )}
 
-            {/* 도배 글이면 목차 아래에 도배 물량 계산기 한 줄 배너 (2026-09-09 형아 지시) */}
-            {post.calculator && <CalculatorCta calculator={post.calculator} variant="mini" />}
+            {/* 공정 계산기가 매치되는 글이면 목차 아래에 미니 배너 (2026-09-09 형아 지시)
+                여러 계산기가 걸리면(도배+바닥재 글 등) 전부 보여준다 (2026-09-11: 배열로 개편) */}
+            {post.calculator.map((key) => (
+              <CalculatorCta key={key} calculator={key} variant="mini" />
+            ))}
 
             <div className="blog-body" dangerouslySetInnerHTML={{ __html: post.html }} />
             {/* 스포일러 캔버스 효과(점진적 향상) — .blog-spoiler 강화 */}
             <BlogSpoilerInk />
 
-            {/* 본문 끝 — 다 읽은 사람에게 "그래서 우리 집은?" 계산기 카드 */}
-            {post.calculator && <CalculatorCta calculator={post.calculator} variant="card" />}
+            {/* 본문 끝 — 다 읽은 사람에게 "그래서 우리 집은?" 계산기 카드 (계산기별로 하나씩) */}
+            {post.calculator.map((key) => (
+              <CalculatorCta key={key} calculator={key} variant="card" />
+            ))}
 
             {ADSENSE_SLOTS.blogInArticle && (
               <div className="blog-ad">
@@ -271,9 +277,17 @@ export default async function BlogPost({
                 <span>로그인·개인정보 없이 1분 만에 공정별 예상 견적을 확인하세요.</span>
               </div>
               <div className="blog-cta-btns">
-                {post.calculator && (
-                  <Link href="/v1/calc/wallpaper" className="blog-cta-btn blog-cta-btn-calc">도배 물량 계산기 →</Link>
-                )}
+                {/* 🔴 예전엔 계산기 종류와 무관하게 도배 계산기 링크가 하드코딩돼 있었다(버그).
+                    이제 이 글에 매치된 계산기(CALCULATORS[key])를 그대로 써서, 바닥재 글에서
+                    "도배 물량 계산기" 버튼이 뜨는 일이 없게 고쳤다. 여러 개면 버튼도 여러 개. */}
+                {post.calculator.map((key) => {
+                  const info = CALCULATORS[key];
+                  return (
+                    <Link key={key} href={info.href} className="blog-cta-btn blog-cta-btn-calc">
+                      {info.label} →
+                    </Link>
+                  );
+                })}
                 <Link href="/" className="blog-cta-btn">무료 견적 내보기 →</Link>
               </div>
             </aside>

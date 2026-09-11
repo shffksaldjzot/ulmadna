@@ -95,7 +95,7 @@ export default function FlooringCalculator({ products }: FlooringCalculatorProps
 
   return (
     <>
-      <TopNav title="바닥재 계산기" backHref="/v1" />
+      <TopNav title="바닥재 계산기" backHref="/calc" />
 
       {/* 모바일: 세로 1열(모드 세그먼트→바닥재→평형/실측→결과), 하단 고정 요약 바만큼 pb-20으로 여백.
           PC(lg): 왼쪽 입력 480~560px 고정 + 오른쪽 결과 sticky */}

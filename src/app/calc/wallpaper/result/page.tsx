@@ -119,7 +119,7 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
   // 제품 마스터는 입력 화면(page.tsx)과 같은 순수 함수로 변환한다(중복 제거)
   const products = toWallpaperProductOptions(WALLPAPER_PRODUCTS);
   // "조건 바꾸기"에서 그대로 이어 쓸 수 있게 같은 d 쿼리를 되돌려 준다
-  const backHref = d ? `/v1/calc/wallpaper?d=${d}` : '/v1/calc/wallpaper';
+  const backHref = d ? `/calc/wallpaper?d=${d}` : '/calc/wallpaper';
 
   const result = state ? calcFromState(state, products) : null;
 
@@ -131,7 +131,7 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
       <>
         <TopNav
           title="도배 계산기"
-          backHref="/v1"
+          backHref="/calc"
           rightSlot={
             <Link href={backHref} className="text-[16px] font-semibold text-brown">
               조건 바꾸기
@@ -160,7 +160,7 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
     <>
       <TopNav
         title="도배 계산기"
-        backHref="/v1"
+        backHref="/calc"
         rightSlot={
           <Link href={backHref} className="text-[16px] font-semibold text-brown">
             조건 바꾸기
@@ -259,11 +259,11 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
 
         {/* 관련 링크 5개 — 시세·글은 준비 중, 블로그 글 2개는 실제 발행 글로 연결 */}
         <div className="bg-white border border-v1-line rounded-[4px] px-4">
-          <ListRow href="/v1/price">시세 · 실크 벽지 평당 단가</ListRow>
+          <ListRow href="/calc/price">시세 · 실크 벽지 평당 단가</ListRow>
           <ListRow href="/blog/wallpaper-cost">글 · 도배 견적서 확인 4가지</ListRow>
           <ListRow href="/blog/paint-vs-wallpaper-cost">글 · 합지와 실크, 무엇이 다른가</ListRow>
-          <ListRow href="/v1/q">질문 · 도배 210만원 적정한가요</ListRow>
-          <ListRow href="/v1/q" last>
+          <ListRow href="/calc/q">질문 · 도배 210만원 적정한가요</ListRow>
+          <ListRow href="/calc/q" last>
             질문 · 살림집 추가비 얼마 붙나요
           </ListRow>
         </div>
@@ -276,7 +276,7 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
         <div className="flex justify-end">
           <ResultFab />
         </div>
-        <Link href="/v1/q">
+        <Link href="/calc/q">
           <Button fullWidth>이 조건으로 질문하기</Button>
         </Link>
       </div>

@@ -7,7 +7,7 @@ import InputPanel from '@/components/calculator/InputPanel';
 import ResultPanel from '@/components/calculator/ResultPanel';
 import AdSlot from '@/components/ads/AdSlot';
 import InteriorResourceLinks from '@/components/common/InteriorResourceLinks';
-import ProcessTiles from '@/app/v1/ProcessTiles';
+import ProcessTiles from '@/app/calc/ProcessTiles';
 import TopNav from '@/components/v1/TopNav';
 
 export default function Home() {

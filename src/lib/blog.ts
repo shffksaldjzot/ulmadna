@@ -41,10 +41,11 @@ export interface PostMeta {
   //        대신 주소(URL)를 직접 아는 사람은 그대로 볼 수 있어요 — 검토용 링크 공유가 목적입니다.
   // 프런트매터에 draft가 없는 기존 글은 전부 false(=평소대로 공개)라 아무 영향이 없습니다.
   draft: boolean;
-  // 이 글에 붙일 공정 물량 계산기 (예: "wallpaper" = 도배 물량 계산기). 없으면 null.
+  // 이 글에 붙일 공정 물량 계산기들 (예: ["wallpaper"] = 도배 물량 계산기). 없으면 빈 배열.
+  // 매치되는 계산기가 여럿이면(도배+바닥재 글 등) 전부 담긴다.
   // 프런트매터 `calculator:` 로 직접 정하거나, 없으면 제목·태그 신호 단어로 자동 판정한다.
-  // (lib/blog-calculators.ts 참고, 2026년 09월 09일)
-  calculator: CalculatorKey | null;
+  // (lib/blog-calculators.ts 참고, 2026년 09월 09일 / 2026년 09월 11일: 배열로 변경)
+  calculator: CalculatorKey[];
 }
 
 export interface Heading {

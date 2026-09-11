@@ -121,7 +121,7 @@ export default async function FlooringResultPage({ searchParams }: PageProps) {
   const state = decodeFlooringForm(d);
   const products = toFlooringProductOptions(FLOORING_PRODUCTS);
   // "조건 바꾸기"에서 그대로 이어 쓸 수 있게 같은 d 쿼리를 되돌려 준다
-  const backHref = d ? `/v1/calc/flooring?d=${d}` : '/v1/calc/flooring';
+  const backHref = d ? `/calc/flooring?d=${d}` : '/calc/flooring';
 
   const result = state ? calcFromState(state, products) : null;
 
@@ -130,7 +130,7 @@ export default async function FlooringResultPage({ searchParams }: PageProps) {
       <>
         <TopNav
           title="바닥재 계산기"
-          backHref="/v1"
+          backHref="/calc"
           rightSlot={
             <Link href={backHref} className="text-[16px] font-semibold text-brown">
               조건 바꾸기
@@ -154,7 +154,7 @@ export default async function FlooringResultPage({ searchParams }: PageProps) {
     <>
       <TopNav
         title="바닥재 계산기"
-        backHref="/v1"
+        backHref="/calc"
         rightSlot={
           <Link href={backHref} className="text-[16px] font-semibold text-brown">
             조건 바꾸기

@@ -38,7 +38,7 @@ export function ResultFab() {
 
   function handleSave() {
     if (!session?.user) {
-      router.push('/v1/login');
+      router.push('/calc/login');
       return;
     }
     // TODO: 저장한 계산 목록에 실제로 담는 백엔드 연결(내 정보 > 저장한 계산)

@@ -16,10 +16,10 @@ export default function HomeSearch() {
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        router.push('/v1/calc/wallpaper');
+        router.push('/calc/wallpaper');
       }}
     >
-      <TextField withSearchIcon name="q" placeholder="도배 34평 얼마" readOnly onClick={() => router.push('/v1/calc/wallpaper')} />
+      <TextField withSearchIcon name="q" placeholder="도배 34평 얼마" readOnly onClick={() => router.push('/calc/wallpaper')} />
     </form>
   );
 }

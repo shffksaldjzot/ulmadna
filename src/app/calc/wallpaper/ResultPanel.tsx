@@ -94,7 +94,7 @@ export default function ResultPanel({ result, range, loading, error, stale, form
   async function handleShare() {
     // 지금 모드에서 안 쓰는 값(예: simple인데 실측 방 목록)은 링크에 안 싣는다 — 폼 상태
     // 원본(form)은 그대로 두고 공유용 사본만 깎는다(검사관 2라운드 지적 3번)
-    const url = `${window.location.origin}/v1/calc/wallpaper/result?d=${encodeWallpaperForm(trimFormForShare(form))}`;
+    const url = `${window.location.origin}/calc/wallpaper/result?d=${encodeWallpaperForm(trimFormForShare(form))}`;
     const nav = navigator as Navigator & { share?: (data: ShareData) => Promise<void> };
     if (nav.share) {
       try {

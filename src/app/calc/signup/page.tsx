@@ -33,7 +33,7 @@ export default function V1SignupPage() {
 
   return (
     <>
-      <TopNav title="가입" backHref="/v1/login" />
+      <TopNav title="가입" backHref="/calc/login" />
 
       <div className="px-4 pt-8 pb-8 flex flex-col gap-4 max-w-[420px] mx-auto">
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">

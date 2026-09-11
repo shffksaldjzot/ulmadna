@@ -119,7 +119,7 @@ export default function ResultPanel({
   /** "결과 공유" — 모바일은 공유 시트가 있으면 그것부터, 아니면 링크 복사 */
   async function handleShare() {
     // 지금 모드에서 안 쓰는 값(예: simple인데 실측 방 목록)은 링크에 안 싣는다
-    const url = `${window.location.origin}/v1/calc/flooring/result?d=${encodeFlooringForm(trimFormForShare(form))}`;
+    const url = `${window.location.origin}/calc/flooring/result?d=${encodeFlooringForm(trimFormForShare(form))}`;
     const nav = navigator as Navigator & { share?: (data: ShareData) => Promise<void> };
     if (nav.share) {
       try {

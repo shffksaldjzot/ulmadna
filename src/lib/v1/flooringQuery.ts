@@ -4,7 +4,7 @@
 // 왜 필요한가:
 //   결과 화면을 카카오톡 등으로 "공유"하려면 조건이 URL 하나에 다 담겨야 한다.
 //   폼 상태 전체를 JSON으로 만들어 base64url로 인코딩한 뒤 `d` 파라미터 하나에 담는다.
-//   (예: /v1/calc/flooring/result?d=eyJt...)
+//   (예: /calc/flooring/result?d=eyJt...)
 //
 //   이 파일은 도배 계산기의 wallpaperQuery.ts를 그대로 본떠 만들었다. 다만
 //   도배의 toBase64Url/fromBase64Url은 그 파일 밖으로 export되어 있지 않아

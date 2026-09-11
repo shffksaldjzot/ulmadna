@@ -65,7 +65,7 @@ export default function V1HomePage() {
           </section>
 
           <section className="flex flex-col gap-3">
-            <SectionHeader title="인기 질문" moreHref="/v1/q" />
+            <SectionHeader title="인기 질문" moreHref="/calc/q" />
             <div className="border-t border-v1-line-2">
               {SAMPLE_QUESTIONS.map((q, i) => (
                 <div key={q.title} className={`py-[10px] ${i === SAMPLE_QUESTIONS.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
@@ -103,7 +103,7 @@ export default function V1HomePage() {
               </section>
 
               <section className="flex flex-col gap-3">
-                <SectionHeader title="인기 질문" moreHref="/v1/q" />
+                <SectionHeader title="인기 질문" moreHref="/calc/q" />
                 <div className="border-t border-v1-line-2">
                   {SAMPLE_QUESTIONS.map((q, i) => (
                     <div key={q.title} className={`py-[10px] ${i === SAMPLE_QUESTIONS.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
@@ -124,7 +124,7 @@ export default function V1HomePage() {
               <h2 className="text-[20px] font-bold text-foreground">많이 찾는 시세</h2>
               <div className="border-t border-v1-line-2">
                 {POPULAR_PRICES.map((label, i) => (
-                  <ListRow key={label} href="/v1/price" last={i === POPULAR_PRICES.length - 1}>
+                  <ListRow key={label} href="/calc/price" last={i === POPULAR_PRICES.length - 1}>
                     {label}
                   </ListRow>
                 ))}

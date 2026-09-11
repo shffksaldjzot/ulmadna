@@ -26,11 +26,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE}/contact`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
     { url: `${SITE}/terms`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
     { url: `${SITE}/privacy`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
-    // v1 허브 + 공정별 계산기 (2026-09-10: 바닥재 계산기 U 지시서 — 지금까지 사이트맵에 아예
+    // calc 허브 + 공정별 계산기 (2026-09-10: 바닥재 계산기 U 지시서 — 지금까지 사이트맵에 아예
     // 빠져 있었다. 도배·바닥재 계산기 페이지도 검색에 잡히게 여기서 함께 추가한다)
-    { url: `${SITE}/v1`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${SITE}/v1/calc/wallpaper`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${SITE}/v1/calc/flooring`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${SITE}/calc`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${SITE}/calc/wallpaper`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${SITE}/calc/flooring`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     // 카테고리 허브 8장 — 주제별 모음 페이지 (글 목록 다음으로 중요한 색인 대상)
     ...BLOG_CATEGORIES.map((c) => ({
       url: `${SITE}/blog/category/${c.id}`,
