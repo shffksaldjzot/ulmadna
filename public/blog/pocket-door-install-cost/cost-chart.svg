@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 520" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="포켓도어 설치 비용 시나리오별 범위 막대그래프 — 여닫이 ABS 도어, 노출형 슬라이딩, 포켓·히든 슬라이딩, 가벽 신설+포켓도어, 가벽+유리 슬라이딩">
+  <rect width="860" height="520" fill="#ffffff"/>
+  <text x="40" y="46" font-size="25" font-weight="700" fill="#2b2b2b">포켓도어 설치 비용 — 문 1개소 기준 시나리오별 범위</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">자재+목공+시공 포함 · 마감·전기 이설 별도 · 단위: 만원</text>
+
+  <!-- grid -->
+  <line x1="40" y1="420" x2="830" y2="420" stroke="#dddddd" stroke-width="2"/>
+  <line x1="40" y1="340" x2="830" y2="340" stroke="#f0f0f0" stroke-width="1"/>
+  <line x1="40" y1="260" x2="830" y2="260" stroke="#f0f0f0" stroke-width="1"/>
+  <line x1="40" y1="180" x2="830" y2="180" stroke="#f0f0f0" stroke-width="1"/>
+  <line x1="40" y1="100" x2="830" y2="100" stroke="#f0f0f0" stroke-width="1"/>
+  <text x="36" y="344" font-size="12" fill="#b0b0b0" text-anchor="end">100</text>
+  <text x="36" y="264" font-size="12" fill="#b0b0b0" text-anchor="end">200</text>
+  <text x="36" y="184" font-size="12" fill="#b0b0b0" text-anchor="end">300</text>
+  <text x="36" y="104" font-size="12" fill="#b0b0b0" text-anchor="end">400</text>
+
+  <!-- 여닫이 ABS 도어 세트 35~50 (비교 기준, 회색) -->
+  <rect x="55" y="380" width="105" height="12" rx="4" fill="#bdbdbd"/>
+  <text x="107" y="372" font-size="16" fill="#777" text-anchor="middle">35~50</text>
+  <text x="107" y="448" font-size="14" font-weight="600" fill="#444" text-anchor="middle">여닫이 ABS</text>
+  <text x="107" y="468" font-size="12" fill="#888" text-anchor="middle">문틀+문짝 세트(비교)</text>
+
+  <!-- 노출형 슬라이딩 80~100 -->
+  <rect x="210" y="340" width="105" height="16" rx="4" fill="#d9a48d"/>
+  <text x="262" y="332" font-size="16" fill="#a8512f" text-anchor="middle">80~100</text>
+  <text x="262" y="448" font-size="14" font-weight="600" fill="#444" text-anchor="middle">노출형 슬라이딩</text>
+  <text x="262" y="468" font-size="12" fill="#888" text-anchor="middle">레일 노출·벽체 공사 없음</text>
+
+  <!-- 포켓·히든 슬라이딩 150~180 -->
+  <rect x="365" y="276" width="105" height="24" rx="4" fill="#C26B4A"/>
+  <text x="417" y="268" font-size="16" fill="#a8512f" text-anchor="middle">150~180</text>
+  <text x="417" y="448" font-size="14" font-weight="600" fill="#444" text-anchor="middle">포켓·히든 슬라이딩</text>
+  <text x="417" y="468" font-size="12" fill="#888" text-anchor="middle">인테리어 중 기존 벽 활용</text>
+
+  <!-- 가벽 신설 + 포켓도어 220~300 -->
+  <rect x="520" y="180" width="105" height="64" rx="4" fill="#C26B4A"/>
+  <text x="572" y="172" font-size="16" fill="#a8512f" text-anchor="middle">220~300</text>
+  <text x="572" y="448" font-size="14" font-weight="600" fill="#444" text-anchor="middle">가벽 신설+포켓도어</text>
+  <text x="572" y="468" font-size="12" fill="#888" text-anchor="middle">방 분리 가벽·필름 마감 포함</text>
+
+  <!-- 가벽 + 유리 슬라이딩(알루미늄) 250~380 -->
+  <rect x="675" y="116" width="105" height="104" rx="4" fill="#C26B4A"/>
+  <text x="727" y="108" font-size="16" fill="#a8512f" text-anchor="middle">250~380</text>
+  <text x="727" y="448" font-size="14" font-weight="600" fill="#444" text-anchor="middle">가벽+유리 슬라이딩</text>
+  <text x="727" y="468" font-size="12" fill="#888" text-anchor="middle">알루미늄 프레임·통유리</text>
+
+  <text x="40" y="505" font-size="12" fill="#a0a0a0">※ 실제 견적 빅데이터 기준 범위. 문짝 소재(MDF·ABS·원목·알루미늄)와 댐퍼·레일 등급, 벽 조건에 따라 달라집니다.</text>
+</svg>
