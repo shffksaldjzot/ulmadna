@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 480" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <rect width="800" height="480" fill="#fdfaf7"/>
+  <text x="40" y="46" font-size="22" font-weight="700" fill="#2d2a26">줄눈 시공 후회 유형별 — 다시 쓰는 돈(이중 지출)</text>
+  <text x="40" y="72" font-size="13" fill="#8a8378">첫 시공비 + 재시공/보수 추가비용 합산 · 실제 견적 빅데이터 기준 (단위: 만원)</text>
+
+  <!-- grid: x = 170 + 만원*5 (0~120만) -->
+  <g stroke="#e8e2da" stroke-width="1">
+    <line x1="170" y1="95" x2="170" y2="415"/>
+    <line x1="270" y1="95" x2="270" y2="415"/>
+    <line x1="370" y1="95" x2="370" y2="415"/>
+    <line x1="470" y1="95" x2="470" y2="415"/>
+    <line x1="570" y1="95" x2="570" y2="415"/>
+    <line x1="670" y1="95" x2="670" y2="415"/>
+    <line x1="770" y1="95" x2="770" y2="415"/>
+  </g>
+  <g font-size="12" fill="#a09888" text-anchor="middle">
+    <text x="170" y="438">0</text>
+    <text x="270" y="438">20만</text>
+    <text x="370" y="438">40만</text>
+    <text x="470" y="438">60만</text>
+    <text x="570" y="438">80만</text>
+    <text x="670" y="438">100만</text>
+    <text x="770" y="438">120만+</text>
+  </g>
+
+  <!-- 변색(황변) 재시공 20~60 -->
+  <text x="158" y="121" font-size="14" font-weight="600" fill="#2d2a26" text-anchor="end">① 변색(황변) 재시공</text>
+  <rect x="270" y="106" width="200" height="22" rx="7" fill="#c96f4a"/>
+  <text x="480" y="121" font-size="12" fill="#6b6459">20만~60만</text>
+
+  <!-- 들뜸·탈락 재시공 20~60 -->
+  <text x="158" y="185" font-size="14" font-weight="600" fill="#2d2a26" text-anchor="end">② 들뜸·탈락 재시공</text>
+  <rect x="270" y="170" width="200" height="22" rx="7" fill="#d9946f"/>
+  <text x="480" y="185" font-size="12" fill="#6b6459">20만~60만</text>
+
+  <!-- 곰팡이 오인 헛돈 10~40 -->
+  <text x="158" y="249" font-size="14" font-weight="600" fill="#2d2a26" text-anchor="end">③ 곰팡이 오인 헛돈</text>
+  <rect x="220" y="234" width="150" height="22" rx="7" fill="#b8a68f"/>
+  <text x="380" y="249" font-size="12" fill="#6b6459">10만~40만 (불필요한 재시공)</text>
+
+  <!-- 셀프 실패 이중지출 13~45 -->
+  <text x="158" y="313" font-size="14" font-weight="600" fill="#2d2a26" text-anchor="end">④ 셀프 실패 이중지출</text>
+  <rect x="235" y="298" width="160" height="22" rx="7" fill="#8c6a5a"/>
+  <text x="405" y="313" font-size="12" fill="#6b6459">13만~45만</text>
+
+  <!-- 저가업체 부실시공 35~120 -->
+  <text x="158" y="377" font-size="14" font-weight="600" fill="#2d2a26" text-anchor="end">⑤ 저가업체 부실시공</text>
+  <rect x="345" y="362" width="425" height="22" rx="7" fill="#5c4a40"/>
+  <text x="345" y="401" font-size="12" fill="#6b6459">35만~120만+ (타일 손상 시 부분교체 추가)</text>
+
+  <text x="40" y="462" font-size="12" fill="#a09888">※ 처음부터 밑작업(파내기)만 제대로 했어도 대부분 안 나가도 될 돈입니다.</text>
+</svg>
