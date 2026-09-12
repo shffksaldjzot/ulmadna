@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 520" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="아파트 전기 공사와 단독주택 전기 공사 비용 비교 막대그래프 — 콘센트 증설, 전용선 신설, 분전함 교체, 아파트 전체 리모델링, 단독주택 한전 인입 시설부담금">
+  <rect width="980" height="520" fill="#ffffff"/>
+  <text x="40" y="46" font-size="24" font-weight="700" fill="#2b2b2b">아파트 vs 단독주택 전기 공사 — 항목별 비용 비교</text>
+  <text x="40" y="72" font-size="14" fill="#8a8a8a">단위: 만원 · 실제 견적 데이터 기준 · 현장 조건에 따라 범위 안에서 변동</text>
+
+  <!-- group labels -->
+  <text x="226" y="108" font-size="14" font-weight="700" fill="#a8512f" text-anchor="middle">공통 항목</text>
+  <text x="512" y="108" font-size="14" font-weight="700" fill="#a8512f" text-anchor="middle">아파트 전용</text>
+  <text x="798" y="108" font-size="14" font-weight="700" fill="#a8512f" text-anchor="middle">단독주택 전용</text>
+
+  <!-- group dividers -->
+  <line x1="368" y1="120" x2="368" y2="430" stroke="#eee" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <line x1="654" y1="120" x2="654" y2="430" stroke="#eee" stroke-width="1.5" stroke-dasharray="4 4"/>
+
+  <!-- baseline -->
+  <line x1="40" y1="430" x2="940" y2="430" stroke="#dddddd" stroke-width="2"/>
+
+  <!-- 1. 콘센트 증설 5~15 -->
+  <rect x="115" y="415" width="80" height="15" rx="4" fill="#C26B4A"/>
+  <text x="155" y="407" font-size="16" fill="#a8512f" text-anchor="middle">5~15</text>
+  <text x="155" y="458" font-size="14" font-weight="600" fill="#444" text-anchor="middle">콘센트 증설</text>
+  <text x="155" y="476" font-size="12" fill="#999" text-anchor="middle">1개소당</text>
+
+  <!-- 2. 전용선 신설 25~45 -->
+  <rect x="258" y="385" width="80" height="45" rx="4" fill="#C26B4A"/>
+  <text x="298" y="377" font-size="16" fill="#a8512f" text-anchor="middle">25~45</text>
+  <text x="298" y="458" font-size="14" font-weight="600" fill="#444" text-anchor="middle">인덕션·에어컨 전용선</text>
+  <text x="298" y="476" font-size="12" fill="#999" text-anchor="middle">5kW 이하 경미공사</text>
+
+  <!-- 3. 분전함 교체 20~40 -->
+  <rect x="401" y="390" width="80" height="40" rx="4" fill="#C26B4A"/>
+  <text x="441" y="382" font-size="16" fill="#a8512f" text-anchor="middle">20~40</text>
+  <text x="441" y="458" font-size="14" font-weight="600" fill="#444" text-anchor="middle">분전함 교체</text>
+  <text x="441" y="476" font-size="12" fill="#999" text-anchor="middle">구축 20년+ 회로 증설</text>
+
+  <!-- 4. 아파트 전체 70~200 -->
+  <rect x="544" y="235" width="80" height="195" rx="4" fill="#C26B4A"/>
+  <text x="584" y="227" font-size="16" fill="#a8512f" text-anchor="middle">70~200</text>
+  <text x="584" y="458" font-size="14" font-weight="600" fill="#444" text-anchor="middle">리모델링 전기 일체</text>
+  <text x="584" y="476" font-size="12" fill="#999" text-anchor="middle">34평/84타입</text>
+
+  <!-- 5. 단독주택 인입 가공 22 -->
+  <rect x="687" y="408" width="80" height="22" rx="4" fill="#d98a68"/>
+  <text x="727" y="400" font-size="16" fill="#a8512f" text-anchor="middle">22</text>
+  <text x="727" y="458" font-size="14" font-weight="600" fill="#444" text-anchor="middle">한전 인입 부담금</text>
+  <text x="727" y="476" font-size="12" fill="#999" text-anchor="middle">5kW·가공(VAT별도)</text>
+
+  <!-- 6. 단독주택 인입 지중 52.7 -->
+  <rect x="830" y="377" width="80" height="53" rx="4" fill="#d98a68"/>
+  <text x="870" y="369" font-size="16" fill="#a8512f" text-anchor="middle">52.7</text>
+  <text x="870" y="458" font-size="14" font-weight="600" fill="#444" text-anchor="middle">한전 인입 부담금</text>
+  <text x="870" y="476" font-size="12" fill="#999" text-anchor="middle">5kW·지중(VAT별도)</text>
+
+  <text x="40" y="502" font-size="12.5" fill="#a0a0a0">※ 단독주택은 계량기함·배관·터파기·복구까지 포함한 전체 인입공사비가 100만원대~1,000만원 이상까지 벌어진다(거리·지중 여부·추가 전주 필요 여부). 아파트는 단지 전체가 이미 한전에 인입돼 있어 이 비용 자체가 없다.</text>
+</svg>
