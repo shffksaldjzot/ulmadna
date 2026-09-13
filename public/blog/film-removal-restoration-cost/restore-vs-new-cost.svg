@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" role="img" aria-label="필름 원상복구 비용과 새로 시공하는 비용 비교 막대그래프">
+  <rect width="720" height="400" fill="#faf7f4"/>
+  <text x="24" y="40" font-size="20" font-weight="700" fill="#2b2b2b">원상복구 비용, 새로 시공하는 것과 왜 비슷할까</text>
+  <text x="24" y="62" font-size="13" fill="#8a8175">단위: 만원 · 부위별 실제 견적 범위, 막대가 겹칠수록 가격 차이가 없다는 뜻</text>
+
+  <!-- gridlines 0~120 -->
+  <g stroke="#e7ddd3" stroke-width="1">
+    <line x1="220" y1="90" x2="220" y2="360"/>
+    <line x1="300" y1="90" x2="300" y2="360"/>
+    <line x1="380" y1="90" x2="380" y2="360"/>
+    <line x1="460" y1="90" x2="460" y2="360"/>
+    <line x1="540" y1="90" x2="540" y2="360"/>
+    <line x1="620" y1="90" x2="620" y2="360"/>
+    <line x1="700" y1="90" x2="700" y2="360"/>
+  </g>
+  <g font-size="11" fill="#a89e92" text-anchor="middle">
+    <text x="220" y="378">0</text>
+    <text x="300" y="378">20</text>
+    <text x="380" y="378">40</text>
+    <text x="460" y="378">60</text>
+    <text x="540" y="378">80</text>
+    <text x="620" y="378">100</text>
+    <text x="700" y="378">120</text>
+  </g>
+
+  <!-- legend -->
+  <g font-size="12">
+    <rect x="420" y="98" width="14" height="14" rx="3" fill="#c7b9a8"/>
+    <text x="440" y="109" fill="#6b5d52">새로 시공(첫 시공)</text>
+    <rect x="580" y="98" width="14" height="14" rx="3" fill="#c0653f"/>
+    <text x="600" y="109" fill="#6b5d52">원상복구(제거+마감)</text>
+  </g>
+
+  <!-- row 1: 방문+문틀 -->
+  <text x="208" y="150" font-size="13" fill="#3a3a3a" text-anchor="end">방문+문틀</text>
+  <rect x="220" y="132" width="20" height="16" rx="3" fill="#c7b9a8"/>
+  <text x="246" y="145" font-size="11" fill="#6b5d52">15~20</text>
+  <rect x="220" y="152" width="60" height="16" rx="3" fill="#c0653f"/>
+  <text x="286" y="165" font-size="11" fill="#6b5d52">15~25</text>
+
+  <!-- row 2: 현관문(문틀포함) -->
+  <text x="208" y="220" font-size="13" fill="#3a3a3a" text-anchor="end">현관문(문틀 포함)</text>
+  <rect x="300" y="192" width="80" height="16" rx="3" fill="#c7b9a8"/>
+  <text x="386" y="205" font-size="11" fill="#6b5d52">25~40</text>
+  <rect x="300" y="212" width="100" height="16" rx="3" fill="#c0653f"/>
+  <text x="406" y="225" font-size="11" fill="#6b5d52">30~50</text>
+
+  <!-- row 3: 붙박이장 -->
+  <text x="208" y="290" font-size="13" fill="#3a3a3a" text-anchor="end">붙박이장</text>
+  <rect x="380" y="262" width="200" height="16" rx="3" fill="#c7b9a8"/>
+  <text x="586" y="275" font-size="11" fill="#6b5d52">50~100</text>
+  <rect x="380" y="282" width="240" height="16" rx="3" fill="#c0653f"/>
+  <text x="626" y="295" font-size="11" fill="#6b5d52">30~70+</text>
+
+  <!-- row 4: 싱크대 전체 -->
+  <text x="208" y="350" font-size="13" fill="#3a3a3a" text-anchor="end">싱크대 상·하부장</text>
+  <rect x="460" y="322" width="200" height="16" rx="3" fill="#c7b9a8"/>
+  <text x="666" y="335" font-size="11" fill="#fbeee7" text-anchor="end">60~120</text>
+  <rect x="380" y="342" width="240" height="16" rx="3" fill="#c0653f"/>
+  <text x="626" y="355" font-size="11" fill="#6b5d52">50~80</text>
+</svg>
