@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 420" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="콘센트 위치 후회 원인 비교 — 순서가 바뀐 집과 순서를 지킨 집의 전기 공사 진행 순서 다이어그램">
+  <rect width="860" height="420" fill="#ffffff"/>
+  <text x="40" y="44" font-size="24" font-weight="700" fill="#2b2b2b">콘센트 위치, 후회가 갈리는 건 "순서"입니다</text>
+  <text x="40" y="70" font-size="14" fill="#8a8a8a">전기 배선은 목공·도배보다 먼저 들어가는 공정 — 순서를 바꾸면 되돌릴 방법이 없습니다</text>
+
+  <!-- Row 1: 후회하는 집 -->
+  <text x="40" y="120" font-size="16" font-weight="700" fill="#b23b3b">❌ 후회하는 집</text>
+
+  <g font-size="14" fill="#444">
+    <rect x="40" y="140" width="150" height="50" rx="8" fill="#f7e9e6"/>
+    <text x="115" y="170" text-anchor="middle">전기 배선 시공</text>
+
+    <path d="M195 165 L225 165" stroke="#c9a1a1" stroke-width="2" marker-end="url(#arrow1)"/>
+
+    <rect x="230" y="140" width="150" height="50" rx="8" fill="#f7e9e6"/>
+    <text x="305" y="170" text-anchor="middle">목공·도배 마감</text>
+
+    <path d="M385 165 L415 165" stroke="#c9a1a1" stroke-width="2" marker-end="url(#arrow1)"/>
+
+    <rect x="420" y="140" width="150" height="50" rx="8" fill="#f7e9e6"/>
+    <text x="495" y="170" text-anchor="middle">가구 배치</text>
+
+    <path d="M575 165 L605 165" stroke="#c9a1a1" stroke-width="2" marker-end="url(#arrow1)"/>
+
+    <rect x="610" y="140" width="210" height="50" rx="8" fill="#eccfcf"/>
+    <text x="715" y="163" text-anchor="middle" font-weight="700" fill="#a83c3c">콘센트가 가구 뒤로</text>
+    <text x="715" y="181" text-anchor="middle" font-weight="700" fill="#a83c3c">→ 벽 다시 뜯기</text>
+  </g>
+
+  <!-- Row 2: 후회 없는 집 -->
+  <text x="40" y="255" font-size="16" font-weight="700" fill="#2f7a4f">✅ 후회 없는 집</text>
+
+  <g font-size="14" fill="#444">
+    <rect x="40" y="275" width="150" height="50" rx="8" fill="#e7f2ea"/>
+    <text x="115" y="298" text-anchor="middle">가구·가전 배치</text>
+    <text x="115" y="316" text-anchor="middle" font-size="11" fill="#7a9c86">먼저 확정</text>
+
+    <path d="M195 300 L225 300" stroke="#a9cdb6" stroke-width="2" marker-end="url(#arrow2)"/>
+
+    <rect x="230" y="275" width="150" height="50" rx="8" fill="#e7f2ea"/>
+    <text x="305" y="298" text-anchor="middle">가전 목록 정리</text>
+    <text x="305" y="316" text-anchor="middle" font-size="11" fill="#7a9c86">소비전력 확인</text>
+
+    <path d="M385 300 L415 300" stroke="#a9cdb6" stroke-width="2" marker-end="url(#arrow2)"/>
+
+    <rect x="420" y="275" width="150" height="50" rx="8" fill="#e7f2ea"/>
+    <text x="495" y="298" text-anchor="middle">콘센트 위치·높이</text>
+    <text x="495" y="316" text-anchor="middle" font-size="11" fill="#7a9c86">숫자로 지정</text>
+
+    <path d="M575 300 L605 300" stroke="#a9cdb6" stroke-width="2" marker-end="url(#arrow2)"/>
+
+    <rect x="610" y="275" width="210" height="50" rx="8" fill="#cfe8d8"/>
+    <text x="715" y="298" text-anchor="middle" font-weight="700" fill="#2f7a4f">전기 배선 시공</text>
+    <text x="715" y="316" text-anchor="middle" font-size="11" fill="#4f8a67">→ 목공·도배</text>
+  </g>
+
+  <text x="40" y="390" font-size="12" fill="#a0a0a0">※ 전기 공정은 벽·천장이 열려 있을 때 한 번에 끝내야 하는 뼈대 공정입니다. 실제 견적 빅데이터 기준.</text>
+
+  <defs>
+    <marker id="arrow1" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#c9a1a1"/></marker>
+    <marker id="arrow2" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#a9cdb6"/></marker>
+  </defs>
+</svg>
