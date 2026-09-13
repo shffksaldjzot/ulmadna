@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 430" width="800" height="430" font-family="'Pretendard','Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <title>시스템 에어컨 매립 설치 후회 7가지가 생기는 단계</title>
+  <rect width="800" height="430" fill="#fbf8f4"/>
+  <text x="400" y="38" text-anchor="middle" font-size="20" font-weight="700" fill="#2b2b2b">후회 7가지, 사실은 3단계에서 갈립니다</text>
+  <text x="400" y="60" text-anchor="middle" font-size="12" fill="#7a7a7a">천장을 닫기 전에 걸러지면 수십만원, 닫힌 뒤 드러나면 수백만원입니다</text>
+
+  <!-- timeline axis -->
+  <line x1="60" y1="110" x2="740" y2="110" stroke="#d9d2c8" stroke-width="3"/>
+  <polygon points="740,103 754,110 740,117" fill="#d9d2c8"/>
+  <g font-size="13" fill="#555" text-anchor="middle" font-weight="600">
+    <text x="150" y="94">① 견적 비교</text>
+    <text x="400" y="94">② 착공 전 점검</text>
+    <text x="650" y="94">③ 시공~준공</text>
+  </g>
+  <g fill="#c96a45">
+    <circle cx="150" cy="110" r="7"/><circle cx="400" cy="110" r="7"/><circle cx="650" cy="110" r="7"/>
+  </g>
+
+  <!-- card 1: 견적 비교 -->
+  <g>
+    <rect x="40" y="140" width="220" height="255" rx="12" fill="#fff" stroke="#e8e0d6"/>
+    <text x="150" y="170" text-anchor="middle" font-size="14" font-weight="700" fill="#c96a45">견적서만 보고 계약</text>
+    <text x="60" y="200" font-size="12" fill="#444">1. 판넬 2차 방문비</text>
+    <text x="60" y="218" font-size="12" fill="#999">안내 안 받고 계약 → 20만원+</text>
+    <text x="60" y="246" font-size="12" fill="#444">2. "단배관만 된다"는 말</text>
+    <text x="60" y="264" font-size="12" fill="#999">확인 안 하면 100만원 손해</text>
+    <text x="60" y="292" font-size="12" fill="#444">3. 배관 연장 대충 계산</text>
+    <text x="60" y="310" font-size="12" fill="#999">m당 1.2만~2.5만원 누락</text>
+    <line x1="60" y1="330" x2="240" y2="330" stroke="#eee6dc"/>
+    <text x="150" y="352" text-anchor="middle" font-size="11" fill="#7a7a7a">되돌리는 비용</text>
+    <text x="150" y="374" text-anchor="middle" font-size="13" font-weight="700" fill="#2b2b2b">보통 수십만원대</text>
+  </g>
+
+  <!-- card 2: 착공 전 점검 -->
+  <g>
+    <rect x="290" y="140" width="220" height="255" rx="12" fill="#fff" stroke="#e8e0d6"/>
+    <text x="400" y="170" text-anchor="middle" font-size="14" font-weight="700" fill="#c96a45">현장을 안 보고 결정</text>
+    <text x="310" y="200" font-size="12" fill="#444">4. 천장 속 대들보</text>
+    <text x="310" y="218" font-size="12" fill="#999">사전점검 놓치면 설치 당일 취소</text>
+    <text x="310" y="246" font-size="12" fill="#444">5. 관리사무소 승인</text>
+    <text x="310" y="264" font-size="12" fill="#999">이웃 동의 안 받으면 공사 중단</text>
+    <line x1="310" y1="290" x2="490" y2="290" stroke="#eee6dc"/>
+    <text x="400" y="312" text-anchor="middle" font-size="11" fill="#7a7a7a">되돌리는 비용</text>
+    <text x="400" y="334" text-anchor="middle" font-size="13" font-weight="700" fill="#2b2b2b">돈보다 시간 손해</text>
+    <text x="400" y="356" text-anchor="middle" font-size="12" fill="#c96a45">한여름 냉방 공백</text>
+  </g>
+
+  <!-- card 3: 시공~준공 -->
+  <g>
+    <rect x="540" y="140" width="220" height="255" rx="12" fill="#fff" stroke="#e8e0d6"/>
+    <text x="650" y="170" text-anchor="middle" font-size="14" font-weight="700" fill="#c96a45">천장을 닫아버림</text>
+    <text x="560" y="200" font-size="12" fill="#444">6. 실외기 외부 앵글</text>
+    <text x="560" y="218" font-size="12" fill="#999">강행하면 AS 자체가 거부됨</text>
+    <text x="560" y="246" font-size="12" fill="#444">7. 점검구 생략</text>
+    <text x="560" y="264" font-size="12" fill="#999">필터·배관 점검 때마다 마감 철거</text>
+    <line x1="560" y1="290" x2="740" y2="290" stroke="#eee6dc"/>
+    <text x="650" y="312" text-anchor="middle" font-size="11" fill="#7a7a7a">되돌리는 비용</text>
+    <text x="650" y="334" text-anchor="middle" font-size="13" font-weight="700" fill="#2b2b2b">천장 재시공급</text>
+    <text x="650" y="356" text-anchor="middle" font-size="12" fill="#c96a45">수십만~수백만원</text>
+  </g>
+
+  <text x="400" y="418" text-anchor="middle" font-size="12" fill="#7a7a7a">뒤로 갈수록 되돌리는 비용이 커집니다 · 실제 견적 빅데이터 1,000건+ 기준</text>
+</svg>
