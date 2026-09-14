@@ -19,7 +19,7 @@ import Disclaimer from '@/components/v1/Disclaimer';
 import Toast, { showToast } from '@/components/v1/Toast';
 import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
 import { type WallpaperFormState, encodeWallpaperForm } from '@/lib/v1/wallpaperQuery';
-import { trimFormForShare } from '@/lib/v1/wallpaperEngineInput';
+import { trimFormForShare, describeAreaPair } from '@/lib/v1/wallpaperEngineInput';
 import type { WallpaperCalcResultDTO, WallpaperCostLine, WallpaperRange } from '@/lib/v1/useWallpaperCalc';
 // GA4 — 결과 노출/구성 보기 펼침/공유 버튼 클릭 이벤트
 import { track } from '@/lib/analytics';
@@ -139,6 +139,11 @@ export default function ResultPanel({ result, range, loading, error, stale, form
           <p className="text-[16px] text-foreground leading-[1.6] tabular-nums">
             벽 {quantity.wallSqm}㎡ · 천장 {quantity.ceilingSqm}㎡ · {lossLabel}
           </p>
+          {/* 간단(평형/㎡) 모드일 때만 "공급 34평 · 전용 84㎡" 병기 — 실측·벽 길이는 이미
+              실제 치수라 공급/전용 개념이 없다(2026-09-15 형아 지시 ㎡ 모드 추가) */}
+          {quantity.inputMode === '평형' && describeAreaPair(form) && (
+            <p className="text-[14px] text-v1-text-disabled tabular-nums">{describeAreaPair(form)}</p>
+          )}
           {/* 면적(벽 길이) 모드는 방별 물량이 없어 "실별 보기"가 뜻이 없다 — 숨긴다(검사관 지적 17번) */}
           {quantity.inputMode !== '면적' && (
             <Collapsible title="실별 보기">

@@ -13,7 +13,7 @@
 // ──────────────────────────────────────────────
 
 import { describe, expect, it } from 'vitest';
-import { toEngineInput, describePreciseInput, resolveView } from '../wallpaperEngineInput';
+import { toEngineInput, describePreciseInput, describeAreaPair, resolveView } from '../wallpaperEngineInput';
 import { DEFAULT_CALC_FORM, type WallpaperFormState, type WallpaperProductOption } from '../wallpaperQuery';
 
 // 제품 마스터 목록이 필요한 자리엔 빈 배열을 넣는다(이 테스트들은 productCode를 쓰지 않는다)
@@ -265,5 +265,67 @@ describe('resolveView (view가 없는 옛 공유 링크 추정)', () => {
     expect(resolveView(state)).toBe('simple');
     const input = toEngineInput(state, NO_PRODUCTS);
     expect(input!.base.mode).toBe('평형');
+  });
+});
+
+// 2026-09-15 형아 지시: 칩=[18,24,25,30,34,40,45]평은 "공급 평형"이고, 화면에 전용/공급 표기·
+// ㎡ 토글이 없었다. areaUnit === '㎡'면 직접 입력한 값을 전용면적으로 그대로(0.75 환산 없이)
+// 엔진에 넘겨야 한다.
+describe('㎡ 모드 (전용면적 직접 입력)', () => {
+  // 이 describe 블록 바깥이라 위 toEngineInput 블록의 SILK 상수를 못 쓴다 — 같은 모양으로 새로 둔다
+  const SILK: WallpaperFormState = {
+    ...DEFAULT_CALC_FORM,
+    paperType: '실크',
+    product: { rollPrice: 40000, widthCm: 106, lengthM: 15.6 },
+  };
+
+  it('areaUnit이 ㎡면 exclusiveSqm을 그대로 보내고 pyeong 환산을 거치지 않는다', () => {
+    const state: WallpaperFormState = {
+      ...SILK,
+      areaUnit: '㎡',
+      exclusiveSqm: 84,
+      pyeong: undefined,
+    };
+    const input = toEngineInput(state, NO_PRODUCTS);
+    expect(input).not.toBeNull();
+    expect(input!.base.mode).toBe('평형');
+    expect(input!.base.exclusiveSqm).toBe(84);
+    expect(input!.base.pyeong).toBeUndefined();
+  });
+
+  it('㎡ 모드에서 전용면적이 최소값(20) 미만이면 계산하지 않는다(null)', () => {
+    const state: WallpaperFormState = { ...SILK, areaUnit: '㎡', exclusiveSqm: 10 };
+    expect(toEngineInput(state, NO_PRODUCTS)).toBeNull();
+  });
+
+  it('㎡ 모드인데 exclusiveSqm이 없으면 계산하지 않는다(평형으로 폴백하지 않는다)', () => {
+    const state: WallpaperFormState = { ...SILK, areaUnit: '㎡', exclusiveSqm: undefined };
+    expect(toEngineInput(state, NO_PRODUCTS)).toBeNull();
+  });
+
+  it('기존 공유 링크(areaUnit 필드 없음)는 평 모드로 그대로 해석된다', () => {
+    // areaUnit이 없는 옛 상태 — DEFAULT_CALC_FORM에서 일부러 지워서 옛 링크를 흉내낸다
+    const { areaUnit: _unused, ...withoutAreaUnit } = SILK;
+    const input = toEngineInput(withoutAreaUnit as WallpaperFormState, NO_PRODUCTS);
+    expect(input!.base.pyeong).toBe(34);
+    expect(input!.base.exclusiveSqm).toBeUndefined();
+  });
+});
+
+describe('describeAreaPair — 결과 요약줄 "공급 34평 · 전용 84㎡" 병기', () => {
+  it('평 모드는 칩 평형표로 전용 ㎡를 병기한다', () => {
+    expect(describeAreaPair({ ...DEFAULT_CALC_FORM, pyeong: 34 })).toBe('공급 34평 · 전용 84㎡');
+  });
+
+  it('㎡ 모드는 입력한 전용면적을 그대로 쓰고 공급 평형은 역산해서 보여준다', () => {
+    // 84㎡는 34평 칩의 표값(PYEONG_TO_EXCLUSIVE_SQM)이라 역산하면 반올림 차이로 33.9평이 된다
+    // (34×3.3058×0.75=84.30을 표는 정수 84로 저장 — "약"이라고 적는 이유가 이거다)
+    const label = describeAreaPair({ ...DEFAULT_CALC_FORM, areaUnit: '㎡', exclusiveSqm: 84 });
+    expect(label).toContain('전용 84㎡');
+    expect(label).toContain('공급 약 33.9평');
+  });
+
+  it('평형·전용면적이 둘 다 없으면 null이다', () => {
+    expect(describeAreaPair({ ...DEFAULT_CALC_FORM, pyeong: undefined })).toBeNull();
   });
 });

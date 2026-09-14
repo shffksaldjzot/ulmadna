@@ -145,6 +145,8 @@ function parseInput(body: unknown): FlooringCalcInput {
   const input: FlooringCalcInput = {
     mode,
     pyeong: num(body.pyeong, 'pyeong', { min: 5, max: 200 }),
+    // 전용면적(㎡) 직접 입력 — 2026-09-15 형아 지시(㎡ 모드), 도배와 같은 검증 범위
+    exclusiveSqm: num(body.exclusiveSqm, 'exclusiveSqm', { min: 20, max: 300 }),
     bay,
     rooms: parseRooms(body.rooms),
     scope: oneOf<FlooringScope>(body.scope, 'scope', ['전체', '방만', '거실주방'] as const),
@@ -155,8 +157,8 @@ function parseInput(body: unknown): FlooringCalcInput {
   };
 
   // 모드별로 꼭 있어야 하는 칸 확인
-  if (mode === '평형' && input.pyeong === undefined) {
-    throw new ValidationError('평형 모드에서는 pyeong 값이 필요합니다');
+  if (mode === '평형' && input.pyeong === undefined && input.exclusiveSqm === undefined) {
+    throw new ValidationError('평형 모드에서는 pyeong 또는 exclusiveSqm 값이 필요합니다');
   }
   if (mode === '실측' && (!input.rooms || input.rooms.length === 0)) {
     throw new ValidationError('실측 모드에서는 rooms 값이 필요합니다');

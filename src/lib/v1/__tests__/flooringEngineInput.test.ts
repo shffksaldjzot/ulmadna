@@ -8,7 +8,7 @@
 // ──────────────────────────────────────────────
 
 import { describe, expect, it } from 'vitest';
-import { toEngineInput, trimFormForShare } from '../flooringEngineInput';
+import { toEngineInput, trimFormForShare, describeAreaPair } from '../flooringEngineInput';
 import { DEFAULT_FLOORING_FORM, type FlooringFormState, type FlooringProductOption } from '../flooringQuery';
 
 // 제품 마스터 목록이 필요한 자리엔 빈 배열을 넣는다(이 테스트들은 productCode를 쓰지 않는다)
@@ -119,5 +119,49 @@ describe('trimFormForShare', () => {
     expect(trimmed.bay).toBeUndefined();
     expect(trimmed.scope).toBeUndefined();
     expect(trimmed.preciseRooms).toEqual([{ w: 4, d: 3 }]);
+  });
+});
+
+// 2026-09-15 형아 지시: 도배와 같은 ㎡(전용면적 직접 입력) 모드를 바닥재에도 추가했다.
+describe('㎡ 모드 (전용면적 직접 입력)', () => {
+  const PRODUCT: FlooringFormState['product'] = { pricePerBox: 39000, sqmPerBox: 1.5, widthMm: 148, lengthMm: 1818 };
+
+  it('areaUnit이 ㎡면 exclusiveSqm을 그대로 보내고 pyeong 환산을 거치지 않는다', () => {
+    const state: FlooringFormState = {
+      ...DEFAULT_FLOORING_FORM,
+      kind: '마루',
+      product: PRODUCT,
+      areaUnit: '㎡',
+      exclusiveSqm: 84,
+      pyeong: undefined,
+    };
+    const input = toEngineInput(state, NO_PRODUCTS);
+    expect(input).not.toBeNull();
+    expect(input!.mode).toBe('평형');
+    expect(input!.exclusiveSqm).toBe(84);
+    expect(input!.pyeong).toBeUndefined();
+  });
+
+  it('㎡ 모드에서 전용면적이 최소값(20) 미만이면 계산하지 않는다(null)', () => {
+    const state: FlooringFormState = { ...DEFAULT_FLOORING_FORM, kind: '마루', product: PRODUCT, areaUnit: '㎡', exclusiveSqm: 10 };
+    expect(toEngineInput(state, NO_PRODUCTS)).toBeNull();
+  });
+
+  it('기존 공유 링크(areaUnit 필드 없음)는 평 모드로 그대로 해석된다', () => {
+    const { areaUnit: _unused, ...withoutAreaUnit } = { ...DEFAULT_FLOORING_FORM, kind: '마루' as const, product: PRODUCT };
+    const input = toEngineInput(withoutAreaUnit as FlooringFormState, NO_PRODUCTS);
+    expect(input!.pyeong).toBe(34);
+    expect(input!.exclusiveSqm).toBeUndefined();
+  });
+});
+
+describe('describeAreaPair — 결과 요약줄 "공급 34평 · 전용 84㎡" 병기', () => {
+  it('평 모드는 칩 평형표로 전용 ㎡를 병기한다', () => {
+    expect(describeAreaPair({ ...DEFAULT_FLOORING_FORM, pyeong: 34 })).toBe('공급 34평 · 전용 84㎡');
+  });
+
+  it('㎡ 모드는 입력한 전용면적을 그대로 쓴다', () => {
+    const label = describeAreaPair({ ...DEFAULT_FLOORING_FORM, areaUnit: '㎡', exclusiveSqm: 84 });
+    expect(label).toContain('전용 84㎡');
   });
 });

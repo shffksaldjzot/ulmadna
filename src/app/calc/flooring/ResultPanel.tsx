@@ -19,7 +19,7 @@ import Disclaimer from '@/components/v1/Disclaimer';
 import Toast, { showToast } from '@/components/v1/Toast';
 import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
 import { type FlooringFormState, encodeFlooringForm } from '@/lib/v1/flooringQuery';
-import { trimFormForShare } from '@/lib/v1/flooringEngineInput';
+import { trimFormForShare, describeAreaPair } from '@/lib/v1/flooringEngineInput';
 import type { FlooringCalcResultDTO, FlooringCostLine, FlooringRange } from '@/lib/v1/useFlooringCalc';
 // GA4 — 결과 노출/구성 보기 펼침/공유 버튼 클릭 이벤트
 import { track } from '@/lib/analytics';
@@ -161,6 +161,10 @@ export default function ResultPanel({
             바닥 {formatNum(quantity.floorSqm)}㎡ · {lossLabel}
             {quantity.pieces != null ? ` · 총 ${formatNum(quantity.pieces)}장` : ''}
           </p>
+          {/* 간단(평형/㎡) 모드일 때만 "공급 34평 · 전용 84㎡" 병기(도배 ResultPanel과 같은 규칙) */}
+          {quantity.inputMode === '평형' && describeAreaPair(form) && (
+            <p className="text-[14px] text-v1-text-disabled tabular-nums">{describeAreaPair(form)}</p>
+          )}
           <Collapsible title="실별 보기">
             <div className="flex flex-col">
               {quantity.byRoom.map((r, i) => (

@@ -70,6 +70,13 @@ export interface WallpaperFormState {
   // 평형 모드
   pyeong?: number;
   bay?: 2 | 3 | 4;
+  /**
+   * 간단 모드 면적 단위 — 평(공급 평형, 기본) / ㎡(전용면적 직접 입력).
+   * 2026-09-15 형아 지시(㎡ 모드 추가). 없으면 '평'으로 본다(기존 공유 링크 호환).
+   */
+  areaUnit?: '평' | '㎡';
+  /** areaUnit === '㎡'일 때 쓰는 전용면적(㎡) 직접 입력값. pyeong과 배타적으로 쓴다 */
+  exclusiveSqm?: number;
   // 실측 모드 (옛 화면 전용 모양 — 삭제 전까지 유지)
   rooms?: { name: string; widthM: number; depthM: number; doors?: number }[];
   heightM?: number;
@@ -119,6 +126,7 @@ export interface WallpaperFormState {
 export const DEFAULT_CALC_FORM: WallpaperFormState = {
   mode: '평형',
   pyeong: 34,
+  areaUnit: '평',
   bay: 3,
   scope: '전체',
   ceiling: true,

@@ -29,7 +29,7 @@ import type { WallpaperCalcInput, WallpaperCalcResult } from '@/server/calc/wall
 import { WALLPAPER_PRODUCTS } from '@/server/calc/data/wallpaper-products';
 import { decodeWallpaperForm, type WallpaperFormState } from '@/lib/v1/wallpaperQuery';
 import { toWallpaperProductOptions } from '@/lib/v1/wallpaperProductOptions';
-import { toEngineInput, describePreciseInput } from '@/lib/v1/wallpaperEngineInput';
+import { toEngineInput, describePreciseInput, describeAreaPair } from '@/lib/v1/wallpaperEngineInput';
 import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
 import { PostToBoardCheckbox, ResultFab } from './ResultActions';
 
@@ -75,7 +75,9 @@ function buildSummary(state: WallpaperFormState): string {
   } else if (precise?.kind === 'length') {
     parts.push(`벽 길이 ${state.wallLength}m`);
   } else {
-    parts.push(`${state.pyeong}평`, `${state.bay ?? 3}베이`);
+    // 간단 모드 — 평형(공급) 또는 ㎡(전용) 중 지금 쓰는 값을 "공급 34평 · 전용 84㎡"로 병기한다
+    // (2026-09-15 ㎡ 모드 추가. describeAreaPair가 null이면 옛 공유 링크 등 예외라 평형만 적는다)
+    parts.push(describeAreaPair(state) ?? `${state.pyeong}평`, `${state.bay ?? 3}베이`);
     parts.push(Array.isArray(state.scope) ? '방 고르기' : state.scope === '거실주방' ? '거실·주방' : '전체');
   }
 

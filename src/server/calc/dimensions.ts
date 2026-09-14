@@ -75,6 +75,12 @@ export interface DimensionsInput {
   mode: DimensionMode;
   /** 평형 모드: 공급 평형 */
   pyeong?: number;
+  /**
+   * 평형 모드: 전용면적(㎡) 직접 입력. 2026-09-15 형아 지시(㎡ 모드 추가) — 이 값이 있으면
+   * pyeong·PYEONG_TO_EXCLUSIVE_SQM 환산표를 거치지 않고 이 값을 전용면적으로 그대로 쓴다.
+   * (예: 84㎡를 직접 넣으면 34평 칩과 똑같은 결과가 나와야 한다)
+   */
+  exclusiveSqm?: number;
   /** 평형 모드: 베이 수 */
   bay?: 2 | 3 | 4;
   /** 실측 모드: 방 목록 */
@@ -246,14 +252,17 @@ function fromMeasured(input: DimensionsInput): DimensionsResult {
 
 // ── 2) 평형으로 ────────────────────────────────
 function fromPyeong(input: DimensionsInput): DimensionsResult {
-  const pyeong = input.pyeong ?? 34;
   const bay = String(input.bay ?? 3) as BayKey;
   const height = input.heightM ?? STANDARD_WALL_HEIGHT_M.value;
 
-  // 공급 평형 → 전용면적
+  // 공급 평형 → 전용면적. exclusiveSqm을 직접 받았으면(㎡ 모드 직접 입력) 환산표를
+  // 거치지 않고 그 값을 그대로 쓴다 — 이때 pyeong은 없을 수 있다(아래 supplyPyeong에서 역산).
+  const pyeong = input.pyeong;
   const exclusiveSqm =
-    PYEONG_TO_EXCLUSIVE_SQM[Math.round(pyeong)] ??
-    r1(pyeong * SQM_PER_PYEONG * EXCLUSIVE_RATIO.value);
+    input.exclusiveSqm ??
+    (pyeong !== undefined
+      ? (PYEONG_TO_EXCLUSIVE_SQM[Math.round(pyeong)] ?? r1(pyeong * SQM_PER_PYEONG * EXCLUSIVE_RATIO.value))
+      : PYEONG_TO_EXCLUSIVE_SQM[34]); // 안전망 — 호출부(route.ts)가 항상 pyeong·exclusiveSqm 중 하나는 채워 보낸다
 
   // 코어 엔진(62건 비율표)에서 실별 면적과 벽·천장 총량을 받는다
   const q = calculateQuantity(exclusiveSqm, { bay });
@@ -296,14 +305,24 @@ function fromPyeong(input: DimensionsInput): DimensionsResult {
     };
   });
 
+  // 검사관 지적(2026-09-15): pyeong과 exclusiveSqm이 동시에 오면 exclusiveSqm이 이미
+  // 우선이었는데(위 exclusiveSqm 계산), supplyPyeong·source는 여전히 pyeong을 썼다 —
+  // 그러면 "34평인데 전용 70㎡" 같은 라벨 불일치가 생긴다. exclusiveSqm이 직접 왔으면
+  // (pyeong 동반 여부와 무관하게) supplyPyeong도 항상 그 값에서 역산해 라벨을 맞춘다.
+  const reverseSupplyPyeong = r1(exclusiveSqm / EXCLUSIVE_RATIO.value / SQM_PER_PYEONG);
+  const exclusiveSqmWins = input.exclusiveSqm !== undefined;
+  const supplyPyeong = exclusiveSqmWins ? reverseSupplyPyeong : (pyeong ?? reverseSupplyPyeong);
+
   return {
     mode: '평형',
     rooms,
     totals: sumRooms(rooms),
     canRealCut: false, // 추정 치수라 "잘라보기"를 하지 않는다
     heightM: height,
-    supplyPyeong: pyeong,
-    source: `${pyeong}평 ${bay}베이 · 62건 비율표로 실별 치수 추정 (전용 ${exclusiveSqm}㎡)`,
+    supplyPyeong,
+    source: exclusiveSqmWins
+      ? `전용 ${exclusiveSqm}㎡ ${bay}베이 · 62건 비율표로 실별 치수 추정 (공급 약 ${supplyPyeong}평)`
+      : `${pyeong}평 ${bay}베이 · 62건 비율표로 실별 치수 추정 (전용 ${exclusiveSqm}㎡)`,
   };
 }
 

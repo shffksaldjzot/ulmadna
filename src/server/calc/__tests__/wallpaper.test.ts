@@ -360,3 +360,43 @@ describe('응답에 새면 안 되는 값', () => {
     expect(Object.keys(result).sort()).toEqual(['cost', 'quantity', 'submaterials']);
   });
 });
+
+// 2026-09-15 형아 지시: 도배·바닥재 계산기에 ㎡(전용면적 직접 입력) 모드를 추가했다.
+// 34평 칩의 전용면적이 84㎡(PYEONG_TO_EXCLUSIVE_SQM 표)이므로, exclusiveSqm:84를 직접
+// 넣으면 pyeong:34 칩과 완전히 같은 결과가 나와야 한다(같은 입력이 두 갈래로 들어와도
+// 계산이 어긋나면 안 된다).
+describe('전용면적(㎡) 직접 입력 — 2026-09-15 ㎡ 모드', () => {
+  it('exclusiveSqm:84 직접 입력이 pyeong:34 칩과 물량·비용이 완전히 같다', () => {
+    const byPyeong = calcWallpaper({ ...BASE_34, pyeong: 34 });
+    const byExclusiveSqm = calcWallpaper({ ...BASE_34, pyeong: undefined, exclusiveSqm: 84 });
+    expect(byExclusiveSqm).toEqual(byPyeong);
+  });
+
+  it('표에 없는 전용면적(예: 70㎡)도 pyeong 없이 계산된다', () => {
+    const r = calcWallpaper({ ...BASE_34, pyeong: undefined, exclusiveSqm: 70 });
+    expect(r.quantity.rolls).toBeGreaterThan(0);
+    expect(r.cost.min).toBeGreaterThan(0);
+  });
+
+  it('resolveDimensions도 exclusiveSqm 직접 입력 시 pyeong 없이 동일한 실별 치수를 만든다', () => {
+    const byPyeong = resolveDimensions({ mode: '평형', pyeong: 34, bay: 3 });
+    const byExclusiveSqm = resolveDimensions({ mode: '평형', exclusiveSqm: 84, bay: 3 });
+    expect(byExclusiveSqm.rooms).toEqual(byPyeong.rooms);
+    // 공급 평형은 pyeong이 없을 때 전용률로 역산한다(34평 근처로 되돌아와야 한다)
+    expect(byExclusiveSqm.supplyPyeong).toBeCloseTo(byPyeong.supplyPyeong, 0);
+  });
+
+  it('검사관 지적: pyeong과 exclusiveSqm이 동시에 오면 exclusiveSqm이 우선이고, supplyPyeong도 그 값에서 역산해 라벨이 어긋나지 않는다', () => {
+    // 일부러 서로 안 맞는 값을 같이 넣는다 — 24평(전용 59㎡)인데 exclusiveSqm은 84(34평 몫)
+    const mismatched = resolveDimensions({ mode: '평형', pyeong: 24, exclusiveSqm: 84, bay: 3 });
+    const pureExclusive = resolveDimensions({ mode: '평형', exclusiveSqm: 84, bay: 3 });
+    // 실별 치수는 exclusiveSqm(84)만으로 계산한 결과와 완전히 같아야 한다(24평 값은 무시)
+    expect(mismatched.rooms).toEqual(pureExclusive.rooms);
+    // supplyPyeong도 exclusiveSqm에서 역산한 값(약 34평)이어야 한다 — pyeong:24로 새면 라벨 불일치
+    expect(mismatched.supplyPyeong).toBe(pureExclusive.supplyPyeong);
+    expect(mismatched.supplyPyeong).not.toBe(24);
+    // source 문구도 "전용 84㎡ ... 공급 약" 형태여야 한다(24평이라고 적히면 안 됨)
+    expect(mismatched.source).toContain('전용 84㎡');
+    expect(mismatched.source).not.toContain('24평');
+  });
+});

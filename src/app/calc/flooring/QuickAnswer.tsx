@@ -4,36 +4,44 @@
 // 바닥재 종류·제품은 이 카드 위에 있는 바닥재 카드(MaterialPicker)에서 고른다.
 // 범위 칩(ScopeChips)도 이 카드가 아니라 MaterialPicker의 footer에 있다(간단 모드일 때만
 // 보인다 — 검사관 1라운드 지적 1번: 정확 모드는 범위 개념이 없어서 그때는 안 그린다).
-// 여기(QuickAnswer)는 평형·베이 + 즉답 큰 숫자만 담당한다.
+// 여기(QuickAnswer)는 면적·베이 + 즉답 큰 숫자만 담당한다.
 // 도배와 달리 "벽/천장" 같은 대상 선택이 없다 — 바닥재는 바닥 하나뿐이다.
-// 2026-09-11 검사관 2라운드 지적 N-3: 위 주석이 "범위 칩도 여기서 담당"이라고 잘못
-// 적혀 있던 걸 지금 구조(MaterialPicker footer)에 맞게 정정했다.
+//
+// 2026-09-15 형아 지시(㎡ 모드 추가): 평형 칩만 있던 자리를 공용 부품 AreaInput(평/㎡ 토글 +
+//   칩 + 직접 입력 + 환산 캡션)으로 바꿨다. 평 단위는 지금까지와 같은 "공급 평형", ㎡ 단위는
+//   "전용면적" 직접 입력이다(엔진에 0.75 환산 없이 그대로 전달된다 — flooringEngineInput.ts).
+//   도배 QuickAnswer.tsx와 같은 규칙 — 두 화면이 같은 부품·같은 계산 규칙을 쓴다.
 //
 // ※ "계산하기" 버튼과 결과 표는 만들지 않는다. 값이 바뀌는 즉시 자동으로 계산되고
 //   (useFlooringCalc), 결과는 ResultPanel이 그린다.
 //
 // 작성일: 2026년 09월 10일
+// ㎡ 모드 추가: 2026년 09월 15일
 // ──────────────────────────────────────────────
 
 'use client';
 
-import { useState } from 'react';
 import Card from '@/components/v1/Card';
 import Chip from '@/components/v1/Chip';
-import NumberField from '@/components/v1/NumberField';
 import { formatManRange, formatNum } from '@/lib/v1/money';
 import type { FlooringCalcResultDTO, FlooringRange } from '@/lib/v1/useFlooringCalc';
 import type { FlooringKind } from '@/lib/v1/flooringQuery';
+import { MIN_EXCLUSIVE_SQM } from '@/lib/v1/flooringEngineInput';
+import AreaInput from '../_components/AreaInput';
 
-// 평형 칩 목록 — 도배와 같은 대표 평형 목록을 그대로 쓴다
-const PYEONG_CHIPS: readonly number[] = [18, 24, 25, 30, 34, 40, 45];
 // 베이(구조) 칩 목록
 const BAY_CHIPS: readonly (2 | 3 | 4)[] = [2, 3, 4];
 
 export interface QuickAnswerProps {
-  /** 평형 입력값. 칩(18·24·25·30·34·40·45) + 직접 입력 겸용 */
+  /** 평형 입력값(areaUnit === '평'일 때). 칩(18·24·25·30·34·40·45) + 직접 입력 겸용 */
   pyeong: number | '';
   onPyeongChange: (v: number | '') => void;
+  /** 면적 단위 — 평(공급 평형) / ㎡(전용면적 직접 입력). 기본 '평' */
+  areaUnit: '평' | '㎡';
+  onAreaUnitChange: (u: '평' | '㎡') => void;
+  /** 전용면적 직접 입력값(areaUnit === '㎡'일 때) */
+  exclusiveSqm: number | '';
+  onExclusiveSqmChange: (v: number | '') => void;
   /** 베이 수(2·3·4). 기본 3 */
   bay: 2 | 3 | 4;
   onBayChange: (v: 2 | 3 | 4) => void;
@@ -64,6 +72,10 @@ function formatQuantityLine(result: FlooringCalcResultDTO): string {
 export default function QuickAnswer({
   pyeong,
   onPyeongChange,
+  areaUnit,
+  onAreaUnitChange,
+  exclusiveSqm,
+  onExclusiveSqmChange,
   bay,
   onBayChange,
   range,
@@ -74,56 +86,28 @@ export default function QuickAnswer({
   result,
   emptyMessage,
 }: QuickAnswerProps) {
-  // "직접 입력" 모드 여부 — 값이 프리셋과 같은지로 매번 다시 판단하지 않고 명시적 상태로 든다
-  // (도배 QuickAnswer와 같은 이유 — 칩을 눌러야만 모드가 바뀐다)
-  const [directMode, setDirectMode] = useState<boolean>(
-    () => pyeong === '' || !PYEONG_CHIPS.includes(pyeong),
-  );
   // 로딩 중이거나 이전 값을 보여주는 중이면 큰 숫자를 지우지 않고 옅게만 표시한다(깜빡임 방지 규칙)
   const dim = loading || stale;
-  // 직접 입력한 평형이 서버가 거부하는 범위(5 미만)면 호출 전에 미리 알려준다
-  const pyeongTooSmall = typeof pyeong === 'number' && pyeong > 0 && pyeong < 5;
+  // 직접 입력한 값이 서버가 거부하는 범위면 호출 전에 미리 알려준다
+  const pyeongTooSmall = areaUnit === '평' && typeof pyeong === 'number' && pyeong > 0 && pyeong < 5;
+  const sqmTooSmall = areaUnit === '㎡' && typeof exclusiveSqm === 'number' && exclusiveSqm > 0 && exclusiveSqm < MIN_EXCLUSIVE_SQM;
 
   return (
     <Card>
-      {/* 1) 평형 — 제목 없이 라벨만(20/700 큰 제목은 바닥재 카드가 이미 맨 위에 있어 중복이라 뺐다) */}
-      <span className="text-[16px] font-semibold text-foreground">평형</span>
-      {/* 가로 스크롤 대신 줄바꿈으로 둔다 — 360px 화면에서 칩 8개가 두 줄로 접힌다 */}
-      <div className="flex flex-wrap gap-2">
-        <Chip
-          selected={directMode}
-          onClick={() => {
-            setDirectMode(true);
-            onPyeongChange('');
-          }}
-        >
-          직접 입력
-        </Chip>
-        {PYEONG_CHIPS.map((p) => (
-          <Chip
-            key={p}
-            selected={!directMode && pyeong === p}
-            onClick={() => {
-              setDirectMode(false);
-              onPyeongChange(p);
-            }}
-          >
-            {p}평
-          </Chip>
-        ))}
-      </div>
-      {directMode && (
-        <NumberField
-          value={pyeong}
-          onChange={onPyeongChange}
-          suffix="평"
-          placeholder="평형을 입력하세요"
-          aria-label="평형 직접 입력"
-          className="w-full"
-        />
-      )}
+      {/* 1) 면적 — 평(공급 평형)/㎡(전용면적) 토글 + 칩 + 직접 입력 + 환산 캡션(공용 부품) */}
+      <AreaInput
+        mode="supply"
+        unit={areaUnit}
+        onUnitChange={onAreaUnitChange}
+        value={areaUnit === '㎡' ? exclusiveSqm : pyeong}
+        onValueChange={(v) => (areaUnit === '㎡' ? onExclusiveSqmChange(v) : onPyeongChange(v))}
+        label="면적"
+        // 검사관 지적(2026-09-15): ㎡ 모드는 "전용 ㎡로 계산해요"가 아니라 이미 전용 ㎡ 그
+        // 자체라 문구가 달라야 한다 — 평 모드만 공급→전용 환산을 설명한다(도배와 같은 규칙)
+        caption={areaUnit === '㎡' ? '전용면적 ㎡ 그대로 계산해요' : '공급 평형 기준 · 전용 ㎡로 계산해요'}
+      />
 
-      {/* 2) 베이(구조) — 물량 정확도에 영향을 주는 값이라 평형 바로 아래에 둔다 */}
+      {/* 2) 베이(구조) — 물량 정확도에 영향을 주는 값이라 면적 바로 아래에 둔다 */}
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-[16px] font-semibold text-foreground">베이</span>
         {BAY_CHIPS.map((b) => (
@@ -133,13 +117,15 @@ export default function QuickAnswer({
         ))}
       </div>
 
-      {/* 3) 즉답 큰 숫자 — 실패/종류 미선택/5평 미만/평형 없음/정상 다섯 가지 상태만 있다 */}
+      {/* 3) 즉답 큰 숫자 — 실패/종류 미선택/면적 너무 작음/면적 없음/정상 다섯 가지 상태만 있다 */}
       {error ? (
         <p className="text-[16px] text-foreground">계산에 실패했어요</p>
       ) : !kind ? (
         <p className="text-[16px] text-v1-text-secondary">{emptyMessage}</p>
       ) : pyeongTooSmall ? (
         <p className="text-[16px] text-v1-text-secondary">5평부터 계산해요</p>
+      ) : sqmTooSmall ? (
+        <p className="text-[16px] text-v1-text-secondary">{MIN_EXCLUSIVE_SQM}㎡부터 계산해요</p>
       ) : !range ? (
         <p className="text-[16px] text-v1-text-secondary">{emptyMessage}</p>
       ) : (

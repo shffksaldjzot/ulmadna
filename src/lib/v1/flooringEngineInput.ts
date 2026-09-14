@@ -16,9 +16,11 @@
 // ──────────────────────────────────────────────
 
 import type { FlooringDirectProduct, FlooringFormState, FlooringKind, FlooringProductOption, FlooringScope } from './flooringQuery';
+import { MIN_EXCLUSIVE_SQM, MAX_EXCLUSIVE_SQM, exclusiveSqmToPyeong, pyeongToExclusiveSqm } from './areaUnits';
 
 /** 평형 직접 입력의 최소값. 도배와 같은 규칙(서버가 5평 미만을 거부한다고 가정) */
 export const MIN_PYEONG = 5;
+export { MIN_EXCLUSIVE_SQM, MAX_EXCLUSIVE_SQM };
 
 // ── 서버 요청 모양 (지시서 공통규칙 문서의 API 계약을 그대로 옮겨 적음) ──
 
@@ -51,6 +53,8 @@ export interface FlooringProductRequest {
 export interface FlooringCalcRequest {
   mode: '평형' | '실측';
   pyeong?: number;
+  /** 전용면적(㎡) 직접 입력 — areaUnit이 '㎡'일 때 pyeong 대신 이 값을 보낸다 */
+  exclusiveSqm?: number;
   bay?: 2 | 3 | 4;
   rooms?: FlooringRoomRequest[];
   /** 기본 전체(욕실·현관은 항상 제외) */
@@ -107,8 +111,16 @@ export function trimFormForShare(state: FlooringFormState): FlooringFormState {
   if (resolveView(state) === 'simple') {
     delete trimmed.preciseRooms;
     delete trimmed.unit;
+    // 평/㎡ 중 지금 안 쓰는 값은 링크에 안 싣는다 (2026-09-15 ㎡ 모드 추가, 도배와 같은 규칙)
+    if (state.areaUnit === '㎡') {
+      delete trimmed.pyeong;
+    } else {
+      delete trimmed.exclusiveSqm;
+    }
   } else {
     delete trimmed.pyeong;
+    delete trimmed.exclusiveSqm;
+    delete trimmed.areaUnit;
     delete trimmed.bay;
     // 검사관 1라운드 지적 1번: 정확(실측) 모드는 방을 직접 골라 넣은 것이라 범위 칩
     // (전체/방만/거실주방) 자체가 뜻이 없다 — 엔진도 실측이면 scope를 무시하고 전체로
@@ -230,8 +242,26 @@ export function toEngineInput(state: FlooringFormState, products: FlooringProduc
     };
   }
 
-  // view === 'simple' — 평형 + 제품이 둘 다 있어야 계산한다
+  // view === 'simple' — 평형(또는 전용 ㎡ 직접 입력) + 제품이 둘 다 있어야 계산한다
   if (!product) return null;
+
+  // 2026-09-15 형아 지시(㎡ 모드): areaUnit이 '㎡'면 pyeong 대신 exclusiveSqm을 그대로 보낸다
+  if (state.areaUnit === '㎡') {
+    if (!isPositive(state.exclusiveSqm) || state.exclusiveSqm < MIN_EXCLUSIVE_SQM || state.exclusiveSqm > MAX_EXCLUSIVE_SQM) {
+      return null;
+    }
+    return {
+      mode: '평형',
+      exclusiveSqm: state.exclusiveSqm,
+      bay: state.bay ?? 3,
+      scope: state.scope ?? '전체',
+      kind,
+      product,
+      removeOld,
+      baseboard,
+    };
+  }
+
   if (!isPositive(state.pyeong) || state.pyeong < MIN_PYEONG) return null;
   return {
     mode: '평형',
@@ -243,4 +273,17 @@ export function toEngineInput(state: FlooringFormState, products: FlooringProduc
     removeOld,
     baseboard,
   };
+}
+
+/**
+ * 결과 화면 요약줄에 쓰는 "공급 34평 · 전용 84㎡" 병기 문구 (도배 wallpaperEngineInput.ts와 같은 규칙).
+ * 간단 모드(평형/㎡)에서만 뜻이 있다 — 실측은 이미 실제 치수라 공급/전용 개념이 없다.
+ */
+export function describeAreaPair(state: FlooringFormState): string | null {
+  if (state.areaUnit === '㎡') {
+    if (!isPositive(state.exclusiveSqm)) return null;
+    return `공급 약 ${exclusiveSqmToPyeong(state.exclusiveSqm)}평 · 전용 ${state.exclusiveSqm}㎡`;
+  }
+  if (!isPositive(state.pyeong)) return null;
+  return `공급 ${state.pyeong}평 · 전용 ${pyeongToExclusiveSqm(state.pyeong)}㎡`;
 }

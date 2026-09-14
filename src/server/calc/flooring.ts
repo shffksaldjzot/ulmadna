@@ -79,6 +79,11 @@ export interface FlooringCalcInput {
   mode?: FlooringMode;
   /** 평형 모드: 공급 평형 */
   pyeong?: number;
+  /**
+   * 전용면적(㎡) 직접 입력. 2026-09-15 형아 지시(㎡ 모드) — 있으면 pyeong 환산표를
+   * 거치지 않고 이 값을 그대로 전용면적으로 쓴다(도배 wallpaper.ts와 같은 규칙).
+   */
+  exclusiveSqm?: number;
   /** 평형 모드: 베이 수 (2 / 3 / 4). 기본 3 */
   bay?: 2 | 3 | 4;
   /** 실측 모드: 방 목록 */
@@ -216,12 +221,13 @@ function resolveScopeKeys(scope: FlooringScope, allKeys: string[]): string[] {
 /**
  * 코어 엔진(62건 비율표)이 말하는 "그 평형의 바닥 면적"을 가져온다.
  * 평형 모드에서 실별 면적 합계를 이 값에 맞춰 정규화한다 — 도배가 벽 면적에 한 방식과 같다.
+ * exclusiveSqm을 직접 받았으면(㎡ 모드 직접 입력) pyeong 환산표를 거치지 않고 그대로 쓴다.
  */
-function engineFloorSqm(pyeong: number, bay: 2 | 3 | 4): number {
-  const exclusiveSqm =
-    PYEONG_TO_EXCLUSIVE_SQM[Math.round(pyeong)] ??
-    r1(pyeong * SQM_PER_PYEONG * EXCLUSIVE_RATIO.value);
-  const q = calculateQuantity(exclusiveSqm, { bay: String(bay) as BayKey });
+function engineFloorSqm(pyeong: number | undefined, bay: 2 | 3 | 4, exclusiveSqm?: number): number {
+  const sqm =
+    exclusiveSqm ??
+    (PYEONG_TO_EXCLUSIVE_SQM[Math.round(pyeong ?? 34)] ?? r1((pyeong ?? 34) * SQM_PER_PYEONG * EXCLUSIVE_RATIO.value));
+  const q = calculateQuantity(sqm, { bay: String(bay) as BayKey });
   // 마루 바닥 + 타일 바닥 = 욕실을 뺀 집 전체 바닥
   return q.quantities.floor_wood + q.quantities.floor_tile;
 }
@@ -294,6 +300,7 @@ export function calcFlooring(input: FlooringCalcInput): FlooringCalcResult {
   const dims = resolveDimensions({
     mode,
     pyeong: input.pyeong,
+    exclusiveSqm: input.exclusiveSqm,
     bay,
     // 실측 방은 이름·가로·세로만 넘긴다 (바닥은 높이·개구부가 필요 없다)
     rooms: input.rooms?.map((r) => ({ name: r.name, widthM: r.widthM, depthM: r.depthM })),
@@ -305,7 +312,7 @@ export function calcFlooring(input: FlooringCalcInput): FlooringCalcResult {
   let normalized: RoomDims[] = targetRooms;
   if (mode === '평형') {
     // 코어 엔진의 바닥 총량이 최종 권위. 비율표 실별 면적을 그 합계에 맞춰 늘리거나 줄인다.
-    const engineTotal = engineFloorSqm(input.pyeong ?? 34, bay);
+    const engineTotal = engineFloorSqm(input.pyeong, bay, input.exclusiveSqm);
     const ratioSum = targetRooms.reduce((s, r) => s + r.floorSqm, 0);
     const scale = ratioSum > 0 ? engineTotal / ratioSum : 1;
 

@@ -91,6 +91,13 @@ export interface FlooringFormState {
   // 간단 모드
   pyeong?: number;
   bay?: 2 | 3 | 4;
+  /**
+   * 간단 모드 면적 단위 — 평(공급 평형, 기본) / ㎡(전용면적 직접 입력).
+   * 2026-09-15 형아 지시(㎡ 모드 추가, 도배와 같은 규칙). 없으면 '평'으로 본다(기존 공유 링크 호환).
+   */
+  areaUnit?: '평' | '㎡';
+  /** areaUnit === '㎡'일 때 쓰는 전용면적(㎡) 직접 입력값. pyeong과 배타적으로 쓴다 */
+  exclusiveSqm?: number;
   // 공통 — 범위(전체/방만/거실주방). 욕실·현관은 항상 제외(엔진이 처리)
   scope?: FlooringScope;
   /** 정확 모드 치수 입력 단위(화면 표시 전용, 저장값은 항상 m) */
@@ -107,6 +114,7 @@ export interface FlooringFormState {
 export const DEFAULT_FLOORING_FORM: FlooringFormState = {
   view: 'simple',
   pyeong: 34,
+  areaUnit: '평',
   bay: 3,
   scope: '전체',
   unit: 'm',

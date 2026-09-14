@@ -155,6 +155,9 @@ function parseInput(body: unknown): WallpaperCalcInput {
   const input: WallpaperCalcInput = {
     mode,
     pyeong: num(body.pyeong, 'pyeong', { min: 5, max: 200 }),
+    // 전용면적(㎡) 직접 입력 — 2026-09-15 형아 지시(㎡ 모드). 20~300㎡로 검증한다
+    // (34평 국민평형 전용 84㎡가 이 범위 한가운데 오도록 잡은 값).
+    exclusiveSqm: num(body.exclusiveSqm, 'exclusiveSqm', { min: 20, max: 300 }),
     bay,
     rooms: parseRooms(body.rooms),
     heightM: num(body.heightM, 'heightM', { min: 1.5, max: 6 }),
@@ -170,8 +173,9 @@ function parseInput(body: unknown): WallpaperCalcInput {
   };
 
   // 모드별로 꼭 있어야 하는 칸 확인
-  if (mode === '평형' && input.pyeong === undefined) {
-    throw new ValidationError('평형 모드에서는 pyeong 값이 필요합니다');
+  // 평형 모드는 pyeong(평 단위) 또는 exclusiveSqm(㎡ 단위) 둘 중 하나만 있으면 된다
+  if (mode === '평형' && input.pyeong === undefined && input.exclusiveSqm === undefined) {
+    throw new ValidationError('평형 모드에서는 pyeong 또는 exclusiveSqm 값이 필요합니다');
   }
   if (mode === '실측' && (!input.rooms || input.rooms.length === 0)) {
     throw new ValidationError('실측 모드에서는 rooms 값이 필요합니다');

@@ -17,9 +17,11 @@
 
 import type { WallpaperFormState, WallpaperProductOption, WallpaperOpening, PreciseRoomInput } from './wallpaperQuery';
 import { DEFAULT_CEILING_HEIGHT_M } from './wallpaperDefaults';
+import { MIN_EXCLUSIVE_SQM, MAX_EXCLUSIVE_SQM, exclusiveSqmToPyeong, pyeongToExclusiveSqm } from './areaUnits';
 
 /** 평형 직접 입력의 최소값. 이보다 작은 값은 서버가 거부하므로(route.ts min:5) 아예 호출하지 않는다 */
 export const MIN_PYEONG = 5;
+export { MIN_EXCLUSIVE_SQM, MAX_EXCLUSIVE_SQM };
 
 // ── 서버 요청 모양 (src/server/calc/wallpaper.ts WallpaperCalcInput 중 이 화면들이 실제로 쓰는 칸만) ──
 
@@ -54,6 +56,8 @@ export interface WallpaperProductRequest {
 export interface WallpaperCalcRequest {
   mode: '평형' | '실측' | '면적';
   pyeong?: number;
+  /** 전용면적(㎡) 직접 입력 — areaUnit이 '㎡'일 때 pyeong 대신 이 값을 보낸다 */
+  exclusiveSqm?: number;
   bay?: 2 | 3 | 4;
   rooms?: WallpaperRoomRequest[];
   heightM?: number;
@@ -142,8 +146,16 @@ export function trimFormForShare(state: WallpaperFormState): WallpaperFormState 
     delete trimmed.directCeilingSqm;
     delete trimmed.entry;
     delete trimmed.unit;
+    // 평/㎡ 중 지금 안 쓰는 값은 링크에 안 싣는다 (2026-09-15 ㎡ 모드 추가)
+    if (state.areaUnit === '㎡') {
+      delete trimmed.pyeong;
+    } else {
+      delete trimmed.exclusiveSqm;
+    }
   } else {
     delete trimmed.pyeong;
+    delete trimmed.exclusiveSqm;
+    delete trimmed.areaUnit;
     delete trimmed.bay;
   }
   return trimmed;
@@ -334,7 +346,29 @@ export function toEngineInput(
     return null;
   }
 
-  // view === 'simple' — 평형만 본다.
+  // view === 'simple' — 평형(또는 전용 ㎡ 직접 입력)만 본다.
+  // 2026-09-15 형아 지시(㎡ 모드): areaUnit이 '㎡'면 pyeong 대신 exclusiveSqm을 그대로 보낸다
+  // — 84㎡를 직접 넣으면 34평 칩과 같은 결과가 나와야 하므로 pyeong 환산을 거치지 않는다.
+  if (state.areaUnit === '㎡') {
+    if (isPositive(state.exclusiveSqm) && state.exclusiveSqm >= MIN_EXCLUSIVE_SQM && state.exclusiveSqm <= MAX_EXCLUSIVE_SQM) {
+      return {
+        base: {
+          mode: '평형',
+          exclusiveSqm: state.exclusiveSqm,
+          bay: state.bay ?? 3,
+          scope: '전체',
+          wall,
+          ceiling,
+          isOld,
+          removeOld,
+        },
+        paper,
+      };
+    }
+    // 전용 ㎡ 직접 입력이 없거나 범위 밖이다 — 계산하지 않는다
+    return null;
+  }
+
   // 서버가 5평 미만은 거부한다(route.ts min:5). 1~4평처럼 애매한 값을 그대로 보내면 매번
   // "계산에 실패했어요"만 뜨니, 여기서 아예 걸러 null로 돌려준다 — 화면(QuickAnswer)이 그
   // 범위를 알아채 "5평부터 계산해요" 안내로 바꿔 보여준다.
@@ -356,4 +390,18 @@ export function toEngineInput(
 
   // 평형이 없다 — 계산하지 않는다
   return null;
+}
+
+/**
+ * 결과 화면 요약줄에 쓰는 "공급 34평 · 전용 84㎡" 병기 문구.
+ * 2026-09-15 형아 지시 — 간단 모드(평형/㎡)에서만 뜻이 있다(정밀 실측·벽 길이는 이미 실제
+ * 치수라 공급/전용 개념이 없다). pyeong·exclusiveSqm 둘 다 없으면 null.
+ */
+export function describeAreaPair(state: WallpaperFormState): string | null {
+  if (state.areaUnit === '㎡') {
+    if (!isPositive(state.exclusiveSqm)) return null;
+    return `공급 약 ${exclusiveSqmToPyeong(state.exclusiveSqm)}평 · 전용 ${state.exclusiveSqm}㎡`;
+  }
+  if (!isPositive(state.pyeong)) return null;
+  return `공급 ${state.pyeong}평 · 전용 ${pyeongToExclusiveSqm(state.pyeong)}㎡`;
 }

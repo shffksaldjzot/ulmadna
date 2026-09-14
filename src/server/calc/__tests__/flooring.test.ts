@@ -508,3 +508,34 @@ describe('검사관 13 — 거실·주방 범위에 복도·기타가 들어간�
     expect(keys).not.toContain('master');
   });
 });
+
+// 2026-09-15 형아 지시: 도배와 같은 ㎡(전용면적 직접 입력) 모드를 바닥재에도 추가했다.
+// 34평 칩의 전용면적이 84㎡이므로, exclusiveSqm:84 직접 입력이 pyeong:34 칩과 완전히
+// 같은 결과가 나와야 한다.
+describe('전용면적(㎡) 직접 입력 — 2026-09-15 ㎡ 모드', () => {
+  it('exclusiveSqm:84 직접 입력이 pyeong:34 칩과 물량·비용이 완전히 같다', () => {
+    const byPyeong = calcFlooring({ ...BASE_34, kind: '마루' });
+    const byExclusiveSqm = calcFlooring({ mode: '평형', bay: 3, scope: '전체', kind: '마루', exclusiveSqm: 84 });
+    expect(byExclusiveSqm).toEqual(byPyeong);
+  });
+
+  it('API 라우트 — exclusiveSqm만 보내도(pyeong 없이) 200으로 계산된다', async () => {
+    const res = await POST(post({ mode: '평형', exclusiveSqm: 84, bay: 3, kind: '마루' }));
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.quantity.units).toBeGreaterThan(0);
+  });
+
+  it('API 라우트 — pyeong도 exclusiveSqm도 없으면 400이고 메시지에 둘 다 언급한다', async () => {
+    const res = await POST(post({ mode: '평형', kind: '마루' }));
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.error).toContain('pyeong');
+    expect(json.error).toContain('exclusiveSqm');
+  });
+
+  it('API 라우트 — exclusiveSqm이 허용 범위(20~300) 밖이면 400이다', async () => {
+    const res = await POST(post({ mode: '평형', exclusiveSqm: 10, bay: 3, kind: '마루' }));
+    expect(res.status).toBe(400);
+  });
+});

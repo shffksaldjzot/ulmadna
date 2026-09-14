@@ -25,6 +25,7 @@ import Card from '@/components/v1/Card';
 import Chip from '@/components/v1/Chip';
 import NumberField from '@/components/v1/NumberField';
 import { formatManRange, formatNum } from '@/lib/v1/money';
+import AreaInput from '../_components/AreaInput';
 import type { MortarFormState } from '@/lib/v1/mortarQuery';
 import type { MortarCalcResultDTO, MortarRange } from '@/lib/v1/useMortarCalc';
 import type { MortarQuickResult } from '@/lib/v1/useMortarQuickCalc';
@@ -63,9 +64,10 @@ export default function QuickAnswer({ form, patch, quick, result, range, error }
 
   return (
     <Card>
-      {/* 1) 면적 — 평/㎡ 직접 입력 또는 가로×세로 */}
+      {/* 1) 시공 면적 — 평/㎡ 직접 입력 또는 가로×세로. 라벨을 "시공 면적"으로 둬서(2026-09-15
+          형아 지시) 집 평형이 아니라 "바를 바닥 면적"이라는 걸 캡션 1줄로 분명히 한다 */}
       <div className="flex items-center justify-between">
-        <span className="text-[16px] font-semibold text-foreground">면적</span>
+        <span className="text-[16px] font-semibold text-foreground">시공 면적</span>
         <div className="flex gap-2">
           <Chip
             shape="square"
@@ -83,34 +85,20 @@ export default function QuickAnswer({ form, patch, quick, result, range, error }
           </Chip>
         </div>
       </div>
+      <p className="text-[14px] text-v1-text-secondary">바를 바닥 면적 기준</p>
 
       {areaInputMode === 'area' ? (
-        <>
-          <div className="flex gap-2">
-            <Chip selected={areaUnit === '평'} onClick={() => patch({ areaUnit: '평' })}>
-              평
-            </Chip>
-            <Chip selected={areaUnit === '㎡'} onClick={() => patch({ areaUnit: '㎡' })}>
-              ㎡
-            </Chip>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {presets.map((p) => (
-              <Chip key={p} selected={form.area === p} onClick={() => patch({ area: p })}>
-                {p}
-                {areaUnit}
-              </Chip>
-            ))}
-          </div>
-          <NumberField
-            value={form.area ?? ''}
-            onChange={(v) => patch({ area: v === '' ? undefined : v })}
-            suffix={areaUnit}
-            placeholder="면적을 입력하세요"
-            aria-label="면적 직접 입력"
-            className="w-full"
-          />
-        </>
+        // 공용 부품(AreaInput) — 미장은 "시공 면적"(공급/전용 구분 없음)이라 mode="work".
+        // 바깥에 이미 "시공 면적" 제목이 있어 label은 비워 토글만 왼쪽 정렬로 그린다.
+        <AreaInput
+          mode="work"
+          unit={areaUnit}
+          onUnitChange={(u) => patch({ areaUnit: u })}
+          value={form.area ?? ''}
+          onValueChange={(v) => patch({ area: v === '' ? undefined : v })}
+          chips={presets}
+          placeholder="면적을 입력하세요"
+        />
       ) : (
         <div className="flex gap-2">
           <NumberField

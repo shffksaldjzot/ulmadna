@@ -143,6 +143,10 @@ export default function FlooringCalculator({ products }: FlooringCalculatorProps
             <QuickAnswer
               pyeong={form.pyeong ?? ''}
               onPyeongChange={(v) => patch({ pyeong: v === '' ? undefined : v })}
+              areaUnit={form.areaUnit ?? '평'}
+              onAreaUnitChange={(v) => patch({ areaUnit: v })}
+              exclusiveSqm={form.exclusiveSqm ?? ''}
+              onExclusiveSqmChange={(v) => patch({ exclusiveSqm: v === '' ? undefined : v })}
               bay={form.bay ?? 3}
               onBayChange={(v) => patch({ bay: v })}
               range={range}

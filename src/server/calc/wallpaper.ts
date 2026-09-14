@@ -54,6 +54,11 @@ export interface WallpaperCalcInput {
   // ── 평형 모드 ──
   /** 공급 평형 (18·24·25·30·34·40·45 또는 직접 입력) */
   pyeong?: number;
+  /**
+   * 전용면적(㎡) 직접 입력. 2026-09-15 형아 지시(㎡ 모드) — 있으면 pyeong 환산표를
+   * 거치지 않고 이 값을 그대로 전용면적으로 쓴다(pyeong과 동시에 오면 이 값이 우선).
+   */
+  exclusiveSqm?: number;
   /** 베이 수 (2 / 3 / 4). 기본 3 */
   bay?: 2 | 3 | 4;
 
@@ -260,6 +265,7 @@ export function calcWallpaper(input: WallpaperCalcInput): WallpaperCalcResult {
   const dims = resolveDimensions({
     mode,
     pyeong: input.pyeong,
+    exclusiveSqm: input.exclusiveSqm,
     bay: input.bay,
     rooms: input.rooms,
     heightM: input.heightM,

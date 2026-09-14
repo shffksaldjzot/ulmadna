@@ -20,7 +20,7 @@ import type { FlooringCalcInput, FlooringCalcResult } from '@/server/calc/floori
 import { FLOORING_PRODUCTS } from '@/server/calc/data/flooring-products';
 import { decodeFlooringForm, type FlooringFormState } from '@/lib/v1/flooringQuery';
 import { toFlooringProductOptions } from '@/lib/v1/flooringProductOptions';
-import { toEngineInput, describePreciseInput } from '@/lib/v1/flooringEngineInput';
+import { toEngineInput, describePreciseInput, describeAreaPair } from '@/lib/v1/flooringEngineInput';
 import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
 
 export const metadata = {
@@ -56,7 +56,9 @@ function buildSummary(state: FlooringFormState): string {
   if (precise?.kind === 'room') {
     parts.push(`실측 ${precise.count}개 실`);
   } else {
-    parts.push(`${state.pyeong}평`, `${state.bay ?? 3}베이`);
+    // 간단 모드 — 평형(공급) 또는 ㎡(전용) 중 지금 쓰는 값을 "공급 34평 · 전용 84㎡"로 병기한다
+    // (2026-09-15 ㎡ 모드 추가, 도배와 같은 규칙)
+    parts.push(describeAreaPair(state) ?? `${state.pyeong}평`, `${state.bay ?? 3}베이`);
     // 검사관 1라운드 지적 1번: 범위(전체/방만/거실·주방·복도)는 실측 모드에선 뜻이 없다
     // (엔진도 실측이면 항상 전체로 계산한다) — 평형 모드일 때만 요약줄에 넣는다
     parts.push(state.scope === '방만' ? '방만' : state.scope === '거실주방' ? '거실·주방·복도' : '전체');
