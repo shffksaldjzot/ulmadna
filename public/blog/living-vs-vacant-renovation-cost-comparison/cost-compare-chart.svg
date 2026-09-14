@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 380" width="950" height="380" role="img" aria-label="살면서 공사 vs 비우고 공사 추가비용 비교 차트, 34평 84타입 기준">
+  <style>
+    .t { font-family: -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; fill: #2b2622; }
+    .lab { font-size: 15px; font-weight: 600; }
+    .sub { font-size: 12px; fill: #7a6f66; }
+    .val { font-size: 14px; font-weight: 700; fill: #2b2622; }
+    .axis { font-size: 11px; fill: #9a8f86; }
+    .title { font-size: 18px; font-weight: 700; }
+  </style>
+  <rect width="950" height="380" fill="#fbf8f4"/>
+  <text x="32" y="38" class="t title">살면서 공사 vs 비우고 공사 — 34평/84타입 공사비 외 추가비용</text>
+  <text x="32" y="60" class="t sub">공사비 자체는 동일, 아래는 "공사 외" 추가로 드는 돈 · 실제 견적 빅데이터 1,000건+ 정리</text>
+
+  <!-- axis: 0 ~ 650만 -> x 280..930 (1px = 1만) -->
+  <g class="t axis">
+    <line x1="280" y1="90" x2="280" y2="300" stroke="#e2d9d0"/>
+    <line x1="380" y1="90" x2="380" y2="300" stroke="#eee7df" stroke-dasharray="3 3"/>
+    <line x1="480" y1="90" x2="480" y2="300" stroke="#eee7df" stroke-dasharray="3 3"/>
+    <line x1="580" y1="90" x2="580" y2="300" stroke="#eee7df" stroke-dasharray="3 3"/>
+    <line x1="680" y1="90" x2="680" y2="300" stroke="#eee7df" stroke-dasharray="3 3"/>
+    <line x1="780" y1="90" x2="780" y2="300" stroke="#eee7df" stroke-dasharray="3 3"/>
+    <line x1="880" y1="90" x2="880" y2="300" stroke="#eee7df" stroke-dasharray="3 3"/>
+    <text x="280" y="318" text-anchor="middle">0원</text>
+    <text x="380" y="318" text-anchor="middle">100만</text>
+    <text x="480" y="318" text-anchor="middle">200만</text>
+    <text x="580" y="318" text-anchor="middle">300만</text>
+    <text x="680" y="318" text-anchor="middle">400만</text>
+    <text x="780" y="318" text-anchor="middle">500만</text>
+    <text x="880" y="318" text-anchor="middle">600만</text>
+  </g>
+
+  <!-- 1. 살면서 (부분 공사 기준) -->
+  <text x="32" y="130" class="t lab">① 살면서 · 부분 공사(도배+바닥 등) 기준</text>
+  <text x="32" y="148" class="t sub">짐 이동·보양 인건비 할증</text>
+  <rect x="310" y="116" width="20" height="26" rx="5" fill="#d9cabb"/>
+  <text x="342" y="134" class="t val">30만 ~ 50만원</text>
+
+  <!-- 2. 비우고 (올수리, 34평/84타입) -->
+  <text x="32" y="214" class="t lab">② 비우고 · 올수리, 34평/84타입 기준</text>
+  <text x="32" y="232" class="t sub">보관이사(1개월) 320만~450만 + 임시거처(30일) 100만~150만</text>
+  <rect x="700" y="200" width="180" height="26" rx="6" fill="#b8654a"/>
+  <text x="700" y="248" class="t val">420만 ~ 600만원</text>
+
+  <text x="32" y="290" class="t sub">※ 살면서 하는 전체 리모델링은 공정이 끊기며 늘어나는 인건비·기간이 정액으로 안 떨어져 그래프에서 제외</text>
+</svg>
