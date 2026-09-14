@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 660" font-family="'Pretendard','Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <style>
+    .title { font-size: 20px; font-weight: 700; fill: #1f2937; }
+    .sub { font-size: 13px; fill: #6b7280; }
+    .q { font-size: 15px; font-weight: 700; fill: #1f2937; }
+    .qd { font-size: 12px; fill: #6b7280; }
+    .arrow { stroke: #9ca3af; stroke-width: 1.8; fill: none; }
+    .alabel { font-size: 12px; font-weight: 700; fill: #6b7280; }
+    .out { font-size: 13.5px; font-weight: 700; }
+    .outd { font-size: 11.5px; fill: #4b5563; }
+  </style>
+
+  <rect width="800" height="660" fill="#ffffff"/>
+  <text x="40" y="44" class="title">인테리어 공사 지연 — 원인별 대처 순서</text>
+  <text x="40" y="68" class="sub">"공사가 늦어진다"는 통보를 받으면, 이 순서로 확인하세요</text>
+
+  <!-- Q1 -->
+  <rect x="40" y="96" width="420" height="66" rx="10" fill="#ffffff" stroke="#d1d5db" stroke-width="1.6"/>
+  <text x="62" y="124" class="q">① 계약서에 준공일이 '날짜'로 있나요?</text>
+  <text x="62" y="146" class="qd">'공사기간 약 3주'만 있다면 해석이 갈립니다</text>
+
+  <path class="arrow" d="M 460 129 L 512 129"/>
+  <path d="M 512 129 l -8 -5 v 10 z" fill="#9ca3af"/>
+  <text x="478" y="120" class="alabel">예</text>
+
+  <rect x="520" y="88" width="240" height="90" rx="10" fill="#f9fafb" stroke="#e5e7eb"/>
+  <text x="540" y="114" class="out" fill="#374151">아니오 — 증거부터 확보</text>
+  <text x="540" y="136" class="outd">견적서·문자·안내 메시지에서</text>
+  <text x="540" y="152" class="outd">업체가 안내한 일정을 모아</text>
+  <text x="540" y="168" class="outd">'합의된 준공일'로 정리</text>
+
+  <path class="arrow" d="M 250 162 L 250 206"/>
+  <path d="M 250 206 l -5 -8 h 10 z" fill="#9ca3af"/>
+
+  <!-- Q2 -->
+  <rect x="40" y="210" width="420" height="66" rx="10" fill="#ffffff" stroke="#d1d5db" stroke-width="1.6"/>
+  <text x="62" y="238" class="q">② 지연 원인이 업체 공정 관리인가요?</text>
+  <text x="62" y="260" class="qd">자재 발주 누락·인력 미배정·현장 겹침·재작업</text>
+
+  <path class="arrow" d="M 460 243 L 512 243"/>
+  <path d="M 512 243 l -8 -5 v 10 z" fill="#9ca3af"/>
+  <text x="478" y="234" class="alabel">예</text>
+
+  <rect x="520" y="202" width="240" height="90" rx="10" fill="#f0fdf4" stroke="#bbf7d0"/>
+  <text x="540" y="228" class="out" fill="#166534">지체상금 특약 확인</text>
+  <text x="540" y="250" class="outd">계약서에 조항이 있다면</text>
+  <text x="540" y="266" class="outd">하루당 총공사비 0.1~0.3%를</text>
+  <text x="540" y="282" class="outd">잔금에서 공제 청구</text>
+
+  <path class="arrow" d="M 250 276 L 250 320"/>
+  <path d="M 250 320 l -5 -8 h 10 z" fill="#9ca3af"/>
+  <text x="262" y="304" class="alabel">아니오</text>
+
+  <!-- Q3 -->
+  <rect x="40" y="324" width="420" height="76" rx="10" fill="#ffffff" stroke="#d1d5db" stroke-width="1.6"/>
+  <text x="62" y="352" class="q">③ 내가 자재·설계를 바꿨거나,</text>
+  <text x="62" y="372" class="q">철거 후 새 문제가 나왔나요?</text>
+
+  <path class="arrow" d="M 460 362 L 512 362"/>
+  <path d="M 512 362 l -8 -5 v 10 z" fill="#9ca3af"/>
+  <text x="478" y="353" class="alabel">예</text>
+
+  <rect x="520" y="316" width="240" height="90" rx="10" fill="#fff7ed" stroke="#fed7aa"/>
+  <text x="540" y="342" class="out" fill="#c2410c">추가금·기간은 서면 재합의</text>
+  <text x="540" y="364" class="outd">"필요해서 진행"이 아니라</text>
+  <text x="540" y="380" class="outd">사유·금액·연장일을 먼저 받고</text>
+  <text x="540" y="396" class="outd">승인 후 작업 (구두 합의 금지)</text>
+
+  <path class="arrow" d="M 250 400 L 250 444"/>
+  <path d="M 250 444 l -5 -8 h 10 z" fill="#9ca3af"/>
+  <text x="262" y="428" class="alabel">아니오 — 외부조건</text>
+
+  <!-- Outcome D -->
+  <rect x="40" y="448" width="720" height="90" rx="10" fill="#f9fafb" stroke="#e5e7eb" stroke-width="1.6"/>
+  <text x="62" y="478" font-size="15" font-weight="700" fill="#374151">관리규약 소음 제한·엘리베이터 일정·자재 납기 등 외부 요인</text>
+  <text x="62" y="500" class="outd">새 준공일을 문자로 서면 통보받고, 그 날짜를 기준으로 이사·입주청소·가전 배송 일정을 다시 잡습니다.</text>
+  <text x="62" y="520" class="outd">예약된 이사·청소업체에는 미리 연락해 일정 변경 가능 여부를 확인해 두세요.</text>
+
+  <!-- Note -->
+  <rect x="40" y="558" width="720" height="82" rx="10" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.6"/>
+  <text x="62" y="588" font-size="13.5" font-weight="700" fill="#c2410c">4가지 원인이 섞여 있는 경우가 더 많습니다</text>
+  <text x="62" y="610" class="outd">실제 현장은 '업체 지연 3일 + 내 자재 변경 2일'처럼 겹쳐서 발생합니다.</text>
+  <text x="62" y="628" class="outd">원인별로 며칠씩 나눠 적어두면, 지체상금 청구 범위를 다툴 때 근거가 됩니다.</text>
+</svg>
