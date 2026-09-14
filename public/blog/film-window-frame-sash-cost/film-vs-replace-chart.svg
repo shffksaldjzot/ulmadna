@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" font-family="-apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" role="img" aria-label="30평대 샷시 필름 시공과 전체 교체 비용 비교 막대그래프">
+  <rect width="720" height="300" fill="#faf7f4"/>
+  <text x="24" y="40" font-size="20" font-weight="700" fill="#2b2b2b">샷시 필름 vs 전체 교체 비용</text>
+  <text x="24" y="62" font-size="13" fill="#8a8175">단위: 만원 · 30평대(84타입), 거실·안방·작은방·베란다 전체 기준</text>
+
+  <!-- gridlines 0~1600 -->
+  <g stroke="#e7ddd3" stroke-width="1">
+    <line x1="297" y1="80" x2="297" y2="220"/>
+    <line x1="355" y1="80" x2="355" y2="220"/>
+    <line x1="412" y1="80" x2="412" y2="220"/>
+    <line x1="470" y1="80" x2="470" y2="220"/>
+    <line x1="527" y1="80" x2="527" y2="220"/>
+    <line x1="585" y1="80" x2="585" y2="220"/>
+    <line x1="642" y1="80" x2="642" y2="220"/>
+    <line x1="700" y1="80" x2="700" y2="220"/>
+  </g>
+  <g font-size="11" fill="#a89e92" text-anchor="middle">
+    <text x="240" y="238">0</text>
+    <text x="297" y="238">200</text>
+    <text x="355" y="238">400</text>
+    <text x="412" y="238">600</text>
+    <text x="470" y="238">800</text>
+    <text x="527" y="238">1000</text>
+    <text x="585" y="238">1200</text>
+    <text x="642" y="238">1400</text>
+    <text x="700" y="238">1600</text>
+  </g>
+
+  <!-- row labels -->
+  <g font-size="13" fill="#3a3a3a" text-anchor="end">
+    <text x="228" y="115">샷시 필름 시공</text>
+    <text x="228" y="175">샷시 전체 교체</text>
+  </g>
+
+  <g>
+    <!-- 필름 180~250 -->
+    <rect x="291.75" y="100" width="20" height="20" rx="4" fill="#d98b6a"/>
+    <text x="318" y="115" font-size="11" fill="#6b5d52">180~250</text>
+    <!-- 교체 950~1500 -->
+    <rect x="513" y="160" width="158" height="20" rx="4" fill="#a84e2c"/>
+    <text x="665" y="175" font-size="11" fill="#fbeee7" text-anchor="end">950~1500</text>
+  </g>
+
+  <text x="24" y="262" font-size="12" fill="#8a8175">※ 거실 대창 1개소만(내·외부 포함) 필름 시공하면 약 30만~50만원.</text>
+  <text x="24" y="280" font-size="12" fill="#8a8175">※ 필름은 표면 리폼이라 단열·외풍·결로는 그대로예요. 교체는 34평/84타입 전체 교체 기준.</text>
+</svg>
