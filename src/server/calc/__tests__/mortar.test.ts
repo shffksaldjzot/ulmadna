@@ -11,13 +11,16 @@
 //   7) 제품을 직접 넣으면 금액·물량이 바뀌는가
 //   8) 응답에 단가 출처·문서명이 새지 않는가
 //   9) API 라우트가 잘못된 입력을 막는가
+//   10) 서버 계산이 화면 즉답(useMortarQuickCalc)과 같은 공유 함수(mortarQuantity.ts)를
+//       써서 포수·체적·현장배합이 절대 어긋나지 않는가(2026-09-15 형아 피드백)
 //
-// 작성일: 2026년 09월 14일 · 개정: 2026년 09월 14일(검사관 1라운드 — 공법 문턱 폐기)
+// 작성일: 2026년 09월 14일 · 개정: 2026년 09월 15일(형아 피드백 2라운드 — 즉답 분리·두께 상한)
 // ──────────────────────────────────────────────
 
 import { describe, it, expect } from 'vitest';
 import { calcMortar } from '../mortar';
 import { calcMortarLabor } from '../labor-mortar';
+import { calcMortarBags, calcMortarVolume, calcAltMix, REMICON_KG_PER_MM_SQM, REMICON_BAG_KG } from '@/lib/v1/mortarQuantity';
 import { POST, GET } from '@/app/api/calc/mortar/route';
 
 /** 테스트용 POST 요청 하나를 만든다 */
@@ -289,6 +292,36 @@ describe('제품 직접 입력', () => {
   });
 });
 
+// ── 7-B. 서버·즉답 공유 함수가 값을 일치시키는가 ─────
+
+describe('서버 계산이 화면 즉답과 같은 공유 함수(mortarQuantity.ts)를 쓴다', () => {
+  it('calcMortar의 포수가 calcMortarBags를 직접 부른 값과 정확히 같다(레미탈)', () => {
+    const r = calcMortar({ mode: '레미탈', areaSqm: 17.3, thicknessMm: 37 });
+    const direct = calcMortarBags({
+      areaSqm: 17.3,
+      thicknessMm: 37,
+      kgPerMmSqm: REMICON_KG_PER_MM_SQM,
+      bagKg: REMICON_BAG_KG,
+      lossRate: 0.05,
+    });
+    expect(r.quantity.bags).toBe(direct);
+  });
+
+  it('calcMortar의 체적이 calcMortarVolume을 직접 부른 값과 정확히 같다', () => {
+    const r = calcMortar({ mode: '레미탈', areaSqm: 17.3, thicknessMm: 37 });
+    const direct = calcMortarVolume({ areaSqm: 17.3, thicknessMm: 37, lossRate: 0.05 });
+    expect(r.quantity.volumeM3).toBe(direct.volumeM3);
+    expect(r.quantity.volumeWithLossM3).toBe(direct.volumeWithLossM3);
+  });
+
+  it('calcMortar의 현장 배합이 calcAltMix를 직접 부른 값과 정확히 같다', () => {
+    const r = calcMortar({ mode: '레미탈', areaSqm: 17.3, thicknessMm: 37, mixRatio: '1:2' });
+    const { volumeM3 } = calcMortarVolume({ areaSqm: 17.3, thicknessMm: 37, lossRate: 0.05 });
+    const direct = calcAltMix({ volumeM3, mixRatio: '1:2' });
+    expect(r.quantity.altMix).toEqual(direct);
+  });
+});
+
 // ── 8. 단가·산식이 응답으로 새지 않는가 ─────────────
 
 describe('단가·산식 보호', () => {
@@ -349,6 +382,62 @@ describe('POST /api/calc/mortar', () => {
   it('thicknessMm 이 범위를 벗어나면 400', async () => {
     const res = await POST(post({ mode: '레미탈', areaSqm: 10, thicknessMm: 500 }));
     expect(res.status).toBe(400);
+  });
+
+  // 2026-09-15 형아 피드백(현장 경험): 방통은 50~150mm까지 흔해서 레미탈 상한을 150으로
+  // 올렸다. 셀프레벨링은 제품 스펙상 50 그대로.
+  it('레미탈은 140mm까지 받아 준다(150 이하)', async () => {
+    const res = await POST(post({ mode: '레미탈', areaSqm: 10, thicknessMm: 140 }));
+    expect(res.status).toBe(200);
+  });
+
+  it('레미탈은 151mm면 400(상한 150)', async () => {
+    const res = await POST(post({ mode: '레미탈', areaSqm: 10, thicknessMm: 151 }));
+    expect(res.status).toBe(400);
+  });
+
+  it('셀프레벨링은 45mm까지 받아 준다(50 이하)', async () => {
+    const res = await POST(post({ mode: '셀프레벨링', areaSqm: 10, thicknessMm: 45 }));
+    expect(res.status).toBe(200);
+  });
+
+  it('셀프레벨링은 51mm면 400(상한 50 — 레미탈과 다른 상한)', async () => {
+    const res = await POST(post({ mode: '셀프레벨링', areaSqm: 10, thicknessMm: 51 }));
+    expect(res.status).toBe(400);
+  });
+
+  it('레미탈 50mm 초과면 표준 범위 밖 안내가 붙는다(계산은 그대로 된다)', async () => {
+    const res = await POST(post({ mode: '레미탈', areaSqm: 10, thicknessMm: 80 }));
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.quantity.standardRangeNote).toBe('표준 범위 밖(두꺼운 방통은 2회 타설 등 현장 확인)');
+    expect(json.quantity.bags).toBeGreaterThan(0);
+  });
+
+  it('50mm 이하면 표준 범위 밖 안내가 없다', async () => {
+    const res = await POST(post({ mode: '레미탈', areaSqm: 10, thicknessMm: 45 }));
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.quantity.standardRangeNote).toBeUndefined();
+  });
+
+  it('제품을 안 고르면 productLabel이 "모드 + 포장kg 포대" 기본값이다', async () => {
+    const res = await POST(post({ mode: '레미탈', areaSqm: 10, thicknessMm: 30 }));
+    const json = await res.json();
+    expect(json.quantity.productLabel).toBe('레미탈 40kg 포대');
+  });
+
+  it('제품을 고르면 productLabel이 그 제품명이다', async () => {
+    const res = await POST(
+      post({
+        mode: '레미탈',
+        areaSqm: 10,
+        thicknessMm: 30,
+        product: { pricePerBag: 9000, sourceLabel: '삼표 SP몰탈 일반미장용' },
+      }),
+    );
+    const json = await res.json();
+    expect(json.quantity.productLabel).toBe('삼표 SP몰탈 일반미장용');
   });
 
   it('mode 값이 이상하면 400', async () => {

@@ -1,22 +1,22 @@
 // ──────────────────────────────────────────────
 // v1 허브 — 미장 계산기: "정확하게 계산하기" 카드
 //
-// 두께 직접 입력, 실별 면적 여러 개, 공법 토글(레미탈 전용), 로스율 조정,
-// 옵션(와이어메시·프라이머), 제품 선택을 담당한다. 값이 바뀌는 즉시 자동으로 계산되고,
-// 결과는 ResultPanel이 그린다.
+// 두께 숫자 입력, 실별 면적 여러 개, 공법 토글(레미탈 전용), 로스율 조정,
+// 옵션(와이어메시·프라이머), 제품 선택을 담당한다. 포수는 서버 응답을 기다리지 않고
+// quick(useMortarQuickCalc, 클라이언트 즉시 계산)으로 바로 보여주고, 비용 범위만
+// 서버 응답(result)이 오면 덧붙인다.
 //
 // 운반(층수·엘리베이터) 가산은 06_미장.md에 근거 수치가 없어 옵션 자체를 넣지 않는다
 // (지시서 원칙 — 근거 없는 항목은 만들지 말고 숨긴다).
 //
-// 2026-09-14 검사관 지적 반영:
-//   - 공법(장비 타설/손미장) 토글 추가 — 기본은 용도가 정하지만(방통 전체만 장비 타설)
-//     여기서 사용자가 직접 바꿀 수 있다.
-//   - 계산 훅은 MortarCalculator 한 곳에서만 부르고 이 컴포넌트는 결과를 props로만 받는다.
-//   - 셀프레벨링 제품을 고른 상태에서 두께를 그 제품 범위 밖으로 옮기면, 그 두께를 다루는
-//     제품으로 자동 전환한다("추천 제품 자동 전환"). 반대로 범위 밖의 제품을 고르면 두께를
-//     그 제품 범위 안으로 당겨 온다.
+// 2026-09-15 형아 피드백 2라운드:
+//   - 두께 슬라이더를 없애고 mm 숫자 입력으로 바꿨다(모바일 숫자 키패드, 스텝 5).
+//     레미탈은 10~150mm(현장에서 방통이 50~150mm까지 흔하다), 셀프레벨링은 1~50mm.
+//   - 06_미장.md 표준 범위(레미탈 10~50mm)를 넘으면 계산은 그대로 하되 캡션 1줄을 띄운다.
+//   - 제품 선택 칸에 포장 kg를 반드시 적는다("삼표 SP몰탈 일반미장용 · 40kg · 10~50mm").
+//   - 즉답 큰 숫자를 "레미탈 40kg × 65포" 형태로, 제품명·주문 수량 캡션을 같이 보여준다.
 //
-// 작성일: 2026년 09월 14일 · 개정: 2026년 09월 14일(검사관 1라운드)
+// 작성일: 2026년 09월 14일 · 개정: 2026년 09월 15일(형아 피드백 2라운드)
 // ──────────────────────────────────────────────
 
 'use client';
@@ -29,41 +29,41 @@ import { IconChevronDown } from '@/components/v1/icons';
 import { formatManRange, formatNum } from '@/lib/v1/money';
 import type { MortarFormState, MortarPreciseRoom } from '@/lib/v1/mortarQuery';
 import type { MortarProductOption } from '@/lib/v1/mortarProductOptions';
-import { productCoversThickness, recommendSelfLevelProduct } from '@/lib/v1/mortarProductOptions';
+import { productCoversThickness, recommendSelfLevelProduct, formatMortarProductLabel } from '@/lib/v1/mortarProductOptions';
 import type { MortarCalcResultDTO, MortarRange } from '@/lib/v1/useMortarCalc';
-import { USAGE_PRESET } from '@/lib/v1/mortarPresets';
+import type { MortarQuickResult } from '@/lib/v1/useMortarQuickCalc';
+import { USAGE_PRESET, THICKNESS_MM_MIN, thicknessMmMax } from '@/lib/v1/mortarPresets';
 
 export interface PreciseSectionProps {
   form: MortarFormState;
   patch: (p: Partial<MortarFormState>) => void;
   products: MortarProductOption[];
+  /** 즉시 계산 결과(서버 응답 없이도 항상 있음) — 포수·체적은 여기서만 가져온다 */
+  quick: MortarQuickResult | null;
+  /** 서버 계산 결과(비용·인건). 늦게 오거나 없을 수 있다 */
   result: MortarCalcResultDTO | null;
   range: MortarRange | null;
-  loading: boolean;
+  /** 서버 계산 실패 메시지. 있으면 비용 자리에 "비용은 잠시 후 다시"만 보여준다 */
   error: string | null;
-  stale: boolean;
 }
 
 /** 로스율 조정 칩(%) */
 const LOSS_CHIPS: readonly number[] = [0, 5, 10, 15];
 
-/** 두께 조정 슬라이더 범위(mm) — 06_미장.md에 나온 용도별 두께 범위를 전부 포괄하는 값 */
-const THICKNESS_MIN_MM = 3;
-// 2026-09-15 검사관 지적: 06_미장.md 용도별 두께 범위(최대 방통 50mm)를 벗어나는 슬라이더
-// 상한(60)은 근거가 없어 50으로 좁혔다. 서버 API 절대 상한(100mm)과는 별개 — 이건 UX 범위다.
-const THICKNESS_MAX_MM = 50;
-
-export default function PreciseSection({ form, patch, products, result, range, loading, error, stale }: PreciseSectionProps) {
+export default function PreciseSection({ form, patch, products, quick, result, range, error }: PreciseSectionProps) {
   const mode = form.mode ?? '레미탈';
   const rooms = form.preciseRooms ?? [];
   const lossPct = Math.round((form.lossRate ?? 0.05) * 100);
-  const dim = loading || stale;
 
   const modeProducts = products.filter((p) => p.mode === mode);
   // 지금 고른 공법 — 명시적으로 안 바꿨으면 용도 기본값을 그대로 보여준다(레미탈 전용)
   const effectiveMethod = form.method ?? (form.usage ? USAGE_PRESET[form.usage].defaultMethod : '손미장');
   // 지금 고른 셀프레벨링 제품(있으면) — 두께 범위 캡션·자동 전환에 쓴다
   const selectedProduct = form.productCode ? modeProducts.find((p) => p.code === form.productCode) : undefined;
+
+  // 두께 입력 범위 — 모드마다 다르다(레미탈 10~150mm · 셀프레벨링 1~50mm)
+  const thicknessMax = thicknessMmMax(mode);
+  const thicknessMin = mode === '레미탈' ? 10 : THICKNESS_MM_MIN;
 
   function addRoom() {
     patch({ preciseRooms: [...rooms, { name: `구역${rooms.length + 1}`, areaSqm: 0 }] });
@@ -81,7 +81,11 @@ export default function PreciseSection({ form, patch, products, result, range, l
    * 두께를 바꿀 때 — 셀프레벨링 모드에서 지금 고른 제품이 새 두께를 못 다루면
    * 그 두께에 맞는 제품으로 자동 전환한다(맞는 제품이 없으면 선택을 풀어 기본 계수로).
    */
-  function handleThicknessChange(mm: number) {
+  function handleThicknessChange(mm: number | '') {
+    if (mm === '') {
+      patch({ thicknessMm: undefined });
+      return;
+    }
     if (mode === '셀프레벨링' && selectedProduct && !productCoversThickness(selectedProduct, mm)) {
       const rec = recommendSelfLevelProduct(mm, products);
       patch({ thicknessMm: mm, productCode: rec?.code });
@@ -110,21 +114,22 @@ export default function PreciseSection({ form, patch, products, result, range, l
     <Card>
       <h2 className="text-[20px] font-bold text-foreground">실측</h2>
 
-      {/* 1. 두께 — mm 직접 입력(슬라이더 겸용) */}
+      {/* 1. 두께 — mm 숫자 입력(모바일 숫자 키패드). 슬라이더 대신 직접 입력으로 바꿨다 */}
       <div className="flex items-center justify-between">
         <span className="text-[16px] font-semibold text-foreground">두께</span>
-        <span className="text-[16px] text-brown font-semibold tabular-nums">{form.thicknessMm ?? 0}mm</span>
+        <span className="text-[14px] text-v1-text-disabled">{thicknessMin}~{thicknessMax}mm</span>
       </div>
-      <input
-        type="range"
-        min={THICKNESS_MIN_MM}
-        max={THICKNESS_MAX_MM}
-        step={1}
-        value={form.thicknessMm ?? THICKNESS_MIN_MM}
-        onChange={(e) => handleThicknessChange(Number(e.target.value))}
+      <NumberField
+        value={form.thicknessMm ?? ''}
+        onChange={handleThicknessChange}
+        suffix="mm"
+        placeholder={`${thicknessMin}~${thicknessMax}`}
         aria-label="두께(mm)"
-        className="w-full accent-brown"
+        min={thicknessMin}
+        max={thicknessMax}
+        className="w-full"
       />
+      {quick?.standardRangeNote && <p className="text-[14px] text-v1-text-secondary">{quick.standardRangeNote}</p>}
 
       {/* 2. 실별 면적 — 여러 구역을 더해 합계로 계산한다 */}
       <div className="flex flex-col gap-2 pt-2">
@@ -225,7 +230,7 @@ export default function PreciseSection({ form, patch, products, result, range, l
         />
       </div>
 
-      {/* 7. 제품 선택 — 06_미장.md에 있는 제조사 목록만(직접 입력 없음) */}
+      {/* 7. 제품 선택 — 06_미장.md에 있는 제조사 목록만(직접 입력 없음). 포장 kg를 항상 적는다 */}
       <div className="flex flex-col pt-1">
         <label className="text-[14px] text-v1-text-label pb-1" htmlFor="mortar-product-select">
           제품
@@ -241,7 +246,7 @@ export default function PreciseSection({ form, patch, products, result, range, l
             <option value="">제품 선택 안 함(기본 계수)</option>
             {modeProducts.map((p) => (
               <option key={p.code} value={p.code}>
-                {p.brand} {p.name} · {p.minThicknessMm}~{p.maxThicknessMm}mm
+                {formatMortarProductLabel(p)}
               </option>
             ))}
           </select>
@@ -249,30 +254,31 @@ export default function PreciseSection({ form, patch, products, result, range, l
             <IconChevronDown className="text-v1-text-label" />
           </span>
         </div>
-        {/* 선택한 제품의 권장 두께 범위를 캡션으로 항상 보여준다(두께를 벗어나면 위에서 자동으로 맞춰 준다) */}
-        {selectedProduct && (
-          <p className="text-[14px] text-v1-text-disabled pt-1">
-            권장 두께 {selectedProduct.minThicknessMm}~{selectedProduct.maxThicknessMm}mm
-          </p>
-        )}
       </div>
 
-      {/* 8. 즉답 큰 숫자 */}
-      {error ? (
-        <p className="text-[16px] text-foreground pt-2">계산에 실패했어요</p>
-      ) : !range || !result ? (
+      {/* 8. 즉답 큰 숫자 — "레미탈 40kg × 65포" 형태. quick으로 서버 응답 없이 바로 나온다 */}
+      {!quick ? (
         <p className="text-[16px] text-v1-text-secondary pt-2">면적을 넣으면 나와요</p>
       ) : (
         <>
-          <div
-            className={
-              'text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em] pt-2 ' +
-              `whitespace-nowrap transition-opacity duration-150 ${dim ? 'opacity-60' : ''}`
-            }
-          >
-            {formatNum(result.quantity.bags)}포
+          <div className="flex items-baseline gap-1 flex-wrap pt-2">
+            <span className="text-[20px] font-semibold text-foreground whitespace-nowrap">
+              {quick.mode} {quick.bagKg}kg ×
+            </span>
+            <span className="text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em]">
+              {formatNum(quick.bags)}
+            </span>
+            <span className="text-[20px] font-semibold text-foreground">포</span>
           </div>
-          <p className="text-[16px] text-foreground tabular-nums">{formatManRange(range.min, range.max)}</p>
+          <p className="text-[16px] text-foreground">{quick.productLabel}</p>
+          <p className="text-[14px] text-v1-text-disabled tabular-nums">
+            주문 수량: {formatNum(quick.bags)}포(로스 {quick.lossPct}% 포함)
+          </p>
+          {error ? (
+            <p className="text-[14px] text-v1-text-secondary">비용은 잠시 후 다시</p>
+          ) : (
+            result && range && <p className="text-[16px] text-foreground tabular-nums">{formatManRange(range.min, range.max)}</p>
+          )}
         </>
       )}
     </Card>

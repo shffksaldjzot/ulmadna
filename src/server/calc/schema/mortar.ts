@@ -26,6 +26,9 @@ import {
   WIRE_MESH_OVERLAP_MULT,
   SELF_LEVEL_PRIMER_L_PER_SQM,
   SELF_LEVEL_PRIMER_CAN_L,
+  // 2026-09-15 형아 피드백(포수 즉답): 자재 포수 계산은 화면 즉답(useMortarQuickCalc)과
+  // 완전히 같은 함수(src/lib/v1/mortarQuantity.ts calcMortarBags)를 쓴다 — 값이 어긋나면 안 된다.
+  calcMortarBags,
 } from './mortar-coefficients';
 
 /** 소수점 1자리 반올림 (근거 문장 표기용) */
@@ -81,7 +84,11 @@ export function buildMortarContext(args: {
 
 // ── 항목별 물량 산출 함수 ──────────────────────────
 
-/** 자재 — 면적 × 두께 × kg/(mm·㎡) 계수 × (1+로스율) ÷ 포장 kg (올림, 최소 1포) */
+/**
+ * 자재 — 면적 × 두께 × kg/(mm·㎡) 계수 × (1+로스율) ÷ 포장 kg (올림, 최소 1포).
+ * 2026-09-15 형아 피드백: 이 계산은 화면 즉답(useMortarQuickCalc)과 정확히 같은 값이 나와야
+ * 해서, 직접 계산하지 않고 공유 함수 calcMortarBags(src/lib/v1/mortarQuantity.ts)를 부른다.
+ */
 function calcMaterial(ctx: SchemaCalcContext): SchemaQuantityOutput | null {
   const area = ctx.numbers.areaSqm;
   const thickness = ctx.numbers.thicknessMm;
@@ -89,8 +96,8 @@ function calcMaterial(ctx: SchemaCalcContext): SchemaQuantityOutput | null {
   const kgPerMmSqm = ctx.numbers.kgPerMmSqm;
   const bagKg = ctx.numbers.bagKg;
   const lossRate = ctx.numbers.lossRate ?? 0;
-  const kg = area * thickness * kgPerMmSqm * (1 + lossRate);
-  const qty = Math.max(1, ceilSafe(kg / bagKg));
+  const qty = calcMortarBags({ areaSqm: area, thicknessMm: thickness, kgPerMmSqm, bagKg, lossRate });
+  if (qty <= 0) return null;
   // 2026-09-14 검사관 지적: "로스 5%"만 적으면 이미 포함된 값인지 앞으로 더 넣어야 하는
   // 값인지 헷갈린다 — "포함"을 붙여 이미 반영된 값이라는 걸 분명히 한다.
   return { qty, basis: `${kgPerMmSqm}kg/(mm·㎡) · 로스 ${Math.round(lossRate * 100)}% 포함 · ${bagKg}kg 포` };

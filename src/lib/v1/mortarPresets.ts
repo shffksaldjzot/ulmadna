@@ -79,22 +79,70 @@ export const SELF_LEVEL_USAGE_PRESET: Record<SelfLevelUsage, SelfLevelUsagePrese
   방통위마감: { label: '방통 위 마감 평탄화', defaultMm: 15, grade: 'C' },
 };
 
-/** 셀프레벨링 간단 모드 두께 칩 — mm 값 + (있으면) 짝지어지는 용도 + 칩 문구 */
-export const SELF_LEVEL_THICKNESS_CHIPS: { mm: number; usage?: SelfLevelUsage; label: string }[] = [
-  { mm: 3, label: '3mm' },
-  { mm: 5, usage: '마루장판전', label: '5mm · 마루장판' },
-  { mm: 10, usage: '타일전', label: '10mm · 타일' },
-  { mm: 15, usage: '방통위마감', label: '15mm · 방통마감' },
-  { mm: 20, label: '20mm' },
-];
+/** 셀프레벨링 용도 칩 순서 (06_미장.md §5-4 표 순서 그대로) */
+export const SELF_LEVEL_USAGE_ORDER: SelfLevelUsage[] = ['마루장판전', '타일전', '방통위마감'];
+
+/**
+ * 레미탈 간단 모드 두께 칩(mm) — 용도 칩 아래에 따로 한 줄 더 둔다.
+ * 2026-09-15 형아 피드백: 방통은 현장에서 50~150mm까지도 흔히 쓴다 — 06_미장.md 표(10~50)
+ * 보다 넓게 잡는다. 용도 칩 기본값(예: 방통 전체 45mm)이 이 목록에 없을 수도 있는데, 그때는
+ * 화면의 두께 숫자 입력칸이 그 값을 그대로 보여준다(칩은 "많이 쓰는 값" 지름길일 뿐이다).
+ */
+export const REMICON_THICKNESS_CHIPS: number[] = [30, 40, 50, 60, 80, 100, 120, 150];
+
+/**
+ * 셀프레벨링 간단 모드 두께 칩(mm). 예전엔 용도 라벨을 칩 문구에 같이 적었는데
+ * (예: "5mm · 마루장판"), 이번에 용도 칩 줄을 따로 두면서 두께 칩은 숫자만 남겼다.
+ */
+export const SELF_LEVEL_THICKNESS_CHIPS: number[] = [3, 5, 10, 15, 20, 30];
 
 /** 면적 입력 범위(㎡) — 서버 API·결과 페이지·화면 폼이 전부 이 값으로 클램프한다 */
 export const AREA_SQM_MIN = 0.5;
 export const AREA_SQM_MAX = 500;
 
-/** 두께 입력 범위(mm) */
+/** 두께 입력 하한(mm) — 모드 공통 */
 export const THICKNESS_MM_MIN = 1;
-export const THICKNESS_MM_MAX = 100;
+
+/**
+ * 레미탈 두께 입력 상한(mm). 2026-09-15 형아 피드백(현장 경험): 방통은 50~150mm까지 흔하다 —
+ * 06_미장.md 표는 10~50mm만 다루지만, 계산 자체는 150mm까지 받아 준다(막지 않는다).
+ */
+export const THICKNESS_MM_MAX_REMICON = 150;
+
+/**
+ * 셀프레벨링 두께 입력 상한(mm). 제품 스펙(RFSL30 등)이 다루는 최대 두께가 40mm 안팎이라
+ * 여유를 조금 두고 50으로 잡는다.
+ */
+export const THICKNESS_MM_MAX_SELF_LEVEL = 50;
+
+/** 모드에 맞는 두께 입력 상한(mm)을 고른다 — API 검증·클램프·화면 입력칸이 전부 이 함수를 쓴다 */
+export function thicknessMmMax(mode: MortarMode): number {
+  return mode === '레미탈' ? THICKNESS_MM_MAX_REMICON : THICKNESS_MM_MAX_SELF_LEVEL;
+}
+
+/**
+ * 06_미장.md가 직접 다루는 표준 두께 범위를 벗어났는지 — 계산은 그대로 하되 화면에 안내만
+ * 붙인다("계산은 하되 캡션 1줄"). 레미탈만 해당(50mm 초과일 때). 셀프레벨링은 칩 상한
+ * (50mm) 자체가 이미 표준 범위 안이라 별도 안내가 필요 없다.
+ */
+export function isThicknessOutOfStandardRange(mode: MortarMode, thicknessMm: number): boolean {
+  return mode === '레미탈' && thicknessMm > 50;
+}
+
+/** isThicknessOutOfStandardRange()가 true일 때 화면에 보여줄 캡션 1줄 */
+export const THICKNESS_OUT_OF_RANGE_NOTE = '표준 범위 밖(두꺼운 방통은 2회 타설 등 현장 확인)';
+
+/**
+ * 장비 타설일 때 화면에 보여줄 안내 — 장비 사용료는 계상하지 않으니(단가 창작 금지) 문구로만
+ * 알린다. 즉답(useMortarQuickCalc)·서버(mortar.ts) 둘 다 이 문구 하나를 그대로 쓴다.
+ */
+export const EQUIPMENT_RENTAL_NOTE = '모르타르 타설 장비비 별도(현장 견적)';
+
+/**
+ * 셀프레벨링 인건 안내 — 인건비만 분리한 근거가 없어 계산하지 않고(06_미장.md §6-4) 이
+ * 문구로 대신한다. 즉답·서버 둘 다 이 문구 하나를 그대로 쓴다.
+ */
+export const SELF_LEVEL_LABOR_ADVISORY_NOTE = '시공비는 현장 견적 별도';
 
 /** 로스율 입력 범위(0~0.2 = 0~20%) */
 export const LOSS_RATE_MIN = 0;

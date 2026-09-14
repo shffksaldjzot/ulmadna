@@ -142,15 +142,26 @@ export default async function MortarResultPage({ searchParams }: PageProps) {
       <div className="px-4 py-4 pb-8 flex flex-col gap-4 max-w-[720px] mx-auto">
         <p className="text-[14px] text-v1-text-secondary tabular-nums">{buildSummary(state)}</p>
 
-        {/* 카드 1 — 물량 */}
+        {/* 카드 1 — 물량. 큰 숫자는 "레미탈 40kg × N포" 형태(2026-09-15 형아 피드백 —
+            "몇 kg짜리 몇 포인지"가 안 보였다는 지적) */}
         <Card>
-          <div className="text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em]">
-            {formatNum(quantity.bags)}포
+          <div className="flex items-baseline gap-1 flex-wrap">
+            <span className="text-[20px] font-semibold text-foreground whitespace-nowrap">
+              {result.mode} {quantity.bagKg}kg ×
+            </span>
+            <span className="text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em]">
+              {formatNum(quantity.bags)}
+            </span>
+            <span className="text-[20px] font-semibold text-foreground">포</span>
           </div>
-          <p className="text-[16px] text-foreground leading-[1.6] tabular-nums">
-            {result.mode} {quantity.thicknessMm}mm · 면적 {formatNum(quantity.areaSqm)}㎡ · 몰탈 {quantity.volumeWithLossM3}㎥
-            · 로스 {quantity.lossPct}% 포함
+          <p className="text-[16px] text-foreground">{quantity.productLabel}</p>
+          <p className="text-[14px] text-v1-text-disabled tabular-nums">
+            주문 수량: {formatNum(quantity.bags)}포(로스 {quantity.lossPct}% 포함)
           </p>
+          <p className="text-[16px] text-foreground leading-[1.6] tabular-nums">
+            {quantity.thicknessMm}mm · 면적 {formatNum(quantity.areaSqm)}㎡ · 몰탈 {quantity.volumeWithLossM3}㎥
+          </p>
+          {quantity.standardRangeNote && <p className="text-[14px] text-v1-text-secondary">{quantity.standardRangeNote}</p>}
           {/* 레미탈은 품수(공법 표시 포함), 셀프레벨링은 "시공비는 현장 견적 별도" 안내로 대체한다 */}
           {labor ? (
             <p className="text-[14px] text-v1-text-disabled tabular-nums">
@@ -163,7 +174,7 @@ export default async function MortarResultPage({ searchParams }: PageProps) {
           {quantity.altMix && (
             <Collapsible title="현장 배합 대안">
               <p className="text-[16px] text-foreground py-2 tabular-nums">
-                시멘트 {formatNum(quantity.altMix.cementBags)}포(40kg) + 모래 {quantity.altMix.sandM3}㎥
+                시멘트 40kg × {formatNum(quantity.altMix.cementBags)}포 + 모래 {quantity.altMix.sandM3}㎥
               </p>
               <p className="text-[14px] text-v1-text-disabled">배합비 {quantity.altMix.mixRatio} · 참고용, 비용에는 안 넣었어요</p>
             </Collapsible>

@@ -9,7 +9,13 @@
 //
 // 이 파일이 폼 상태를 한 곳에서만 들고 있고, 자식은 전부 "값 + 바꾸는 함수"만 받는다.
 //
-// 작성일: 2026년 09월 14일
+// 2026-09-15 형아 피드백(포수가 안 보이는 문제) — 훅을 두 개 쓴다:
+//   useMortarQuickCalc  즉시 계산(서버 응답 없이 포수·체적·현장배합을 바로 계산)
+//   useMortarCalc       서버 계산(비용·인건 — 400ms 디바운스 + API 호출)
+// QuickAnswer·PreciseSection·ResultPanel은 quick(항상 있음)을 먼저 보여주고,
+// result(서버, 늦게 올 수도·실패할 수도)가 오면 비용·인건만 덧붙인다.
+//
+// 작성일: 2026년 09월 14일 · 개정: 2026년 09월 15일(형아 피드백 — 즉답 분리)
 // ──────────────────────────────────────────────
 
 'use client';
@@ -27,6 +33,7 @@ import {
 } from '@/lib/v1/mortarQuery';
 import type { MortarProductOption } from '@/lib/v1/mortarProductOptions';
 import { useMortarCalc } from '@/lib/v1/useMortarCalc';
+import { useMortarQuickCalc } from '@/lib/v1/useMortarQuickCalc';
 import { formatManRange, formatNum } from '@/lib/v1/money';
 import { sanitizeMortarFormState } from '@/lib/v1/mortarEngineInput';
 import { USAGE_PRESET, SELF_LEVEL_USAGE_PRESET } from '@/lib/v1/mortarPresets';
@@ -92,6 +99,9 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
 
   const mode = form.mode ?? '레미탈';
   const view = form.view ?? 'simple';
+  // 즉답 — 서버 없이 바로 계산되는 포수·체적·현장배합(항상 최신 폼 상태를 즉시 반영)
+  const quick = useMortarQuickCalc(form, products);
+  // 서버 — 비용·인건(디바운스 + API 호출, 늦게 오거나 실패할 수 있다)
   const { result, range, loading, error, stale } = useMortarCalc(form, products);
 
   const emptyMessage = view === 'precise' ? '면적을 넣으면 나와요' : '면적과 두께를 넣으면 바로 나와요';
@@ -132,22 +142,20 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
             <QuickAnswer
               form={form}
               patch={patch}
+              quick={quick}
               result={result}
               range={range}
-              loading={loading}
               error={error}
-              stale={stale}
             />
           ) : (
             <PreciseSection
               form={form}
               patch={patch}
               products={products}
+              quick={quick}
               result={result}
               range={range}
-              loading={loading}
               error={error}
-              stale={stale}
             />
           )}
         </div>
@@ -158,6 +166,7 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
           className="scroll-mt-16 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto"
         >
           <ResultPanel
+            quick={quick}
             result={result}
             range={range}
             loading={loading}
@@ -169,11 +178,12 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
         </div>
       </div>
 
-      {/* 모바일 하단 고정 요약 바 */}
+      {/* 모바일 하단 고정 요약 바 — 포수는 quick(즉시)로, 금액은 서버가 왔을 때만 붙인다 */}
       <div className="fixed bottom-0 left-0 right-0 h-14 bg-white border-t border-v1-line flex items-center justify-between px-4 lg:hidden z-40">
-        {result && range ? (
+        {quick ? (
           <span className="text-[16px] font-semibold text-brown tabular-nums">
-            {formatNum(result.quantity.bags)}포 · {formatManRange(range.min, range.max)}
+            {quick.bagKg}kg × {formatNum(quick.bags)}포
+            {result && range ? ` · ${formatManRange(range.min, range.max)}` : ''}
           </span>
         ) : (
           <span className="text-[14px] text-v1-text-secondary">{emptyMessage}</span>

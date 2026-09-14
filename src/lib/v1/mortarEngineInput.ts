@@ -27,7 +27,7 @@ import {
   AREA_SQM_MIN,
   AREA_SQM_MAX,
   THICKNESS_MM_MIN,
-  THICKNESS_MM_MAX,
+  thicknessMmMax,
   LOSS_RATE_MIN,
   LOSS_RATE_MAX,
   LENGTH_M_MIN,
@@ -130,6 +130,17 @@ export function resolveSimpleAreaSqm(state: MortarFormState): number | null {
   return clamp(r2(sqm), AREA_SQM_MIN, AREA_SQM_MAX);
 }
 
+/**
+ * 정밀 모드의 실별 면적 합계를 ㎡ 값 하나로 바꾼다(유효한 방이 하나도 없으면 null).
+ * toEngineInput()과 useMortarQuickCalc(즉답 훅)이 같은 값을 써야 해서 여기 하나로 뺐다
+ * (2026-09-15 형아 피드백 — 포수 즉답을 만들며 정밀 모드 면적 계산도 공유 함수로 모았다).
+ */
+export function resolvePreciseAreaSqm(state: MortarFormState): number | null {
+  const rooms = validPreciseRooms(state);
+  if (rooms.length === 0) return null;
+  return clamp(r2(rooms.reduce((s, r) => s + r.areaSqm, 0)), AREA_SQM_MIN, AREA_SQM_MAX);
+}
+
 /** 값이 유한수인지(비정상 값 — NaN·Infinity·문자열 오염 등 — 걸러내기용) */
 function isFiniteNumber(n: unknown): n is number {
   return typeof n === 'number' && Number.isFinite(n);
@@ -174,9 +185,9 @@ export function sanitizeMortarFormState(state: MortarFormState): MortarFormState
     next.rectDepth = undefined;
   }
 
-  // 두께(mm)
+  // 두께(mm) — 상한이 모드마다 다르다(레미탈 150 · 셀프레벨링 50, 2026-09-15 형아 피드백)
   if (isFiniteNumber(next.thicknessMm)) {
-    next.thicknessMm = clamp(next.thicknessMm, THICKNESS_MM_MIN, THICKNESS_MM_MAX);
+    next.thicknessMm = clamp(next.thicknessMm, THICKNESS_MM_MIN, thicknessMmMax(resolveMode(next)));
   } else if (next.thicknessMm !== undefined) {
     next.thicknessMm = undefined;
   }
@@ -294,9 +305,11 @@ function resolveUsageLabel(state: MortarFormState, mode: MortarMode): string | u
  */
 export function toEngineInput(state: MortarFormState, products: MortarProductOption[]): MortarCalcRequest | null {
   if (!isPositive(state.thicknessMm)) return null;
-  const thicknessMm = clamp(state.thicknessMm, THICKNESS_MM_MIN, THICKNESS_MM_MAX);
-
   const mode = resolveMode(state);
+  // 두께 상한이 모드마다 다르다(레미탈 150 · 셀프레벨링 50, 2026-09-15 형아 피드백 — 현장에서
+  // 방통은 50~150mm까지 흔하다) — mode를 먼저 정한 뒤에 그 모드의 상한으로 클램프한다.
+  const thicknessMm = clamp(state.thicknessMm, THICKNESS_MM_MIN, thicknessMmMax(mode));
+
   const product = resolveProductSelection(state, products);
   const usageLabel = resolveUsageLabel(state, mode);
   const view = resolveView(state);
@@ -313,7 +326,8 @@ export function toEngineInput(state: MortarFormState, products: MortarProductOpt
   if (view === 'precise') {
     const rooms = validPreciseRooms(state);
     if (rooms.length === 0) return null; // 정밀 입력이 없으면 간단 모드 면적으로 폴백하지 않는다
-    const areaSqm = clamp(r2(rooms.reduce((s, r) => s + r.areaSqm, 0)), AREA_SQM_MIN, AREA_SQM_MAX);
+    // resolvePreciseAreaSqm()과 같은 계산(방 목록은 여기서만 더 필요해서 따로 부른다)
+    const areaSqm = resolvePreciseAreaSqm(state) as number;
     return {
       mode,
       areaSqm,

@@ -32,6 +32,29 @@ import type { Coefficient, CoefficientRange } from './wallpaper-coefficients';
 import { SQM_PER_PYEONG } from './wallpaper-coefficients';
 import type { MortarMode, MortarUsage, SelfLevelUsage, MortarMethod } from '@/lib/v1/mortarPresets';
 import { USAGE_PRESET, SELF_LEVEL_USAGE_PRESET } from '@/lib/v1/mortarPresets';
+// 2026-09-15 형아 피드백(포수 즉답): 계수 값 자체는 클라이언트도 똑같이 써야 해서
+// src/lib/v1/mortarQuantity.ts(공유 폴더)에 원본 숫자를 옮겨 뒀다. 여기서는 그 숫자를
+// 그대로 가져와 등급·출처를 붙인 Coefficient로 감싸기만 한다 — 숫자 자체를 두 번 적지 않는다.
+import {
+  MORTAR_LOSS_RATE_DEFAULT as MORTAR_LOSS_RATE_DEFAULT_RAW,
+  REMICON_KG_PER_MM_SQM as REMICON_KG_PER_MM_SQM_RAW,
+  REMICON_BAG_KG as REMICON_BAG_KG_RAW,
+  SELF_LEVEL_KG_PER_MM_SQM as SELF_LEVEL_KG_PER_MM_SQM_RAW,
+  SELF_LEVEL_BAG_KG as SELF_LEVEL_BAG_KG_RAW,
+  SELF_LEVEL_PRIMER_L_PER_SQM as SELF_LEVEL_PRIMER_L_PER_SQM_RAW,
+  SELF_LEVEL_PRIMER_CAN_L as SELF_LEVEL_PRIMER_CAN_L_RAW,
+  MIX_RATIO_TABLE,
+  DEFAULT_MIX_RATIO,
+  CEMENT_BAG_KG as CEMENT_BAG_KG_RAW,
+  calcMortarBags,
+  calcMortarVolume,
+  calcAltMix,
+} from '@/lib/v1/mortarQuantity';
+
+// 물량 계산 함수도 공유 모듈 것을 그대로 다시 내보낸다 — schema/mortar.ts·mortar.ts
+// 오케스트레이터가 여기서 가져다 쓴다(서버가 직접 lib을 import해도 되는 방향이라 문제 없다.
+// 금지 규칙은 "클라이언트가 src/server/**를 import"하는 반대 방향이다).
+export { MIX_RATIO_TABLE, DEFAULT_MIX_RATIO, calcMortarBags, calcMortarVolume, calcAltMix };
 
 // 도배에서 이미 정해 둔 단위 환산 타입·값을 그대로 다시 내보낸다 (같은 숫자를 두 곳에 안 둔다)
 export type { Coefficient, CoefficientRange };
@@ -44,6 +67,7 @@ export type { MortarMode, MortarUsage, SelfLevelUsage, MortarMethod };
 export { USAGE_PRESET, SELF_LEVEL_USAGE_PRESET };
 
 // ── 1. 로스율 ──────────────────────────────────────
+// 값(0.05)은 src/lib/v1/mortarQuantity.ts에서 가져온다 — 여기서는 등급·출처만 붙인다.
 
 /**
  * 몰탈 로스(여유) 비율.
@@ -51,41 +75,22 @@ export { USAGE_PRESET, SELF_LEVEL_USAGE_PRESET };
  * 실무에서는 흘림·되비빔 손실 등으로 여유를 더 둔다.
  */
 export const MORTAR_LOSS_RATE_DEFAULT: Coefficient = {
-  value: 0.05,
+  value: MORTAR_LOSS_RATE_DEFAULT_RAW,
   grade: 'C',
   source: '06_미장.md §2-2·§3 — 표준품셈은 모르타르 자체 할증률이 없음(면적×두께가 곧 소요 체적이 원칙). 실무에서 흘림·되비빔 손실로 5% 내외 여유를 추가로 잡는 관행',
 };
 
 // ── 2. 배합비 (표준품셈 9-1-1, 06_미장.md §2-1) ────────
-
-/** 배합용적비 하나(㎥당 재료량, 할증 포함 — 표준품셈 원문 그대로) */
-export interface MixRatioSpec {
-  /** 시멘트 (kg/㎥) */
-  cementKgPerM3: number;
-  /** 모래 (㎥/㎥) */
-  sandM3PerM3: number;
-}
-
-/**
- * 배합용적비별 ㎥당 재료량. 표준품셈 9-1-1 [참고자료] 원문 — 할증이 이미 포함된 값.
- * ⚠️ 이 표는 이미 할증(재료 자체 로스)을 포함하고 있다 — 여기에 다시 몰탈 로스율(5%)을
- *    곱하면 로스가 두 번 들어간다(2026-09-14 검사관 지적으로 mortar.ts에서 이중 할증을 뺐다).
- *    현장 배합 대안은 반드시 **로스 미포함(순수) 체적**에 이 표를 곱한다.
- */
-export const MIX_RATIO_TABLE: Record<'1:1' | '1:2' | '1:3' | '1:4' | '1:5', MixRatioSpec> = {
-  '1:1': { cementKgPerM3: 1093, sandM3PerM3: 0.78 },
-  '1:2': { cementKgPerM3: 680, sandM3PerM3: 0.98 },
-  '1:3': { cementKgPerM3: 510, sandM3PerM3: 1.1 },
-  '1:4': { cementKgPerM3: 385, sandM3PerM3: 1.1 },
-  '1:5': { cementKgPerM3: 320, sandM3PerM3: 1.15 },
-};
-
-/** 계산기 기본 배합비 — 바닥 미장·방통은 통상 1:3을 쓴다(현장 관행) */
-export const DEFAULT_MIX_RATIO: '1:2' | '1:3' = '1:3';
+// MIX_RATIO_TABLE·DEFAULT_MIX_RATIO는 이미 파일 상단에서 mortarQuantity.ts 것을 그대로
+// 다시 내보냈다(중복 정의 금지 — 2026-09-15 형아 피드백으로 공유 모듈을 만들며 정리).
+//
+// ⚠️ 배합표는 이미 할증(재료 자체 로스)을 포함하고 있다 — 여기에 다시 몰탈 로스율(5%)을
+//    곱하면 로스가 두 번 들어간다(2026-09-14 검사관 지적으로 mortar.ts에서 이중 할증을 뺐다).
+//    현장 배합 대안은 반드시 **로스 미포함(순수) 체적**에 이 표를 곱한다.
 
 /** 시멘트 포대 단위 (kg) — 표준품셈에 포장단위 언급이 없어 업계 통상값을 쓴다 */
 export const CEMENT_BAG_KG: Coefficient = {
-  value: 40,
+  value: CEMENT_BAG_KG_RAW,
   grade: 'C',
   source: '06_미장.md — 표준품셈 원문엔 포장단위 언급이 없다. 국내 포틀랜드시멘트 유통 표준(40kg 포대) 관행값',
 };
@@ -98,14 +103,14 @@ export const CEMENT_BAG_KG: Coefficient = {
  * 셀프레벨링 제품 계수(1.5~1.7)와 거의 일치해 신뢰도가 높다고 본다(등급 B, 역산값).
  */
 export const REMICON_KG_PER_MM_SQM: Coefficient = {
-  value: 1.65,
+  value: REMICON_KG_PER_MM_SQM_RAW,
   grade: 'B',
   source: '06_미장.md §4-1 — 삼표 SP몰탈 일반미장용 공식 스펙(40kg÷1.35㎡÷18mm≈1.65kg/mm·㎡) 역산값',
 };
 
 /** 레미탈 포대 단위 (kg) — 제조사 공식(삼표·한일시멘트 공통) */
 export const REMICON_BAG_KG: Coefficient = {
-  value: 40,
+  value: REMICON_BAG_KG_RAW,
   grade: 'A',
   source: '06_미장.md §4-1 — 삼표 SP몰탈·한일시멘트 레미탈 공식 포장단위 40kg',
 };
@@ -118,14 +123,14 @@ export const REMICON_BAG_KG: Coefficient = {
  * 대표값 1.6을 기본으로 쓴다(등급 B, 다중 제조사 수렴값).
  */
 export const SELF_LEVEL_KG_PER_MM_SQM: Coefficient = {
-  value: 1.6,
+  value: SELF_LEVEL_KG_PER_MM_SQM_RAW,
   grade: 'B',
   source: '06_미장.md §5-1 — 한일시멘트 RFSL 시리즈(1.5~1.7)·마페이 울트라플랜(1.6) 교차검증 수렴값',
 };
 
 /** 셀프레벨링 포대 단위 (kg) — 제조사 공통(한일·마페이 전부 25kg) */
 export const SELF_LEVEL_BAG_KG: Coefficient = {
-  value: 25,
+  value: SELF_LEVEL_BAG_KG_RAW,
   grade: 'A',
   source: '06_미장.md §5-1 — 한일시멘트 RFSL 시리즈·마페이 울트라플랜 공식 포장단위 25kg',
 };
@@ -134,14 +139,14 @@ export const SELF_LEVEL_BAG_KG: Coefficient = {
 
 /** 프라이머 원액 도포량 (L/㎡) — 희석 1:2~1:3, 2~3회 도포 기준 */
 export const SELF_LEVEL_PRIMER_L_PER_SQM: Coefficient = {
-  value: 0.2,
+  value: SELF_LEVEL_PRIMER_L_PER_SQM_RAW,
   grade: 'C',
   source: '06_미장.md §5-3 — 18L 캔 1통으로 희석 최대 1:3 시 약 90㎡ 시공(유통 블로그 종합치, 제조사 데이터시트 원문 미확인)',
 };
 
 /** 프라이머 캔 용량 (L) */
 export const SELF_LEVEL_PRIMER_CAN_L: Coefficient = {
-  value: 18,
+  value: SELF_LEVEL_PRIMER_CAN_L_RAW,
   grade: 'C',
   source: '06_미장.md §5-3 — 18L 캔 유통 규격 기준(유통 블로그 종합치)',
 };
@@ -245,8 +250,9 @@ export const LARGE_AREA_FINISH_PLASTERER_PER_100SQM: Coefficient = {
   source: '06_미장.md §6-3 — 표준품셈 [건축] 9-1-4 표면 마무리(인력마감) 미장공 0.30인/100㎡',
 };
 
-/** 장비 타설일 때 화면에 보여줄 안내 — 장비 사용료는 계상하지 않으니(단가 창작 금지) 문구로만 알린다 */
-export const EQUIPMENT_RENTAL_NOTE = '모르타르 타설 장비비 별도(현장 견적)';
+// 장비 타설 안내 문구는 즉답(useMortarQuickCalc)과 같은 것을 써야 해서
+// src/lib/v1/mortarPresets.ts로 옮겼다(2026-09-15 형아 피드백) — 여기서는 다시 내보내기만 한다.
+export { EQUIPMENT_RENTAL_NOTE } from '@/lib/v1/mortarPresets';
 
 // ── 10. 셀프레벨링 인건 — 계산하지 않음 (06_미장.md §6-4) ──
 //
@@ -255,7 +261,8 @@ export const EQUIPMENT_RENTAL_NOTE = '모르타르 타설 장비비 별도(현�
 // 분리한 근거가 없는 상태에서 원/㎡ 단가를 만들면 "노임 없으면 추정 표기"가 아니라
 // "근거 없는 숫자 창작"이 된다. 그래서 셀프레벨링은 자재비만 계산하고, 화면에는
 // 아래 문구로 "시공비는 현장 견적 별도"를 안내한다(labor-mortar.ts가 이 값을 그대로 돌려준다).
-export const SELF_LEVEL_LABOR_ADVISORY_NOTE = '시공비는 현장 견적 별도';
+// 이 문구도 즉답과 같은 것을 써야 해서 mortarPresets.ts로 옮겼다 — 다시 내보내기만 한다.
+export { SELF_LEVEL_LABOR_ADVISORY_NOTE } from '@/lib/v1/mortarPresets';
 
 // ── 11. 품수 환산 규칙 (도배·바닥재와 같은 방식) ────────
 

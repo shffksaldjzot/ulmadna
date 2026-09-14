@@ -70,3 +70,13 @@ export function recommendSelfLevelProduct(
     p.maxThicknessMm - p.minThicknessMm < best.maxThicknessMm - best.minThicknessMm ? p : best,
   );
 }
+
+/**
+ * 제품 선택 드롭다운에 쓰는 표시 문구를 만든다.
+ * 2026-09-15 형아 피드백: "레미탈이 몇 kg짜리 몇 포인지"가 안 보인다는 지적 — 제품을 고르는
+ * 자리에도 포장 kg를 반드시 적어서, 고른 제품과 즉답의 "○kg × N포" 줄이 항상 맞게 한다.
+ * 예: "삼표 SP몰탈 일반미장용 · 40kg · 10~50mm"
+ */
+export function formatMortarProductLabel(p: MortarProductOption): string {
+  return `${p.brand} ${p.name} · ${p.bagKg}kg · ${p.minThicknessMm}~${p.maxThicknessMm}mm`;
+}

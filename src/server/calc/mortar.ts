@@ -25,22 +25,23 @@
 
 import 'server-only';
 
-import { ceilSafe } from './cutting/round';
 import { calcMortarLabor } from './labor-mortar';
 import { buildMortarContext, runMortarSchema, MORTAR_PROCESS } from './schema/mortar';
 import type { EvidenceGrade } from './schema/types';
 import {
   USAGE_PRESET,
   MORTAR_LOSS_RATE_DEFAULT,
-  MIX_RATIO_TABLE,
   DEFAULT_MIX_RATIO,
-  CEMENT_BAG_KG,
   REMICON_KG_PER_MM_SQM,
   REMICON_BAG_KG,
   SELF_LEVEL_KG_PER_MM_SQM,
   SELF_LEVEL_BAG_KG,
   SELF_LEVEL_PRIMER_L_PER_SQM,
   SELF_LEVEL_LABOR_ADVISORY_NOTE,
+  // 2026-09-15 형아 피드백: 체적·현장배합은 화면 즉답(useMortarQuickCalc)과 같은 공유 함수를
+  // 쓴다(src/lib/v1/mortarQuantity.ts, mortar-coefficients.ts가 다시 내보낸다).
+  calcMortarVolume,
+  calcAltMix,
   type MortarMode,
   type MortarUsage,
   type MortarMethod,
@@ -51,6 +52,7 @@ import {
   OVERHEAD_RATE,
   type PriceBand,
 } from '../pricing/mortar';
+import { isThicknessOutOfStandardRange, THICKNESS_OUT_OF_RANGE_NOTE } from '@/lib/v1/mortarPresets';
 
 // ── 입력 타입 ──────────────────────────────────
 
@@ -177,6 +179,10 @@ export interface MortarCalcResult {
     bags: number;
     /** 포장 단위(kg) — 화면 표기용 */
     bagKg: number;
+    /** 제품명 — 제품을 골랐으면 그 이름, 아니면 "레미탈 40kg 포대"처럼 모드+포장kg 기본 표기 */
+    productLabel: string;
+    /** 06_미장.md 표준 두께 범위(레미탈 10~50mm)를 넘었을 때만: 계산은 그대로 하되 붙이는 안내 */
+    standardRangeNote?: string;
     /** 레미탈 모드에서만: 현장 배합 대안(참고용, 비용 미포함) */
     altMix?: MortarAltMix;
     /** 프라이머 옵션을 켰을 때만: 원액 기준 소요량(L) */
@@ -206,16 +212,6 @@ export interface MortarCalcResult {
 /** 소수점 1자리 반올림 */
 function r1(n: number): number {
   return Math.round(n * 10) / 10;
-}
-
-/** 소수점 2자리 반올림(모래 ㎥ 표기용) */
-function r2(n: number): number {
-  return Math.round(n * 100) / 100;
-}
-
-/** 소수점 3자리 반올림(체적 ㎥는 작은 값이라 자리수를 더 남긴다) */
-function r3(n: number): number {
-  return Math.round(n * 1000) / 1000;
 }
 
 /** 원 단위 금액을 1,000원 단위로 반올림 */
@@ -281,9 +277,8 @@ export function calcMortar(input: MortarCalcInput): MortarCalcResult {
   const kgPerMmSqm = input.product?.kgPerMmSqm ?? defaultCoeff;
   const bagKg = input.product?.bagKg ?? defaultBagKg;
 
-  // ── 2) 체적 (로스 없는 순수값 · 로스 포함값) ──
-  const volumeM3 = r3((areaSqm * thicknessMm) / 1000);
-  const volumeWithLossM3 = r3(volumeM3 * (1 + lossRate));
+  // ── 2) 체적 (로스 없는 순수값 · 로스 포함값) — 화면 즉답과 같은 공유 함수를 쓴다 ──
+  const { volumeM3, volumeWithLossM3 } = calcMortarVolume({ areaSqm, thicknessMm, lossRate });
 
   // ── 3) 인건 — 셀프레벨링은 계산하지 않는다(labor-mortar.ts가 null을 돌려준다) ──
   const labor = isRemicon ? calcMortarLabor({ areaSqm, thicknessMm, mode: input.mode, method, wireMesh }) : null;
@@ -401,21 +396,25 @@ export function calcMortar(input: MortarCalcInput): MortarCalcResult {
   sumMax += overheadMax;
 
   // ── 7) 레미탈 모드 — 현장 배합(시멘트+모래) 대안 (참고용, 비용 미포함) ──
-  // ⚠️ 2026-09-14 검사관 지적: 배합표(MIX_RATIO_TABLE)는 이미 할증(재료 자체 로스)이
-  //    포함된 표다. 여기에 "로스 포함 체적"을 또 곱하면 할증이 두 번 들어간다(이중 할증).
-  //    그래서 반드시 로스 미포함 순수 체적(volumeM3)에 곱한다.
-  let altMix: MortarAltMix | undefined;
-  if (isRemicon && volumeM3 > 0) {
-    const mixRatio = input.mixRatio ?? DEFAULT_MIX_RATIO;
-    const spec = MIX_RATIO_TABLE[mixRatio];
-    const cementKg = volumeM3 * spec.cementKgPerM3;
-    const cementBags = ceilSafe(cementKg / CEMENT_BAG_KG.value);
-    const sandM3 = r2(volumeM3 * spec.sandM3PerM3);
-    altMix = { mixRatio, cementKg: Math.round(cementKg), cementBags, sandM3 };
-  }
+  // ⚠️ 2026-09-14 검사관 지적: 배합표는 이미 할증(재료 자체 로스)이 포함된 표다. 여기에
+  //    "로스 포함 체적"을 또 곱하면 할증이 두 번 들어간다(이중 할증) — 그래서 반드시 로스
+  //    미포함 순수 체적(volumeM3)에 곱한다. 2026-09-15부터는 화면 즉답과 같은 공유 함수
+  //    calcAltMix(mortarQuantity.ts)를 쓴다(값이 어긋나지 않게).
+  const altMix: MortarAltMix | undefined = isRemicon
+    ? calcAltMix({ volumeM3, mixRatio: input.mixRatio ?? DEFAULT_MIX_RATIO })
+    : undefined;
 
   // ── 8) 프라이머 원액 소요량(L, 옵션 켰을 때만 표시) ──
   const primerLiters = primer && areaSqm > 0 ? r1(areaSqm * SELF_LEVEL_PRIMER_L_PER_SQM.value) : undefined;
+
+  // ── 8-B) 제품명 표기 — 골랐으면 그 제품명, 아니면 "모드 + 포장kg 포대" 기본 표기
+  // (2026-09-15 형아 피드백: "레미탈이 몇 kg짜리 몇 포인지" 항상 보이게)
+  const productLabel = input.product?.sourceLabel ?? `${input.mode} ${bagKg}kg 포대`;
+
+  // ── 8-C) 06_미장.md 표준 두께 범위(레미탈 10~50mm)를 넘으면 안내만(계산은 그대로 한다) ──
+  const standardRangeNote = isThicknessOutOfStandardRange(input.mode, thicknessMm)
+    ? THICKNESS_OUT_OF_RANGE_NOTE
+    : undefined;
 
   // ── 9) 실별 수량 배분 ──
   const rooms = input.rooms && input.rooms.length > 0 ? input.rooms : [{ name: '전체 시공', areaSqm }];
@@ -443,6 +442,8 @@ export function calcMortar(input: MortarCalcInput): MortarCalcResult {
       unit: '포',
       bags,
       bagKg,
+      productLabel,
+      standardRangeNote,
       altMix,
       primerLiters,
       byRoom,

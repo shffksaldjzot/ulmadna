@@ -17,6 +17,9 @@ import { NextResponse } from 'next/server';
 import { calcMortar } from '@/server/calc/mortar';
 import type { MortarCalcInput, MortarProductInput, MortarRoomInput } from '@/server/calc/mortar';
 import type { MortarMode, MortarUsage, MortarMethod } from '@/server/calc/schema/mortar-coefficients';
+// 2026-09-15 형아 피드백: 두께 상한이 모드마다 다르다(레미탈 150mm · 셀프레벨링 50mm) —
+// 화면 클램프(mortarEngineInput.ts)와 같은 표(mortarPresets.ts)를 그대로 가져다 쓴다.
+import { THICKNESS_MM_MIN, thicknessMmMax } from '@/lib/v1/mortarPresets';
 
 /** 이 라우트는 매번 새로 계산한다 (캐시 금지) */
 export const dynamic = 'force-dynamic';
@@ -111,7 +114,13 @@ function parseInput(body: unknown): MortarCalcInput {
   if (!mode) throw new ValidationError('mode 는 레미탈 / 셀프레벨링 중 하나여야 합니다');
 
   const areaSqm = num(body.areaSqm, 'areaSqm', { min: 0.5, max: 500, required: true }) as number;
-  const thicknessMm = num(body.thicknessMm, 'thicknessMm', { min: 1, max: 100, required: true }) as number;
+  // 2026-09-15 형아 피드백(현장 경험): 방통은 50~150mm까지 흔해서 레미탈은 상한을 150으로
+  // 올렸다. 셀프레벨링은 제품 스펙상 40mm 안팎이 실질 상한이라 50을 그대로 둔다.
+  const thicknessMm = num(body.thicknessMm, 'thicknessMm', {
+    min: THICKNESS_MM_MIN,
+    max: thicknessMmMax(mode),
+    required: true,
+  }) as number;
 
   const input: MortarCalcInput = {
     mode,
