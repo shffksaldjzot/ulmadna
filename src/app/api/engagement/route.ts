@@ -39,6 +39,11 @@ export async function GET(req: NextRequest) {
   }
 }
 
+// 2026-09-15부터 화면(UI)에서는 이 POST를 더 이상 안 부른다 — 좋아요 버튼이
+// PostActions(src/components/blog/PostActions.tsx) + /api/blog/like 로 옮겨갔다.
+// 다만 같은 Redis 키(likes:{slug})를 그대로 이어 쓰므로(누적 숫자 단절 방지),
+// 이 라우트를 지우지 않고 그대로 남겨둔다 — 혹시 남아있는 캐시된 페이지나 외부 호출이
+// 있어도 숫자가 깨지지 않는다.
 export async function POST(req: NextRequest) {
   if (!URL || !TOKEN) return NextResponse.json({ likes: null });
   const slug = clean(req.nextUrl.searchParams.get("slug"));

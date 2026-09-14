@@ -13,6 +13,9 @@ import { BlogSpoilerInk } from "@/components/blog/BlogSpoilerInk";
 import { ShareButtons } from "@/components/blog/ShareButtons";
 import { Breadcrumbs } from "@/components/blog/Breadcrumbs";
 import { PostTocSide } from "@/components/blog/PostTocSide";
+import { PostActions } from "@/components/blog/PostActions";
+import { ViewTracker } from "@/components/blog/ViewTracker";
+import { ReadMoreAtEnd, type ReadMoreCandidate } from "@/components/blog/ReadMoreAtEnd";
 import { AdsenseUnit } from "@/components/ads/AdsenseUnit";
 import { ADSENSE_SLOTS } from "@/lib/ads/adsense";
 import "../blog.css";
@@ -108,7 +111,9 @@ export default async function BlogPost({
   // 저장소가 잠깐 죽으면 빌드 자체가 흔들립니다. 얻는 것보다 잃는 게 커서 뺐습니다.
   // ──────────────────────────────────────────────
   const newestMs = allPosts.reduce((mx, p) => Math.max(mx, toMs(p.date)), 0);
-  const baseRelated = allPosts
+  // 점수 매긴 전체 목록(자기 자신 제외) — "관련 글" 4편과 "이어서 볼 만한 글" 후보를
+  // 같은 점수 계산을 한 번만 해서 나눠 쓴다(중복 계산 방지 + 두 섹션이 자연히 안 겹침)
+  const scoredAll = allPosts
     .filter((p) => p.slug !== post.slug)
     .map((p) => {
       const sharedTags = p.tags.filter((t) => post.tags.includes(t)).length;
@@ -117,11 +122,10 @@ export default async function BlogPost({
       // 가장 최근 글로부터 며칠 지났나 → 180일이 지나면 보너스 0
       const ageDays = newestMs > 0 ? (newestMs - toMs(p.date)) / DAY : 0;
       const fresh = Math.max(0, 1.5 - ageDays / 120);
-      return { p, score: sharedTags * 3 + sharedCats * 2 + fresh };
+      return { p, cats: pCats, score: sharedTags * 3 + sharedCats * 2 + fresh };
     })
-    .sort((a, b) => b.score - a.score || (a.p.date < b.p.date ? 1 : -1))
-    .slice(0, 4)
-    .map((x) => x.p);
+    .sort((a, b) => b.score - a.score || (a.p.date < b.p.date ? 1 : -1));
+  const baseRelated = scoredAll.slice(0, 4).map((x) => x.p);
 
   // ──────────────────────────────────────────────
   // 색인 우선 글 끼워 넣기 — 이미 자리 잡은(=인기 글 대역) 글의 관련 글 슬롯 일부를
@@ -146,6 +150,26 @@ export default async function BlogPost({
       related = [...boostPicks, ...baseRelated].slice(0, 4);
     }
   }
+
+  // ──────────────────────────────────────────────
+  // "이어서 볼 만한 글" 후보 — 위 관련 글(related) 4편과 절대 안 겹치게, 점수 순으로 최대 8편
+  // 실제 화면에 나올 3편은 클라이언트(ReadMoreAtEnd)가 "이미 본 글"을 뺀 뒤에 고른다
+  // (viewed 목록은 브라우저에만 있어서 서버는 알 수 없다)
+  // ──────────────────────────────────────────────
+  const relatedSlugs = new Set(related.map((r) => r.slug));
+  const readMoreCandidates: ReadMoreCandidate[] = scoredAll
+    .filter((x) => !relatedSlugs.has(x.p.slug))
+    .slice(0, 8)
+    .map((x) => ({
+      slug: x.p.slug,
+      title: x.p.title,
+      thumbnail: x.p.thumbnail,
+      category: x.cats.length > 0 ? getCategory(x.cats[0])?.label ?? "" : "",
+    }));
+
+  // 계산기 카드는 "이어서 볼 만한 글"에 안 넣는다 — 바로 아래 CalculatorCta(variant="card")가
+  // 이 글에 매치된 계산기를 이미 보여주고 있어서, 여기 또 넣으면 같은 계산기 CTA가 2번 연속으로
+  // 나온다(검사관 지적, 2026-09-15).
 
   const articleLd = {
     "@context": "https://schema.org",
@@ -196,6 +220,9 @@ export default async function BlogPost({
           ]}
         />
 
+        {/* 화면엔 아무것도 안 그리고 "최근 본 글"에 이 글을 조용히 남기기만 함 */}
+        <ViewTracker slug={post.slug} />
+
         {/* 큰 화면에서는 [본문 720px | 목차 236px] 두 칸, 좁은 화면에서는 그냥 세로 한 줄 */}
         <div className="blog-layout">
           <article className="blog-main">
@@ -231,6 +258,8 @@ export default async function BlogPost({
                 {post.updated && <> · 마지막 업데이트: {fmtDate(post.updated)}</>}
                 <span className="blog-readtime-badge">⏱ 읽는 데 {post.readingTime}분</span>
               </p>
+              {/* 저장(북마크) / 좋아요 — 제목 아래, 글 끝에도 같은 줄이 한 번 더 나옴 */}
+              <PostActions slug={post.slug} category={primaryCat?.id} />
             </header>
 
             {post.thumbnail && (
@@ -264,6 +293,9 @@ export default async function BlogPost({
             {/* 스포일러 캔버스 효과(점진적 향상) — .blog-spoiler 강화 */}
             <BlogSpoilerInk />
 
+            {/* 본문(글 자체)이 끝나는 지점 — 스크롤이 여기 들어오면 "이어서 볼 만한 글"이 뜸 */}
+            <ReadMoreAtEnd candidates={readMoreCandidates} />
+
             {/* 본문 끝 — 다 읽은 사람에게 "그래서 우리 집은?" 계산기 카드 (계산기별로 하나씩) */}
             {post.calculator.map((key) => (
               <CalculatorCta key={key} calculator={key} variant="card" />
@@ -276,6 +308,11 @@ export default async function BlogPost({
             )}
 
             <PostEngagement slug={post.slug} />
+
+            {/* 글 끝 — 위와 같은 저장/좋아요 액션을 한 번 더 (다 읽고 나서도 바로 누를 수 있게) */}
+            <div className="blog-actions-end">
+              <PostActions slug={post.slug} category={primaryCat?.id} />
+            </div>
 
             <ShareButtons
               url={`${SITE}/blog/${post.slug}`}

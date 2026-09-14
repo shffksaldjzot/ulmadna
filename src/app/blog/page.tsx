@@ -4,6 +4,7 @@ import { BlogHeader } from "@/components/blog/BlogHeader";
 import { SiteFooter } from "@/components/blog/SiteFooter";
 import { BlogListClient } from "@/components/blog/BlogListClient";
 import { MissedPosts } from "@/components/blog/MissedPosts";
+import { RecentViewedStrip } from "@/components/blog/RecentViewedStrip";
 import { AdsenseUnit } from "@/components/ads/AdsenseUnit";
 import { ADSENSE_SLOTS } from "@/lib/ads/adsense";
 import "./blog.css";
@@ -25,6 +26,8 @@ export const metadata: Metadata = {
 // 글 목록을 읽어서 검색·필터·더보기를 맡은 클라이언트 컴포넌트에 넘겨줍니다.
 export default function BlogIndex() {
   const posts = getAllPostIndex();
+  // "내가 본 글" 줄은 slug·제목·썸네일만 있으면 되므로 가벼운 필드만 추려서 내려준다
+  const slimForRecent = posts.map((p) => ({ slug: p.slug, title: p.title, thumbnail: p.thumbnail }));
 
   return (
     <div className="blog-scope">
@@ -35,6 +38,9 @@ export default function BlogIndex() {
           <h1>인테리어 정보</h1>
           <p>업체 말고, 소비자 편에서 정리한 인테리어 비용·견적·자재 이야기</p>
         </div>
+
+        {/* 본 글이 있을 때만 나타나는 가로 스크롤 줄 (없으면 이 자리에 아무것도 안 그려짐) */}
+        <RecentViewedStrip posts={slimForRecent} />
 
         {posts.length === 0 ? (
           <p className="blog-empty">첫 글을 준비하고 있어요. 곧 찾아올게요!</p>

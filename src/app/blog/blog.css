@@ -24,6 +24,11 @@
 .blog-scope .hdr-right{display:flex;align-items:center;gap:16px;}
 .blog-scope .hdr-nav{font-size:13.5px;font-weight:700;color:var(--brown-700);text-decoration:none;transition:color .14s;}
 .blog-scope .hdr-nav:hover{color:var(--accent);}
+/* "내 글" 아이콘 진입점 — 글자 없이 아이콘 하나만
+   보이는 아이콘 크기는 그대로 두고, ::after로 눈에 안 보이는 여분 영역을 깔아서
+   손가락으로 누르는 실제 탭 영역만 44px 정사각형에 가깝게 넓힌다(터치 접근성). */
+.blog-scope .hdr-mybtn{font-size:17px;line-height:1;position:relative;}
+.blog-scope .hdr-mybtn::after{content:"";position:absolute;inset:-14px;}
 
 /* ---- blog hero / list ---- */
 /* 히어로 — 따뜻한 톤 밴드 + 액센트 오버라인 */
@@ -359,15 +364,109 @@
   padding:13px 22px;border-radius:999px;text-decoration:none;white-space:nowrap;transition:background .14s;}
 .blog-calc-card-btn:hover{background:var(--accent-600);}
 
-/* ---- 조회수 + 좋아요 ---- */
+/* ---- 조회수 ---- */
 .post-engage{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;
   margin:36px 0 8px;padding:18px 0;border-top:1px solid var(--beige-200);border-bottom:1px solid var(--beige-200);}
 .pe-views{font-size:13.5px;color:var(--ink-3);font-weight:600;}
+/* pe-like류는 2026-09-15부로 PostActions(저장·좋아요)에 자리를 넘겨서 더는 안 씀(남겨도 무해) */
 .pe-like{display:inline-flex;align-items:center;gap:7px;font-size:14.5px;font-weight:700;color:var(--brown-700);
   background:var(--card);border:1.5px solid var(--beige-200);border-radius:999px;padding:9px 18px;cursor:pointer;transition:.15s;}
 .pe-like:hover{border-color:var(--accent);color:var(--accent);}
 .pe-like.on{border-color:var(--accent);background:#F6E7DD;color:var(--accent);}
 .pe-heart{font-size:15px;line-height:1;}
+
+/* ---- 글 액션(저장 · 좋아요) — 라벨 없이 아이콘+숫자만, 글 위/끝에 두 번 반복 ---- */
+.blog-actions{display:flex;align-items:center;gap:8px;margin-top:14px;}
+/* min-height:44px — 아이콘·글자 크기는 그대로, 위아래 여백만 늘어나 탭 영역을 44px로 확보(터치 접근성) */
+.blog-action-btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;font-size:14px;font-weight:700;
+  color:var(--ink-3);background:var(--card);border:1.5px solid var(--beige-200);border-radius:999px;
+  min-height:44px;padding:7px 13px;cursor:pointer;transition:.15s;font-family:inherit;line-height:1;}
+.blog-action-btn:hover{border-color:var(--accent);color:var(--accent);}
+.blog-action-btn.on{border-color:var(--accent);background:#F6E7DD;color:var(--accent);}
+.blog-action-count{font-size:12.5px;color:inherit;}
+/* 글 끝 쪽 반복 배치 — 위아래 테두리를 둘러 조회수 줄과 짝을 맞춤 */
+.blog-actions-end{display:flex;justify-content:center;margin:14px 0 0;padding:16px 0;
+  border-top:1px solid var(--beige-200);}
+.blog-actions-end .blog-actions{margin-top:0;}
+
+/* ---- 이어서 볼 만한 글 (본문 끝 스크롤 트리거) ---- */
+.blog-readmore{margin-top:40px;padding-top:28px;border-top:1px solid var(--beige-200);}
+.blog-readmore>h2{font-size:18px;font-weight:800;color:var(--brown-700);margin-bottom:16px;letter-spacing:-0.02em;
+  scroll-margin-top:70px;} /* 헤더 가림 방지 — .blog-body h2와 같은 관례 */
+.blog-readmore-list{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.blog-readmore-card{display:flex;flex-direction:column;gap:9px;text-decoration:none;}
+.blog-readmore-card img{width:100%;aspect-ratio:1200/720;object-fit:cover;border-radius:10px;
+  border:1px solid var(--beige-200);transition:transform .25s;}
+.blog-readmore-noimg{width:100%;aspect-ratio:1200/720;border-radius:10px;background:var(--beige-100);
+  color:var(--brown-300);display:grid;place-items:center;font-size:13px;font-weight:800;letter-spacing:.06em;}
+.blog-readmore-card:hover img{transform:translateY(-3px);}
+.blog-readmore-card span:not(.blog-readmore-calc-badge){font-size:13.5px;font-weight:700;color:var(--ink);
+  line-height:1.4;letter-spacing:-0.01em;word-break:keep-all;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.blog-readmore-card:hover span{color:var(--accent);}
+.blog-readmore-calc{background:linear-gradient(150deg,#FBF2EA,#F5E6D8);border:1.5px solid var(--accent);
+  border-radius:11px;padding:14px;justify-content:center;}
+.blog-readmore-calc-badge{align-self:flex-start;font-size:10.5px;font-weight:800;letter-spacing:.02em;
+  color:var(--accent);background:#fff;border:1px solid var(--accent);border-radius:999px;padding:2px 8px;}
+@media (max-width:640px){
+  .blog-readmore-list{grid-template-columns:1fr;gap:10px;}
+  .blog-readmore-card{flex-direction:row;align-items:center;gap:12px;}
+  .blog-readmore-card img,.blog-readmore-noimg{width:88px;aspect-ratio:1/1;flex:none;}
+}
+
+/* ---- 내가 본 글 (블로그 목록 상단, 있을 때만) ---- */
+.blog-recent{margin-bottom:26px;}
+.blog-recent-caption{font-size:12px;font-weight:800;letter-spacing:.04em;color:var(--ink-3);margin-bottom:10px;}
+.blog-recent-strip{display:flex;gap:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;padding-bottom:2px;}
+.blog-recent-strip::-webkit-scrollbar{display:none;}
+.blog-recent-card{flex:none;width:150px;display:flex;flex-direction:column;gap:7px;text-decoration:none;}
+.blog-recent-card img{width:150px;height:100px;object-fit:cover;border-radius:10px;border:1px solid var(--beige-200);}
+.blog-recent-noimg{width:150px;height:100px;border-radius:10px;background:var(--beige-100);color:var(--brown-300);
+  display:grid;place-items:center;font-size:11px;font-weight:800;}
+.blog-recent-card span:not(.blog-recent-noimg){font-size:12.5px;font-weight:700;color:var(--ink);line-height:1.4;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:keep-all;}
+
+/* ---- 내 글(/blog/my) ---- */
+.blog-hero-my{padding-bottom:22px;margin-bottom:22px;}
+.mypost-wrap{padding-bottom:60px;}
+.mypost-tabs{display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+/* 탭·내보내기 버튼도 min-height:44px로 탭 영역만 확보(글자 크기는 그대로) */
+.mypost-tab{display:inline-flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:700;
+  color:var(--brown-600);background:var(--card);
+  border:1.5px solid var(--beige-200);border-radius:999px;min-height:44px;padding:8px 16px;cursor:pointer;
+  transition:.14s;font-family:inherit;line-height:1;}
+.mypost-tab:hover{border-color:var(--brown-300);color:var(--brown-700);}
+.mypost-tab.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+.mypost-export{display:inline-flex;align-items:center;justify-content:center;margin-left:auto;
+  font-size:13px;font-weight:700;color:var(--brown-700);
+  background:var(--card);border:1.5px solid var(--beige-200);border-radius:999px;min-height:44px;padding:8px 14px;
+  cursor:pointer;font-family:inherit;transition:.14s;}
+.mypost-export:hover{border-color:var(--accent);color:var(--accent);}
+.mypost-export:disabled{opacity:.45;cursor:default;}
+.mypost-note{font-size:13px;color:var(--accent);font-weight:700;margin-bottom:14px;}
+.mypost-empty{padding:44px 0;text-align:center;color:var(--ink-3);font-size:14.5px;}
+.mypost-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;}
+.mypost-item{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--beige-200);
+  border-radius:13px;padding:10px;}
+.mypost-item-link{flex:1;min-width:0;display:flex;align-items:center;gap:12px;text-decoration:none;}
+.mypost-item-link img{width:64px;height:64px;object-fit:cover;border-radius:9px;flex:none;}
+.mypost-item-noimg{width:64px;height:64px;border-radius:9px;background:var(--beige-100);color:var(--brown-300);
+  display:grid;place-items:center;font-size:11px;font-weight:800;flex:none;}
+.mypost-item-body{display:flex;flex-direction:column;gap:4px;min-width:0;}
+.mypost-item-title{font-size:14.5px;font-weight:700;color:var(--ink);line-height:1.4;word-break:keep-all;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.mypost-item-link:hover .mypost-item-title{color:var(--accent);}
+.mypost-item-sub{font-size:12px;color:var(--ink-3);}
+/* 원(28px) 크기는 시각적으로 그대로 두고, ::after로 보이지 않는 44px 탭 영역만 넓힌다 */
+.mypost-item-del{flex:none;width:28px;height:28px;border-radius:50%;border:none;background:var(--beige-100);
+  color:var(--ink-2);font-size:16px;line-height:1;cursor:pointer;display:grid;place-items:center;transition:.14s;
+  position:relative;}
+.mypost-item-del::after{content:"";position:absolute;inset:-8px;}
+.mypost-item-del:hover{background:var(--beige-200);color:var(--brown-700);}
+@media (max-width:480px){
+  .mypost-export{margin-left:0;width:100%;order:4;}
+}
 
 /* ---- 공유 버튼 ---- */
 .blog-share{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;
