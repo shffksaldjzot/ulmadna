@@ -23,10 +23,20 @@ interface TopNavProps {
   backHref?: string;
   /** 제목 줄 오른쪽에 텍스트 버튼(예: "조건 바꾸기")을 붙이고 싶을 때 */
   rightSlot?: React.ReactNode;
+  /**
+   * 제목 줄의 글자를 어떤 태그로 그릴지 (기본 h1, 안 주면 예전과 완전히 같음).
+   * 2026-09-14 검사관 지적: 계산기 페이지(wallpaper·flooring·mortar)는 page.tsx(서버
+   * 컴포넌트)에 검색엔진용 진짜 h1을 따로 심어놨는데, 이 컴포넌트도 title을 h1으로 그려서
+   * 한 페이지에 h1이 2개가 되는 문제가 있었다. 그 페이지들만 "p"를 넘겨서 h1 중복을 없앤다.
+   * (다른 페이지는 이 값을 안 넘기니 그대로 h1 유지 — 영향 0)
+   */
+  as?: 'h1' | 'p' | 'div';
 }
 
-export default function TopNav({ title, backHref, rightSlot }: TopNavProps) {
+export default function TopNav({ title, backHref, rightSlot, as = 'h1' }: TopNavProps) {
   const { data: session } = useSession();
+  // 제목 줄 글자 태그 — 기본은 h1(예전과 동일), 계산기 페이지 등에서만 p/div로 바뀐다
+  const TitleTag = as;
 
   return (
     <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
@@ -87,7 +97,7 @@ export default function TopNav({ title, backHref, rightSlot }: TopNavProps) {
             <Link href={backHref ?? '/calc'} aria-label="뒤로가기" className="text-brown flex-none">
               <IconBack />
             </Link>
-            <h1 className="text-[18px] font-bold text-foreground truncate">{title}</h1>
+            <TitleTag className="text-[18px] font-bold text-foreground truncate">{title}</TitleTag>
           </div>
           {rightSlot}
         </div>

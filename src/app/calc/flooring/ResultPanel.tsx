@@ -10,7 +10,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Card from '@/components/v1/Card';
 import Collapsible from '@/components/v1/Collapsible';
 import Toggle from '@/components/v1/Toggle';
@@ -21,6 +21,8 @@ import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
 import { type FlooringFormState, encodeFlooringForm } from '@/lib/v1/flooringQuery';
 import { trimFormForShare } from '@/lib/v1/flooringEngineInput';
 import type { FlooringCalcResultDTO, FlooringCostLine, FlooringRange } from '@/lib/v1/useFlooringCalc';
+// GA4 — 결과 노출/구성 보기 펼침/공유 버튼 클릭 이벤트
+import { track } from '@/lib/analytics';
 
 export interface ResultPanelProps {
   /** 마지막 성공 결과 (물량·부자재·비용 구성 전부 포함) */
@@ -93,6 +95,11 @@ export default function ResultPanel({
   // "링크를 복사했어요" 같은 짧은 토스트 메시지
   const [toast, setToast] = useState<string | null>(null);
 
+  // GA4 — 결과 카드가 실제로 화면에 보였을 때(result가 새로 생길 때마다) 1번 기록
+  useEffect(() => {
+    if (result) track('calc_result_view', { process: 'flooring' });
+  }, [result]);
+
   // 빈 상태 — 아직 계산할 값이 없거나(종류 미선택 / 평형·제품 미입력 / 치수 미입력) 계산이
   // 실패했을 때는 카드 1장만 보여준다.
   if (!result) {
@@ -118,6 +125,7 @@ export default function ResultPanel({
 
   /** "결과 공유" — 모바일은 공유 시트가 있으면 그것부터, 아니면 링크 복사 */
   async function handleShare() {
+    track('calc_cta_click', { process: 'flooring', target: 'share' });
     // 지금 모드에서 안 쓰는 값(예: simple인데 실측 방 목록)은 링크에 안 싣는다
     const url = `${window.location.origin}/calc/flooring/result?d=${encodeFlooringForm(trimFormForShare(form))}`;
     const nav = navigator as Navigator & { share?: (data: ShareData) => Promise<void> };
@@ -215,7 +223,11 @@ export default function ResultPanel({
           <p className="text-[16px] text-foreground tabular-nums">{cost.basisLine}</p>
           {/* 구성 보기 — 기본으로 전부 펼쳐 보여준다(접을 수는 있다). 견적은 전부 구축 기준이라
               맨 위에 토글 2개(기존 바닥재 철거 · 걸레받이 교체)를 두고 사용자가 보고 판단한다. */}
-          <Collapsible title="구성 보기" defaultOpen>
+          <Collapsible
+            title="구성 보기"
+            defaultOpen
+            onOpen={() => track('calc_detail_open', { process: 'flooring' })}
+          >
             <div className="flex flex-col">
               <div className="py-[10px] border-b border-v1-line-2 flex items-center justify-between gap-3">
                 <div className="flex flex-col gap-[2px] min-w-0">

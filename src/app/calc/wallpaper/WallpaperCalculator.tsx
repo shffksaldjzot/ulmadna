@@ -17,7 +17,7 @@
 
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import TopNav from '@/components/v1/TopNav';
 import Button from '@/components/v1/Button';
@@ -30,6 +30,8 @@ import {
 } from '@/lib/v1/wallpaperQuery';
 import { useWallpaperCalc } from '@/lib/v1/useWallpaperCalc';
 import { formatManRange, formatNum } from '@/lib/v1/money';
+// GA4 — 계산기 화면 진입 이벤트(마운트 1번만)
+import { track } from '@/lib/analytics';
 import QuickAnswer from './QuickAnswer';
 import PreciseSection from './PreciseSection';
 import PaperPicker from './PaperPicker';
@@ -60,6 +62,11 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
   const [form, setForm] = useState<WallpaperFormState>(initial);
   // 모바일 하단 고정 요약 바의 "결과 보기"가 스크롤해서 이동할 대상
   const resultRef = useRef<HTMLDivElement>(null);
+
+  // GA4 — 도배 계산기 화면에 들어왔다는 이벤트를 딱 1번만 보낸다(마운트 시점)
+  useEffect(() => {
+    track('calc_view', { process: 'wallpaper' });
+  }, []);
 
   /** 폼 상태 부분 갱신 도우미 — 자식 컴포넌트는 항상 이 함수로만 상태를 바꾼다 */
   function patch(p: Partial<WallpaperFormState>) {
@@ -92,12 +99,14 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
 
   /** 모바일 하단 요약 바 "결과 보기" — 결과 패널로 부드럽게 스크롤 */
   function scrollToResult() {
+    track('calc_cta_click', { process: 'wallpaper', target: 'result_view' });
     resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   return (
     <>
-      <TopNav title="도배 계산기" backHref="/calc" />
+      {/* as="p": 검색엔진용 진짜 h1은 page.tsx(서버)에 sr-only로 따로 있어서, 여긴 h1 중복 방지로 p 태그 */}
+      <TopNav title="도배 계산기" backHref="/calc" as="p" />
 
       {/* 모바일: 세로 1열(모드 세그먼트→벽지→평형/실측→결과), 하단 고정 요약 바만큼 pb-20으로 여백.
           PC(lg): 왼쪽 입력 480~560px 고정 + 오른쪽 결과 sticky */}

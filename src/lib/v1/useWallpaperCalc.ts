@@ -34,6 +34,8 @@ import type { WallpaperFormState, WallpaperProductOption } from './wallpaperQuer
 // 폼 상태 → 엔진 요청 변환은 순수 함수라 서버 결과 페이지(result/page.tsx)와 공유한다.
 // (그 파일은 'use client' 훅을 못 쓰는 서버 컴포넌트라 이 로직만 따로 뺐다)
 import { toEngineInput, type WallpaperCalcRequest } from './wallpaperEngineInput';
+// GA4에 "계산이 실제로 실행됐다"는 이벤트를 보낸다(개인정보 없이 모드·평형대만)
+import { track, pyeongBucket } from '@/lib/analytics';
 
 // ── 서버 응답 모양 (src/server/calc/wallpaper.ts WallpaperCalcResult를 그대로 옮겨 적음) ──
 
@@ -185,6 +187,12 @@ export function useWallpaperCalc(state: WallpaperFormState, products: WallpaperP
       setLoading(false);
       setError(null);
       setStale(false);
+      // GA4: 캐시에서 바로 보여준 것도 사용자 입장에선 "계산 결과를 봤다"이므로 같이 센다
+      track('calc_run', {
+        process: 'wallpaper',
+        mode: state.view === 'precise' ? 'precise' : 'quick',
+        pyeong_bucket: pyeongBucket(state.pyeong),
+      });
       return;
     }
 
@@ -208,6 +216,12 @@ export function useWallpaperCalc(state: WallpaperFormState, products: WallpaperP
           setResult(r);
           setRange(rg);
           setStale(false);
+          // GA4: 서버 계산이 실제로 성공했을 때 1번 기록(입력 원문 없이 모드·평형대만)
+          track('calc_run', {
+            process: 'wallpaper',
+            mode: state.view === 'precise' ? 'precise' : 'quick',
+            pyeong_bucket: pyeongBucket(state.pyeong),
+          });
         })
         .catch((e: unknown) => {
           if (e instanceof DOMException && e.name === 'AbortError') return; // 취소된 요청은 무시

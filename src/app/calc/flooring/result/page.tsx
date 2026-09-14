@@ -25,6 +25,10 @@ import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
 
 export const metadata = {
   title: '바닥재 계산기 결과 — 얼마드나',
+  // 결과 페이지는 ?d= 조건값에 따라 주소가 무한히 갈라진다(공유 링크마다 다른 주소).
+  // 검색엔진에는 전부 "같은 페이지의 변형"이라고 알려주기 위해 canonical을 원본
+  // 계산기 페이지로 모아준다(2026-09-14, 형아 지시: 계산기 SEO 정비).
+  alternates: { canonical: 'https://ulmadna.com/calc/flooring' },
 };
 
 /**

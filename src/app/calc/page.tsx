@@ -5,8 +5,12 @@
 // PC(lg 이상)는 좌 2단 콘텐츠 + 우 사이드(광고 · 많이 찾는 시세).
 //
 // 작성일: 2026년 08월 28일
+// 2026년 09월 14일: SEO 보강 — H1·canonical·BreadcrumbList 추가(형아 지시, 계산기 페이지
+// SEO 정비 작업의 일부). 이 페이지는 서버 컴포넌트라 원래도 내용이 잘 그려지지만,
+// 제목(H1)과 canonical이 아예 없었어서 채워 넣는다.
 // ──────────────────────────────────────────────
 
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import TopNav from '@/components/v1/TopNav';
 import BottomTab from '@/components/v1/BottomTab';
@@ -17,6 +21,13 @@ import Disclaimer from '@/components/v1/Disclaimer';
 import ListRow from '@/components/v1/ListRow';
 import HomeSearch from './HomeSearch';
 import { getAllPostMeta } from '@/lib/blog';
+import { JsonLd, breadcrumbLd, SITE_URL } from '@/lib/seo/jsonld';
+
+export const metadata: Metadata = {
+  title: '인테리어 공정별 계산기 — 얼마드나',
+  description: '도배·바닥재 등 공정별 물량과 비용을 무료로 바로 계산해보세요. 로그인·개인정보 없음.',
+  alternates: { canonical: `${SITE_URL}/calc` },
+};
 
 // 계산기 타일은 ProcessTiles.tsx (2026-09-09 형아 지시: 롤백 전 홈 히어로의 공정 타일 10개를 여기서 보여준다)
 
@@ -47,6 +58,16 @@ export default function V1HomePage() {
       <TopNav />
 
       <main className="pb-24 lg:pb-16">
+        {/* 길잡이(작게) + 제목 — 모바일·PC 공통, 폭이 다른 두 레이아웃 밖에 한 번만 */}
+        <div className="px-4 lg:px-8 pt-3">
+          <nav aria-label="현재 위치" className="text-[12px] text-v1-text-disabled flex items-center gap-1">
+            <Link href="/" className="hover:text-v1-text-secondary">얼마드나</Link>
+            <span aria-hidden="true">›</span>
+            <span>계산기</span>
+          </nav>
+          <h1 className="text-[20px] font-bold text-foreground mt-1">인테리어 공정별 계산기</h1>
+        </div>
+
         {/* ── 모바일: 세로 1단 ── */}
         <div className="lg:hidden px-4 py-4 flex flex-col gap-6">
           <HomeSearch />
@@ -151,6 +172,13 @@ export default function V1HomePage() {
       </main>
 
       <BottomTab />
+
+      <JsonLd
+        data={breadcrumbLd([
+          { name: '얼마드나', href: '/' },
+          { name: '계산기' },
+        ])}
+      />
     </>
   );
 }

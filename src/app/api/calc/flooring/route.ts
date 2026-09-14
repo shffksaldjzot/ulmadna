@@ -24,6 +24,8 @@ import type {
 } from '@/server/calc/flooring';
 import type { FlooringDirectProduct } from '@/server/pricing/flooring';
 import type { FlooringKind } from '@/server/calc/data/flooring-products';
+// 계산 성공 횟수를 Upstash Redis에 조용히 기록(광고차단과 무관한 서버측 사용량 집계)
+import { recordCalcRun } from '@/server/metrics/calcCounter';
 
 /** 이 라우트는 매번 새로 계산한다 (캐시 금지) */
 export const dynamic = 'force-dynamic';
@@ -184,6 +186,8 @@ export async function POST(request: Request) {
 
   try {
     const result = calcFlooring(input);
+    // 계산이 실제로 성공했을 때만 1건 기록한다. 응답을 늦추지 않는다(fire-and-forget).
+    recordCalcRun('flooring', input.mode === '평형' ? 'quick' : 'precise', input.pyeong);
     return NextResponse.json(result, { status: 200 });
   } catch (e) {
     // 계산 중 문제는 서버 문제로 본다. 내부 메시지는 그대로 흘리지 않는다.

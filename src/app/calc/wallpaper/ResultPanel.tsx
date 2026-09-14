@@ -10,7 +10,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Card from '@/components/v1/Card';
 import Collapsible from '@/components/v1/Collapsible';
 import Toggle from '@/components/v1/Toggle';
@@ -21,6 +21,8 @@ import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
 import { type WallpaperFormState, encodeWallpaperForm } from '@/lib/v1/wallpaperQuery';
 import { trimFormForShare } from '@/lib/v1/wallpaperEngineInput';
 import type { WallpaperCalcResultDTO, WallpaperCostLine, WallpaperRange } from '@/lib/v1/useWallpaperCalc';
+// GA4 — 결과 노출/구성 보기 펼침/공유 버튼 클릭 이벤트
+import { track } from '@/lib/analytics';
 
 export interface ResultPanelProps {
   /** 마지막 성공 결과 (물량·부자재·비용 구성 전부 포함) */
@@ -62,6 +64,11 @@ export default function ResultPanel({ result, range, loading, error, stale, form
   // "링크를 복사했어요" 같은 짧은 토스트 메시지
   const [toast, setToast] = useState<string | null>(null);
 
+  // GA4 — 결과 카드가 실제로 화면에 보였을 때(result가 새로 생길 때마다) 1번 기록
+  useEffect(() => {
+    if (result) track('calc_result_view', { process: 'wallpaper' });
+  }, [result]);
+
   // 빈 상태 — 아직 계산할 값이 없거나(벽지 미선택 / 평형 미입력 / 치수 미입력) 계산이
   // 실패했을 때는 카드 1장만 보여준다. 어떤 문구를 보여줄지는 WallpaperCalculator가
   // 폼 상태를 보고 emptyMessage로 미리 정해서 내려준다.
@@ -92,6 +99,7 @@ export default function ResultPanel({ result, range, loading, error, stale, form
 
   /** "결과 공유" — 모바일은 공유 시트가 있으면 그것부터, 아니면 링크 복사 */
   async function handleShare() {
+    track('calc_cta_click', { process: 'wallpaper', target: 'share' });
     // 지금 모드에서 안 쓰는 값(예: simple인데 실측 방 목록)은 링크에 안 싣는다 — 폼 상태
     // 원본(form)은 그대로 두고 공유용 사본만 깎는다(검사관 2라운드 지적 3번)
     const url = `${window.location.origin}/calc/wallpaper/result?d=${encodeWallpaperForm(trimFormForShare(form))}`;
@@ -200,7 +208,11 @@ export default function ResultPanel({ result, range, loading, error, stale, form
           <p className="text-[16px] text-foreground tabular-nums">{cost.basisLine}</p>
           {/* 구성 보기 — 2026-09-09 형아 결정: 기본으로 전부 펼쳐 보여준다(접을 수는 있다).
               견적은 전부 구축 기준이라 맨 위에 "기존 벽지 제거" 토글을 두고 사용자가 보고 판단한다. */}
-          <Collapsible title="구성 보기" defaultOpen>
+          <Collapsible
+            title="구성 보기"
+            defaultOpen
+            onOpen={() => track('calc_detail_open', { process: 'wallpaper' })}
+          >
             <div className="flex flex-col">
               <div className="py-[10px] border-b border-v1-line-2 flex items-center justify-between gap-3">
                 <div className="flex flex-col gap-[2px] min-w-0">

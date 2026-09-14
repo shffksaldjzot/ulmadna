@@ -15,15 +15,30 @@ interface CollapsibleProps {
   /** 기본으로 펼쳐진 상태로 시작할지 */
   defaultOpen?: boolean;
   className?: string;
+  /**
+   * 사용자가 "펼침"으로 바꿀 때만 호출된다(접을 때는 호출 안 함, 최초 defaultOpen도 호출 안 함).
+   * GA4 이벤트(calc_detail_open) 등 분석용 훅을 걸 때 쓴다. 없으면 아무 일도 안 한다.
+   */
+  onOpen?: () => void;
 }
 
-export default function Collapsible({ title, children, defaultOpen = false, className = '' }: CollapsibleProps) {
+export default function Collapsible({ title, children, defaultOpen = false, className = '', onOpen }: CollapsibleProps) {
   const [open, setOpen] = useState(defaultOpen);
+
+  /** 펼침/접힘 토글 — 접힌 상태에서 펼치는 순간에만 onOpen을 알려준다 */
+  function toggle() {
+    setOpen((prev) => {
+      const next = !prev;
+      if (next) onOpen?.();
+      return next;
+    });
+  }
+
   return (
     <div className={className}>
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={toggle}
         className="w-full flex items-center justify-between min-h-11 border-t border-v1-line-2 pt-2 mt-1 text-left"
         aria-expanded={open}
       >

@@ -26,6 +26,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FlooringFormState, FlooringProductOption } from './flooringQuery';
 import { toEngineInput, type FlooringCalcRequest } from './flooringEngineInput';
+// GA4에 "계산이 실제로 실행됐다"는 이벤트를 보낸다(개인정보 없이 모드·평형대만)
+import { track, pyeongBucket } from '@/lib/analytics';
 
 // ── 서버 응답 모양 (지시서 공통규칙 문서의 API 계약 FlooringCalcResult를 그대로 옮겨 적음) ──
 
@@ -176,6 +178,12 @@ export function useFlooringCalc(state: FlooringFormState, products: FlooringProd
       setLoading(false);
       setError(null);
       setStale(false);
+      // GA4: 캐시에서 바로 보여준 것도 사용자 입장에선 "계산 결과를 봤다"이므로 같이 센다
+      track('calc_run', {
+        process: 'flooring',
+        mode: state.view === 'precise' ? 'precise' : 'quick',
+        pyeong_bucket: pyeongBucket(state.pyeong),
+      });
       return;
     }
 
@@ -196,6 +204,12 @@ export function useFlooringCalc(state: FlooringFormState, products: FlooringProd
           setResult(r);
           setRange(rg);
           setStale(false);
+          // GA4: 서버 계산이 실제로 성공했을 때 1번 기록(입력 원문 없이 모드·평형대만)
+          track('calc_run', {
+            process: 'flooring',
+            mode: state.view === 'precise' ? 'precise' : 'quick',
+            pyeong_bucket: pyeongBucket(state.pyeong),
+          });
         })
         .catch((e: unknown) => {
           if (e instanceof DOMException && e.name === 'AbortError') return; // 취소된 요청은 무시
