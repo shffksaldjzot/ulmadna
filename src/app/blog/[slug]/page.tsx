@@ -5,6 +5,7 @@ import { CALCULATORS } from "@/lib/blog-calculators";
 import { notFound } from "next/navigation";
 import { getPost, getAllSlugs, getAllPostMeta } from "@/lib/blog";
 import { detectCategories, getCategory } from "@/lib/blog-categories";
+import { INDEX_BOOST_SLUGS } from "@/lib/blog-index-boost";
 import { BlogHeader } from "@/components/blog/BlogHeader";
 import { SiteFooter } from "@/components/blog/SiteFooter";
 import { PostEngagement } from "@/components/blog/PostEngagement";
@@ -107,7 +108,7 @@ export default async function BlogPost({
   // 저장소가 잠깐 죽으면 빌드 자체가 흔들립니다. 얻는 것보다 잃는 게 커서 뺐습니다.
   // ──────────────────────────────────────────────
   const newestMs = allPosts.reduce((mx, p) => Math.max(mx, toMs(p.date)), 0);
-  const related = allPosts
+  const baseRelated = allPosts
     .filter((p) => p.slug !== post.slug)
     .map((p) => {
       const sharedTags = p.tags.filter((t) => post.tags.includes(t)).length;
@@ -121,6 +122,30 @@ export default async function BlogPost({
     .sort((a, b) => b.score - a.score || (a.p.date < b.p.date ? 1 : -1))
     .slice(0, 4)
     .map((x) => x.p);
+
+  // ──────────────────────────────────────────────
+  // 색인 우선 글 끼워 넣기 — 이미 자리 잡은(=인기 글 대역) 글의 관련 글 슬롯 일부를
+  // 구글에 덜 잡힌 글로 바꿔서, 그 글로 들어오는 내부 링크를 늘려줍니다.
+  //
+  // [왜 "GA 상위 30편" 대신 "발행 30일 지난 글"을 쓰나]
+  // 이 페이지는 빌드 때 미리 만들어지는 정적 페이지라 GA 인증을 붙이면 매번 외부
+  // API를 불러야 하고, 이 프로젝트엔 GA 서비스 계정 키도 없습니다(blog_pipeline
+  // 리포트 봇 쪽에만 있음). 그래서 "발행된 지 30일이 지난 글 = 이미 어느 정도
+  // 검색에 자리 잡았을 인기 글 대역"으로 근사해서 씁니다.
+  // ──────────────────────────────────────────────
+  const isEstablishedPost = (Date.now() - toMs(post.date)) / DAY > 30;
+  let related = baseRelated;
+  if (isEstablishedPost && myCats.length > 0) {
+    const boostPicks = allPosts
+      .filter((p) => p.slug !== post.slug)
+      .filter((p) => INDEX_BOOST_SLUGS.includes(p.slug))
+      .filter((p) => detectCategories(p.title, p.tags).some((c) => myCats.includes(c)))
+      .filter((p) => !baseRelated.some((r) => r.slug === p.slug))
+      .slice(0, 2); // 4칸 중 최대 2칸만 내준다
+    if (boostPicks.length > 0) {
+      related = [...boostPicks, ...baseRelated].slice(0, 4);
+    }
+  }
 
   const articleLd = {
     "@context": "https://schema.org",

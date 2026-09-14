@@ -3,6 +3,7 @@ import { getAllPostIndex } from "@/lib/blog";
 import { BlogHeader } from "@/components/blog/BlogHeader";
 import { SiteFooter } from "@/components/blog/SiteFooter";
 import { BlogListClient } from "@/components/blog/BlogListClient";
+import { MissedPosts } from "@/components/blog/MissedPosts";
 import { AdsenseUnit } from "@/components/ads/AdsenseUnit";
 import { ADSENSE_SLOTS } from "@/lib/ads/adsense";
 import "./blog.css";
@@ -40,6 +41,8 @@ export default function BlogIndex() {
         ) : (
           <>
             <BlogListClient posts={posts} />
+
+            <MissedPosts posts={posts} />
 
             {ADSENSE_SLOTS.blogList && (
               <div className="blog-ad">

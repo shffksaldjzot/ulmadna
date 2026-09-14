@@ -80,6 +80,19 @@
 .blog-more-btn:hover{border-color:var(--accent);color:var(--accent);
   box-shadow:0 8px 20px rgba(92,58,30,.12);}
 .blog-more-left{font-size:12.5px;font-weight:600;color:var(--ink-3);}
+
+/* ---- 놓치기 쉬운 글 (색인 우선 로테이션, 미니 섹션) ---- */
+/* 설명글 없이 캡션 한 줄 + 링크 4개만 — 목록 맨 아래 조용히 배치 */
+.blog-missed{margin:0 0 40px;padding-top:22px;border-top:1px solid var(--beige-200);}
+.blog-missed-caption{font-size:12px;font-weight:800;letter-spacing:.04em;color:var(--ink-3);margin-bottom:10px;}
+.blog-missed-list{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 24px;list-style:none;padding:0;margin:0;}
+.blog-missed-list li{min-width:0;}
+.blog-missed-list a{display:block;font-size:13.5px;color:var(--ink-2);text-decoration:none;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.9;transition:color .14s;}
+.blog-missed-list a:hover{color:var(--accent);text-decoration:underline;}
+@media (max-width:640px){
+  .blog-missed-list{grid-template-columns:1fr;}
+}
 .blog-card{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--beige-200);
   border-radius:16px;overflow:hidden;text-decoration:none;
   box-shadow:0 1px 3px rgba(92,58,30,.05);transition:transform .2s ease,box-shadow .2s ease,border-color .2s;}
