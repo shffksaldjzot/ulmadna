@@ -31,6 +31,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE}/calc`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     { url: `${SITE}/calc/wallpaper`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     { url: `${SITE}/calc/flooring`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${SITE}/calc/mortar`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     // 카테고리 허브 8장 — 주제별 모음 페이지 (글 목록 다음으로 중요한 색인 대상)
     ...BLOG_CATEGORIES.map((c) => ({
       url: `${SITE}/blog/category/${c.id}`,

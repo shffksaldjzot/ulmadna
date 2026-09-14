@@ -10,7 +10,7 @@
 /** href 가 있으면 열린 계산기, 없으면 회색 "준비 중" 타일 */
 const PROCESS_TILES: { name: string; href?: string }[] = [
   { name: '도배', href: '/calc/wallpaper' },
-  { name: '미장' },
+  { name: '미장', href: '/calc/mortar' },
   { name: '조적' },
   { name: '방수' },
   { name: '커튼' },

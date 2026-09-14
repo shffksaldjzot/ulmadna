@@ -1,0 +1,124 @@
+// ──────────────────────────────────────────────
+// 미장(레미탈·셀프레벨링) 단가 — 서버 전용
+//
+// !! 중요 !!
+//   이 파일은 절대 클라이언트에서 import 하면 안 된다.
+//   맨 위 'server-only' 가 그 실수를 빌드 단계에서 잡아 준다.
+//   (라이브 v1에서 단가와 공식이 클라이언트 번들에 통째로 노출된 사고가 있었다.
+//    v1 정식 계산기는 단가를 서버에서만 곱해 소비자가 범위만 내보낸다.)
+//
+// 값마다 기준일·출처·등급을 반드시 같이 적는다.
+//   A = 근거 문서 확보 / B = 여러 출처 교차 확인 / C = 추정, 확인 대기
+//
+// 작성일: 2026년 09월 14일
+// 근거: docs/도메인지식/06_미장.md §4-4·§5-1·§8
+// ──────────────────────────────────────────────
+
+import 'server-only';
+
+import type { EvidenceGrade } from '../calc/schema/types';
+import type { PriceBand } from './wallpaper';
+import { OVERHEAD_RATE as WALLPAPER_OVERHEAD_RATE } from './wallpaper';
+import type { MortarMode } from '../calc/schema/mortar-coefficients';
+
+export type { PriceBand };
+
+// ── 1. 자재(포당) 단가 ────────────────────────────
+//
+// 레미탈은 브랜드별 개별 소비자가 조사가 안 돼 있어(06_미장.md §4-4) 종류 전체를 하나의
+// 유통 시세 밴드로 쓴다. 셀프레벨링은 RFSL30 단일 표본(§5-1)을 기준으로 밴드를 넓혀 잡는다.
+
+/** 종류(모드)별 평균 판매가 밴드 — 제품을 안 고르면(또는 골랐는데 가격이 없으면) 이 값을 쓴다 */
+export const MORTAR_KIND_PRICE_BAND: Record<MortarMode, PriceBand> = {
+  레미탈: {
+    min: 5000,
+    max: 8000,
+    unitLabel: '원/포',
+    기준일: '2026년 09월 14일',
+    출처: '06_미장.md §4-4 — 레미탈 40kg 유통몰 시세 표본(4,730~32,000원, 편차가 커 대표값 미확정)',
+    등급: 'C',
+    비고: '실거래 스냅샷 조사 전 잠정 밴드. 형아 확인 대상',
+  },
+  셀프레벨링: {
+    min: 18000,
+    max: 28000,
+    unitLabel: '원/포',
+    기준일: '2026년 09월 14일',
+    // ⚠️ 2026-09-15 검사관 지적: 06_미장.md는 RFSL30 25,000원 "단일 표본"만 적혀 있고
+    // 18,000~28,000 밴드(중앙값 ±7,000) 자체는 문서 근거 없음 — 만든 사람(코드)이 임시로
+    // 잡은 잠정폭이다. 등급 C, 실거래 추가 조사 전까지 임시값으로만 쓴다.
+    출처: '06_미장.md §5-1 — 한일시멘트 RFSL30 유통 시세 25,000원/25kg(단일 표본). 밴드 폭(18,000~28,000)은 문서 근거 없음, 임시 C',
+    등급: 'C',
+    비고: '제품별 편차가 커 확정 전 밴드. 형아 확인 대상',
+  },
+};
+
+/** 사용자가 직접 넣었거나 제품 마스터에서 고른 자재 정보(가격만 다룬다 — 계수·포장은 엔진 쪽에서 계산에 이미 반영) */
+export interface MortarPricingProduct {
+  /** 포당 판매가 (원). 없으면 종류 평균 밴드를 쓴다 */
+  pricePerBag?: number;
+  /** 화면 표기용 출처 문구. 없으면 "사용자 직접 입력" */
+  sourceLabel?: string;
+}
+
+/**
+ * 자재(레미탈 또는 셀프레벨링) 단가 밴드를 고른다.
+ * 제품 가격이 있으면 그 값을 최저=최고 고정값으로 쓰고, 없으면 종류 평균 밴드로 폴백한다.
+ */
+export function getMortarMaterialBand(mode: MortarMode, product?: MortarPricingProduct): PriceBand {
+  if (product?.pricePerBag && product.pricePerBag > 0) {
+    return {
+      min: Math.round(product.pricePerBag),
+      max: Math.round(product.pricePerBag),
+      unitLabel: '원/포',
+      기준일: '2026년 09월 14일',
+      출처: product.sourceLabel ?? '사용자 직접 입력',
+      등급: 'A',
+      비고: '직접 입력값 — 시세 통계에는 반영하지 않는다',
+    };
+  }
+  return MORTAR_KIND_PRICE_BAND[mode];
+}
+
+// ── 2. 부자재 단가 ───────────────────────────────
+
+// ⚠️ 2026-09-15 검사관 지적: 아래 1,500~3,000원/㎡은 06_미장.md에 근거가 전혀 없다(문서는
+// 라스 붙임 품(인건)만 규정하고 재료 가격은 안 다룬다) — 시중 유리섬유메시 시세를 참고해
+// 코드 작성자가 임시로 잡은 값이다. 등급 C, 실거래 조사 전까지 임시값으로만 쓴다.
+/** 와이어메시 ㎡당 단가 — 06_미장.md 근거 없음, 임시 C(시중 유리섬유메시 시세 참고 추정) */
+const WIRE_MESH_PRICE: PriceBand = {
+  min: 1500,
+  max: 3000,
+  unitLabel: '원/㎡',
+  기준일: '2026년 09월 14일',
+  출처: '06_미장.md §8 — 표준품셈은 라스 붙임 품(인건)만 규정하고 재료 자체 가격은 없음. 06_미장.md 근거 없음, 임시 C(시중 유리섬유메시 시세 참고 추정)',
+  등급: 'C',
+  비고: '실거래 조사 전 추정 — 형아 확인 대상',
+};
+
+/** 프라이머 18L 통당 단가 — 마페이 18kg 캔 가격을 참고해 추정 */
+const PRIMER_PRICE: PriceBand = {
+  min: 70000,
+  max: 95000,
+  unitLabel: '원/통',
+  기준일: '2026년 09월 14일',
+  출처: '06_미장.md §5-1 — 마페이 프라이머 18kg 약 91,000원(단일 표본) 기준 추정 밴드',
+  등급: 'C',
+  비고: '한일시멘트 SL프라이머 등 타사 가격 미확보 — 형아 확인 대상',
+};
+
+/** 부자재 항목 키(wiremesh·primer)로 단가 밴드를 찾는다. 없으면 undefined */
+export function getMortarSubmaterialBand(itemKey: string): PriceBand | undefined {
+  if (itemKey === 'wiremesh') return WIRE_MESH_PRICE;
+  if (itemKey === 'primer') return PRIMER_PRICE;
+  return undefined;
+}
+
+// ── 3. 일반경비율 ─────────────────────────────────
+//
+// 도배 단가 파일의 경비율(6~9%)을 그대로 준용한다 — 미장 전용 견적서 표본이 없다.
+
+export const OVERHEAD_RATE = WALLPAPER_OVERHEAD_RATE;
+
+/** 등급 글자 타입을 다시 내보낸다 */
+export type { EvidenceGrade };
