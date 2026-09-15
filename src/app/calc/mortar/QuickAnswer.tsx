@@ -6,17 +6,20 @@
 // 비용 범위만 서버 응답(result)이 오면 덧붙인다("계산하기" 버튼 없음).
 //
 // 레미탈 모드 — 용도 칩 4개(확장부 바닥 / 욕실·현관 구배 / 마루 철거 후 보수 / 방통 전체)를
-//   누르면 06_미장.md 관행 두께로 자동 채워진다. 공법(장비 타설/손미장)도 용도가 정한다
-//   (방통 전체만 장비 타설). 그 아래 두께 칩 줄(30~150mm) + 직접 입력 칸을 따로 둔다
-//   (2026-09-15 형아 피드백: 방통은 현장에서 50~150mm까지도 흔히 쓴다).
+//   누르면 06_미장.md 관행 두께로 자동 채워진다. 공법 칩(손미장/장비 타설)도 따로 둔다 —
+//   기본값은 용도와 무관하게 항상 손미장(아파트·국소 현장이 대부분이라 레미콘차 진입이
+//   어렵다는 현장 판단, §11-9)이고, 사용자가 공법 칩으로 직접 바꿀 수 있다(2026-09-15
+//   운영자 현장 기준 지시로 간단 모드에도 공법 칩을 추가했다 — 예전엔 "방통 전체만 장비
+//   타설"이 기본이었는데 폐기됨). 그 아래 두께 칩 줄(30~150mm) + 직접 입력 칸을 따로 둔다
+//   (2026-09-15 운영자 현장 기준 피드백: 방통은 현장에서 50~150mm까지도 흔히 쓴다).
 // 셀프레벨링 모드 — 용도 칩 3개(두께 기본값만 정한다) + 두께 칩 6개(3~30mm) + 직접 입력.
 //
-// 2026-09-15 형아 피드백:
+// 2026-09-15 운영자 현장 기준 피드백:
 //   - "레미탈 포수가 안 보였다" → 큰 숫자를 quick(즉시 계산)에서 가져와 항상 보여준다.
 //   - "몇 kg짜리 몇 포인지 안 보인다" → 큰 숫자를 "레미탈 40kg × 65포" 형태로 쓰고,
 //     그 아래 제품명 + "주문 수량: N포(로스 5% 포함)" 캡션을 붙인다.
 //
-// 작성일: 2026년 09월 14일 · 개정: 2026년 09월 15일(형아 피드백 2라운드)
+// 작성일: 2026년 09월 14일 · 개정: 2026년 09월 15일(운영자 현장 기준 피드백 2라운드)
 // ──────────────────────────────────────────────
 
 'use client';
@@ -36,6 +39,7 @@ import {
   SELF_LEVEL_USAGE_ORDER,
   REMICON_THICKNESS_CHIPS,
   SELF_LEVEL_THICKNESS_CHIPS,
+  METHOD_CAPTION,
 } from '@/lib/v1/mortarPresets';
 
 export interface QuickAnswerProps {
@@ -61,11 +65,13 @@ export default function QuickAnswer({ form, patch, quick, result, range, error }
 
   const presets = areaUnit === '평' ? AREA_PRESETS_PYEONG : AREA_PRESETS_SQM;
   const thicknessChips = mode === '레미탈' ? REMICON_THICKNESS_CHIPS : SELF_LEVEL_THICKNESS_CHIPS;
+  // 공법 — 명시적으로 안 바꿨으면 용도 기본값(현재는 전부 손미장)을 그대로 보여준다(레미탈 전용)
+  const effectiveMethod = form.method ?? (form.usage ? USAGE_PRESET[form.usage].defaultMethod : '손미장');
 
   return (
     <Card>
       {/* 1) 시공 면적 — 평/㎡ 직접 입력 또는 가로×세로. 라벨을 "시공 면적"으로 둬서(2026-09-15
-          형아 지시) 집 평형이 아니라 "바를 바닥 면적"이라는 걸 캡션 1줄로 분명히 한다 */}
+          운영자 현장 기준 지시) 집 평형이 아니라 "바를 바닥 면적"이라는 걸 캡션 1줄로 분명히 한다 */}
       <div className="flex items-center justify-between">
         <span className="text-[16px] font-semibold text-foreground">시공 면적</span>
         <div className="flex gap-2">
@@ -153,8 +159,28 @@ export default function QuickAnswer({ form, patch, quick, result, range, error }
         </>
       )}
 
+      {/* 2-B) 공법 — 레미탈 전용. 간단 모드에도 노출한다(2026-09-15 운영자 현장 기준 지시).
+          기본값은 항상 손미장(방통 포함) — 아파트·국소 현장이 대부분이라 레미콘차 진입이
+          어렵다는 운영자 현장 기준 현장 기준. 캡션 1줄로만 설명한다(설명글 최소화 원칙). */}
+      {mode === '레미탈' && (
+        <>
+          <div className="flex items-center justify-between pt-1">
+            <span className="text-[16px] font-semibold text-foreground whitespace-nowrap flex-none">공법</span>
+            <div className="flex gap-2">
+              <Chip shape="square" selected={effectiveMethod === '손미장'} onClick={() => patch({ method: '손미장' })}>
+                손미장
+              </Chip>
+              <Chip shape="square" selected={effectiveMethod === '장비타설'} onClick={() => patch({ method: '장비타설' })}>
+                장비 타설
+              </Chip>
+            </div>
+          </div>
+          <p className="text-[14px] text-v1-text-secondary">{METHOD_CAPTION}</p>
+        </>
+      )}
+
       {/* 3) 두께 — 칩(용도를 고르면 기본값이 자동 선택된다) + 직접 입력.
-          2026-09-15 형아 피드백: 용도 아래에 두께 칩 줄을 따로 두고, 바꾸면 그 값이 우선한다
+          2026-09-15 운영자 현장 기준 피드백: 용도 아래에 두께 칩 줄을 따로 두고, 바꾸면 그 값이 우선한다
           (용도를 다시 누르면 그 용도의 기본값으로 되돌아간다) */}
       <span className="text-[16px] font-semibold text-foreground pt-1">두께</span>
       <div className="flex flex-wrap gap-2">
@@ -205,6 +231,8 @@ export default function QuickAnswer({ form, patch, quick, result, range, error }
             )
           )}
           <p className="text-[14px] text-v1-text-disabled tabular-nums">{result?.cost.basisLine}</p>
+          {/* 간단 모드 총액엔 양중·운송·하차비가 안 들어간다(정확 모드 전용 입력) — 1줄 안내로 대신한다 */}
+          <p className="text-[14px] text-v1-text-secondary">양중·운송은 현장에 따라 별도예요</p>
         </>
       )}
     </Card>

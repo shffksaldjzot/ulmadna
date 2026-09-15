@@ -59,6 +59,55 @@ function buildSummary(state: MortarFormState): string {
 
 const COUNT_UNITS = new Set(['포', '통', '개', '㎡']);
 
+/** 비용 구성 한 줄의 최소 모양(레이어 그룹핑에서 재사용) */
+interface CostLineLike {
+  key: string;
+  name: string;
+  qty: number;
+  unit: string;
+  unitPriceMin: number;
+  unitPriceMax: number;
+  amountMin: number;
+  amountMax: number;
+  note: string;
+  layer: '자재' | '부자재' | '운송·하차' | '양중' | '인건' | '경비';
+  grade: 'A' | 'B' | 'C';
+}
+
+/** 5층 비용 구성 순서 — 06_미장.md §11-9. 경비는 5층엔 안 들지만 합계 줄로 맨 뒤에 그대로 둔다 */
+const LAYER_ORDER: CostLineLike['layer'][] = ['자재', '부자재', '운송·하차', '양중', '인건', '경비'];
+
+/** breakdown을 층별로 묶고 층 소계(금액 범위)를 같이 낸다 — 빈 층은 뺀다 */
+function groupByLayer(breakdown: CostLineLike[]) {
+  return LAYER_ORDER.map((layer) => {
+    const lines = breakdown.filter((b) => b.layer === layer);
+    return {
+      layer,
+      lines,
+      subMin: lines.reduce((s, l) => s + l.amountMin, 0),
+      subMax: lines.reduce((s, l) => s + l.amountMax, 0),
+    };
+  }).filter((g) => g.lines.length > 0);
+}
+
+/**
+ * 금액 범위를 만원 단위로 뭉개면 안 보이는 소액(1만원 미만) 줄을 위한 보조 포맷터.
+ * 2026-09-15 현장 지시: 시멘트처럼 줄 전체 금액이 1만원 밑인 항목이 formatManRange로
+ * "0만~1만원"처럼 뭉개져 나오는 문제 — 1만원 미만은 천원 단위("4천~6천원")로, 1만원
+ * 이상이면 기존 만원 단위(formatManRange)로 나눠 보여준다. ResultPanel.tsx와 같은 함수.
+ */
+function formatWonRange(min: number, max: number): string {
+  if (max < 10000) {
+    const a = Math.round(min / 1000);
+    const b = Math.round(max / 1000);
+    return a === b ? `${a}천원` : `${a}천~${b}천원`;
+  }
+  return formatManRange(min, max);
+}
+
+// 2026-09-15 운영자 현장 기준 지시(노임 범위화): 분기 기준을 unitPriceMin===Max에서 amountMin===Max로
+// 바꿨다 — 인건 줄은 단가가 인원×혼합 노임이라 단일값이 아니지만(0으로 채워 둠), 금액은
+// 실제 범위를 갖는다(ResultPanel.tsx와 같은 이유).
 function formatCostLineAmount(line: {
   key: string;
   qty: number;
@@ -73,7 +122,7 @@ function formatCostLineAmount(line: {
       ? `${line.unitPriceMin}%`
       : `${line.unitPriceMin}~${line.unitPriceMax}%`;
   }
-  if (line.unitPriceMin === line.unitPriceMax) {
+  if (line.amountMin === line.amountMax) {
     if (COUNT_UNITS.has(line.unit) && line.amountMin < 100000) {
       return `${formatNum(line.qty)}${line.unit} × ${formatNum(line.unitPriceMin)}원 = ${formatNum(line.amountMin)}원`;
     }
@@ -84,7 +133,7 @@ function formatCostLineAmount(line: {
     }
     return `${formatNum(line.qty)}${line.unit} × ${manPrice}만 = ${manAmount}만`;
   }
-  return formatManRange(line.amountMin, line.amountMax);
+  return formatWonRange(line.amountMin, line.amountMax);
 }
 
 interface PageProps {
@@ -142,7 +191,7 @@ export default async function MortarResultPage({ searchParams }: PageProps) {
       <div className="px-4 py-4 pb-8 flex flex-col gap-4 max-w-[720px] mx-auto">
         <p className="text-[14px] text-v1-text-secondary tabular-nums">{buildSummary(state)}</p>
 
-        {/* 카드 1 — 물량. 큰 숫자는 "레미탈 40kg × N포" 형태(2026-09-15 형아 피드백 —
+        {/* 카드 1 — 물량. 큰 숫자는 "레미탈 40kg × N포" 형태(2026-09-15 운영자 현장 기준 피드백 —
             "몇 kg짜리 몇 포인지"가 안 보였다는 지적) */}
         <Card>
           <div className="flex items-baseline gap-1 flex-wrap">
@@ -162,10 +211,11 @@ export default async function MortarResultPage({ searchParams }: PageProps) {
             {quantity.thicknessMm}mm · 면적 {formatNum(quantity.areaSqm)}㎡ · 몰탈 {quantity.volumeWithLossM3}㎥
           </p>
           {quantity.standardRangeNote && <p className="text-[14px] text-v1-text-secondary">{quantity.standardRangeNote}</p>}
-          {/* 레미탈은 품수(공법 표시 포함), 셀프레벨링은 "시공비는 현장 견적 별도" 안내로 대체한다 */}
+          {/* 레미탈은 인원 한 줄(공법 표시 포함), 셀프레벨링은 "시공비는 현장 견적 별도" 안내로 대체한다 */}
           {labor ? (
             <p className="text-[14px] text-v1-text-disabled tabular-nums">
-              {labor.method === '장비타설' ? '장비 타설' : '손미장(추정)'} {labor.manDaysTotal}품 · 2인 1조 약 {labor.teamDays}일
+              {labor.method === '장비타설' ? '장비 타설' : '손미장(추정)'} · 기공 {labor.crewPlasterer}인 · 조공 {labor.crewHelper}인
+              {labor.crewMechanic > 0 ? ` · 기계운전 ${labor.crewMechanic}인` : ''}, {labor.days}일 완료
             </p>
           ) : (
             result.laborAdvisoryNote && <p className="text-[14px] text-v1-text-disabled">{result.laborAdvisoryNote}</p>
@@ -221,17 +271,37 @@ export default async function MortarResultPage({ searchParams }: PageProps) {
             중간 {toMan(cost.mid).toLocaleString('ko-KR')}만원
           </p>
           <p className="text-[16px] text-foreground tabular-nums">{cost.basisLine}</p>
+          {/* 현장 확인 필요 — 운송·양중·(장비타설시)장비대는 값을 안 넣으면 계산에서 빠진다 */}
+          {result.siteConfirmItems.length > 0 && (
+            <p className="text-[14px] text-v1-text-secondary">현장 확인 필요: {result.siteConfirmItems.join('·')}</p>
+          )}
+          {/* 5층 비용 구성표 — 자재/부자재/운송·하차/양중/인건 층별 소계 */}
           <Collapsible title="구성 보기" defaultOpen>
             <div className="flex flex-col">
-              {cost.breakdown.map((line, i) => (
-                <div key={line.key} className={`py-[10px] ${i === cost.breakdown.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
+              {groupByLayer(cost.breakdown as CostLineLike[]).map((group) => (
+                <div key={group.layer} className="py-[10px] border-b border-v1-line-2">
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-[16px] text-foreground min-w-0 truncate">{line.name}</span>
-                    <span className="text-[16px] text-foreground tabular-nums whitespace-nowrap flex-none">
-                      {formatCostLineAmount(line)}
+                    <span className="text-[14px] font-semibold text-v1-text-label">{group.layer}</span>
+                    <span className="text-[14px] font-semibold text-v1-text-label tabular-nums whitespace-nowrap">
+                      {formatWonRange(group.subMin, group.subMax)}
                     </span>
                   </div>
-                  <p className="text-[14px] text-v1-text-disabled tabular-nums">{line.note}</p>
+                  <div className="flex flex-col pt-1">
+                    {group.lines.map((line) => (
+                      <div key={line.key} className="py-[6px]">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-[16px] text-foreground min-w-0 truncate">{line.name}</span>
+                          <span className="text-[16px] text-foreground tabular-nums whitespace-nowrap flex-none">
+                            {formatCostLineAmount(line)}
+                          </span>
+                        </div>
+                        <p className="text-[14px] text-v1-text-disabled tabular-nums">
+                          {line.note}
+                          {line.grade === 'C' && !line.note.includes('추정') ? ' · 추정' : ''}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
               <p className="text-[14px] text-v1-text-disabled pt-[10px]">소비자가 기준 · 부가세 포함</p>

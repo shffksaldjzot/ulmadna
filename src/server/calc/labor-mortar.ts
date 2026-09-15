@@ -2,50 +2,44 @@
 // 미장(레미탈·셀프레벨링) 인건 계산 모듈
 //
 // 이 파일이 하는 일:
-//   "이 미장 공사에 사람이 며칠 붙는가(품수)"를 계산한다.
+//   "이 미장 공사에 사람이 몇 명 붙는가(인원수)"를 계산한다. 도배·바닥재처럼 "품(인-일)을
+//   누적해서 며칠"로 계산하지 않는다 — 06_미장.md §11-8 "연속 타설 규칙"에 따라 미장은
+//   구획이 안 나뉘면 하루 안에 반드시 끝내야 한다(물량이 많으면 날짜를 늘리지 않고 사람을
+//   늘린다). 그래서 이 모듈의 결과는 항상 "며칠"이 아니라 "오늘 몇 명"이다.
 //
-// 2026-09-14 검사관(opus) 지적으로 크게 고쳤다:
-//   1) "체적 10㎥ 이상이면 장비 타설" 문턱을 폐기했다. 공법은 **용도**가 정한다 —
-//      방통 전체는 장비 타설(9-1-3+9-1-4+일반기계운전사 9-1-3), 나머지(확장부·욕실구배·
-//      마루보수)는 손미장(9-1-2 벽 기준 준용)이다. 오케스트레이터(mortar.ts)가 용도로
-//      기본 공법을 정하고, 정밀 모드에서 사용자가 공법 토글로 직접 바꿀 수도 있다 —
-//      그래서 이 함수는 `method`를 그대로 받기만 하고 스스로 판정하지 않는다.
-//   2) 장비 타설이면 장비 사용료는 계상하지 않고(단가를 지어내지 않는다) "장비비 별도"
-//      안내 문구만 돌려준다.
-//   3) 셀프레벨링은 인건 자체를 계산하지 않는다(06_미장.md §6-4 — 인건비만 분리한 근거가
-//      없어서 원/㎡ 단가를 만들면 추정이 아니라 창작이 된다). null을 돌려주고, 화면은
-//      "시공비는 현장 견적 별도" 안내만 보여준다.
+// 2026-09-15 운영자 현장 기준 지시로 전면 개정한 것:
+//   1) 손미장 인건 공식을 §6-1(벽 모르타르 바름 준용, ㎡당 0.07·0.03) 방식에서
+//      §11-5·§11-8(운영자 현장 기준 "20평×100mm=기공2·조공2, 1일") 방식으로 바꿨다.
+//      새 공식: 필요 인원 = ceil(체적㎥ ÷ 6.6116㎥ × 2), 기공·조공 각각 최소 1명.
+//   2) 장비 타설도 같은 "하루 완료" 철학으로 바꿨다 — 9-1-3 품(인-일)을 그대로 인원수로
+//      쓴다(품이 곧 "그날 필요한 사람 수"라고 본다). 예전처럼 반나절 단위로 올려 "2인 1조
+//      며칠"로 보여주지 않는다.
+//   3) 노임을 단일값이 아니라 범위(PLASTERER_WAGE_RANGE·HELPER_WAGE_RANGE)로 바꿨다 —
+//      하한 시장가·상한 표준품셈. 인건비도 amountMin~amountMax 범위로 나온다.
+//   4) 장비대(장비 임대료)·피니싱(정벌 마무리)은 이 모듈이 계산하지 않는다 — 둘 다 인원
+//      계산과 무관한 "고정 비용/추가 인원" 항목이라 오케스트레이터(mortar.ts)가 직접
+//      pricing/mortar.ts 단가로 별도 줄을 만든다(5층 비용 구성 중 "인건" 층에 같이 묶인다).
+//   5) 셀프레벨링은 여전히 인건을 계산하지 않는다(06_미장.md §6-4 — 인건비만 분리한
+//      근거가 없어서 원/㎡ 단가를 만들면 추정이 아니라 창작이 된다). null을 돌려주고,
+//      화면은 "시공비는 현장 견적 별도" 안내만 보여준다.
 //
-// 계산 방식(레미탈 모드):
-//   장비 타설: 미장공 = 체적×0.039 + 면적×0.003(표면마무리) · 보통인부 = 체적×0.047
-//              · 일반기계운전사 = 체적×0.020(노임은 추정치, 등급 C)
-//   손미장  : 미장공 = 면적×0.07 · 보통인부 = 면적×0.03
-//   와이어메시 옵션을 켰으면 라스 붙임 품(미장공 면적/10×0.14)을 더한다(공법 무관).
-//
-// 품수는 반나절(0.5품) 단위로 올리고 **최소 0.5품**을 보장한다(도배·바닥재의 "최소 1품"과
-// 다르게, 미장은 반나절 출동도 가능하다고 본다 — 2026-09-14 검사관 지적으로 주석을
-// 코드와 맞췄다. 예전 주석은 "최소 1품"이라고 잘못 적혀 있었다).
-//
-// 작성일: 2026년 09월 14일
-// 근거: docs/도메인지식/06_미장.md §6·§7
+// 작성일: 2026년 09월 14일 · 개정: 2026년 09월 15일(운영자 현장 기준 지시 — 5층 비용 구조 전면 개편)
+// 근거: docs/도메인지식/06_미장.md §11-5·§11-6·§11-7·§11-8
 // ──────────────────────────────────────────────
 
 import 'server-only';
 
+import { ceilSafe } from './cutting/round';
 import {
-  SMALL_AREA_PLASTERER_PER_SQM,
-  SMALL_AREA_HELPER_PER_SQM,
+  HAND_CREW_BASE_VOLUME_M3,
+  HAND_CREW_BASE_HEADCOUNT,
   LARGE_AREA_PLASTERER_PER_M3,
   LARGE_AREA_HELPER_PER_M3,
   LARGE_AREA_MECHANIC_PER_M3,
-  LARGE_AREA_FINISH_PLASTERER_PER_100SQM,
-  EQUIPMENT_RENTAL_NOTE,
-  PLASTERER_DAILY_WAGE_2026H1,
-  HELPER_DAILY_WAGE_2026H1,
+  PLASTERER_WAGE_RANGE,
+  HELPER_WAGE_RANGE,
   MECHANIC_DAILY_WAGE_ESTIMATE,
   WIRE_MESH_LABOR_MANDAY_PER_10SQM,
-  MORTAR_MAN_DAY_STEP,
-  MORTAR_TEAM_SIZE,
   SELF_LEVEL_LABOR_ADVISORY_NOTE,
   type MortarMode,
   type MortarMethod,
@@ -67,25 +61,23 @@ export interface MortarLaborInput {
 
 /** 인건 계산 결과 */
 export interface MortarLaborResult {
-  /** 미장공 품수 (소수 1자리) */
-  manDaysPlasterer: number;
-  /** 보통인부 품수 (소수 1자리) */
-  manDaysHelper: number;
-  /** 일반기계운전사 품수 (소수 1자리) — 장비 타설일 때만 0보다 크다 */
-  manDaysMechanic: number;
-  /** 합산 품수 (반나절 단위 올림, 최소 0.5) — 결과 화면 "시공" 줄의 qty */
-  manDaysTotal: number;
-  /** 참고용 조 일수 (2인 1조 기준) */
-  teamDays: number;
-  /** 실제 노임을 곱한 인건비 총액 (원) */
-  amount: number;
+  /** 기공(미장공) 인원 — 오늘 하루 투입해야 하는 인원수 */
+  crewPlasterer: number;
+  /** 조공(보통인부) 인원 */
+  crewHelper: number;
+  /** 일반기계운전사 인원 — 장비 타설일 때만 0보다 크다 */
+  crewMechanic: number;
+  /** 완료 일수 — 연속 타설 하루 완료 제약이라 항상 1 */
+  days: 1;
+  /** 인건비 총액 하한(원) — 시장 일당 기준 */
+  amountMin: number;
+  /** 인건비 총액 상한(원) — 표준품셈 일당 기준 */
+  amountMax: number;
   /** 이번에 쓴 공법 */
   method: MortarMethod;
-  /** 장비 타설일 때만: "장비비 별도" 안내 문구(가격은 안 붙인다) */
-  equipmentNote?: string;
   /** 일반기계운전사 노임이 추정치(등급 C)라는 표시 — 화면 배지용 */
   mechanicWageIsEstimate: boolean;
-  /** 서버 안에서만 쓰는 근거 문장 (화면 note 에는 품수만 나간다) */
+  /** 서버 안에서만 쓰는 근거 문장 (화면 note 에는 인원·일수만 나간다) */
   basis: string;
 }
 
@@ -94,13 +86,8 @@ function r1(n: number): number {
   return Math.round(n * 10) / 10;
 }
 
-/** 반나절(0.5) 단위로 올리고 최소 0.5를 보장한다 */
-function roundManDays(raw: number): number {
-  return Math.max(MORTAR_MAN_DAY_STEP, Math.ceil(raw / MORTAR_MAN_DAY_STEP) * MORTAR_MAN_DAY_STEP);
-}
-
 /**
- * 미장 시공 품수·인건비를 계산한다.
+ * 미장 시공 인원·인건비를 계산한다.
  * 셀프레벨링은 인건을 계산하지 않으므로 null을 돌려준다 — 호출하는 쪽(mortar.ts)이
  * null이면 결과의 labor 칸을 아예 비우고 SELF_LEVEL_LABOR_ADVISORY_NOTE를 대신 보여준다.
  */
@@ -109,61 +96,72 @@ export function calcMortarLabor(input: MortarLaborInput): MortarLaborResult | nu
 
   const area = Math.max(0, input.areaSqm);
   const thickness = Math.max(0, input.thicknessMm);
+  // 체적은 순수값(로스 미포함)을 쓴다 — 운영자 현장 기준 6.6116㎥도 로스 없는 기하학적 체적이다.
   const volumeM3 = (area * thickness) / 1000;
   const method: MortarMethod = input.method ?? '손미장';
 
-  let plasterer: number;
-  let helper: number;
-  let mechanic = 0;
-  let equipmentNote: string | undefined;
+  let crewPlasterer: number;
+  let crewHelper: number;
+  let crewMechanic = 0;
 
   if (method === '장비타설') {
-    // 표준품셈 9-1-3(타설) + 9-1-4(표면 마무리·인력마감) + 일반기계운전사
-    plasterer = volumeM3 * LARGE_AREA_PLASTERER_PER_M3.value + area * (LARGE_AREA_FINISH_PLASTERER_PER_100SQM.value / 100);
-    helper = volumeM3 * LARGE_AREA_HELPER_PER_M3.value;
-    mechanic = volumeM3 * LARGE_AREA_MECHANIC_PER_M3.value;
-    equipmentNote = EQUIPMENT_RENTAL_NOTE;
+    // 표준품셈 9-1-3(타설) + 일반기계운전사 — 품(인-일)을 그대로 "오늘 필요한 인원"으로
+    // 쓴다(연속 타설 하루 완료 제약, §11-8을 장비 타설에도 준용).
+    // ⚠️ 2026-09-15 검사관 지적: 예전엔 여기에 9-1-4(표면마무리, LARGE_AREA_FINISH_
+    // PLASTERER_PER_100SQM)까지 더했는데, 오케스트레이터(mortar.ts)가 "피니싱"이라는
+    // 별도 줄(형아 기준 — 기공 1인 × 0.5일, §11-6)을 이미 breakdown에 추가하고 있어서
+    // 표면마무리 인건이 두 번 잡히는 이중 계상이었다(품(0.30/100㎡)과 형아 기준(0.5일)은
+    // 서로 다른 출처의 "마무리" 개념이라 둘 다 더하면 안 된다). 형아 기준(피니싱)을
+    // 채택하고 여기서는 9-1-3(순수 타설)만 남긴다.
+    const plastererManDay = volumeM3 * LARGE_AREA_PLASTERER_PER_M3.value;
+    const helperManDay = volumeM3 * LARGE_AREA_HELPER_PER_M3.value;
+    const mechanicManDay = volumeM3 * LARGE_AREA_MECHANIC_PER_M3.value;
+    crewPlasterer = Math.max(1, ceilSafe(plastererManDay));
+    crewHelper = Math.max(1, ceilSafe(helperManDay));
+    crewMechanic = mechanicManDay > 0 ? Math.max(1, ceilSafe(mechanicManDay)) : 0;
   } else {
-    // 손미장 — 표준품셈 9-1-2 벽 기준 준용(등급 C)
-    plasterer = area * SMALL_AREA_PLASTERER_PER_SQM.value;
-    helper = area * SMALL_AREA_HELPER_PER_SQM.value;
+    // 손미장 — 운영자 현장 기준 20평(6.6116㎥)×100mm = 기공2·조공2, 1일(§11-5).
+    // 필요 인원 = ceil(체적 ÷ 기준체적 × 기준인원), 최소 1명씩.
+    const raw = (volumeM3 / HAND_CREW_BASE_VOLUME_M3.value) * HAND_CREW_BASE_HEADCOUNT.value;
+    crewPlasterer = Math.max(1, ceilSafe(raw));
+    crewHelper = Math.max(1, ceilSafe(raw));
   }
 
-  // 와이어메시 옵션 — 라스 붙임 품(미장공)을 더한다. 공법과 무관하게 적용
-  if (input.wireMesh) {
-    plasterer += (area / 10) * WIRE_MESH_LABOR_MANDAY_PER_10SQM.value;
-  }
+  // 와이어메시 옵션 — 라스 붙임 품(미장공)을 인건비에 더한다. 인원수 자체는 안 늘린다
+  // (같은 기공 조가 하루 안에 같이 처리할 수 있는 소량 추가 작업으로 본다).
+  const wireMeshManDay = input.wireMesh ? (area / 10) * WIRE_MESH_LABOR_MANDAY_PER_10SQM.value : 0;
 
-  const amount = Math.round(
-    plasterer * PLASTERER_DAILY_WAGE_2026H1.value +
-      helper * HELPER_DAILY_WAGE_2026H1.value +
-      mechanic * MECHANIC_DAILY_WAGE_ESTIMATE.value,
+  const amountMin = Math.round(
+    crewPlasterer * PLASTERER_WAGE_RANGE.min +
+      crewHelper * HELPER_WAGE_RANGE.min +
+      crewMechanic * MECHANIC_DAILY_WAGE_ESTIMATE.value +
+      wireMeshManDay * PLASTERER_WAGE_RANGE.min,
   );
-  const manDaysPlasterer = r1(plasterer);
-  const manDaysHelper = r1(helper);
-  const manDaysMechanic = r1(mechanic);
-  const manDaysTotal = roundManDays(manDaysPlasterer + manDaysHelper + manDaysMechanic);
-  const teamDays = r1(manDaysTotal / MORTAR_TEAM_SIZE.value);
+  const amountMax = Math.round(
+    crewPlasterer * PLASTERER_WAGE_RANGE.max +
+      crewHelper * HELPER_WAGE_RANGE.max +
+      crewMechanic * MECHANIC_DAILY_WAGE_ESTIMATE.value +
+      wireMeshManDay * PLASTERER_WAGE_RANGE.max,
+  );
 
   const parts = [
-    method === '장비타설' ? `체적 ${r1(volumeM3)}㎥ 장비 타설 기준` : `면적 ${r1(area)}㎡ 손미장 기준`,
-    `미장공 ${manDaysPlasterer}인 × ${PLASTERER_DAILY_WAGE_2026H1.value.toLocaleString()}원`,
-    `보통인부 ${manDaysHelper}인 × ${HELPER_DAILY_WAGE_2026H1.value.toLocaleString()}원`,
+    method === '장비타설' ? `체적 ${r1(volumeM3)}㎥ 장비 타설 기준` : `체적 ${r1(volumeM3)}㎥ 손미장 기준(20평×100mm=기공2·조공2 환산)`,
+    `기공 ${crewPlasterer}인 × ${PLASTERER_WAGE_RANGE.min.toLocaleString()}~${PLASTERER_WAGE_RANGE.max.toLocaleString()}원`,
+    `조공 ${crewHelper}인 × ${HELPER_WAGE_RANGE.min.toLocaleString()}~${HELPER_WAGE_RANGE.max.toLocaleString()}원`,
   ];
-  if (mechanic > 0) parts.push(`일반기계운전사 ${manDaysMechanic}인 × ${MECHANIC_DAILY_WAGE_ESTIMATE.value.toLocaleString()}원(추정)`);
-  if (input.wireMesh) parts.push('와이어메시 라스 붙임 품 포함');
-  parts.push(`= ${amount.toLocaleString()}원 → ${manDaysTotal}품 (2인 1조 약 ${teamDays}일)`);
+  if (crewMechanic > 0) parts.push(`일반기계운전사 ${crewMechanic}인 × ${MECHANIC_DAILY_WAGE_ESTIMATE.value.toLocaleString()}원(추정)`);
+  if (wireMeshManDay > 0) parts.push('와이어메시 라스 붙임 품 포함');
+  parts.push(`= ${amountMin.toLocaleString()}~${amountMax.toLocaleString()}원 → 1일 완료`);
 
   return {
-    manDaysPlasterer,
-    manDaysHelper,
-    manDaysMechanic,
-    manDaysTotal,
-    teamDays,
-    amount,
+    crewPlasterer,
+    crewHelper,
+    crewMechanic,
+    days: 1,
+    amountMin,
+    amountMax,
     method,
-    equipmentNote,
-    mechanicWageIsEstimate: mechanic > 0,
+    mechanicWageIsEstimate: crewMechanic > 0,
     basis: parts.join(' · '),
   };
 }

@@ -17,7 +17,7 @@ import { NextResponse } from 'next/server';
 import { calcMortar } from '@/server/calc/mortar';
 import type { MortarCalcInput, MortarProductInput, MortarRoomInput } from '@/server/calc/mortar';
 import type { MortarMode, MortarUsage, MortarMethod } from '@/server/calc/schema/mortar-coefficients';
-// 2026-09-15 형아 피드백: 두께 상한이 모드마다 다르다(레미탈 150mm · 셀프레벨링 50mm) —
+// 2026-09-15 운영자 현장 기준 피드백: 두께 상한이 모드마다 다르다(레미탈 150mm · 셀프레벨링 50mm) —
 // 화면 클램프(mortarEngineInput.ts)와 같은 표(mortarPresets.ts)를 그대로 가져다 쓴다.
 import { THICKNESS_MM_MIN, thicknessMmMax } from '@/lib/v1/mortarPresets';
 
@@ -114,7 +114,7 @@ function parseInput(body: unknown): MortarCalcInput {
   if (!mode) throw new ValidationError('mode 는 레미탈 / 셀프레벨링 중 하나여야 합니다');
 
   const areaSqm = num(body.areaSqm, 'areaSqm', { min: 0.5, max: 500, required: true }) as number;
-  // 2026-09-15 형아 피드백(현장 경험): 방통은 50~150mm까지 흔해서 레미탈은 상한을 150으로
+  // 2026-09-15 운영자 현장 기준 피드백(현장 경험): 방통은 50~150mm까지 흔해서 레미탈은 상한을 150으로
   // 올렸다. 셀프레벨링은 제품 스펙상 40mm 안팎이 실질 상한이라 50을 그대로 둔다.
   const thicknessMm = num(body.thicknessMm, 'thicknessMm', {
     min: THICKNESS_MM_MIN,
@@ -137,6 +137,13 @@ function parseInput(body: unknown): MortarCalcInput {
     primer: bool(body.primer, 'primer'),
     product: parseProduct(body.product),
     rooms: parseRooms(body.rooms),
+    // 운송·양중 — 규격화가 어려운 값이라 직접 입력(06_미장.md §11-2·§11-3). 음수·문자열은
+    // num()이 여기서 400으로 막지만, 상한(1천만원)은 400으로 막지 않고 calcMortar()
+    // 내부(mortar.ts)에서 조용히 클램프한다 — "음수/문자열은 거부, 상한 초과는 클램프"로
+    // 다르게 다루라는 운영자 현장 기준 지시(2026-09-15)라 여기서는 max를 안 준다.
+    deliveryFeeWon: num(body.deliveryFeeWon, 'deliveryFeeWon', { min: 0 }),
+    forkliftFeeWon: num(body.forkliftFeeWon, 'forkliftFeeWon', { min: 0 }),
+    liftingFeeWon: num(body.liftingFeeWon, 'liftingFeeWon', { min: 0 }),
   };
 
   return input;

@@ -44,6 +44,9 @@ export interface MortarSubmaterialLine {
   grade: 'A' | 'B' | 'C';
 }
 
+/** 5층 비용 구성 — 결과 화면이 이 값으로 층별 소계를 묶어 보여준다(06_미장.md §11-9) */
+export type MortarCostLayer = '자재' | '부자재' | '운송·하차' | '양중' | '인건' | '경비';
+
 /** 비용 구성 한 줄 */
 export interface MortarCostLine {
   key: string;
@@ -55,6 +58,8 @@ export interface MortarCostLine {
   amountMin: number;
   amountMax: number;
   note: string;
+  layer: MortarCostLayer;
+  grade: 'A' | 'B' | 'C';
 }
 
 /** 레미탈 모드 전용 — 현장 배합(시멘트+모래) 대안 */
@@ -65,14 +70,20 @@ export interface MortarAltMix {
   sandM3: number;
 }
 
-/** 인건 요약 — 셀프레벨링 모드는 계산 자체를 안 해서 result.labor가 null이다 */
+/**
+ * 인건 요약 — 셀프레벨링 모드는 계산 자체를 안 해서 result.labor가 null이다.
+ * 2026-09-15 운영자 현장 기준 지시로 "품(인-일)" 대신 "오늘 몇 명"으로 바뀌었다 — days는 항상 1
+ * (연속 타설 하루 완료 제약).
+ */
 export interface MortarLaborSummary {
-  manDaysPlasterer: number;
-  manDaysHelper: number;
-  /** 장비 타설일 때만 0보다 크다 */
-  manDaysMechanic: number;
-  manDaysTotal: number;
-  teamDays: number;
+  /** 기공(미장공) 인원 */
+  crewPlasterer: number;
+  /** 조공(보통인부) 인원 */
+  crewHelper: number;
+  /** 일반기계운전사 인원 — 장비 타설일 때만 0보다 크다 */
+  crewMechanic: number;
+  /** 완료 일수 — 항상 1 */
+  days: 1;
   method: '장비타설' | '손미장';
   /** 일반기계운전사 노임이 추정치(등급 C)라 화면에 "추정" 표시가 필요한지 */
   mechanicWageIsEstimate: boolean;
@@ -101,8 +112,12 @@ export interface MortarCalcResultDTO {
   labor: MortarLaborSummary | null;
   /** 셀프레벨링 모드에서만: "시공비는 현장 견적 별도" 안내 */
   laborAdvisoryNote?: string;
-  /** 장비 타설일 때만: "장비비 별도" 안내 */
+  /** 장비 타설일 때만: 장비대 관련 안내(비용은 breakdown의 "장비대" 줄에 이미 반영됨) */
   equipmentNote?: string;
+  /** 양중비 참고값(원) — 입력칸 옆 "참고" 버튼이 채우는 값 */
+  liftingReferenceWon: number;
+  /** 운송·양중·장비대처럼 현장 확인이 필요한 항목 이름 목록 */
+  siteConfirmItems: string[];
   cost: {
     min: number;
     mid: number;

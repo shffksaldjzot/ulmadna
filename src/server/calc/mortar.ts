@@ -38,10 +38,13 @@ import {
   SELF_LEVEL_BAG_KG,
   SELF_LEVEL_PRIMER_L_PER_SQM,
   SELF_LEVEL_LABOR_ADVISORY_NOTE,
-  // 2026-09-15 형아 피드백: 체적·현장배합은 화면 즉답(useMortarQuickCalc)과 같은 공유 함수를
+  // 2026-09-15 운영자 현장 기준 피드백: 체적·현장배합은 화면 즉답(useMortarQuickCalc)과 같은 공유 함수를
   // 쓴다(src/lib/v1/mortarQuantity.ts, mortar-coefficients.ts가 다시 내보낸다).
   calcMortarVolume,
   calcAltMix,
+  FINISH_HAND_HEADCOUNT,
+  FINISH_HAND_DAYS,
+  PLASTERER_WAGE_RANGE,
   type MortarMode,
   type MortarUsage,
   type MortarMethod,
@@ -50,9 +53,16 @@ import {
   getMortarMaterialBand,
   getMortarSubmaterialBand,
   OVERHEAD_RATE,
+  EQUIPMENT_RENTAL_PRICE,
+  calcLiftingReferenceWon,
   type PriceBand,
 } from '../pricing/mortar';
-import { isThicknessOutOfStandardRange, THICKNESS_OUT_OF_RANGE_NOTE } from '@/lib/v1/mortarPresets';
+import {
+  isThicknessOutOfStandardRange,
+  THICKNESS_OUT_OF_RANGE_NOTE,
+  MONEY_INPUT_WON_MAX,
+  EQUIPMENT_RENTAL_NOTE,
+} from '@/lib/v1/mortarPresets';
 
 // ── 입력 타입 ──────────────────────────────────
 
@@ -101,6 +111,18 @@ export interface MortarCalcInput {
   product?: MortarProductInput;
   /** 정밀 모드 — 실별 면적. 있으면 byRoom 배분에 쓴다(없으면 "전체 시공" 한 줄) */
   rooms?: MortarRoomInput[];
+
+  // ── 5층 비용 구조 — 운송·하차·양중 (06_미장.md §11-2·§11-3) ──
+  // 값이 규격화가 어려워 현장 직접 입력으로 처리한다(운영자 현장 기준 원칙). 기본값 0.
+  /** 배송비(원) 직접 입력 — 팔레트 배송비, 기본 0 */
+  deliveryFeeWon?: number;
+  /**
+   * 지게차 하차비(원) 직접 입력 — 기본 0(미사용). 정밀 모드 토글을 켜면 화면이
+   * FORKLIFT_DEFAULT_FEE_WON(10만원, 운영자 현장 기준 B등급)을 채우고, 사용자가 금액을 고칠 수 있다.
+   */
+  forkliftFeeWon?: number;
+  /** 양중비(원) 직접 입력 — 기본 0. 참고값은 결과의 liftingReferenceWon으로 안내한다 */
+  liftingFeeWon?: number;
 }
 
 // ── 출력 타입 ──────────────────────────────────
@@ -123,6 +145,13 @@ export interface MortarSubmaterialLine {
   grade: EvidenceGrade;
 }
 
+/**
+ * 5층 비용 구성 — 결과 화면이 이 값으로 층별 소계를 묶어 보여준다(06_미장.md §11-9).
+ *   자재 → 부자재 → 운송·하차 → 양중 → 인건(공법별 시공 + 장비타설 시 장비대·피니싱)
+ * 경비(일반경비)는 5층에 안 들지만 합계엔 들어가는 6번째 줄로 그대로 둔다.
+ */
+export type MortarCostLayer = '자재' | '부자재' | '운송·하차' | '양중' | '인건' | '경비';
+
 /** 비용 구성 한 줄 */
 export interface MortarCostLine {
   key: string;
@@ -134,6 +163,10 @@ export interface MortarCostLine {
   amountMin: number;
   amountMax: number;
   note: string;
+  /** 5층 비용 구성 중 어느 층인지 — 결과 화면이 이 값으로 그룹핑한다 */
+  layer: MortarCostLayer;
+  /** 근거 등급 — C면 화면에 "추정" 표기 */
+  grade: EvidenceGrade;
 }
 
 /** 레미탈 모드 전용 — 현장 배합(시멘트+모래) 대안. 참고용 수치라 비용 합계엔 안 들어간다 */
@@ -144,14 +177,21 @@ export interface MortarAltMix {
   sandM3: number;
 }
 
-/** 인건 요약 — 레미탈 모드에서만 채워진다(셀프레벨링은 labor 자체가 null) */
+/**
+ * 인건 요약 — 레미탈 모드에서만 채워진다(셀프레벨링은 labor 자체가 null).
+ * 2026-09-15 운영자 현장 기준 지시로 "품(인-일) 누적" 대신 "오늘 몇 명"으로 바뀌었다 — days는 항상 1
+ * (연속 타설 하루 완료 제약, §11-8). 장비대·피니싱은 이 요약에 안 들어있다 — cost.breakdown의
+ * 별도 줄(equipment·finish)로 나간다.
+ */
 export interface MortarLaborSummary {
-  manDaysPlasterer: number;
-  manDaysHelper: number;
-  /** 장비 타설일 때만 0보다 크다 */
-  manDaysMechanic: number;
-  manDaysTotal: number;
-  teamDays: number;
+  /** 기공(미장공) 인원 */
+  crewPlasterer: number;
+  /** 조공(보통인부) 인원 */
+  crewHelper: number;
+  /** 일반기계운전사 인원 — 장비 타설일 때만 0보다 크다 */
+  crewMechanic: number;
+  /** 완료 일수 — 연속 타설 하루 완료 제약이라 항상 1 */
+  days: 1;
   /** 이번에 쓴 공법 */
   method: MortarMethod;
   /** 일반기계운전사 노임이 추정치(등급 C)라 화면에 표시해야 하는지 */
@@ -195,8 +235,12 @@ export interface MortarCalcResult {
   labor: MortarLaborSummary | null;
   /** 셀프레벨링 모드에서만: "시공비는 현장 견적 별도" 안내 */
   laborAdvisoryNote?: string;
-  /** 장비 타설일 때만: "장비비 별도" 안내(가격은 안 붙인다) */
+  /** 장비 타설일 때만: 장비대 관련 안내(비용은 cost.breakdown의 "장비대" 줄에 이미 반영됨) */
   equipmentNote?: string;
+  /** 양중비 참고값(원) — "소운반 100m 기준 양중공 2명" 기준. 입력칸 옆 참고 버튼이 채우는 값 */
+  liftingReferenceWon: number;
+  /** 운송·양중·장비대처럼 현장마다 달라 직접 입력·확인이 필요한 항목 이름 목록(화면 안내용) */
+  siteConfirmItems: string[];
   cost: {
     min: number;
     mid: number;
@@ -284,13 +328,16 @@ export function calcMortar(input: MortarCalcInput): MortarCalcResult {
   const labor = isRemicon ? calcMortarLabor({ areaSqm, thicknessMm, mode: input.mode, method, wireMesh }) : null;
 
   // ── 4) 공정 스키마 실행 → 항목별 물량 ──
+  // laborManDays는 이 오케스트레이터가 실제로 쓰지 않는다(아래 6)에서 labor 객체로 직접
+  // 비용 줄을 만든다) — 업체 견적 폼(toVendorForm) 등 다른 소비자를 위한 참고용 합계라
+  // 기공+조공+기계운전사 인원 합으로 근사치를 넣어 둔다.
   const ctx = buildMortarContext({
     areaSqm,
     thicknessMm,
     kgPerMmSqm,
     bagKg,
     lossRate,
-    laborManDays: labor?.manDaysTotal ?? 0,
+    laborManDays: labor ? labor.crewPlasterer + labor.crewHelper + labor.crewMechanic : 0,
     isRemicon,
     wireMesh,
     primer,
@@ -313,15 +360,37 @@ export function calcMortar(input: MortarCalcInput): MortarCalcResult {
   let sumMin = 0;
   let sumMax = 0;
 
-  const pushLine = (key: string, name: string, qty: number, unit: string, band: PriceBand, note: string) => {
+  // layer — 5층 비용 구성 중 어느 층인지(06_미장.md §11-9). grade가 없으면 band.등급을 쓴다.
+  const pushLine = (
+    key: string,
+    name: string,
+    qty: number,
+    unit: string,
+    band: PriceBand,
+    note: string,
+    layer: MortarCostLayer,
+    grade?: EvidenceGrade,
+  ) => {
     const amountMin = Math.round(qty * band.min);
     const amountMax = Math.round(qty * band.max);
     sumMin += amountMin;
     sumMax += amountMax;
-    breakdown.push({ key, name, qty, unit, unitPriceMin: band.min, unitPriceMax: band.max, amountMin, amountMax, note });
+    breakdown.push({
+      key,
+      name,
+      qty,
+      unit,
+      unitPriceMin: band.min,
+      unitPriceMax: band.max,
+      amountMin,
+      amountMax,
+      note,
+      layer,
+      grade: grade ?? band.등급,
+    });
   };
 
-  // 자재 — 제품을 골랐으면 그 가격, 아니면 종류 평균가
+  // ① 자재 — 제품을 골랐으면 그 가격, 아니면 종류 평균가
   const materialQty = schemaQty.material;
   if (materialQty) {
     const band = getMortarMaterialBand(input.mode, {
@@ -332,11 +401,11 @@ export function calcMortar(input: MortarCalcInput): MortarCalcResult {
     // 2026-09-15 검사관 지적: 제품을 안 골라 종류 평균 밴드(등급 C)를 쓸 때는 화면에도
     // "추정"이 보여야 한다 — 이전엔 물량 근거(basis)에만 붙고 단가 밴드 쪽엔 안 붙어 있었다.
     if (band.등급 === 'C' && !note.includes('추정')) note += ' · 추정';
-    pushLine('material', input.mode, materialQty.qty, '포', band, note);
+    pushLine('material', input.mode, materialQty.qty, '포', band, note, '자재');
   }
 
-  // 와이어메시 · 프라이머
-  for (const key of ['wiremesh', 'primer'] as const) {
+  // ② 부자재 — 와이어메시·프라이머·시멘트·자나무(레미탈 전용, §11-4)
+  for (const key of ['wiremesh', 'primer', 'cement', 'plywood'] as const) {
     const got = schemaQty[key];
     if (!got) continue;
     const band = getMortarSubmaterialBand(key);
@@ -344,41 +413,134 @@ export function calcMortar(input: MortarCalcInput): MortarCalcResult {
     const item = MORTAR_PROCESS.items.find((i) => i.key === key);
     const name = item?.name ?? key;
     // 근거 등급이 C(추정)면 "· 추정"이 이미 basis에 들어 있다(schema/mortar.ts에서 붙였다)
-    pushLine(key, name, got.qty, item?.unit ?? '', band, got.basis);
+    pushLine(key, name, got.qty, item?.unit ?? '', band, got.basis, '부자재');
   }
 
-  // 시공 — 레미탈 모드만. labor-mortar.ts가 이미 정확히 계산해 둔 인건비 총액(labor.amount)을
-  // manDaysTotal로 나눠 "1품당 얼마"라는 표기만 만든다(산식 자체는 화면에 안 보인다).
-  // 셀프레벨링은 labor가 null이라 이 블록을 건너뛰고, 대신 laborAdvisoryNote만 채운다.
+  // ③ 운송·하차 — 배송비(직접 입력)·지게차 하차비(옵션, §11-2). 기본값 0/false라 안 켜면
+  //    breakdown에서 아예 빠진다 — 결과 화면은 "현장 확인 필요" 캡션으로 그 자리를 채운다.
+  const deliveryFeeWon = Math.min(Math.max(0, input.deliveryFeeWon ?? 0), MONEY_INPUT_WON_MAX);
+  if (deliveryFeeWon > 0) {
+    breakdown.push({
+      key: 'delivery',
+      name: '배송비',
+      qty: 1,
+      unit: '식',
+      unitPriceMin: deliveryFeeWon,
+      unitPriceMax: deliveryFeeWon,
+      amountMin: deliveryFeeWon,
+      amountMax: deliveryFeeWon,
+      note: '직접 입력 · 팔레트 50포 단위·지역별로 달라요',
+      layer: '운송·하차',
+      grade: 'A',
+    });
+    sumMin += deliveryFeeWon;
+    sumMax += deliveryFeeWon;
+  }
+  // 지게차 하차비 — 2026-09-15 운영자 현장 기준 확정: 고정 밴드(2만~3만원, C)를 버리고 직접 수정 가능한
+  // 금액(기본 10만원, B등급)으로 바꿨다. 화면이 토글을 켤 때 기본값을 채워서 보내주고,
+  // 사용자가 그 금액을 고칠 수도 있다 — 배송비·양중비와 같은 "직접 입력" 패턴이다.
+  const forkliftFeeWon = Math.min(Math.max(0, input.forkliftFeeWon ?? 0), MONEY_INPUT_WON_MAX);
+  if (forkliftFeeWon > 0) {
+    breakdown.push({
+      key: 'forklift',
+      name: '지게차 하차비',
+      qty: 1,
+      unit: '식',
+      unitPriceMin: forkliftFeeWon,
+      unitPriceMax: forkliftFeeWon,
+      amountMin: forkliftFeeWon,
+      amountMax: forkliftFeeWon,
+      note: '현장 기준 10만원/회 · 직접 수정 가능',
+      layer: '운송·하차',
+      grade: 'B',
+    });
+    sumMin += forkliftFeeWon;
+    sumMax += forkliftFeeWon;
+  }
+
+  // ④ 양중 — 사용자 직접 입력(기본 0). 참고값은 결과의 liftingReferenceWon으로 따로 안내한다.
+  const liftingFeeWon = Math.min(Math.max(0, input.liftingFeeWon ?? 0), MONEY_INPUT_WON_MAX);
+  if (liftingFeeWon > 0) {
+    breakdown.push({
+      key: 'lifting',
+      name: '양중비',
+      qty: 1,
+      unit: '식',
+      unitPriceMin: liftingFeeWon,
+      unitPriceMax: liftingFeeWon,
+      amountMin: liftingFeeWon,
+      amountMax: liftingFeeWon,
+      note: '직접 입력 · 소운반 100m 기준 양중공 2명 참고',
+      layer: '양중',
+      grade: 'A',
+    });
+    sumMin += liftingFeeWon;
+    sumMax += liftingFeeWon;
+  }
+
+  // ⑤ 인건 — 레미탈 모드만. labor-mortar.ts가 계산한 "오늘 몇 명(인원)" × 노임 범위를
+  //    그대로 쓴다(품 누적이 아니라 인원수라 산식은 화면에 안 보인다). 장비 타설이면
+  //    장비대(§11-1)·피니싱(§11-6)을 같은 "인건" 층에 별도 줄로 더한다.
+  //    셀프레벨링은 labor가 null이라 이 블록을 건너뛰고, 대신 laborAdvisoryNote만 채운다.
   let equipmentNote: string | undefined;
-  if (labor && labor.manDaysTotal > 0) {
-    const laborAmountWon = roundWon(labor.amount);
-    const perManDay = Math.round(labor.amount / labor.manDaysTotal);
+  if (labor) {
     const methodLabel = labor.method === '장비타설' ? '장비 타설' : '손미장';
-    // 손미장 품(표준품셈 벽 기준 준용)은 C등급 추정이라 화면에 "추정"을 명시한다(검사관 지적)
     const estimateTag = labor.method === '손미장' ? '(추정)' : '';
-    let note = `${methodLabel}${estimateTag} ${labor.manDaysTotal}품 · 2인 1조 약 ${labor.teamDays}일`;
+    let note = `${methodLabel}${estimateTag} 기공 ${labor.crewPlasterer}인·조공 ${labor.crewHelper}인`;
+    if (labor.crewMechanic > 0) note += `·기계운전 ${labor.crewMechanic}인`;
+    note += ' · 1일 완료';
     if (labor.mechanicWageIsEstimate) note += ' · 기계운전사 노임 추정';
-    if (labor.equipmentNote) {
-      equipmentNote = labor.equipmentNote;
-      note += ` · ${equipmentNote}`;
-    }
     breakdown.push({
       key: 'labor',
       name: '미장 시공',
-      qty: labor.manDaysTotal,
+      qty: labor.crewPlasterer + labor.crewHelper + labor.crewMechanic,
       unit: '품',
-      unitPriceMin: perManDay,
-      unitPriceMax: perManDay,
-      amountMin: laborAmountWon,
-      amountMax: laborAmountWon,
+      unitPriceMin: 0,
+      unitPriceMax: 0,
+      amountMin: roundWon(labor.amountMin),
+      amountMax: roundWon(labor.amountMax),
       note,
+      layer: '인건',
+      grade: labor.method === '손미장' ? 'C' : 'B',
     });
-    sumMin += laborAmountWon;
-    sumMax += laborAmountWon;
+    sumMin += roundWon(labor.amountMin);
+    sumMax += roundWon(labor.amountMax);
+
+    if (labor.method === '장비타설') {
+      // 장비대 — 물량과 무관하게 항상 1일(§11-1·§11-8 "하루 완료 제약")
+      equipmentNote = EQUIPMENT_RENTAL_NOTE;
+      pushLine('equipment', '장비대', 1, '식', EQUIPMENT_RENTAL_PRICE, `1일 · ${EQUIPMENT_RENTAL_NOTE}`, '인건');
+
+      // 피니싱 — 타설 4~5시간 뒤 기공 1인 × 0.5일 정액(§11-6). 표준품셈 9-1-4 표면마무리는
+      // labor-mortar.ts 크루 계산에서 이미 빠졌다(검사관 지적 — 이중 계상 방지, 이 줄이
+      // 유일한 마무리 인건 계상이다)
+
+      const finishManDay = FINISH_HAND_HEADCOUNT.value * FINISH_HAND_DAYS.value;
+      const finishAmountMin = Math.round(finishManDay * PLASTERER_WAGE_RANGE.min);
+      const finishAmountMax = Math.round(finishManDay * PLASTERER_WAGE_RANGE.max);
+      breakdown.push({
+        key: 'finish',
+        name: '피니싱',
+        qty: finishManDay,
+        unit: '품',
+        // 2026-09-15 검사관 지적: "미장 시공"(labor) 줄과 같은 원칙으로 단가 칸은 0으로
+        // 둔다 — 실제 노임 원값(미장공 20만~277,276원)을 unitPrice에 그대로 노출하면
+        // 다른 계산기 규칙(단가는 서버 내부 계산에만 쓰고 응답엔 최종 금액만 낸다)과
+        // 어긋난다. 금액(amountMin~Max)만 진짜 값이고 산식은 화면에 안 보인다.
+        unitPriceMin: 0,
+        unitPriceMax: 0,
+        amountMin: finishAmountMin,
+        amountMax: finishAmountMax,
+        note: `기공 1인 × ${FINISH_HAND_DAYS.value}일 · 타설 4~5시간 뒤 정벌 마무리 · 추정`,
+        layer: '인건',
+        grade: 'C',
+      });
+      sumMin += finishAmountMin;
+      sumMax += finishAmountMax;
+    }
   }
 
-  // 일반경비 — 위 합계에 비율로 붙인다
+  // 일반경비 — 위 합계에 비율로 붙인다(5층에는 안 들지만 총액엔 들어가는 6번째 줄)
   const overheadMin = Math.round(sumMin * OVERHEAD_RATE.min);
   const overheadMax = Math.round(sumMax * OVERHEAD_RATE.max);
   breakdown.push({
@@ -390,7 +552,9 @@ export function calcMortar(input: MortarCalcInput): MortarCalcResult {
     unitPriceMax: Math.round(OVERHEAD_RATE.max * 100),
     amountMin: overheadMin,
     amountMax: overheadMax,
-    note: `자재·부자재·시공 합계의 ${Math.round(OVERHEAD_RATE.min * 100)}~${Math.round(OVERHEAD_RATE.max * 100)}%`,
+    note: `자재·부자재·운송·양중·인건 합계의 ${Math.round(OVERHEAD_RATE.min * 100)}~${Math.round(OVERHEAD_RATE.max * 100)}%`,
+    layer: '경비',
+    grade: OVERHEAD_RATE.등급,
   });
   sumMin += overheadMin;
   sumMax += overheadMax;
@@ -408,7 +572,7 @@ export function calcMortar(input: MortarCalcInput): MortarCalcResult {
   const primerLiters = primer && areaSqm > 0 ? r1(areaSqm * SELF_LEVEL_PRIMER_L_PER_SQM.value) : undefined;
 
   // ── 8-B) 제품명 표기 — 골랐으면 그 제품명, 아니면 "모드 + 포장kg 포대" 기본 표기
-  // (2026-09-15 형아 피드백: "레미탈이 몇 kg짜리 몇 포인지" 항상 보이게)
+  // (2026-09-15 운영자 현장 기준 피드백: "레미탈이 몇 kg짜리 몇 포인지" 항상 보이게)
   const productLabel = input.product?.sourceLabel ?? `${input.mode} ${bagKg}kg 포대`;
 
   // ── 8-C) 06_미장.md 표준 두께 범위(레미탈 10~50mm)를 넘으면 안내만(계산은 그대로 한다) ──
@@ -451,17 +615,25 @@ export function calcMortar(input: MortarCalcInput): MortarCalcResult {
     submaterials,
     labor: labor
       ? {
-          manDaysPlasterer: labor.manDaysPlasterer,
-          manDaysHelper: labor.manDaysHelper,
-          manDaysMechanic: labor.manDaysMechanic,
-          manDaysTotal: labor.manDaysTotal,
-          teamDays: labor.teamDays,
+          crewPlasterer: labor.crewPlasterer,
+          crewHelper: labor.crewHelper,
+          crewMechanic: labor.crewMechanic,
+          days: labor.days,
           method: labor.method,
           mechanicWageIsEstimate: labor.mechanicWageIsEstimate,
         }
       : null,
     laborAdvisoryNote: isRemicon ? undefined : SELF_LEVEL_LABOR_ADVISORY_NOTE,
     equipmentNote,
+    // 참고값 — 양중비 입력칸 옆 "참고" 버튼이 채우는 값(소운반 100m·양중공 2명 기준)
+    liftingReferenceWon: calcLiftingReferenceWon(),
+    // 운송·양중·(장비타설시)장비대는 현장마다 달라 직접 입력·확인이 필요하다는 걸 화면에
+    // 안내하는 목록 — 사용자가 값을 안 넣었을 때만 그 항목 이름을 담는다.
+    siteConfirmItems: [
+      ...(deliveryFeeWon <= 0 ? ['운송비'] : []),
+      ...(liftingFeeWon <= 0 ? ['양중비'] : []),
+      ...(labor?.method === '장비타설' ? ['장비대'] : []),
+    ],
     cost: {
       min: roundWon(sumMin),
       mid: roundWon((sumMin + sumMax) / 2),

@@ -26,10 +26,14 @@ import {
   WIRE_MESH_OVERLAP_MULT,
   SELF_LEVEL_PRIMER_L_PER_SQM,
   SELF_LEVEL_PRIMER_CAN_L,
-  // 2026-09-15 형아 피드백(포수 즉답): 자재 포수 계산은 화면 즉답(useMortarQuickCalc)과
+  // 2026-09-15 운영자 현장 기준 피드백(포수 즉답): 자재 포수 계산은 화면 즉답(useMortarQuickCalc)과
   // 완전히 같은 함수(src/lib/v1/mortarQuantity.ts calcMortarBags)를 쓴다 — 값이 어긋나면 안 된다.
   calcMortarBags,
 } from './mortar-coefficients';
+
+/** 시멘트 포대 단위(kg) — CEMENT_BAG_KG는 이 파일에서 직접 안 쓰지만 100포당 1포 계산과
+ * 짝지어 두는 값이라 여기서 다시 가져온다(레미탈 100포 = 시멘트 1포, kg 단위 변환 아님) */
+const CEMENT_BAGS_PER_REMICON_100_BAGS = 100;
 
 /** 소수점 1자리 반올림 (근거 문장 표기용) */
 function r1(n: number): number {
@@ -86,7 +90,7 @@ export function buildMortarContext(args: {
 
 /**
  * 자재 — 면적 × 두께 × kg/(mm·㎡) 계수 × (1+로스율) ÷ 포장 kg (올림, 최소 1포).
- * 2026-09-15 형아 피드백: 이 계산은 화면 즉답(useMortarQuickCalc)과 정확히 같은 값이 나와야
+ * 2026-09-15 운영자 현장 기준 피드백: 이 계산은 화면 즉답(useMortarQuickCalc)과 정확히 같은 값이 나와야
  * 해서, 직접 계산하지 않고 공유 함수 calcMortarBags(src/lib/v1/mortarQuantity.ts)를 부른다.
  */
 function calcMaterial(ctx: SchemaCalcContext): SchemaQuantityOutput | null {
@@ -110,6 +114,41 @@ function calcWireMesh(ctx: SchemaCalcContext): SchemaQuantityOutput | null {
   if (area <= 0) return null;
   const qty = r1(area * WIRE_MESH_OVERLAP_MULT.value);
   return { qty, basis: `면적 × ${WIRE_MESH_OVERLAP_MULT.value}(겹침 여유) · 추정` };
+}
+
+/**
+ * 시멘트(분말, 틈새 방수용) — 레미탈 모드 전용. 06_미장.md §11-4 운영자 현장 기준:
+ * "레미탈 타설 시 구멍·틈새에 분말로 부어 물이 다른 곳으로 침투하는 것을 막는다.
+ *  레미탈 100포당 1포 소요"
+ * 레미탈 자재(material) 포수와 정확히 같은 값이 나와야 해서, calcMaterial과 똑같이
+ * calcMortarBags를 다시 불러 포수를 구한다(두 함수가 같은 공유 계산 함수를 쓰므로 값이
+ * 절대 어긋나지 않는다).
+ */
+function calcCement(ctx: SchemaCalcContext): SchemaQuantityOutput | null {
+  if (!ctx.flags.isRemicon) return null;
+  const area = ctx.numbers.areaSqm;
+  const thickness = ctx.numbers.thicknessMm;
+  if (area <= 0 || thickness <= 0) return null;
+  const remiconBags = calcMortarBags({
+    areaSqm: area,
+    thicknessMm: thickness,
+    kgPerMmSqm: ctx.numbers.kgPerMmSqm,
+    bagKg: ctx.numbers.bagKg,
+    lossRate: ctx.numbers.lossRate ?? 0,
+  });
+  if (remiconBags <= 0) return null;
+  const qty = Math.max(1, ceilSafe(remiconBags / CEMENT_BAGS_PER_REMICON_100_BAGS));
+  return { qty, basis: `레미탈 ${remiconBags}포 ÷ 100, 올림 · 추정` };
+}
+
+/**
+ * 자나무(운영자 현장 용어 — 수평 맞춤용으로 현장에서 재단해 쓰는 합판) — 레미탈 모드 전용.
+ * 06_미장.md §11-4: "1회용 소모품, 현장당 1장". 면적·두께와 무관하게 항상 1식이다.
+ */
+function calcPlywood(ctx: SchemaCalcContext): SchemaQuantityOutput | null {
+  if (!ctx.flags.isRemicon) return null;
+  if (ctx.numbers.areaSqm <= 0) return null;
+  return { qty: 1, basis: '현장당 1장 · 추정' };
 }
 
 /** 프라이머 — 옵션을 켰을 때만. 면적 × L/㎡ ÷ 캔 용량 (올림, 최소 1통) */
@@ -157,6 +196,34 @@ const ITEMS: Item[] = [
     note: '레미탈은 계수 1.65, 셀프레벨링은 1.6이 기본값(제조사 스펙 역산·교차검증)',
   },
   {
+    key: 'cement',
+    name: '시멘트',
+    unit: '포',
+    kind: '부자재',
+    quantityRule: {
+      desc: '레미탈 포수 ÷ 100, 올림 · 레미탈 모드 전용',
+      calc: calcCement,
+    },
+    priceSource: '제품',
+    evidenceGrade: 'B',
+    appliesWhen: '레미탈 모드',
+    note: '틈새 방수용 — 현장 기준(100포당 1포)',
+  },
+  {
+    key: 'plywood',
+    name: '자나무',
+    unit: '개',
+    kind: '부자재',
+    quantityRule: {
+      desc: '현장당 1장(고정) · 레미탈 모드 전용',
+      calc: calcPlywood,
+    },
+    priceSource: '제품',
+    evidenceGrade: 'B',
+    appliesWhen: '레미탈 모드',
+    note: '수평 맞춤용 합판 흙손(1회용 소모품) — 규격·단가는 추정치',
+  },
+  {
     key: 'wiremesh',
     name: '와이어메시',
     unit: '㎡',
@@ -192,7 +259,10 @@ const ITEMS: Item[] = [
     unit: '품',
     kind: '시공',
     quantityRule: {
-      desc: '공법(손미장/장비 타설, 용도가 기본값을 정하고 정밀 모드에서 바꿀 수 있다) 기준 품수. 실제 노임을 곱해 인건비로 환산(반나절 단위 올림, 최소 0.5품). 셀프레벨링은 계산하지 않음',
+      // 2026-09-15 검사관 지적: 옛 설명("반나절 단위 올림, 최소 0.5품")은 품(인-일) 누적
+      // 방식이던 예전 계산법 기준이라 지금과 안 맞는다 — 지금은 "오늘 몇 명"(인원수) 방식
+      // 이라 항상 1일로 끝난다(연속 타설 하루 완료 제약, §11-8).
+      desc: '공법(손미장 기본, 간단·정밀 모드 둘 다 직접 바꿀 수 있다) 기준 인원수. 물량을 하루 안에 끝내는 데 필요한 기공·조공 인원을 구해 노임을 곱한다(완료 일수는 항상 1일). 셀프레벨링은 계산하지 않음',
       calc: calcLaborItem,
     },
     priceSource: '업체',

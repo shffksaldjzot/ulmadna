@@ -32,6 +32,7 @@ import {
   LOSS_RATE_MAX,
   LENGTH_M_MIN,
   LENGTH_M_MAX,
+  MONEY_INPUT_WON_MAX,
   clamp,
 } from './mortarPresets';
 
@@ -71,6 +72,9 @@ export interface MortarCalcRequest {
   primer?: boolean;
   product?: MortarProductRequest;
   rooms?: MortarRoomRequest[];
+  deliveryFeeWon?: number;
+  forkliftFeeWon?: number;
+  liftingFeeWon?: number;
 }
 
 /** 값이 0보다 큰 유한수인지 */
@@ -133,7 +137,7 @@ export function resolveSimpleAreaSqm(state: MortarFormState): number | null {
 /**
  * 정밀 모드의 실별 면적 합계를 ㎡ 값 하나로 바꾼다(유효한 방이 하나도 없으면 null).
  * toEngineInput()과 useMortarQuickCalc(즉답 훅)이 같은 값을 써야 해서 여기 하나로 뺐다
- * (2026-09-15 형아 피드백 — 포수 즉답을 만들며 정밀 모드 면적 계산도 공유 함수로 모았다).
+ * (2026-09-15 운영자 현장 기준 피드백 — 포수 즉답을 만들며 정밀 모드 면적 계산도 공유 함수로 모았다).
  */
 export function resolvePreciseAreaSqm(state: MortarFormState): number | null {
   const rooms = validPreciseRooms(state);
@@ -185,7 +189,7 @@ export function sanitizeMortarFormState(state: MortarFormState): MortarFormState
     next.rectDepth = undefined;
   }
 
-  // 두께(mm) — 상한이 모드마다 다르다(레미탈 150 · 셀프레벨링 50, 2026-09-15 형아 피드백)
+  // 두께(mm) — 상한이 모드마다 다르다(레미탈 150 · 셀프레벨링 50, 2026-09-15 운영자 현장 기준 피드백)
   if (isFiniteNumber(next.thicknessMm)) {
     next.thicknessMm = clamp(next.thicknessMm, THICKNESS_MM_MIN, thicknessMmMax(resolveMode(next)));
   } else if (next.thicknessMm !== undefined) {
@@ -197,6 +201,23 @@ export function sanitizeMortarFormState(state: MortarFormState): MortarFormState
     next.lossRate = clamp(next.lossRate, LOSS_RATE_MIN, LOSS_RATE_MAX);
   } else if (next.lossRate !== undefined) {
     next.lossRate = undefined;
+  }
+
+  // 운송·양중 직접 입력(원) — 비정상 값(NaN 등)은 지우고, 범위 밖 값은 눌러 담는다
+  if (isFiniteNumber(next.deliveryFeeWon)) {
+    next.deliveryFeeWon = clamp(next.deliveryFeeWon, 0, MONEY_INPUT_WON_MAX);
+  } else if (next.deliveryFeeWon !== undefined) {
+    next.deliveryFeeWon = undefined;
+  }
+  if (isFiniteNumber(next.liftingFeeWon)) {
+    next.liftingFeeWon = clamp(next.liftingFeeWon, 0, MONEY_INPUT_WON_MAX);
+  } else if (next.liftingFeeWon !== undefined) {
+    next.liftingFeeWon = undefined;
+  }
+  if (isFiniteNumber(next.forkliftFeeWon)) {
+    next.forkliftFeeWon = clamp(next.forkliftFeeWon, 0, MONEY_INPUT_WON_MAX);
+  } else if (next.forkliftFeeWon !== undefined) {
+    next.forkliftFeeWon = undefined;
   }
 
   // 정밀 모드 실별 면적 — 개별 칸은 0(입력 전 빈 칸 표시용)까지 허용하고 위만 막는다
@@ -218,7 +239,15 @@ export function trimFormForShare(state: MortarFormState): MortarFormState {
   const trimmed: MortarFormState = { ...state };
   if (resolveView(state) === 'simple') {
     delete trimmed.preciseRooms;
-    delete trimmed.method;
+    // 2026-09-15 검사관 지적: method는 지우면 안 된다 — 간단 모드에도 공법 칩이 있어서
+    // (2026-09-15 형아 지시로 간단 모드에 공법 칩 추가) 사용자가 손미장/장비타설을 직접
+    // 고를 수 있다. 예전엔 정밀 모드 전용이라 지웠는데, 그대로 두면 장비 타설을 고르고
+    // 공유한 링크를 열었을 때 복원 결과가 손미장 기본값으로 되돌아가 금액이 달라지는
+    // 사고가 난다.
+    // 운송·양중 입력은 정밀 모드 전용 UI라 간단 모드에서는 값이 있어도 공유 링크에서 뺀다
+    delete trimmed.deliveryFeeWon;
+    delete trimmed.forkliftFeeWon;
+    delete trimmed.liftingFeeWon;
   } else {
     delete trimmed.area;
     delete trimmed.areaUnit;
@@ -306,7 +335,7 @@ function resolveUsageLabel(state: MortarFormState, mode: MortarMode): string | u
 export function toEngineInput(state: MortarFormState, products: MortarProductOption[]): MortarCalcRequest | null {
   if (!isPositive(state.thicknessMm)) return null;
   const mode = resolveMode(state);
-  // 두께 상한이 모드마다 다르다(레미탈 150 · 셀프레벨링 50, 2026-09-15 형아 피드백 — 현장에서
+  // 두께 상한이 모드마다 다르다(레미탈 150 · 셀프레벨링 50, 2026-09-15 운영자 현장 기준 피드백 — 현장에서
   // 방통은 50~150mm까지 흔하다) — mode를 먼저 정한 뒤에 그 모드의 상한으로 클램프한다.
   const thicknessMm = clamp(state.thicknessMm, THICKNESS_MM_MIN, thicknessMmMax(mode));
 
@@ -322,6 +351,18 @@ export function toEngineInput(state: MortarFormState, products: MortarProductOpt
   // usage·method도 레미탈 전용(공법 판정에 쓴다) — 셀프레벨링에선 아예 안 보낸다
   const usage = mode === '레미탈' ? state.usage : undefined;
   const method = mode === '레미탈' ? state.method : undefined;
+
+  // 운송·양중 — 정밀 모드 전용 입력(06_미장.md §11-2·§11-3). 비정상 값 방어로 서버 상한과
+  // 같은 값으로 클램프한다(음수·초과값이 공유 링크로 들어와도 안전하게).
+  const deliveryFeeWon = isPositive(state.deliveryFeeWon)
+    ? clamp(state.deliveryFeeWon, 0, MONEY_INPUT_WON_MAX)
+    : undefined;
+  const liftingFeeWon = isPositive(state.liftingFeeWon)
+    ? clamp(state.liftingFeeWon, 0, MONEY_INPUT_WON_MAX)
+    : undefined;
+  const forkliftFeeWon = isPositive(state.forkliftFeeWon)
+    ? clamp(state.forkliftFeeWon, 0, MONEY_INPUT_WON_MAX)
+    : undefined;
 
   if (view === 'precise') {
     const rooms = validPreciseRooms(state);
@@ -341,6 +382,9 @@ export function toEngineInput(state: MortarFormState, products: MortarProductOpt
       primer: state.primer,
       product,
       rooms,
+      deliveryFeeWon,
+      forkliftFeeWon,
+      liftingFeeWon,
     };
   }
 

@@ -32,7 +32,7 @@ import type { Coefficient, CoefficientRange } from './wallpaper-coefficients';
 import { SQM_PER_PYEONG } from './wallpaper-coefficients';
 import type { MortarMode, MortarUsage, SelfLevelUsage, MortarMethod } from '@/lib/v1/mortarPresets';
 import { USAGE_PRESET, SELF_LEVEL_USAGE_PRESET } from '@/lib/v1/mortarPresets';
-// 2026-09-15 형아 피드백(포수 즉답): 계수 값 자체는 클라이언트도 똑같이 써야 해서
+// 2026-09-15 운영자 현장 기준 피드백(포수 즉답): 계수 값 자체는 클라이언트도 똑같이 써야 해서
 // src/lib/v1/mortarQuantity.ts(공유 폴더)에 원본 숫자를 옮겨 뒀다. 여기서는 그 숫자를
 // 그대로 가져와 등급·출처를 붙인 Coefficient로 감싸기만 한다 — 숫자 자체를 두 번 적지 않는다.
 import {
@@ -82,7 +82,7 @@ export const MORTAR_LOSS_RATE_DEFAULT: Coefficient = {
 
 // ── 2. 배합비 (표준품셈 9-1-1, 06_미장.md §2-1) ────────
 // MIX_RATIO_TABLE·DEFAULT_MIX_RATIO는 이미 파일 상단에서 mortarQuantity.ts 것을 그대로
-// 다시 내보냈다(중복 정의 금지 — 2026-09-15 형아 피드백으로 공유 모듈을 만들며 정리).
+// 다시 내보냈다(중복 정의 금지 — 2026-09-15 운영자 현장 기준 피드백으로 공유 모듈을 만들며 정리).
 //
 // ⚠️ 배합표는 이미 할증(재료 자체 로스)을 포함하고 있다 — 여기에 다시 몰탈 로스율(5%)을
 //    곱하면 로스가 두 번 들어간다(2026-09-14 검사관 지적으로 mortar.ts에서 이중 할증을 뺐다).
@@ -169,24 +169,34 @@ export const WIRE_MESH_LABOR_MANDAY_PER_10SQM: Coefficient = {
 
 // ── 7. 인건 — 노임단가 (06_미장.md §7, 2026년 상반기) ──────
 
-/** 미장공 1일 노임 (원) — 2026년 상반기 대한건설협회 시중노임단가 */
-export const PLASTERER_DAILY_WAGE_2026H1: Coefficient = {
-  value: 277276,
-  grade: 'A',
-  source: '06_미장.md §7 — 2026년 상반기 시중노임단가(대한건설협회), 반기 갱신 필요',
+/**
+ * 미장공(기공) 1일 노임 — 범위(원).
+ * 2026-09-15 운영자 현장 기준 지시(06_미장.md §11-7): 노임을 단일값이 아니라 **범위**로 잡는다.
+ *   하한 = 시장 실거래가(20만~26만원, 마이코리아워크 2026 수도권 표본)의 하한값(등급 C)
+ *   상한 = 표준품셈 시중노임단가 277,276원(등급 A, §7) — 표준품셈이 간접비 포함이라
+ *          시장 실거래 상단(26만원)보다도 높아서 그대로 상한으로 쓴다.
+ * 결과 비용 범위(min~max)가 이 노임 범위를 그대로 반영한다(2026-09-14 검사관이 만든
+ * 단일 노임 × min=max 방식을 폐기).
+ */
+export const PLASTERER_WAGE_RANGE: CoefficientRange = {
+  min: 200000,
+  max: 277276,
+  grade: 'C',
+  source: '06_미장.md §11-7 — 하한 시장 실거래가(20만~26만원의 하한, 마이코리아워크 2026) · 상한 표준품셈 시중노임단가(277,276원, §7)',
 };
 
-/** 보통인부 1일 노임 (원) — 2026년 상반기 */
-export const HELPER_DAILY_WAGE_2026H1: Coefficient = {
-  value: 172068,
-  grade: 'A',
-  source: '06_미장.md §7 — 2026년 상반기 시중노임단가(대한건설협회), 반기 갱신 필요',
+/** 보통인부(조공) 1일 노임 — 범위(원). 위와 같은 원칙 */
+export const HELPER_WAGE_RANGE: CoefficientRange = {
+  min: 140000,
+  max: 172068,
+  grade: 'C',
+  source: '06_미장.md §11-7 — 하한 시장 실거래가(14만~16만원의 하한, 마이코리아워크 2026) · 상한 표준품셈 시중노임단가(172,068원, §7)',
 };
 
 /**
  * 일반기계운전사 1일 노임 추정치 (원) — 06_미장.md §7에 "미수록, 별도 확인 필요"로 남은 값.
  * 노임 자료가 없어서 특별인부(226,122원)~미장공(277,276원) 사이 근사치로 추정한다.
- * 등급 C, 형아 확인 대기(2026-09-14 검사관 지적 — 노임 없으면 만들지 말고 추정 표기).
+ * 등급 C, 운영자 현장 기준 확인 대기(2026-09-14 검사관 지적 — 노임 없으면 만들지 말고 추정 표기).
  */
 export const MECHANIC_DAILY_WAGE_ESTIMATE: Coefficient = {
   value: 250000,
@@ -194,25 +204,48 @@ export const MECHANIC_DAILY_WAGE_ESTIMATE: Coefficient = {
   source: '06_미장.md §7 — 일반기계운전사 노임단가 미수록. 특별인부~미장공 노임 사이 근사 추정치, 확인 대기',
 };
 
-// ── 8. 인건 — 손미장 (06_미장.md §6-1, 벽 기준 준용) ────
+// ── 8. 인건 — 손미장 (06_미장.md §11-5·§11-8, 운영자 현장 기준 현장 기준) ────
+//
+// 2026-09-15 운영자 현장 기준 지시로 옛 §6-1(벽 모르타르 바름 준용, ㎡당 0.07·0.03) 방식을 버리고
+// 운영자 현장 기준가 준 실측 기준으로 바꿨다: "20평×100mm 바닥 미장 = 기공 2인 + 조공 2인, 1일 완료".
+// 인건을 "품(인-일) 누적"이 아니라 "이 물량을 하루 안에 끝내려면 몇 명이 필요한가"로 계산한다
+// (연속 타설 하루 완료 제약, §11-8) — 물량이 늘면 하루를 넘기는 게 아니라 인원을 늘린다.
 
 /**
- * 손미장(확장부·욕실구배·마루보수 등 소면적) 인건 품 — ㎡당.
- * 표준품셈 9-1-2는 벽체 기준(바름두께 24mm 이하)이라 바닥에 그대로 쓸 수 없지만,
- * 손 미장 인건비를 추정할 때 가장 가까운 참고치라 등급 C로 준용한다.
- * 2회 바름(초벌+정벌) 기준.
+ * 손미장 기준 체적(㎥) — 운영자 현장 기준 20평(66.116㎡) × 두께 100mm의 순수 체적(로스 미포함).
+ * 20평 = 20 × 3.3058㎡ = 66.116㎡, × 0.1m(100mm) = 6.6116㎥.
  */
-export const SMALL_AREA_PLASTERER_PER_SQM: Coefficient = {
-  value: 0.07,
-  grade: 'C',
-  source: '06_미장.md §6-1 — 표준품셈 9-1-2 벽 모르타르 바름 2회(3.6m 이하) 미장공 0.07인/㎡를 바닥 손미장에 준용(원래는 벽 기준)',
+export const HAND_CREW_BASE_VOLUME_M3: Coefficient = {
+  value: 6.6116,
+  grade: 'B',
+  source: '06_미장.md §11-5 — 현장 기준 20평(66.116㎡)×100mm=6.6116㎥를 기공2·조공2가 1일 처리한다는 현장 진술의 역산 기준값',
 };
 
-/** 손미장 보통인부 품 — ㎡당 */
-export const SMALL_AREA_HELPER_PER_SQM: Coefficient = {
-  value: 0.03,
+/** 위 기준 체적에서 필요한 기공·조공 인원(각각) — 운영자 현장 기준 그대로 */
+export const HAND_CREW_BASE_HEADCOUNT: Coefficient = {
+  value: 2,
+  grade: 'B',
+  source: '06_미장.md §11-5 — 현장 기준 20평×100mm 손미장 1일 완료 조건의 기공·조공 인원(각 2인)',
+};
+
+// ── 8-B. 인건 — 장비 타설 피니싱(정벌 마무리, §11-6) ────
+//
+// 표준품셈 9-1-4 표면마무리(§6-3, 물량 계수 LARGE_AREA_FINISH_PLASTERER_PER_100SQM)와는
+// 별개 항목이다 — 운영자 현장 기준 "타설 후 4~5시간 물 빼는 대기시간 뒤 기공 1명이 마무리"를
+// 반나절(0.5일) 정액으로 반영한다. 5층 비용 구성표에서 "피니싱"이라는 별도 줄로 보여준다.
+
+/** 피니싱 인원 — 기공 1인 고정 */
+export const FINISH_HAND_HEADCOUNT: Coefficient = {
+  value: 1,
   grade: 'C',
-  source: '06_미장.md §6-1 — 표준품셈 9-1-2 벽 모르타르 바름 2회(3.6m 이하) 보통인부 0.03인/㎡를 바닥 손미장에 준용',
+  source: '06_미장.md §11-6 — 현장 기준 "타설 4~5시간 뒤 기공 1명이 마무리"',
+};
+
+/** 피니싱 일수 — 0.5일(반나절) 정액 */
+export const FINISH_HAND_DAYS: Coefficient = {
+  value: 0.5,
+  grade: 'C',
+  source: '06_미장.md §11-6 — "4~5시간"을 8시간 근무 기준 약 0.5~0.6일로 환산(현장 표현을 일수 품으로 바꾸는 과정 자체가 추정)',
 };
 
 // ── 9. 인건 — 장비 타설 (06_미장.md §6-2·§6-3) ────
@@ -243,15 +276,21 @@ export const LARGE_AREA_MECHANIC_PER_M3: Coefficient = {
   source: '06_미장.md §6-2 — 표준품셈 [건축] 9-1-3 바닥 모르타르 타설(장비 이용) 일반기계운전사 0.20인/10㎥',
 };
 
-/** 장비 타설 표면 마무리(인력마감) 미장공 품 (인/100㎡) — 표준품셈 0.30/100㎡ */
+/**
+ * 장비 타설 표면 마무리(인력마감) 미장공 품 (인/100㎡) — 표준품셈 0.30/100㎡.
+ * ⚠️ 2026-09-15 검사관 지적: labor-mortar.ts 크루 계산에서 뺐다 — 마무리 인건은 운영자
+ * 현장 기준(피니싱, 기공1인×0.5일, FINISH_HAND_DAYS)으로 이미 별도 breakdown 줄에 계상하고
+ * 있어서, 이 표준품셈 값까지 크루 계산에 같이 더하면 마무리 인건이 두 번(이중) 잡힌다.
+ * 값 자체는 표준품셈 A등급 근거라 문서화 목적으로 정의만 남겨 둔다(현재 미사용).
+ */
 export const LARGE_AREA_FINISH_PLASTERER_PER_100SQM: Coefficient = {
   value: 0.3,
   grade: 'A',
-  source: '06_미장.md §6-3 — 표준품셈 [건축] 9-1-4 표면 마무리(인력마감) 미장공 0.30인/100㎡',
+  source: '06_미장.md §6-3 — 표준품셈 [건축] 9-1-4 표면 마무리(인력마감) 미장공 0.30인/100㎡. 운영자 현장 기준 피니싱과 이중 계상 방지를 위해 크루 계산에서는 미사용',
 };
 
 // 장비 타설 안내 문구는 즉답(useMortarQuickCalc)과 같은 것을 써야 해서
-// src/lib/v1/mortarPresets.ts로 옮겼다(2026-09-15 형아 피드백) — 여기서는 다시 내보내기만 한다.
+// src/lib/v1/mortarPresets.ts로 옮겼다(2026-09-15 운영자 현장 기준 피드백) — 여기서는 다시 내보내기만 한다.
 export { EQUIPMENT_RENTAL_NOTE } from '@/lib/v1/mortarPresets';
 
 // ── 10. 셀프레벨링 인건 — 계산하지 않음 (06_미장.md §6-4) ──
@@ -264,18 +303,10 @@ export { EQUIPMENT_RENTAL_NOTE } from '@/lib/v1/mortarPresets';
 // 이 문구도 즉답과 같은 것을 써야 해서 mortarPresets.ts로 옮겼다 — 다시 내보내기만 한다.
 export { SELF_LEVEL_LABOR_ADVISORY_NOTE } from '@/lib/v1/mortarPresets';
 
-// ── 11. 품수 환산 규칙 (도배·바닥재와 같은 방식) ────────
-
-/**
- * 품수 올림 단위 (0.5 = 반나절).
- * ⚠️ 최소 품수는 "1품"이 아니라 이 값(0.5품)이다 — 반나절 출동도 가능하다고 본다
- * (2026-09-14 검사관 지적: 예전 주석이 "최소 1품"이라고 코드와 다르게 적혀 있었다).
- */
-export const MORTAR_MAN_DAY_STEP = 0.5;
-
-/** 미장 1조 인원 (2인 1조 관행) */
-export const MORTAR_TEAM_SIZE: Coefficient = {
-  value: 2,
-  grade: 'C',
-  source: '도배·바닥재와 같은 2인 1조 관행을 준용 — 미장 전용 표본 없음(추정)',
-};
+// ── 11. (삭제됨) 옛 품수 반나절 올림 규칙 ────────────
+//
+// 2026-09-15 운영자 현장 기준 지시로 인건 계산 방식 자체가 바뀌면서(§8 "손미장" 주석 참고) 더 이상
+// 안 쓴다 — 예전엔 "품(인-일) 합계를 반나절 단위로 올려 2인 1조 며칠"로 계산했지만,
+// 이제는 "이 물량을 하루 안에 끝내는 데 필요한 인원 수"를 바로 계산한다(days는 항상 1).
+// MORTAR_MAN_DAY_STEP·MORTAR_TEAM_SIZE는 삭제 — labor-mortar.ts가 더 이상 이 이름을
+// import하지 않는다(빌드 시 미사용 import 에러로 바로 드러난다).
