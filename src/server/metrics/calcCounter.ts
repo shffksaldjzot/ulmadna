@@ -21,6 +21,7 @@
 //   - 네트워크 실패 등 어떤 이유로든 실패해도 예외를 절대 밖으로 던지지 않는다.
 //
 // 작성일: 2026년 09월 14일
+// 2026년 09월 15일: 미장(레미탈·셀프레벨링) 계산기(mortar) 추가
 // ──────────────────────────────────────────────
 
 import { after } from 'next/server';
@@ -74,12 +75,14 @@ async function incrKeys(keys: string[]): Promise<void> {
  * 계산 성공 1건을 기록한다. API 라우트에서 계산이 성공했을 때 딱 한 번 호출한다.
  * 응답을 늦추지 않도록 항상 백그라운드로 실행되고, 절대 예외를 던지지 않는다.
  *
- * @param processName 공정 이름 — 'wallpaper'(도배) | 'flooring'(바닥재)
+ * @param processName 공정 이름 — 'wallpaper'(도배) | 'flooring'(바닥재) | 'mortar'(미장)
  * @param mode '평형' 입력 모드면 '즉답'에 해당하는 'quick', 그 외(실측·면적)는 'precise'
- * @param pyeong 평형 입력값 — 평형 모드가 아니면 undefined(버킷은 'na'로 기록됨)
+ * @param pyeong 평형 입력값 — 평형 모드가 아니면 undefined(버킷은 'na'로 기록됨).
+ *   미장(mortar)은 평형이 아니라 면적(㎡) 입력이라 항상 undefined로 넘어와 'na'로 찍힌다 —
+ *   집계 키 구조(공정별 총횟수·모드별)는 그대로 유효하니 평형대별 세분화만 포기한다.
  */
 export function recordCalcRun(
-  processName: 'wallpaper' | 'flooring',
+  processName: 'wallpaper' | 'flooring' | 'mortar',
   mode: 'quick' | 'precise',
   pyeong?: number,
 ): void {

@@ -15,6 +15,7 @@
 //   같이 가져다 쓴다 — 즉답 화면과 공유 결과 화면이 같은 규칙으로 계산되게 하기 위해서다.
 //
 // 작성일: 2026년 09월 14일
+// 2026년 09월 15일: GA4 calc_run 이벤트 추가(도배·바닥재와 같은 사용량 추적, 누락 발견돼 보강)
 // ──────────────────────────────────────────────
 
 'use client';
@@ -22,7 +23,10 @@
 import { useEffect, useRef, useState } from 'react';
 import type { MortarFormState } from './mortarQuery';
 import type { MortarProductOption } from './mortarProductOptions';
-import { toEngineInput, type MortarCalcRequest } from './mortarEngineInput';
+import { toEngineInput, resolveView, resolveMode, type MortarCalcRequest } from './mortarEngineInput';
+// GA4에 "계산이 실제로 실행됐다"는 이벤트를 보낸다(개인정보 없이 모드만 — 도배·바닥재와 같은 방식).
+// 미장은 평형이 아니라 면적(㎡) 입력이라 pyeongBucket은 안 쓴다.
+import { track } from '@/lib/analytics';
 
 // ── 서버 응답 모양 (src/server/calc/mortar.ts MortarCalcResult를 그대로 옮겨 적음) ──
 
@@ -214,6 +218,12 @@ export function useMortarCalc(state: MortarFormState, products: MortarProductOpt
       setLoading(false);
       setError(null);
       setStale(false);
+      // GA4: 캐시에서 바로 보여준 것도 사용자 입장에선 "계산 결과를 봤다"이므로 같이 센다
+      track('calc_run', {
+        process: 'mortar',
+        mode: resolveView(state) === 'precise' ? 'precise' : 'quick',
+        mortar_mode: resolveMode(state),
+      });
       return;
     }
 
@@ -233,6 +243,12 @@ export function useMortarCalc(state: MortarFormState, products: MortarProductOpt
           setResult(r);
           setRange(rg);
           setStale(false);
+          // GA4: 서버 계산이 실제로 성공했을 때 1번 기록(입력 원문 없이 모드만)
+          track('calc_run', {
+            process: 'mortar',
+            mode: resolveView(state) === 'precise' ? 'precise' : 'quick',
+            mortar_mode: resolveMode(state),
+          });
         })
         .catch((e: unknown) => {
           if (e instanceof DOMException && e.name === 'AbortError') return;

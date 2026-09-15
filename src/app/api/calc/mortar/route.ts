@@ -20,6 +20,8 @@ import type { MortarMode, MortarUsage, MortarMethod } from '@/server/calc/schema
 // 2026-09-15 운영자 현장 기준 피드백: 두께 상한이 모드마다 다르다(레미탈 150mm · 셀프레벨링 50mm) —
 // 화면 클램프(mortarEngineInput.ts)와 같은 표(mortarPresets.ts)를 그대로 가져다 쓴다.
 import { THICKNESS_MM_MIN, thicknessMmMax } from '@/lib/v1/mortarPresets';
+// 계산 성공 횟수를 Upstash Redis에 조용히 기록(도배·바닥재 API와 같은 서버측 사용량 집계)
+import { recordCalcRun } from '@/server/metrics/calcCounter';
 
 /** 이 라우트는 매번 새로 계산한다 (캐시 금지) */
 export const dynamic = 'force-dynamic';
@@ -170,6 +172,10 @@ export async function POST(request: Request) {
 
   try {
     const result = calcMortar(input);
+    // 계산이 실제로 성공했을 때만 1건 기록한다. 응답을 늦추지 않는다(fire-and-forget).
+    // 미장은 도배(mode: '평형'/'실측') 같은 명시적 모드 칸이 없어서, 정밀 모드 실별 면적
+    // (rooms)이 왔는지로 quick/precise를 가른다 — 화면의 view==='precise'와 같은 조건이다.
+    recordCalcRun('mortar', input.rooms && input.rooms.length > 0 ? 'precise' : 'quick');
     return NextResponse.json(result, { status: 200 });
   } catch (e) {
     console.error('[calc/mortar] 계산 실패', e);
