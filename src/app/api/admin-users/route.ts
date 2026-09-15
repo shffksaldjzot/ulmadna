@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSupabase } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
 export async function GET(req: Request) {
   // 환경변수 검증 — 미설정 시 인증 자체가 불가능하므로 500.
@@ -22,9 +22,16 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const supabase = getSupabase();
+  // service_role 클라이언트 — 환경변수 없으면 깔끔한 500 JSON으로 응답
+  let supabase;
+  try {
+    supabase = getSupabaseAdmin();
+  } catch (e) {
+    console.error('[admin-users] Supabase 초기화 실패:', e instanceof Error ? e.message : e);
+    return NextResponse.json({ error: 'DB 연결 설정 오류 (SUPABASE_SERVICE_ROLE_KEY 확인 필요)' }, { status: 500 });
+  }
 
-  // 저장된 견적에서 유저별 통계 조회
+  // 저장된 견적에서 유저별 통계 조회 (관리자 화면이라 전체 유저 대상 — RLS 우회 필요해서 admin 클라이언트 사용)
   const { data: estimates, error } = await supabase
     .from('saved_estimates')
     .select('user_id, title, created_at, output')
