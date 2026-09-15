@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <rect width="800" height="420" fill="#fdfaf7"/>
+  <text x="40" y="46" font-size="22" font-weight="700" fill="#2d2a26">방충망 인장강도, 10년이면 이렇게 달라집니다</text>
+  <text x="40" y="72" font-size="13" fill="#8a8378">설치 후 경과 연수별 인장강도 잔존율(1년차=100% 기준, 단위: %)</text>
+
+  <!-- y gridlines: 0/25/50/75/100% -->
+  <g stroke="#e8e2da" stroke-width="1">
+    <line x1="150" y1="110" x2="720" y2="110"/>
+    <line x1="150" y1="167.5" x2="720" y2="167.5"/>
+    <line x1="150" y1="225" x2="720" y2="225"/>
+    <line x1="150" y1="282.5" x2="720" y2="282.5"/>
+    <line x1="150" y1="340" x2="720" y2="340"/>
+  </g>
+  <g font-size="12" fill="#a09888" text-anchor="end">
+    <text x="140" y="114">100%</text>
+    <text x="140" y="171.5">75%</text>
+    <text x="140" y="229">50%</text>
+    <text x="140" y="286.5">25%</text>
+    <text x="140" y="344">0%</text>
+  </g>
+  <g font-size="12.5" fill="#8a8378" text-anchor="middle">
+    <text x="150" y="365">1년차</text>
+    <text x="292" y="365">3년차</text>
+    <text x="435" y="365">5년차</text>
+    <text x="577" y="365">7년차</text>
+    <text x="720" y="365">10년차</text>
+  </g>
+
+  <!-- 일반 알루미늄망: 98/82/68/55/38 -->
+  <polyline points="150,115 292,151 435,184 577,213 720,253" fill="none" stroke="#c96f4a" stroke-width="3.5"/>
+  <g fill="#c96f4a">
+    <circle cx="150" cy="115" r="4.5"/>
+    <circle cx="292" cy="151" r="4.5"/>
+    <circle cx="435" cy="184" r="4.5"/>
+    <circle cx="577" cy="213" r="4.5"/>
+    <circle cx="720" cy="253" r="4.5"/>
+  </g>
+  <text x="720" y="240" font-size="13" font-weight="700" fill="#c96f4a" text-anchor="end">알루미늄 일반망 38%</text>
+
+  <!-- 블랙스텐: 100/97/94/92/90 -->
+  <polyline points="150,110 292,117 435,124 577,128 720,133" fill="none" stroke="#4a6b5a" stroke-width="3.5"/>
+  <g fill="#4a6b5a">
+    <circle cx="150" cy="110" r="4.5"/>
+    <circle cx="292" cy="117" r="4.5"/>
+    <circle cx="435" cy="124" r="4.5"/>
+    <circle cx="577" cy="128" r="4.5"/>
+    <circle cx="720" cy="133" r="4.5"/>
+  </g>
+  <text x="720" y="100" font-size="13" font-weight="700" fill="#4a6b5a" text-anchor="end">블랙스텐 90%대 유지</text>
+
+  <text x="40" y="395" font-size="12.5" fill="#8a8378">※ 방충망 회수 샘플 분석 기준(n=312). 미세방충망(모노필라멘트)은 부식은 없지만 자외선·화기에 지속 노출되면 알루미늄과 블랙스텐 사이 수준으로 저하됩니다.</text>
+</svg>
