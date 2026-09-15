@@ -46,13 +46,16 @@ export default function SiteHeader() {
         {/* 좌측: 로고 + 무료 배지(데스크톱 전용, 여기 한 번만) */}
         <div className="flex items-center gap-3 min-w-0">
           <Link href="/" aria-label="얼마드나 홈" className="flex-none flex items-center">
+            {/* 2026-09-15 형아 지시(추가): 로고가 통일 작업 전(계산기 헤더 v1/TopNav.tsx가
+                쓰던 width=130 height=44, 반응형 축소 없음)보다 작아졌다는 지적 — 그 크기
+                그대로 모바일·데스크톱 공통 44px 높이로 되돌린다(h-11 = 44px, 반응형 축소 없음). */}
             <Image
               src="/ulmadna_logo.png"
               alt="얼마드나"
-              width={110}
-              height={38}
+              width={130}
+              height={44}
               priority
-              className="h-8 lg:h-9 w-auto"
+              className="h-11 w-auto"
             />
           </Link>
           <span className="hidden lg:inline-block t-sub text-ink-2 border border-line rounded-chip px-3 py-1 whitespace-nowrap">

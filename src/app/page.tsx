@@ -48,27 +48,31 @@ export default function Home() {
       </Container>
 
       {/* ───── 메인: 타일 + 입력 (55~60%) + 결과 (40~45%) ─────
-          아래 베타 계산기(InputPanel·ResultPanel)는 자체 내부 여백을 갖고 있어 폭 규칙을
-          그대로 두고(형아 지시: 손대지 않음), 구획 제목의 글자 단계만 새 정본에 맞췄다. */}
-      <main className="max-w-[1400px] mx-auto overflow-hidden">
-        {/* 견적 계산기 제목 — 타일 제목과 같은 정렬, 글자 단계만 새 정본(t-section) 적용 */}
-        <div className="w-full lg:w-[58%]">
-          <div className="px-4 lg:px-0 lg:mx-2 pt-2 pb-1">
+          2026-09-15 형아 지시(추가): 흰 배경 띠는 풀블리드로 두되, 안의 제목·패널은
+          공용 Container 안에 넣어서 좌우 가장자리가 위 카드들(로고·계산기 카드)과
+          정확히 같은 x(모바일 20 / 데스크톱 112)에 오게 한다. InputPanel의 자체 내부
+          여백(p-4/lg:p-8)은 그대로 두고(형아 지시: 안쪽 디자인은 손대지 않음), 바깥
+          여백만 걷어낸다(아래 InputPanel.tsx의 lg:m-2 제거와 짝) — Container의 padding이
+          곧 카드 바깥 가장자리가 되도록. */}
+      <main className="bg-white overflow-hidden">
+        <Container>
+          {/* 견적 계산기 제목 — 타일 제목과 같은 정렬, 글자 단계만 새 정본(t-section) 적용 */}
+          <div className="w-full lg:w-[58%] pt-2 pb-1">
             <h2 className="t-section text-ink">인테리어 견적 계산기</h2>
           </div>
-        </div>
 
-        <div className="flex flex-col lg:flex-row">
-          {/* 좌측: 입력 패널 — 고정 너비 */}
-          <div className="w-full lg:w-[58%] min-w-0 overflow-hidden">
-            <InputPanel input={state.input} output={state.output} dispatch={dispatch} />
-          </div>
+          <div className="flex flex-col lg:flex-row">
+            {/* 좌측: 입력 패널 — 고정 너비 */}
+            <div className="w-full lg:w-[58%] min-w-0 overflow-hidden">
+              <InputPanel input={state.input} output={state.output} dispatch={dispatch} />
+            </div>
 
-          {/* 우측: 결과 패널 — 고정 너비, sticky */}
-          <div className="w-full lg:w-[42%] min-w-0 overflow-hidden lg:sticky lg:top-[52px] lg:h-[calc(100vh-52px)] lg:overflow-y-auto">
-            <ResultPanel input={state.input} output={state.output} dispatch={dispatch} />
+            {/* 우측: 결과 패널 — 고정 너비, sticky */}
+            <div className="w-full lg:w-[42%] min-w-0 overflow-hidden lg:sticky lg:top-[52px] lg:h-[calc(100vh-52px)] lg:overflow-y-auto">
+              <ResultPanel input={state.input} output={state.output} dispatch={dispatch} />
+            </div>
           </div>
-        </div>
+        </Container>
       </main>
 
       {/* 절약 팁 섹션 제거됨 */}

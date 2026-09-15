@@ -1,8 +1,16 @@
 // ──────────────────────────────────────────────
-// v1 허브 — 도배 계산기 결과 화면의 인터랙션 부분(클라이언트)
+// v1 허브 — 계산기 결과 화면의 인터랙션 부분(클라이언트) 공용 컴포넌트.
+// 원래 도배 계산기(wallpaper/result/ResultActions.tsx)에만 있던 것을 레미탈·바닥재도
+// 그대로 쓸 수 있게 계산기 종류에 안 묶이는 공용 위치(_components)로 옮겼다.
+//
 // 게시판 체크박스(동작 없음, 표시만) + 저장·공유 플로팅 풍선.
-// 저장: 비로그인이면 로그인 화면으로, 로그인 상태면 "저장됨"으로만 전환(백엔드 저장은 TODO).
+// 저장: 비로그인이면 로그인 화면으로, 로그인 상태면 "저장됨"으로만 전환
+//   (2026-09-15 확인: 백엔드 저장이 아직 없는 화면 표시 전용 스텁 — TODO는 그대로 남겨둔다).
 // 공유: 링크 복사. 카카오 JS 키가 있으면 카카오 공유 SDK도 시도.
+//
+// 작성일: 2026년 09월 09일(도배 전용으로 최초 작성)
+// 2026년 09월 15일: 디자인 통일 작업 — 레미탈·바닥재 결과 화면도 같이 쓰도록 공용화.
+//   공유 문구(shareText)만 계산기마다 다르게 받고 나머지 동작은 완전히 같다.
 // ──────────────────────────────────────────────
 
 'use client';
@@ -30,7 +38,12 @@ export function PostToBoardCheckbox() {
   );
 }
 
-export function ResultFab() {
+interface ResultFabProps {
+  /** 카카오톡 공유 시 보여줄 한 줄 소개 — 계산기마다 다르게 넣는다 */
+  shareText: string;
+}
+
+export function ResultFab({ shareText }: ResultFabProps) {
   const { data: session } = useSession();
   const router = useRouter();
   const [saved, setSaved] = useState(false);
@@ -65,7 +78,7 @@ export function ResultFab() {
         if (!kakao.isInitialized()) kakao.init(kakaoKey);
         kakao.Share.sendDefault({
           objectType: 'text',
-          text: '얼마드나 도배 계산 결과를 확인해 보세요',
+          text: shareText,
           link: { mobileWebUrl: url, webUrl: url },
         });
       } catch {

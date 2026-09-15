@@ -22,6 +22,8 @@ import { decodeFlooringForm, type FlooringFormState } from '@/lib/v1/flooringQue
 import { toFlooringProductOptions } from '@/lib/v1/flooringProductOptions';
 import { toEngineInput, describePreciseInput, describeAreaPair } from '@/lib/v1/flooringEngineInput';
 import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
+// 2026-09-15 디자인 통일 작업: 도배 결과 화면에만 있던 저장·공유 기능을 바닥재에도 그대로 붙인다
+import { PostToBoardCheckbox, ResultFab } from '../../_components/ResultActions';
 
 export const metadata = {
   title: '바닥재 계산기 결과 — 얼마드나',
@@ -169,8 +171,9 @@ export default async function FlooringResultPage({ searchParams }: PageProps) {
         }
       />
 
-      {/* px-5: 상단바(TopNav)와 좌우 여백을 맞춘다 */}
-      <div className="px-5 py-4 pb-8 flex flex-col gap-4 max-w-[720px] mx-auto">
+      {/* px-5: 상단바(TopNav)와 좌우 여백을 맞춘다. pb-40: 모바일 하단 고정 저장·공유
+          풍선(ResultFab)에 본문이 가리지 않게 여유를 둔다(도배 결과 화면과 동일) */}
+      <div className="px-5 py-4 pb-40 lg:pb-8 flex flex-col gap-4 max-w-[720px] mx-auto">
         <p className="text-[13px] text-v1-text-secondary tabular-nums">{buildSummary(state)}</p>
 
         {/* 결과 카드 — 2026-09-15 디자인 통일 지시: 카드 속 카드 금지, 테두리 카드는 이거
@@ -263,7 +266,17 @@ export default async function FlooringResultPage({ searchParams }: PageProps) {
           </Collapsible>
         </Card>
 
+        <PostToBoardCheckbox />
+
         <Disclaimer />
+      </div>
+
+      {/* 하단 고정 — 모바일은 화면 하단에 고정, PC(lg)는 콘텐츠 흐름 안 인라인 버튼으로
+          (도배 결과 화면과 동일한 배치) */}
+      <div className="fixed bottom-0 left-0 right-0 px-5 pb-4 pt-2 flex flex-col gap-3 max-w-[720px] mx-auto lg:static lg:max-w-[720px] lg:px-0 lg:pb-8">
+        <div className="flex justify-end">
+          <ResultFab shareText="얼마드나 바닥재 계산 결과를 확인해 보세요" />
+        </div>
       </div>
     </>
   );

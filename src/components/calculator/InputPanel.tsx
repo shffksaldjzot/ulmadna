@@ -34,8 +34,10 @@ export default function InputPanel({ input, output, dispatch }: InputPanelProps)
     setAllExpanded(!allExpanded);
   };
 
+  // 2026-09-15 형아 지시(추가): lg:m-2(바깥 여백)를 없애서 이 패널의 바깥 가장자리가
+  // page.tsx의 공용 Container 가장자리와 정확히 같은 x에 오게 한다(폭·안쪽 여백은 그대로).
   return (
-    <div className="bg-white border-r border-gray-100 lg:rounded-2xl lg:m-2 lg:border lg:shadow-sm">
+    <div className="bg-white border-r border-gray-100 lg:rounded-2xl lg:border lg:shadow-sm">
       <div className="p-4 lg:p-8">
         {/* Step 01 + 초기화 같은 라인 */}
         <div className="flex items-center justify-between mb-4 lg:mb-6">

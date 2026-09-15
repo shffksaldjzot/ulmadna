@@ -31,7 +31,8 @@ import { decodeWallpaperForm, type WallpaperFormState } from '@/lib/v1/wallpaper
 import { toWallpaperProductOptions } from '@/lib/v1/wallpaperProductOptions';
 import { toEngineInput, describePreciseInput, describeAreaPair } from '@/lib/v1/wallpaperEngineInput';
 import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
-import { PostToBoardCheckbox, ResultFab } from './ResultActions';
+// 2026-09-15 디자인 통일 작업: 결과 화면 저장·공유 부품을 계산기 3종 공용 위치로 옮겼다
+import { PostToBoardCheckbox, ResultFab } from '../../_components/ResultActions';
 
 export const metadata = {
   title: '도배 계산기 결과 — 얼마드나',
@@ -294,7 +295,7 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
       {/* px-5: 위 본문과 좌우 여백을 맞춘다(모바일 고정바 기준). PC는 정적 배치로 바뀌며 lg:px-0 유지 */}
       <div className="fixed bottom-0 left-0 right-0 px-5 pb-4 pt-2 flex flex-col gap-3 max-w-[720px] mx-auto lg:static lg:max-w-[720px] lg:px-0 lg:pb-8">
         <div className="flex justify-end">
-          <ResultFab />
+          <ResultFab shareText="얼마드나 도배 계산 결과를 확인해 보세요" />
         </div>
         {/* /calc/q 페이지가 아직 없어서 숨김 (2026-09-11 검사관 지적) */}
         {SHOW_UNFINISHED_LINKS && (
