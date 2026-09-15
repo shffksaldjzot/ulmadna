@@ -27,7 +27,8 @@ export default function PdfDownload({ input, output }: PdfDownloadProps) {
     <button
       onClick={handleDownload}
       disabled={loading}
-      className="flex-1 min-w-[140px] px-4 py-3 bg-brown text-white rounded-lg text-sm font-medium hover:bg-brown/90 transition-colors disabled:opacity-50"
+      // 주 액션 버튼 채움은 강조색(accent) 통일 — 갈색은 글자 전용
+      className="flex-1 min-w-[140px] px-4 py-3 bg-accent text-white rounded-lg text-sm font-medium hover:bg-accent-press transition-colors disabled:opacity-50"
     >
       {loading ? '생성 중...' : 'PDF로 저장하기'}
     </button>

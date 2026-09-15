@@ -100,7 +100,7 @@ export function MyPosts({ posts }: { posts: MyPostMeta[] }) {
     }
     if (navigator.share) {
       try {
-        await navigator.share({ title: "얼마드나 — 내 글", url: link });
+        await navigator.share({ title: "얼마드나 — 본 글·저장", url: link });
       } catch {
         /* 사용자가 공유를 취소하면 무시 */
       }

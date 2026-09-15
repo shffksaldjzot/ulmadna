@@ -155,6 +155,16 @@ export function IconCheck(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+/** 블로그(글 목록) 아이콘 — 하단 탭 (2026-09-15 공용 하단 탭 추가) */
+export function IconBlog(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" {...props}>
+      <rect x="3" y="3" width="14" height="14" rx="2" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M6.5 7.5h7M6.5 10.5h7M6.5 13.5h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 /** 닫기(x) 아이콘 — 바텀시트 등 */
 export function IconClose(props: SVGProps<SVGSVGElement>) {
   return (

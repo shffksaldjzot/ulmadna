@@ -148,9 +148,10 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
             </Link>
           }
         />
-        <div className="px-4 py-4 flex flex-col gap-4 max-w-[720px] mx-auto">
+        {/* px-5: 상단바(TopNav)와 좌우 여백을 맞춘다 */}
+        <div className="px-5 py-4 flex flex-col gap-4 max-w-[720px] mx-auto">
           <Card>
-            <p className="text-[16px] text-v1-text-secondary">조건이 비어 있어요</p>
+            <p className="text-[15px] text-v1-text-secondary">조건이 비어 있어요</p>
           </Card>
         </div>
       </>
@@ -178,15 +179,18 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
         }
       />
 
-      <div className="px-4 py-4 pb-40 lg:pb-8 flex flex-col gap-4 max-w-[720px] mx-auto">
-        <p className="text-[14px] text-v1-text-secondary tabular-nums">{buildSummary(state)}</p>
+      {/* px-5: 상단바(TopNav)와 좌우 여백을 맞춘다 */}
+      <div className="px-5 py-4 pb-40 lg:pb-8 flex flex-col gap-4 max-w-[720px] mx-auto">
+        <p className="text-[13px] text-v1-text-secondary tabular-nums">{buildSummary(state)}</p>
 
-        {/* 카드 1 — 물량 */}
+        {/* 결과 카드 — 2026-09-15 디자인 통일 지시: 카드 속 카드 금지, 테두리 카드는 이거
+            하나뿐이다. 물량 → 부자재 → 비용을 얇은 구분선(구획 제목 17/700)으로만 나눈다. */}
         <Card>
+          {/* 물량 */}
           <div className="text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em]">
             {formatNum(quantity.rolls)}롤
           </div>
-          <p className="text-[16px] text-foreground leading-[1.6] tabular-nums">
+          <p className="text-[15px] text-foreground leading-[1.6] tabular-nums">
             벽 {quantity.wallSqm}㎡ · 천장 {quantity.ceilingSqm}㎡ · {lossLabel}
           </p>
           {/* 면적(벽 길이) 모드는 방별 물량이 없어 "실별 보기"가 뜻이 없다 — 숨긴다(검사관 지적 17번) */}
@@ -200,39 +204,36 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
                       i === quantity.byRoom.length - 1 ? '' : 'border-b border-v1-line-2'
                     }`}
                   >
-                    <span className="text-[16px] text-foreground">{r.name}</span>
-                    <span className="text-[16px] text-v1-text-secondary tabular-nums">
+                    <span className="text-[15px] text-foreground">{r.name}</span>
+                    <span className="text-[15px] text-v1-text-secondary tabular-nums">
                       {r.rolls}롤{' '}
-                      <span className="text-[14px] text-v1-text-disabled">{r1(r.wallSqm + r.ceilingSqm)}㎡</span>
+                      <span className="text-[13px] text-v1-text-disabled">{r1(r.wallSqm + r.ceilingSqm)}㎡</span>
                     </span>
                   </div>
                 ))}
               </div>
             </Collapsible>
           )}
-        </Card>
 
-        {/* 카드 2 — 부자재 */}
-        <Card>
-          <h2 className="text-[20px] font-bold text-foreground">부자재</h2>
+          {/* 부자재 */}
+          <h2 className="text-[17px] font-bold text-foreground border-t border-v1-line-2 pt-3 mt-1">부자재</h2>
           <div className="flex flex-col">
             {submaterials.map((s, i) => (
               <div key={s.key} className={`py-[10px] ${i === submaterials.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
                 <div className="flex items-center justify-between">
-                  <span className="text-[16px] text-foreground">{s.name}</span>
-                  <span className="text-[16px] text-foreground tabular-nums">
+                  <span className="text-[15px] text-foreground">{s.name}</span>
+                  <span className="text-[15px] text-foreground tabular-nums">
                     {formatNum(s.qty)}
                     {s.unit}
                   </span>
                 </div>
-                <p className="text-[14px] text-v1-text-disabled tabular-nums">{s.basis}</p>
+                <p className="text-[13px] text-v1-text-disabled tabular-nums">{s.basis}</p>
               </div>
             ))}
           </div>
-        </Card>
 
-        {/* 카드 3 — 비용 */}
-        <Card>
+          {/* 비용 */}
+          <h2 className="text-[17px] font-bold text-foreground border-t border-v1-line-2 pt-3 mt-1">비용</h2>
           {/* 금액과 단위는 줄바꿈으로 갈라지면 안 되므로(디자인 가이드 원칙) whitespace-nowrap.
               배지가 자리 부족하면 배지만 다음 줄로 내려가게 flex-wrap 허용 */}
           <div className="flex items-center gap-2 flex-wrap">
@@ -240,27 +241,27 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
               {formatManRange(cost.min, cost.max)}
             </div>
             {cost.mode === '산식' && (
-              <span className="text-[14px] font-semibold text-brown bg-v1-badge-gold-bg border border-gold rounded-[4px] px-[10px] py-[2px] whitespace-nowrap">
+              <span className="text-[13px] font-semibold text-brown bg-v1-badge-gold-bg border border-gold rounded-[4px] px-[10px] py-[2px] whitespace-nowrap">
                 추정
               </span>
             )}
           </div>
-          <p className="text-[16px] font-semibold text-v1-text-secondary tabular-nums">
+          <p className="text-[15px] font-semibold text-v1-text-secondary tabular-nums">
             중간 {toMan(cost.mid).toLocaleString('ko-KR')}만원
           </p>
-          <p className="text-[16px] text-foreground tabular-nums">{cost.basisLine}</p>
+          <p className="text-[15px] text-foreground tabular-nums">{cost.basisLine}</p>
           <Collapsible title="구성 보기" defaultOpen>
             <div className="flex flex-col">
               {cost.breakdown.map((line, i) => (
                 <div key={line.key} className={`py-[10px] ${i === cost.breakdown.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
                   <div className="flex items-center justify-between">
-                    <span className="text-[16px] text-foreground">{line.name}</span>
-                    <span className="text-[16px] text-foreground tabular-nums">{formatCostLineAmount(line)}</span>
+                    <span className="text-[15px] text-foreground">{line.name}</span>
+                    <span className="text-[15px] text-foreground tabular-nums">{formatCostLineAmount(line)}</span>
                   </div>
-                  <p className="text-[14px] text-v1-text-disabled tabular-nums">{line.note}</p>
+                  <p className="text-[13px] text-v1-text-disabled tabular-nums">{line.note}</p>
                 </div>
               ))}
-              <p className="text-[14px] text-v1-text-disabled pt-[10px]">소비자가 기준 · 부가세 포함</p>
+              <p className="text-[13px] text-v1-text-disabled pt-[10px]">소비자가 기준 · 부가세 포함</p>
             </div>
           </Collapsible>
         </Card>
@@ -290,7 +291,8 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
       </div>
 
       {/* 하단 고정 — 모바일은 화면 하단에 고정, PC(lg)는 콘텐츠 흐름 안 인라인 버튼으로 */}
-      <div className="fixed bottom-0 left-0 right-0 px-4 pb-4 pt-2 flex flex-col gap-3 max-w-[720px] mx-auto lg:static lg:max-w-[720px] lg:px-0 lg:pb-8">
+      {/* px-5: 위 본문과 좌우 여백을 맞춘다(모바일 고정바 기준). PC는 정적 배치로 바뀌며 lg:px-0 유지 */}
+      <div className="fixed bottom-0 left-0 right-0 px-5 pb-4 pt-2 flex flex-col gap-3 max-w-[720px] mx-auto lg:static lg:max-w-[720px] lg:px-0 lg:pb-8">
         <div className="flex justify-end">
           <ResultFab />
         </div>

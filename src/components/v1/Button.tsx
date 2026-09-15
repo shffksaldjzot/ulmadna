@@ -20,9 +20,10 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const base =
   'inline-flex items-center justify-center gap-2 rounded-[4px] text-[16px] font-semibold transition-colors duration-150 h-[52px] md:h-[44px] px-5 disabled:cursor-not-allowed';
 
+// 주버튼 채움은 강조색(accent) 통일 — 갈색(brown)은 글자·제목 전용, 눌림/호버는 accent를 약간 어둡게
 const variantClass: Record<Variant, string> = {
   primary:
-    'bg-brown text-white active:bg-brown-press disabled:bg-v1-line disabled:text-v1-text-disabled md:hover:bg-brown-hover',
+    'bg-accent text-white active:bg-accent-press disabled:bg-v1-line disabled:text-v1-text-disabled md:hover:bg-accent-press',
   secondary:
     'bg-white text-brown border border-gold active:bg-cream disabled:border-v1-line-3 disabled:text-v1-text-disabled',
   text:

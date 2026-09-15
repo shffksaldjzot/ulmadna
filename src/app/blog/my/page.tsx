@@ -7,8 +7,10 @@ import { MyPosts } from "@/components/blog/MyPosts";
 import "../blog.css";
 
 // 사람마다 브라우저 기록이 다른 "내 것만 보이는" 페이지라서 검색엔진에는 노출하지 않는다
+// 제목은 "본 글·저장" — "내 글"이라고 하면 내가 직접 쓴 글로 오해할 수 있어서
+// "내가 본 글 + 저장한 글"이라는 뜻이 드러나게 바꿈 (2026-09-15)
 export const metadata: Metadata = {
-  title: "내 글 — 얼마드나 블로그",
+  title: "본 글·저장 — 얼마드나 블로그",
   robots: { index: false, follow: false },
 };
 
@@ -30,7 +32,7 @@ export default function MyBlogPage() {
       <BlogHeader />
       <div className="wrap">
         <div className="blog-hero blog-hero-my">
-          <h1>내 글</h1>
+          <h1>본 글·저장</h1>
         </div>
         <MyPosts posts={meta} />
       </div>

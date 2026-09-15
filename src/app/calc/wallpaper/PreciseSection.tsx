@@ -29,7 +29,6 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import Card from '@/components/v1/Card';
 import Chip from '@/components/v1/Chip';
 import Segment from '@/components/v1/Segment';
 import NumberField from '@/components/v1/NumberField';
@@ -81,7 +80,7 @@ export interface PreciseSectionProps {
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-[16px] font-semibold text-foreground">{label}</span>
+      <span className="text-[15px] font-semibold text-foreground">{label}</span>
       {children}
     </div>
   );
@@ -117,8 +116,9 @@ export default function PreciseSection(props: PreciseSectionProps) {
   }
 
   return (
-    <Card>
-      <h2 className="text-[20px] font-bold text-foreground">실측</h2>
+    // 2026-09-15 디자인 통일 지시: 카드 속 카드 금지 — 테두리 카드는 결과 카드 하나에만
+    <div className="flex flex-col gap-4">
+      <h2 className="text-[17px] font-bold text-foreground">실측</h2>
 
       {/* 1. 입력 방식 — 방을 하나씩 재느냐, 벽 전체 길이를 아느냐 */}
       <Field label="입력 방식">
@@ -134,7 +134,7 @@ export default function PreciseSection(props: PreciseSectionProps) {
 
       {/* 2. 단위 — 화면에 보이는 숫자만 바뀌고 저장값(m)은 그대로다 */}
       <div className="flex items-center justify-between">
-        <span className="text-[16px] font-semibold text-foreground">단위</span>
+        <span className="text-[15px] font-semibold text-foreground">단위</span>
         <div className="flex gap-2">
           <Chip shape="square" selected={unit === 'm'} onClick={() => onUnitChange('m')}>
             m
@@ -176,7 +176,7 @@ export default function PreciseSection(props: PreciseSectionProps) {
             <button
               type="button"
               onClick={addRoom}
-              className="h-11 rounded-[4px] border border-dashed border-v1-line-3 text-[16px] text-v1-text-secondary"
+              className="h-11 rounded-[4px] border border-dashed border-v1-line-3 text-[15px] text-v1-text-secondary"
             >
               + 방 추가
             </button>
@@ -219,6 +219,6 @@ export default function PreciseSection(props: PreciseSectionProps) {
         </>
       )}
 
-    </Card>
+    </div>
   );
 }

@@ -26,7 +26,6 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
-import Card from '@/components/v1/Card';
 import Segment from '@/components/v1/Segment';
 import NumberField from '@/components/v1/NumberField';
 import { IconChevronDown } from '@/components/v1/icons';
@@ -171,8 +170,10 @@ export default function PaperPicker({
   const selectedProduct = productCode ? list.find((p) => p.code === productCode) : undefined;
 
   return (
-    <Card>
-      <h2 className="text-[20px] font-bold text-foreground">벽지</h2>
+    // 2026-09-15 디자인 통일 지시: 카드 속 카드 금지 — 테두리 카드는 결과 카드 하나에만.
+    // 입력 구획은 카드 없이 바탕 위에, 여백+구획 제목(17/700)으로만 나눈다.
+    <div className="flex flex-col gap-3">
+      <h2 className="text-[17px] font-bold text-foreground">벽지</h2>
 
       {/* 종류 — 기본 미선택. 고르기 전엔 아무 탭도 활성화하지 않는다 */}
       <Segment
@@ -189,7 +190,7 @@ export default function PaperPicker({
       <div className="flex flex-col pt-3">
         {/* 제품 드롭다운 — 2026-09-09 형아 지시: 제품이 세로로 쭉 나오지 말고 드롭다운으로 고르게.
             첫 줄(빈 값) = 제품 안 고름 → 종류 평균가로 계산. 마지막 줄 "직접 입력" = 아래 입력칸 펼침. */}
-        <label className="text-[14px] text-v1-text-label pb-1" htmlFor="paper-product-select">
+        <label className="text-[13px] text-v1-text-label pb-1" htmlFor="paper-product-select">
           벽지 제품
         </label>
         <div className="relative">
@@ -220,13 +221,13 @@ export default function PaperPicker({
 
         {/* 고른 제품의 출처 한 줄 (드롭다운 안에는 못 넣어서 아래에 따로) */}
         {selectedProduct?.sourceLabel && (
-          <span className="text-[14px] text-v1-text-disabled pt-1">{selectedProduct.sourceLabel}</span>
+          <span className="text-[13px] text-v1-text-disabled pt-1">{selectedProduct.sourceLabel}</span>
         )}
 
         {customOpen && (
           <div className="flex flex-col gap-2 pt-3 pl-3">
             {/* 가격은 자릿수가 길어 한 줄을 통째로 쓴다(좁은 폰에서 숫자가 잘리지 않게) */}
-            <span className="text-[14px] text-v1-text-label">롤당 가격</span>
+            <span className="text-[13px] text-v1-text-label">롤당 가격</span>
             <NumberField
               aria-label="롤당 가격"
               suffix="원"
@@ -236,7 +237,7 @@ export default function PaperPicker({
             />
 
             {/* 폭·길이는 짧은 숫자라 한 줄에 2칸 */}
-            <div className="flex gap-2 text-[14px] text-v1-text-label pt-1">
+            <div className="flex gap-2 text-[13px] text-v1-text-label pt-1">
               <span className="flex-1 min-w-0">폭</span>
               <span className="flex-1 min-w-0">길이</span>
             </div>
@@ -260,7 +261,7 @@ export default function PaperPicker({
             </div>
 
             {/* 무늬 반복은 선택 — 비워 두면 무지로 본다 */}
-            <span className="text-[14px] text-v1-text-label pt-1">무늬 반복</span>
+            <span className="text-[13px] text-v1-text-label pt-1">무늬 반복</span>
             <NumberField
               aria-label="무늬 반복"
               suffix="cm"
@@ -274,6 +275,6 @@ export default function PaperPicker({
       )}
       {/* 범위(벽·천장) 칩 — 벽지 종류를 고른 뒤에만 보인다 */}
       {paperType && footer}
-    </Card>
+    </div>
   );
 }

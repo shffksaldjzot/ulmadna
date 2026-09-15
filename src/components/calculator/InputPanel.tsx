@@ -79,9 +79,10 @@ export default function InputPanel({ input, output, dispatch }: InputPanelProps)
                   <button
                     key={rate}
                     onClick={() => dispatch({ type: 'SET_MARGIN_RATE', payload: rate / 100 })}
+                    // 활성 칩 채움은 강조색(accent) — 갈색은 글자 전용
                     className={`flex-1 py-2 rounded-lg text-center transition-all text-sm font-medium ${
                       Math.round(input.basic.marginRate * 100) === rate
-                        ? 'bg-brown text-white shadow-sm'
+                        ? 'bg-accent text-white shadow-sm'
                         : 'bg-white text-gray-500 border border-gray-200 hover:border-gold'
                     }`}
                   >

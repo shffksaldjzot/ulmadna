@@ -35,9 +35,29 @@ import {
   MONEY_INPUT_WON_MAX,
   clamp,
 } from './mortarPresets';
+import { SQM_PER_PYEONG, pyeongToExclusiveSqm, exclusiveSqmToPyeong } from './areaUnits';
 
-/** 1평 = 3.3058㎡ (도배·바닥재와 같은 값) */
-const SQM_PER_PYEONG = 3.3058;
+/**
+ * "공급 평형 → 전용 ㎡" 규칙을 쓰는 용도 — 방통 전체·확장부 바닥은 34평 아파트를 고르는
+ * 것처럼 도배·바닥재와 같은 개념이라 같은 환산표(areaUnits.ts pyeongToExclusiveSqm)를 쓴다.
+ *
+ * 2026-09-15 34평 의미 통일 지시: 예전엔 미장의 "평"이 전부 순수 단위 환산(평×3.3058)이라
+ * 34평을 고르면 112㎡(시공 면적 그 자체)로 계산됐다 — 도배·바닥재의 "34평=전용 84㎡"와
+ * 뜻이 달라 34평 아파트 방통 전체가 실제보다 30%+ 크게 나오는 문제였다. 이제 이 두 용도만
+ * 도배·바닥재와 같은 규칙(공급→전용)을 쓰고, 나머지(욕실·현관 구배·마루 철거 후 보수·
+ * 셀프레벨링)는 집 평형 개념이 없는 "바를 면적 그 자체"라 순수 단위 환산을 그대로 쓴다.
+ */
+const SUPPLY_AREA_USAGES = new Set<MortarUsage>(['방통전체', '확장부바닥']);
+
+/**
+ * 지금 폼 상태가 "공급 평형 → 전용 ㎡" 규칙을 써야 하는지 — 용도 칩(top-level, MortarCalculator)
+ * 하나로 모드·용도를 같이 정하므로, 여기서도 그 칩 선택 하나만 보고 판정한다.
+ * 셀프레벨링 모드나 욕실·현관 구배/마루 철거 후 보수는 false(순수 단위 환산).
+ */
+export function usesSupplyAreaConvention(state: MortarFormState): boolean {
+  if (resolveMode(state) === '셀프레벨링') return false;
+  return state.usage ? SUPPLY_AREA_USAGES.has(state.usage) : true; // 기본값(방통전체)도 true
+}
 
 /** 면적 입력의 최소값(㎡) — 서버 API 허용 범위와 같다(mortarPresets.ts AREA_SQM_MIN) */
 export const MIN_AREA_SQM = AREA_SQM_MIN;
@@ -122,6 +142,13 @@ export function describePreciseInput(state: MortarFormState): PreciseInputInfo {
 /**
  * 간단 모드의 면적 입력(평/㎡ 직접 입력 또는 가로×세로)을 ㎡ 값 하나로 바꾼다.
  * 둘 다 비어 있으면 null. 값이 있으면 서버 허용 범위로 클램프한다(공유 링크 방어).
+ *
+ * 2026-09-15 34평 의미 통일: 평 단위일 때 어떤 공식을 쓸지가 용도에 따라 갈린다 —
+ *   방통 전체·확장부 바닥(usesSupplyAreaConvention=true): 도배·바닥재와 같은 "공급 평형 →
+ *     전용 ㎡" 표(areaUnits.ts pyeongToExclusiveSqm)를 쓴다. ㎡ 단위는 이미 전용 ㎡ 그
+ *     자체이므로 그대로 쓴다(평 환산 없음).
+ *   그 외(욕실·현관 구배·마루 철거 후 보수·셀프레벨링): 집 평형 개념이 없는 "바를 면적
+ *     그 자체"라 순수 단위 환산(평×3.3058)만 쓴다 — 예전과 같다.
  */
 export function resolveSimpleAreaSqm(state: MortarFormState): number | null {
   const inputMode: MortarAreaInputMode = state.areaInputMode ?? 'area';
@@ -130,7 +157,13 @@ export function resolveSimpleAreaSqm(state: MortarFormState): number | null {
     return clamp(r2(state.rectWidth * state.rectDepth), AREA_SQM_MIN, AREA_SQM_MAX);
   }
   if (!isPositive(state.area)) return null;
-  const sqm = state.areaUnit === '㎡' ? state.area : state.area * SQM_PER_PYEONG;
+  const supplyArea = usesSupplyAreaConvention(state);
+  const sqm =
+    state.areaUnit === '㎡'
+      ? state.area
+      : supplyArea
+        ? pyeongToExclusiveSqm(state.area)
+        : state.area * SQM_PER_PYEONG;
   return clamp(r2(sqm), AREA_SQM_MIN, AREA_SQM_MAX);
 }
 
@@ -404,4 +437,21 @@ export function toEngineInput(state: MortarFormState, products: MortarProductOpt
     primer: state.primer,
     product,
   };
+}
+
+/**
+ * 결과 화면에 쓰는 "공급 34평 · 전용 84㎡" 병기 문구 — 도배·바닥재 describeAreaPair()와 같은
+ * 뜻이다. usesSupplyAreaConvention(state)가 true인 용도(방통 전체·확장부 바닥)에서, 간단
+ * 모드(area 입력)일 때만 뜻이 있다. 그 외(욕실 등 작업 면적 직접 입력·가로×세로·정밀 모드)는
+ * 집 평형 개념이 없어 null.
+ */
+export function describeAreaPair(state: MortarFormState): string | null {
+  if (resolveView(state) !== 'simple') return null;
+  if ((state.areaInputMode ?? 'area') !== 'area') return null;
+  if (!usesSupplyAreaConvention(state)) return null;
+  if (!isPositive(state.area)) return null;
+  if (state.areaUnit === '㎡') {
+    return `공급 약 ${exclusiveSqmToPyeong(state.area)}평 · 전용 ${state.area}㎡`;
+  }
+  return `공급 ${state.area}평 · 전용 ${pyeongToExclusiveSqm(state.area)}㎡`;
 }

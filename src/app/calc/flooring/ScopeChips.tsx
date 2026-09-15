@@ -32,7 +32,7 @@ export default function ScopeChips({ scope, onScopeChange }: ScopeChipsProps) {
   return (
     <div className="flex flex-col gap-3 pt-2 border-t border-v1-line-2">
       <div className="flex flex-col gap-1">
-        <span className="text-[14px] text-v1-text-label">범위</span>
+        <span className="text-[13px] text-v1-text-label">범위</span>
         <div className="flex gap-2">
           <Chip selected={scope === '전체'} onClick={() => onScopeChange('전체')}>
             전체

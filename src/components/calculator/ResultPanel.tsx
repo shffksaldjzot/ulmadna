@@ -188,8 +188,9 @@ export default function ResultPanel({ input, output, dispatch }: ResultPanelProp
                     <button
                       key={h.timestamp}
                       onClick={() => setSelectedIdx(i)}
+                      // 선택된 비교 대상 채움·테두리는 강조색(accent)으로 통일
                       className={`w-full text-left px-3 py-2.5 rounded-xl border text-xs transition-all ${
-                        selectedIdx === i ? 'border-brown bg-brown/5 text-brown' : 'border-gray-100 text-gray-600 hover:border-gold/50'
+                        selectedIdx === i ? 'border-accent bg-accent/5 text-accent' : 'border-gray-100 text-gray-600 hover:border-gold/50'
                       }`}
                     >
                       <span className="font-medium">{h.area}평 · {Math.round(h.total / 10000).toLocaleString()}만원</span>

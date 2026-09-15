@@ -32,9 +32,10 @@ export default function ContingencySelector({ value, onChange }: ContingencySele
           <button
             key={opt.value}
             onClick={() => onChange(opt.value)}
+            // 활성 칩 채움은 강조색(accent) — 갈색은 글자 전용
             className={`px-2.5 py-1 text-xs rounded-full transition-all ${
               value === opt.value
-                ? 'bg-brown text-white'
+                ? 'bg-accent text-white'
                 : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
             }`}
           >

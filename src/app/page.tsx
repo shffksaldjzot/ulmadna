@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useCalculator } from '@/hooks/useCalculator';
 import InputPanel from '@/components/calculator/InputPanel';
@@ -8,7 +7,9 @@ import ResultPanel from '@/components/calculator/ResultPanel';
 import AdSlot from '@/components/ads/AdSlot';
 import InteriorResourceLinks from '@/components/common/InteriorResourceLinks';
 import ProcessTiles from '@/app/calc/ProcessTiles';
-import TopNav from '@/components/v1/TopNav';
+import SiteHeader from '@/components/layout/SiteHeader';
+import SiteFooter from '@/components/layout/SiteFooter';
+import Container from '@/components/layout/Container';
 
 export default function Home() {
   const { state, dispatch } = useCalculator();
@@ -33,29 +34,27 @@ export default function Home() {
 
   return (
     <>
-      {/* ───── 헤더 — v1·계산기와 같은 공용 상단바 (2026-09-09 형아 지시: 통일) ───── */}
-      <TopNav />
+      {/* ───── 헤더 — 홈·계산기·블로그 공용 상단바 (2026-09-15 디자인 통일 작업 A) ───── */}
+      <SiteHeader />
 
-      {/* AD-H: 헤더 ↔ 계산기 사이 (v2 명세 §4). 현재 house ad 플레이스홀더 노출 */}
+      {/* AD-H: 헤더 ↔ 계산기 사이. 광고 전역 스위치가 꺼져 있는 동안은 collapse */}
       <AdSlot id="AD-H" />
 
-      {/* ───── 메인: 타일 + 입력 (55~60%) + 결과 (40~45%) ───── */}
-      <main className="max-w-[1400px] mx-auto overflow-hidden">
-        {/* ───── 공정별 물량 계산기 타일 (2026-09-09 형아 지시) ─────
-            "우리 집 인테리어, 얼마 드나?" 문구 자리. 타일 묶음의 양 끝을 아래 입력 카드의 양 끝에 맞춘다(image copy 4.png).
-            main은 body 세로 flex 안에서 mx-auto 라 폭이 내용물 크기로 정해지므로, 별도 section에 두면 어긋난다.
-            그래서 main 안에서 왼쪽 열과 같은 폭(lg:w-[58%]) + 카드와 같은 여백(lg:mx-2)을 준다.
-            부품은 /calc 허브와 같은 ProcessTiles. */}
-        <div className="w-full lg:w-[58%]">
-          <div className="px-4 lg:px-0 lg:mx-2 pt-6 pb-2 lg:pt-8 lg:pb-4">
-            <ProcessTiles />
-          </div>
-        </div>
+      {/* ───── 한 줄 약속 + 살아있는 계산기 카드 ─────
+          공용 컨테이너(Container)로 감싸서 왼쪽 시작선을 상단바 로고와 정확히 맞춘다. */}
+      <Container className="pt-6 pb-2 lg:pt-8 lg:pb-4 flex flex-col gap-4">
+        <p className="t-body text-ink-2">인테리어, 얼마 드나. 견적서 없이 바로 계산</p>
+        <ProcessTiles />
+      </Container>
 
-        {/* 견적 계산기 제목 — 타일 제목과 같은 글씨·같은 정렬 (2026-09-09 형아 지시: 빨간 상자 자리에 "인테리어 견적 계산기") */}
+      {/* ───── 메인: 타일 + 입력 (55~60%) + 결과 (40~45%) ─────
+          아래 베타 계산기(InputPanel·ResultPanel)는 자체 내부 여백을 갖고 있어 폭 규칙을
+          그대로 두고(형아 지시: 손대지 않음), 구획 제목의 글자 단계만 새 정본에 맞췄다. */}
+      <main className="max-w-[1400px] mx-auto overflow-hidden">
+        {/* 견적 계산기 제목 — 타일 제목과 같은 정렬, 글자 단계만 새 정본(t-section) 적용 */}
         <div className="w-full lg:w-[58%]">
           <div className="px-4 lg:px-0 lg:mx-2 pt-2 pb-1">
-            <h2 className="text-[20px] font-bold text-foreground">인테리어 견적 계산기</h2>
+            <h2 className="t-section text-ink">인테리어 견적 계산기</h2>
           </div>
         </div>
 
@@ -79,7 +78,11 @@ export default function Home() {
           * 라벨/평당가는 작게(10~11px), 금액(text-lg)만 큰 글씨로 가독성 유지
           * 우측 ↑ 버튼은 페이지 최상단으로 부드럽게 이동 (§2.4) */}
       {state.output.total > 0 && !isResultVisible && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] px-4 py-2.5">
+        <div
+          className="lg:hidden fixed left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] px-4 py-2.5"
+          // bottom-0 대신 공용 하단 탭(BottomTabs, 56px + 세이프에어리어) 위에 얹는다 — 겹침 방지
+          style={{ bottom: 'calc(56px + env(safe-area-inset-bottom, 0px))' }}
+        >
           <div className="flex items-center justify-between gap-3 max-w-[600px] mx-auto">
             {/* 좌측: 라벨(작게) + 금액(큰 글씨) 인라인 배치 */}
             <div className="flex items-baseline gap-1.5 min-w-0">
@@ -105,8 +108,8 @@ export default function Home() {
         </div>
       )}
 
-      {/* 모바일 하단바 높이만큼 여백 — 하단바 노출 중에만 (compact 1줄 기준 ~52px) */}
-      {state.output.total > 0 && !isResultVisible && <div className="lg:hidden h-14" />}
+      {/* 모바일 하단바 높이만큼 여백 — 하단바(~52px) + 공용 하단 탭(56px) 노출 중에만 */}
+      {state.output.total > 0 && !isResultVisible && <div className="lg:hidden h-28" />}
 
       {/* 파트너 배너: 실제 스폰서 등록 전까지 숨김 */}
 
@@ -155,60 +158,13 @@ export default function Home() {
           표준계약서·키스콘·건축물대장·하자분쟁·소비자원 등 공식 사이트 바로가기 */}
       <InteriorResourceLinks />
 
-      {/* AD-F: 신뢰 섹션 ↔ 푸터 사이 (v2 명세 §4). 광고주 0명 — 현재 collapse */}
+      {/* AD-F: 신뢰 섹션 ↔ 푸터 사이. 광고 전역 스위치가 꺼져 있는 동안은 collapse */}
       <AdSlot id="AD-F" />
 
-      {/* ───── 푸터 ─────
-          * pb-14 (모바일): 하단 고정바(~52px) 노출 시 푸터 마지막 텍스트 가림 방지 (Phase 5)
-          * lg:pb-10: 데스크탑은 기존 py-10 유지 (하단바가 모바일 전용이므로) */}
-      <footer className="bg-brown text-cream/80 pt-10 pb-14 lg:pb-10 px-4 lg:px-8">
-        <div className="max-w-[1400px] mx-auto">
-          <div className="flex flex-col md:flex-row justify-between gap-8">
-            <div>
-              <Image
-                src="/ulmadna_logo.png"
-                alt="얼마드나"
-                width={80}
-                height={28}
-                className="brightness-0 invert opacity-60 mb-3"
-              />
-              <p className="text-xs leading-relaxed">
-                얼마드나 · 대표 김지환<br />
-                사업자등록번호 565-58-00717<br />
-                cs870@naver.com
-              </p>
-            </div>
-            <div className="flex gap-8 text-xs">
-              <div>
-                <p className="text-cream/40 mb-2 font-medium">서비스</p>
-                <p>견적 계산기</p>
-                <p className="text-cream/30 mt-1">자재 소요량 (준비 중)</p>
-                <p className="text-cream/30">견적서 비교 (준비 중)</p>
-              </div>
-              <div>
-                <p className="text-cream/40 mb-2 font-medium">지원</p>
-                <p><a href="/about" className="hover:text-cream transition-colors">얼마드나 소개</a></p>
-                <p><a href="/contact" className="hover:text-cream transition-colors">문의하기</a></p>
-                <p><a href="/terms" className="hover:text-cream transition-colors">이용약관</a></p>
-                <p><a href="/privacy" className="hover:text-cream transition-colors">개인정보처리방침</a></p>
-              </div>
-              <div>
-                <p className="text-cream/40 mb-2 font-medium">광고/제휴</p>
-                <p>스폰서 배너 문의</p>
-                <p className="text-cream/30 mt-1">
-                  <a href="mailto:cs870@naver.com?subject=[얼마드나] 스폰서 배너 문의" className="hover:text-cream transition-colors">
-                    cs870@naver.com
-                  </a>
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="border-t border-cream/10 mt-8 pt-4 text-[10px] text-cream/30 flex flex-col sm:flex-row justify-between gap-2">
-            <p>본 견적은 참고용 예상 금액이며, 실제 시공비는 현장 실측에 따라 달라질 수 있습니다.</p>
-            <p>© 2026 얼마드나 · <a href="/privacy" className="hover:text-cream">개인정보처리방침</a> · <a href="/terms" className="hover:text-cream">이용약관</a></p>
-          </div>
-        </div>
-      </footer>
+      {/* ───── 푸터 — 공용 푸터(하단 탭 포함), 모든 페이지 동일 ─────
+          사업자등록번호 등 상세 정보는 /about·/contact·/privacy·/terms에 있고
+          공용 푸터가 그 페이지들로 링크한다(중복 대신 한 곳에서 관리). */}
+      <SiteFooter />
     </>
   );
 }

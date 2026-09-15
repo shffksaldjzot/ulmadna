@@ -48,9 +48,10 @@ export default function AreaSelector({ value, onChange }: AreaSelectorProps) {
           <button
             key={area.pyeong}
             onClick={() => { setEditing(false); onChange(area.pyeong); }}
+            // 활성 칩 채움은 강조색(accent) — 갈색은 글자 전용
             className={`relative px-3 py-2 rounded-lg text-center transition-all min-w-[70px]
               ${value === area.pyeong && !editing
-                ? 'bg-brown text-white shadow-md'
+                ? 'bg-accent text-white shadow-md'
                 : 'bg-white text-gray-700 border border-gray-200 hover:border-gold'
               }`}
           >
@@ -86,9 +87,10 @@ export default function AreaSelector({ value, onChange }: AreaSelectorProps) {
         ) : (
           <button
             onClick={() => { setEditing(true); setCustomValue(showCustom ? String(value) : ''); }}
+            // 직접입력 활성 상태도 동일하게 강조색(accent) 채움
             className={`px-3 py-2 rounded-lg text-center transition-all min-w-[70px]
               ${showCustom
-                ? 'bg-brown text-white shadow-md'
+                ? 'bg-accent text-white shadow-md'
                 : 'bg-white text-gray-700 border border-gray-200 hover:border-gold'
               }`}
           >

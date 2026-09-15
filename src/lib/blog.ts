@@ -63,6 +63,29 @@ export interface Post extends PostMeta {
 const calcReadingTime = (content: string) =>
   Math.max(1, Math.round(content.replace(/\s+/g, "").length / 450));
 
+// 마크다운 기본 규칙(CommonMark)에서는 "**굵게**" 뒤에 공백/문장부호 없이
+// 바로 다른 글자가 붙으면 — 예: "**5~7%**가 통용되는" — 닫는 **가 닫는 것으로
+// 인정되지 않아서 별표(**)가 글자 그대로 남는 문제가 있음.
+// (원인: 닫는 ** 바로 앞 글자가 %,) 같은 문장부호면, 닫는 **가 "닫힘"으로
+//  인정받으려면 뒤에도 공백이나 문장부호가 와야 하는데, 한국어는 조사(가/는/을 등)가
+//  띄어쓰기 없이 바로 붙는 경우가 많아 이 조건을 자주 못 만족함 — 172편 중 148편에서 발견, 2026-09-15)
+// 고치는 법: 그 조건에 걸리는 "**...**"만 골라서 처음부터 raw HTML <strong>으로
+// 바꿔버리면 CommonMark의 닫힘 판정 자체를 건너뛰어서 항상 굵게로 렌더링됨.
+// (안의 링크·기울임 등은 raw HTML 안에서도 그대로 마크다운으로 계속 파싱됨 — 확인됨)
+const DANGLING_BOLD_PUNCT = /[!"#$%&'()*+,\-./:;<=>?@[\]^_`{|}~%·…""''、。！？；：]/;
+function fixDanglingBold(content: string): string {
+  return content.replace(/\*\*([^*\n]+?)\*\*/g, (whole, inner: string, offset: number, full: string) => {
+    const lastCh = inner[inner.length - 1] ?? "";
+    const nextCh = full[offset + whole.length] ?? ""; // 닫는 ** 바로 다음 글자(문서 끝이면 빈 문자열)
+    const endsWithPunct = DANGLING_BOLD_PUNCT.test(lastCh);
+    const nextIsSafe = nextCh === "" || /\s/.test(nextCh) || DANGLING_BOLD_PUNCT.test(nextCh);
+    if (endsWithPunct && !nextIsSafe) {
+      return `<strong>${inner}</strong>`; // 문제되는 경우만 raw HTML로 우회
+    }
+    return whole; // 정상적으로 닫히는 경우는 손대지 않음(기존 동작 그대로)
+  });
+}
+
 // 파일 하나를 읽어 프런트매터(data)와 본문(content)을 같이 돌려줌
 // (메타만 쓸 때도, 소제목까지 뽑을 때도 같은 함수를 쓰려고 분리)
 function readRaw(file: string) {
@@ -171,11 +194,17 @@ export async function getPost(slug: string): Promise<Post | null> {
   const fp = path.join(BLOG_DIR, `${slug}.md`);
   if (!fs.existsSync(fp)) return null;
   const raw = fs.readFileSync(fp, "utf8");
-  const { data, content } = matter(raw);
+  const { data, content: rawContent } = matter(raw);
+  // "**굵게**뒤글자" 형태로 안 닫히는 문제를 파싱 전에 미리 손봄 (위 fixDanglingBold 참고)
+  const content = fixDanglingBold(rawContent);
 
   const processed = await unified()
     .use(remarkParse)
-    .use(remarkGfm)
+    // singleTilde:false → 물결 두 개(~~)만 취소선으로 처리.
+    // 물결 하나(~)는 "6만2,500원~16만1,765원" 같은 "부터~까지" 범위 표기라
+    // 기본값(물결 하나도 취소선)으로 두면 범위 표기가 통째로 취소선 처리되고
+    // 그 안의 **굵게**도 깨져서 "**"가 글자 그대로 노출되는 버그가 있었음 (2026-09-15 수정)
+    .use(remarkGfm, { singleTilde: false })
     .use(remarkRehype, { allowDangerousHtml: true })
     .use(rehypeRaw)
     .use(rehypeStringify)
@@ -190,10 +219,40 @@ export async function getPost(slug: string): Promise<Post | null> {
     return `<h2 id="${id}">${inner}</h2>`;
   });
 
-  // 표는 모바일 가로 스크롤 래퍼 + 외부 링크는 새 탭(이탈 방지)
+  // 표 — 좁은 화면(390px 등)에 열이 많은 표를 욱여넣으면 "9만5,652원" 같은
+  // 짧은 금액도 세 줄로 쪼개지는 문제가 있었음. 그래서:
+  //   1) 표를 가로 스크롤 가능한 래퍼(.blog-table-wrap)로 감싸고
+  //   2) 표 자체에 "열 개수 x 칸 최소 폭"만큼 최소 너비(min-width)를 줘서
+  //      화면이 좁으면 칸이 찌그러지는 대신 표 "안에서만" 가로 스크롤되게 함
+  //   3) "짧은 값" 칸(금액·날짜·등급명 등)에만 줄바꿈 금지(nowrap)를 붙여서
+  //      숫자 중간이 안 쪼개지게 함. 설명 문장처럼 긴 칸까지 다 nowrap 시키면
+  //      표가 지나치게(수천px) 넓어지므로 짧은 칸만 골라 적용함.
+  //   (본문 폭 자체는 절대 넘치지 않음 — 스크롤은 래퍼 안에서만 발생, 2026-09-15 수정)
+  const MIN_COL_WIDTH = 92; // 칸 하나 최소 폭(px) — 금액 한 줄이 안 쪼개지는 기준
+  const MIN_TABLE_WIDTH = 460; // 열이 적어도 표 전체가 이보다 좁아지진 않음
+  const NOWRAP_MAX_LEN = 16; // 이 글자수 이하 칸만 "짧은 값"으로 보고 nowrap 적용
   html = html
-    .replace(/<table>/g, '<div class="blog-table-wrap"><table>')
-    .replace(/<\/table>/g, "</table></div>")
+    .replace(/<table>([\s\S]*?)<\/table>/g, (_m, inner: string) => {
+      // 첫 번째 행(<tr>...</tr>)의 <th>/<td> 개수로 열 개수를 셈
+      const firstRow = inner.match(/<tr>([\s\S]*?)<\/tr>/);
+      const colCount = firstRow ? (firstRow[1].match(/<t[hd]/g) || []).length : 0;
+      const minWidth = Math.max(MIN_TABLE_WIDTH, (colCount || 1) * MIN_COL_WIDTH);
+
+      // 칸(<td>, <th>) 하나하나를 훑어서, 글자 수가 짧으면 class="nowrap"을 붙임
+      const withNowrap = inner.replace(
+        /<(td|th)((?:\s[^>]*)?)>([\s\S]*?)<\/\1>/g,
+        (cellMatch, tag: string, attrs: string, content: string) => {
+          const text = content.replace(/<[^>]+>/g, "").trim(); // 태그 떼고 순수 글자만
+          if (text.length === 0 || text.length > NOWRAP_MAX_LEN) return cellMatch; // 길면 그대로 둠(자동 줄바꿈)
+          const withClass = /class="/.test(attrs)
+            ? attrs.replace(/class="([^"]*)"/, 'class="$1 nowrap"')
+            : `${attrs} class="nowrap"`;
+          return `<${tag}${withClass}>${content}</${tag}>`;
+        }
+      );
+
+      return `<div class="blog-table-wrap"><table style="min-width:${minWidth}px">${withNowrap}</table></div>`;
+    })
     .replace(/<a href="(https?:\/\/[^"]*)"/g, '<a href="$1" target="_blank" rel="noopener noreferrer"');
 
   // 스포일러 — <!-- spoiler:start --> ~ <!-- spoiler:end --> 구간을
@@ -239,7 +298,8 @@ export async function getPost(slug: string): Promise<Post | null> {
     }
   );
 
-  const readingTime = calcReadingTime(content);
+  // 읽기 시간은 <strong> 보정 전(rawContent) 글자수로 계산 — 보정용 태그 글자가 안 섞이게
+  const readingTime = calcReadingTime(rawContent);
 
   const faq: FaqItem[] = Array.isArray(data.faq)
     ? data.faq

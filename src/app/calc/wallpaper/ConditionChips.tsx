@@ -32,7 +32,7 @@ export default function ConditionChips({
     <div className="flex flex-col gap-3 pt-2 border-t border-v1-line-2">
       {/* 범위 — 벽·천장을 각각 켜고 끈다 (2026-09-09 형아 지시). 둘 다 끄는 건 막는다(마지막 하나는 안 꺼짐) */}
       <div className="flex flex-col gap-1">
-        <span className="text-[14px] text-v1-text-label">범위</span>
+        <span className="text-[13px] text-v1-text-label">범위</span>
         <div className="flex gap-2">
           <Chip
             selected={target !== 'ceiling'}

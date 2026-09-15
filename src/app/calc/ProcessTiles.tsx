@@ -1,55 +1,43 @@
 // ──────────────────────────────────────────────
-// v1 허브 — 공정별 물량 계산기 타일 (2026-09-09 형아 지시: 롤백 전 홈 히어로를 /calc 에 보여주기)
+// 살아 있는 계산기 카드 — 홈(/)과 계산기 허브(/calc)가 같이 쓴다.
 //
-// 원래 베타 홈(src/app/page.tsx) 히어로에 넣었다가 롤백한 화면을 그대로 옮겨 왔다.
-// 도배·바닥재만 열려 있고 나머지는 회색 "준비 중"(클릭 불가). 모바일 3열 → PC 5열.
-// 순서는 개발 예정 순서(미장 → 조적 → 방수 → 커튼 → 바닥재 → 샷시 → 욕실 → 주방 → 전기).
-// 2026-09-10: 바닥재 계산기(U 지시서) 완성으로 href 추가
+// 2026-09-15 형아 지시(디자인 통일 작업 A): 예전엔 공정 10개를 작은 타일로 나열해서
+// 실제로 쓸 수 있는 3개(도배·미장·바닥재)와 준비 중 7개가 똑같은 무게로 보였다.
+// 그래서 "지금 쓸 수 있는 것"만 크게 카드로 보여주고, 나머지는 회색 안내 한 줄로 뺐다.
 // ──────────────────────────────────────────────
 
-/** href 가 있으면 열린 계산기, 없으면 회색 "준비 중" 타일 */
-const PROCESS_TILES: { name: string; href?: string }[] = [
-  { name: '도배', href: '/calc/wallpaper' },
-  { name: '미장', href: '/calc/mortar' },
-  { name: '조적' },
-  { name: '방수' },
-  { name: '커튼' },
-  { name: '바닥재', href: '/calc/flooring' },
-  { name: '샷시' },
-  { name: '욕실' },
-  { name: '주방' },
-  { name: '전기' },
+import Link from 'next/link';
+
+/** 실제로 열려 있는 계산기 3개 — 카드로 크게 보여준다 */
+const LIVE_CALCULATORS = [
+  { name: '도배', href: '/calc/wallpaper', desc: '벽지 롤수와 비용' },
+  { name: '미장', href: '/calc/mortar', desc: '레미탈 포대수와 비용' },
+  { name: '바닥재', href: '/calc/flooring', desc: '바닥재 수량과 비용' },
 ];
+
+/** 아직 없는 공정 — 칸을 만들지 않고 회색 한 줄로만 안내 */
+const COMING_SOON = ['조적', '방수', '커튼', '샷시', '욕실', '주방', '전기'];
 
 export default function ProcessTiles() {
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-[20px] font-bold text-foreground">공정별 물량 계산기</h2>
-      <ul className="grid grid-cols-3 sm:grid-cols-5 gap-2" aria-label="공정별 계산기">
-        {PROCESS_TILES.map((tile) =>
-          tile.href ? (
-            <li key={tile.name}>
-              <a
-                href={tile.href}
-                className="flex flex-col items-center justify-center h-16 rounded-xl border border-gold/60 bg-white text-brown text-sm font-semibold hover:bg-v1-card-soft transition-colors"
-              >
-                {tile.name}
-                <span className="text-[10px] font-medium text-gold mt-0.5">지금 계산</span>
-              </a>
-            </li>
-          ) : (
-            <li key={tile.name}>
-              <div
-                aria-disabled="true"
-                className="flex flex-col items-center justify-center h-16 rounded-xl border border-gray-200 bg-gray-100 text-gray-400 text-sm font-medium cursor-not-allowed select-none"
-              >
-                {tile.name}
-                <span className="text-[10px] mt-0.5">준비 중</span>
-              </div>
-            </li>
-          ),
-        )}
+      <h2 className="t-section text-ink">공정별 물량 계산기</h2>
+
+      <ul className="grid grid-cols-1 sm:grid-cols-3 gap-3" aria-label="공정별 계산기">
+        {LIVE_CALCULATORS.map((calc) => (
+          <li key={calc.name}>
+            <Link
+              href={calc.href}
+              className="flex flex-col gap-1 h-full rounded-card border border-line bg-surface px-5 py-4 hover:border-accent transition-colors"
+            >
+              <span className="t-body font-bold text-ink">{calc.name}</span>
+              <span className="t-sub text-ink-2">{calc.desc}</span>
+            </Link>
+          </li>
+        ))}
       </ul>
+
+      <p className="t-sub text-ink-2">준비 중: {COMING_SOON.join(' · ')}</p>
     </section>
   );
 }

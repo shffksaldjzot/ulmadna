@@ -1,39 +1,25 @@
 // ─────────────────────────────────────────────────────────────
 // 자사 콘텐츠(House Ad) 렌더러
 //  - AD-H, AD-R 슬롯에서 광고주 없을 때 노출 (v2 명세 §5.4)
-//  - 실제 카피는 집사가 직접 작성 예정 — 여기는 슬롯/플레이스홀더만 제공
-//  - 작성 후 HOUSE_AD_CONTENT의 해당 슬롯 객체를 채우면 자동 반영됨
+//  - 광고 전역 스위치(ADS_ENABLED, src/lib/ads/config.ts)가 꺼져 있는 동안은
+//    resolveAdContent가 항상 collapse를 반환하므로 이 컴포넌트는 실제로 렌더되지 않는다.
+//    (2026-09-15 기준 ADS_ENABLED=false — 광고 자체를 켤지는 별도의 사업 결정이라
+//    이 작업에서는 건드리지 않았다. 스위치를 켜는 순간 아래 카드가 그대로 나타난다.)
+//
+// 2026-09-15 디자인 통일 작업 A: "애드센스 320×100" 같은 자리표시 문구 대신 실제로
+// 눌리는 계산기 홍보 카드로 바꿨다. "광고" 라벨 없음(자사 콘텐츠라 원래도 라벨 대상 아님).
+// 날짜 기준으로 카드를 돌려써서(진짜 랜덤이 아니라 오늘 하루는 서버·화면이 같은 카드를
+// 보여주도록) 매번 렌더가 흔들리는 하이드레이션 불일치를 피했다.
 // ─────────────────────────────────────────────────────────────
 
 import type { AdSlotId } from '@/lib/ads/types';
 
-// 자사 콘텐츠 데이터 구조
-interface HouseAdContent {
-  title: string;   // 굵은 한 줄 (브라운)
-  body: string;    // 보조 설명 (회색)
-  cta: string;     // 마무리 액션 문구 (gold)
-  href: string;    // 클릭 시 이동할 URL (얼마드나 내부 경로 또는 mailto:)
-}
-
-// 슬롯 ID별 자사 콘텐츠
-//  - null = 카피 미작성 (개발용 플레이스홀더 박스 노출)
-//  - 객체 = 실제 자사 콘텐츠 렌더
-// AD-P, AD-F는 house ad 대상 아님 (collapse 정책, §5.3)
-const HOUSE_AD_CONTENT: Record<'AD-H' | 'AD-R', HouseAdContent | null> = {
-  // 애드센스 승인 전까지 블로그 홍보로 채움 (슬롯ID 입력 시 애드센스가 우선 노출)
-  'AD-H': {
-    title: '인테리어 비용, 더 알고 싶다면?',
-    body: '공정별 단가·후기·호구 안 당하는 법까지, 소비자 편에서 정리한 인테리어 정보.',
-    cta: '블로그에서 보기',
-    href: '/blog',
-  },
-  'AD-R': {
-    title: '받은 견적, 적정한지 헷갈린다면',
-    body: '업체 고르는 법·견적서 보는 법을 블로그에 정리해뒀어요.',
-    cta: '인테리어 정보 보기',
-    href: '/blog',
-  },
-};
+// 계산기 홍보 카드 3종 — 실제로 켜져 있는 계산기만 넣는다(준비 중 공정은 안내하지 않음)
+const CALC_PROMOS = [
+  { title: '도배 계산기', body: '벽지 롤수와 비용 바로', href: '/calc/wallpaper' },
+  { title: '미장 계산기', body: '레미탈 포대수와 비용 바로', href: '/calc/mortar' },
+  { title: '바닥재 계산기', body: '바닥재 수량과 비용 바로', href: '/calc/flooring' },
+] as const;
 
 interface HouseAdRendererProps {
   slotId: AdSlotId;
@@ -43,29 +29,20 @@ export default function HouseAdRenderer({ slotId }: HouseAdRendererProps) {
   // house ad 대상이 아닌 슬롯 — 안전장치 (호출되지 않아야 정상)
   if (slotId === 'AD-P' || slotId === 'AD-F') return null;
 
-  const content = HOUSE_AD_CONTENT[slotId];
+  // 날짜(일)로 카드를 하나 고른다 — AD-H/AD-R이 한 화면에 같이 있어도 서로 다른 카드가
+  // 나오도록 슬롯별로 한 칸씩 밀어서 고른다.
+  const dayIndex = new Date().getDate();
+  const offset = slotId === 'AD-R' ? 1 : 0;
+  const promo = CALC_PROMOS[(dayIndex + offset) % CALC_PROMOS.length];
 
-  // 카피 미작성 — 개발용 플레이스홀더 (집사 카피 작성 전 화면 확인용)
-  if (!content) {
-    return (
-      <div className="w-full h-full flex flex-col items-center justify-center bg-cream/60 border border-dashed border-gold/40 rounded-xl px-4 py-3 text-center">
-        <p className="text-[10px] text-gold tracking-widest font-medium">
-          {slotId} · House Ad
-        </p>
-        <p className="text-xs text-gray-500 mt-1">콘텐츠 작성 예정</p>
-      </div>
-    );
-  }
-
-  // 카피 작성 후 — 실제 자사 콘텐츠 렌더
   return (
     <a
-      href={content.href}
-      className="block w-full h-full bg-white border border-gold/20 rounded-xl px-4 py-3 hover:border-gold transition-colors"
+      href={promo.href}
+      className="flex flex-col justify-center w-full h-full bg-surface border border-line rounded-card px-4 py-3 hover:border-accent transition-colors"
     >
-      <p className="text-xs font-semibold text-brown">{content.title}</p>
-      <p className="text-[11px] text-gray-500 mt-1 leading-snug">{content.body}</p>
-      <p className="text-[10px] text-gold mt-2">{content.cta} →</p>
+      <p className="t-body font-bold text-ink">{promo.title}</p>
+      <p className="t-sub text-ink-2 mt-1">{promo.body}</p>
+      <p className="t-sub font-semibold text-accent mt-2">지금 계산하기 →</p>
     </a>
   );
 }

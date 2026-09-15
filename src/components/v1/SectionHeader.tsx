@@ -12,9 +12,9 @@ interface SectionHeaderProps {
 export default function SectionHeader({ title, moreHref }: SectionHeaderProps) {
   return (
     <div className="flex items-baseline justify-between">
-      <h2 className="text-[20px] font-bold text-foreground">{title}</h2>
+      <h2 className="t-section text-ink">{title}</h2>
       {moreHref && (
-        <Link href={moreHref} className="text-[16px] text-v1-text-secondary">
+        <Link href={moreHref} className="t-sub font-semibold text-accent">
           더 보기
         </Link>
       )}

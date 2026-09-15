@@ -108,7 +108,8 @@ export default function FlooringCalculator({ products }: FlooringCalculatorProps
 
       {/* 모바일: 세로 1열(모드 세그먼트→바닥재→평형/실측→결과), 하단 고정 요약 바만큼 pb-20으로 여백.
           PC(lg): 왼쪽 입력 480~560px 고정 + 오른쪽 결과 sticky */}
-      <div className="px-4 py-4 pb-20 lg:pb-8 max-w-[1120px] mx-auto flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(480px,560px)_1fr] lg:gap-8 lg:items-start">
+      {/* 좌우 여백을 공용 Container(px-5/lg:px-8)와 동일하게 맞춰 헤더 로고와 x축을 일치시킨다 */}
+      <div className="px-5 lg:px-8 py-4 pb-20 lg:pb-8 max-w-[1120px] mx-auto flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(480px,560px)_1fr] lg:gap-8 lg:items-start">
         {/* 왼쪽 — 입력 */}
         <div className="flex flex-col gap-6">
           {/* 모드 세그먼트 — 카드 바깥, 화면 맨 위. 캡션 1줄만(설명글 최소화 원칙) */}
@@ -149,13 +150,6 @@ export default function FlooringCalculator({ products }: FlooringCalculatorProps
               onExclusiveSqmChange={(v) => patch({ exclusiveSqm: v === '' ? undefined : v })}
               bay={form.bay ?? 3}
               onBayChange={(v) => patch({ bay: v })}
-              range={range}
-              loading={loading}
-              error={error}
-              stale={stale}
-              kind={form.kind}
-              result={result}
-              emptyMessage={emptyMessage}
             />
           ) : (
             <PreciseSection

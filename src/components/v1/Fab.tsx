@@ -23,8 +23,9 @@ function FabButton({ icon, label, active, onClick }: FabButtonProps) {
       onClick={onClick}
       className={
         'h-12 px-[18px] rounded-full border flex items-center gap-2 text-[16px] font-semibold transition-colors duration-150 shadow-md ' +
+        // 활성(저장됨) 채움은 강조색(accent) — 갈색은 글자 전용
         (active
-          ? 'bg-brown border-brown text-white'
+          ? 'bg-accent border-accent text-white'
           : 'bg-white border-gold text-brown active:bg-cream')
       }
     >

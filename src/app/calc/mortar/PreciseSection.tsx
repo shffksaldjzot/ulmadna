@@ -21,16 +21,15 @@
 
 'use client';
 
-import Card from '@/components/v1/Card';
 import Chip from '@/components/v1/Chip';
 import NumberField from '@/components/v1/NumberField';
 import Toggle from '@/components/v1/Toggle';
 import { IconChevronDown } from '@/components/v1/icons';
-import { formatManRange, formatNum } from '@/lib/v1/money';
+import { formatNum } from '@/lib/v1/money';
 import type { MortarFormState, MortarPreciseRoom } from '@/lib/v1/mortarQuery';
 import type { MortarProductOption } from '@/lib/v1/mortarProductOptions';
 import { productCoversThickness, recommendSelfLevelProduct, formatMortarProductLabel } from '@/lib/v1/mortarProductOptions';
-import type { MortarCalcResultDTO, MortarRange } from '@/lib/v1/useMortarCalc';
+import type { MortarCalcResultDTO } from '@/lib/v1/useMortarCalc';
 import type { MortarQuickResult } from '@/lib/v1/useMortarQuickCalc';
 import {
   USAGE_PRESET,
@@ -45,13 +44,10 @@ export interface PreciseSectionProps {
   form: MortarFormState;
   patch: (p: Partial<MortarFormState>) => void;
   products: MortarProductOption[];
-  /** 즉시 계산 결과(서버 응답 없이도 항상 있음) — 포수·체적은 여기서만 가져온다 */
+  /** 즉시 계산 결과(서버 응답 없이도 항상 있음) — 표준 범위 벗어남 안내에만 쓴다 */
   quick: MortarQuickResult | null;
-  /** 서버 계산 결과(비용·인건). 늦게 오거나 없을 수 있다 */
+  /** 서버 계산 결과 — "참고값 채우기" 버튼이 양중비 참고값을 가져올 때만 쓴다 */
   result: MortarCalcResultDTO | null;
-  range: MortarRange | null;
-  /** 서버 계산 실패 메시지. 있으면 비용 자리에 "비용은 잠시 후 다시"만 보여준다 */
-  error: string | null;
 }
 
 /** 로스율 조정 칩(%) */
@@ -62,7 +58,7 @@ function isPositive(n: number | undefined): n is number {
   return typeof n === 'number' && Number.isFinite(n) && n > 0;
 }
 
-export default function PreciseSection({ form, patch, products, quick, result, range, error }: PreciseSectionProps) {
+export default function PreciseSection({ form, patch, products, quick, result }: PreciseSectionProps) {
   const mode = form.mode ?? '레미탈';
   const rooms = form.preciseRooms ?? [];
   const lossPct = Math.round((form.lossRate ?? 0.05) * 100);
@@ -123,13 +119,14 @@ export default function PreciseSection({ form, patch, products, quick, result, r
   }
 
   return (
-    <Card>
-      <h2 className="text-[20px] font-bold text-foreground">실측</h2>
+    // 2026-09-15 디자인 통일 지시: 카드 속 카드 금지 — 테두리 카드는 결과 카드 하나에만
+    <div className="flex flex-col gap-4">
+      <h2 className="text-[17px] font-bold text-foreground">실측</h2>
 
       {/* 1. 두께 — mm 숫자 입력(모바일 숫자 키패드). 슬라이더 대신 직접 입력으로 바꿨다 */}
       <div className="flex items-center justify-between">
-        <span className="text-[16px] font-semibold text-foreground">두께</span>
-        <span className="text-[14px] text-v1-text-disabled">{thicknessMin}~{thicknessMax}mm</span>
+        <span className="text-[15px] font-semibold text-foreground">두께</span>
+        <span className="text-[13px] text-v1-text-disabled">{thicknessMin}~{thicknessMax}mm</span>
       </div>
       <NumberField
         value={form.thicknessMm ?? ''}
@@ -141,11 +138,11 @@ export default function PreciseSection({ form, patch, products, quick, result, r
         max={thicknessMax}
         className="w-full"
       />
-      {quick?.standardRangeNote && <p className="text-[14px] text-v1-text-secondary">{quick.standardRangeNote}</p>}
+      {quick?.standardRangeNote && <p className="text-[13px] text-v1-text-secondary">{quick.standardRangeNote}</p>}
 
       {/* 2. 실별 면적 — 여러 구역을 더해 합계로 계산한다 */}
       <div className="flex flex-col gap-2 pt-2">
-        <span className="text-[16px] font-semibold text-foreground">실별 면적</span>
+        <span className="text-[15px] font-semibold text-foreground">실별 면적</span>
         {rooms.map((r, i) => (
           <div key={i} className="flex items-center gap-2">
             <input
@@ -175,7 +172,7 @@ export default function PreciseSection({ form, patch, products, quick, result, r
         <button
           type="button"
           onClick={addRoom}
-          className="h-11 rounded-[4px] border border-dashed border-v1-line-3 text-[16px] text-v1-text-secondary"
+          className="h-11 rounded-[4px] border border-dashed border-v1-line-3 text-[15px] text-v1-text-secondary"
         >
           + 구역 추가
         </button>
@@ -185,7 +182,7 @@ export default function PreciseSection({ form, patch, products, quick, result, r
       {mode === '레미탈' && (
         <div className="flex flex-col gap-1 pt-1">
           <div className="flex items-center justify-between">
-            <span className="text-[16px] font-semibold text-foreground whitespace-nowrap flex-none">공법</span>
+            <span className="text-[15px] font-semibold text-foreground whitespace-nowrap flex-none">공법</span>
             <div className="flex gap-2">
               <Chip shape="square" selected={effectiveMethod === '손미장'} onClick={() => patch({ method: '손미장' })}>
                 손미장
@@ -195,7 +192,7 @@ export default function PreciseSection({ form, patch, products, quick, result, r
               </Chip>
             </div>
           </div>
-          <p className="text-[14px] text-v1-text-disabled">{METHOD_CAPTION}</p>
+          <p className="text-[13px] text-v1-text-disabled">{METHOD_CAPTION}</p>
         </div>
       )}
 
@@ -203,7 +200,7 @@ export default function PreciseSection({ form, patch, products, quick, result, r
           세로로 깨지는 문제가 있었다(현장 검수 지적) — 라벨은 줄바꿈 금지로 고정하고,
           칩 묶음은 통째로 다음 줄로 넘어가게 한다(글자 단위가 아니라 칩 단위로 줄바꿈) */}
       <div className="flex flex-wrap items-center justify-between gap-y-2 pt-1">
-        <span className="text-[16px] font-semibold text-foreground whitespace-nowrap flex-none">로스율</span>
+        <span className="text-[15px] font-semibold text-foreground whitespace-nowrap flex-none">로스율</span>
         <div className="flex flex-wrap gap-2 justify-end">
           {LOSS_CHIPS.map((p) => (
             <Chip key={p} selected={lossPct === p} onClick={() => patch({ lossRate: p / 100 })}>
@@ -216,7 +213,7 @@ export default function PreciseSection({ form, patch, products, quick, result, r
       {/* 5. 배합비(레미탈 전용) — 현장 배합 대안 계산에만 쓴다 */}
       {mode === '레미탈' && (
         <div className="flex items-center justify-between pt-1">
-          <span className="text-[16px] font-semibold text-foreground whitespace-nowrap flex-none">배합비</span>
+          <span className="text-[15px] font-semibold text-foreground whitespace-nowrap flex-none">배합비</span>
           <div className="flex gap-2">
             <Chip shape="square" selected={(form.mixRatio ?? '1:3') === '1:2'} onClick={() => patch({ mixRatio: '1:2' })}>
               1:2
@@ -231,7 +228,7 @@ export default function PreciseSection({ form, patch, products, quick, result, r
       {/* 5-B. 운송·하차 — 배송비 직접 입력 + 지게차 하차비 옵션(06_미장.md §11-2) */}
       <div className="flex flex-col gap-1 pt-1">
         <div className="flex items-center justify-between">
-          <span className="text-[16px] font-semibold text-foreground whitespace-nowrap flex-none">배송비</span>
+          <span className="text-[15px] font-semibold text-foreground whitespace-nowrap flex-none">배송비</span>
           <NumberField
             value={form.deliveryFeeWon ?? ''}
             onChange={(v) => patch({ deliveryFeeWon: v === '' ? undefined : v })}
@@ -243,7 +240,7 @@ export default function PreciseSection({ form, patch, products, quick, result, r
             className="w-32"
           />
         </div>
-        <p className="text-[14px] text-v1-text-disabled tabular-nums">
+        <p className="text-[13px] text-v1-text-disabled tabular-nums">
           팔레트 50포 단위·지역별로 달라요
           {/* 2026-09-15 검사관 지적: NumberField는 입력칸 자체에 천단위 콤마를 안 보여준다
               (지우면 커서가 튀는 부작용이 있어 입력칸 자체는 안 건드리고) 보조 캡션으로
@@ -253,7 +250,7 @@ export default function PreciseSection({ form, patch, products, quick, result, r
       </div>
       <div className="flex flex-col gap-1 py-2 border-t border-v1-line-2">
         <div className="flex items-center justify-between">
-          <span className="text-[16px] text-foreground">지게차 하차비</span>
+          <span className="text-[15px] text-foreground">지게차 하차비</span>
           <Toggle
             checked={(form.forkliftFeeWon ?? 0) > 0}
             onChange={(v) => patch({ forkliftFeeWon: v ? FORKLIFT_DEFAULT_FEE_WON : undefined })}
@@ -273,7 +270,7 @@ export default function PreciseSection({ form, patch, products, quick, result, r
               className="w-32"
             />
             {isPositive(form.forkliftFeeWon) && (
-              <p className="text-[14px] text-v1-text-disabled tabular-nums">{formatNum(form.forkliftFeeWon)}원</p>
+              <p className="text-[13px] text-v1-text-disabled tabular-nums">{formatNum(form.forkliftFeeWon)}원</p>
             )}
           </div>
         )}
@@ -282,7 +279,7 @@ export default function PreciseSection({ form, patch, products, quick, result, r
       {/* 5-C. 양중 — 사용자 직접 입력 + 참고값 채우기(06_미장.md §11-3) */}
       <div className="flex flex-col gap-1 pt-1">
         <div className="flex items-center justify-between">
-          <span className="text-[16px] font-semibold text-foreground whitespace-nowrap flex-none">양중비</span>
+          <span className="text-[15px] font-semibold text-foreground whitespace-nowrap flex-none">양중비</span>
           <NumberField
             value={form.liftingFeeWon ?? ''}
             onChange={(v) => patch({ liftingFeeWon: v === '' ? undefined : v })}
@@ -295,7 +292,7 @@ export default function PreciseSection({ form, patch, products, quick, result, r
           />
         </div>
         <div className="flex items-center justify-between">
-          <p className="text-[14px] text-v1-text-disabled tabular-nums">
+          <p className="text-[13px] text-v1-text-disabled tabular-nums">
             소운반 100m 기준 양중공 2명 · 표준품셈 보통인부 노임 기준
             {isPositive(form.liftingFeeWon) ? ` · ${formatNum(form.liftingFeeWon)}원` : ''}
           </p>
@@ -303,7 +300,7 @@ export default function PreciseSection({ form, patch, products, quick, result, r
             type="button"
             disabled={!result}
             onClick={() => result && patch({ liftingFeeWon: result.liftingReferenceWon })}
-            className="text-[14px] font-semibold text-brown disabled:text-v1-text-disabled disabled:cursor-not-allowed"
+            className="text-[13px] font-semibold text-brown disabled:text-v1-text-disabled disabled:cursor-not-allowed"
           >
             참고값 채우기
           </button>
@@ -313,12 +310,12 @@ export default function PreciseSection({ form, patch, products, quick, result, r
       {/* 6. 옵션 — 와이어메시(레미탈 전용)·프라이머 */}
       {mode === '레미탈' && (
         <div className="flex items-center justify-between py-2 border-t border-v1-line-2">
-          <span className="text-[16px] text-foreground">와이어메시</span>
+          <span className="text-[15px] text-foreground">와이어메시</span>
           <Toggle checked={form.wireMesh ?? false} onChange={(v) => patch({ wireMesh: v })} label="와이어메시 포함" />
         </div>
       )}
       <div className="flex items-center justify-between py-2 border-t border-v1-line-2">
-        <span className="text-[16px] text-foreground">프라이머</span>
+        <span className="text-[15px] text-foreground">프라이머</span>
         <Toggle
           checked={form.primer ?? mode === '셀프레벨링'}
           onChange={(v) => patch({ primer: v })}
@@ -328,7 +325,7 @@ export default function PreciseSection({ form, patch, products, quick, result, r
 
       {/* 7. 제품 선택 — 06_미장.md에 있는 제조사 목록만(직접 입력 없음). 포장 kg를 항상 적는다 */}
       <div className="flex flex-col pt-1">
-        <label className="text-[14px] text-v1-text-label pb-1" htmlFor="mortar-product-select">
+        <label className="text-[13px] text-v1-text-label pb-1" htmlFor="mortar-product-select">
           제품
         </label>
         <div className="relative">
@@ -351,32 +348,6 @@ export default function PreciseSection({ form, patch, products, quick, result, r
           </span>
         </div>
       </div>
-
-      {/* 8. 즉답 큰 숫자 — "레미탈 40kg × 65포" 형태. quick으로 서버 응답 없이 바로 나온다 */}
-      {!quick ? (
-        <p className="text-[16px] text-v1-text-secondary pt-2">면적을 넣으면 나와요</p>
-      ) : (
-        <>
-          <div className="flex items-baseline gap-1 flex-wrap pt-2">
-            <span className="text-[20px] font-semibold text-foreground whitespace-nowrap">
-              {quick.mode} {quick.bagKg}kg ×
-            </span>
-            <span className="text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em]">
-              {formatNum(quick.bags)}
-            </span>
-            <span className="text-[20px] font-semibold text-foreground">포</span>
-          </div>
-          <p className="text-[16px] text-foreground">{quick.productLabel}</p>
-          <p className="text-[14px] text-v1-text-disabled tabular-nums">
-            주문 수량: {formatNum(quick.bags)}포(로스 {quick.lossPct}% 포함)
-          </p>
-          {error ? (
-            <p className="text-[14px] text-v1-text-secondary">비용은 잠시 후 다시</p>
-          ) : (
-            result && range && <p className="text-[16px] text-foreground tabular-nums">{formatManRange(range.min, range.max)}</p>
-          )}
-        </>
-      )}
-    </Card>
+    </div>
   );
 }

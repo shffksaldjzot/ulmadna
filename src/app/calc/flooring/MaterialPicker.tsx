@@ -22,7 +22,6 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
-import Card from '@/components/v1/Card';
 import Segment from '@/components/v1/Segment';
 import NumberField from '@/components/v1/NumberField';
 import { IconChevronDown } from '@/components/v1/icons';
@@ -187,8 +186,9 @@ export default function MaterialPicker({
     : [];
 
   return (
-    <Card>
-      <h2 className="text-[20px] font-bold text-foreground">바닥재</h2>
+    // 2026-09-15 디자인 통일 지시: 카드 속 카드 금지 — 테두리 카드는 결과 카드 하나에만
+    <div className="flex flex-col gap-3">
+      <h2 className="text-[17px] font-bold text-foreground">바닥재</h2>
 
       {/* 종류 — 기본 미선택. 고르기 전엔 아무 탭도 활성화하지 않는다 */}
       <Segment
@@ -206,7 +206,7 @@ export default function MaterialPicker({
       <div className="flex flex-col pt-3">
         {/* 제품 드롭다운 — 첫 줄(빈 값) = 제품 안 고름 → 종류 평균가로 계산.
             마지막 줄 "직접 입력" = 아래 입력칸 펼침. */}
-        <label className="text-[14px] text-v1-text-label pb-1" htmlFor="flooring-product-select">
+        <label className="text-[13px] text-v1-text-label pb-1" htmlFor="flooring-product-select">
           바닥재 제품
         </label>
         <div className="relative">
@@ -241,7 +241,7 @@ export default function MaterialPicker({
         {customOpen && kind === '장판' && (
           <div className="flex flex-col gap-2 pt-3 pl-3">
             {/* 롤형(장판) — m당 가격·롤 폭 두 칸만 */}
-            <span className="text-[14px] text-v1-text-label">m당 가격</span>
+            <span className="text-[13px] text-v1-text-label">m당 가격</span>
             <NumberField
               aria-label="m당 가격"
               suffix="원"
@@ -249,7 +249,7 @@ export default function MaterialPicker({
               value={custom.pricePerM}
               onChange={(v) => updateCustom({ pricePerM: v })}
             />
-            <span className="text-[14px] text-v1-text-label pt-1">롤 폭</span>
+            <span className="text-[13px] text-v1-text-label pt-1">롤 폭</span>
             <NumberField
               aria-label="롤 폭"
               suffix="m"
@@ -263,7 +263,7 @@ export default function MaterialPicker({
         {customOpen && kind !== '장판' && (
           <div className="flex flex-col gap-2 pt-3 pl-3">
             {/* 박스형(마루·데코타일) — 박스당 가격은 자릿수가 길어 한 줄을 통째로 쓴다 */}
-            <span className="text-[14px] text-v1-text-label">박스당 가격</span>
+            <span className="text-[13px] text-v1-text-label">박스당 가격</span>
             <NumberField
               aria-label="박스당 가격"
               suffix="원"
@@ -271,7 +271,7 @@ export default function MaterialPicker({
               value={custom.pricePerBox}
               onChange={(v) => updateCustom({ pricePerBox: v })}
             />
-            <span className="text-[14px] text-v1-text-label pt-1">박스당 ㎡</span>
+            <span className="text-[13px] text-v1-text-label pt-1">박스당 ㎡</span>
             <NumberField
               aria-label="박스당 ㎡"
               suffix="㎡"
@@ -281,7 +281,7 @@ export default function MaterialPicker({
             />
 
             {/* 장 폭·장 길이는 짧은 숫자라 한 줄에 2칸 */}
-            <div className="flex gap-2 text-[14px] text-v1-text-label pt-1">
+            <div className="flex gap-2 text-[13px] text-v1-text-label pt-1">
               <span className="flex-1 min-w-0">장 폭</span>
               <span className="flex-1 min-w-0">장 길이</span>
             </div>
@@ -309,6 +309,6 @@ export default function MaterialPicker({
       )}
       {/* 범위(전체/방만/거실주방) 칩 — 종류를 고른 뒤에만 보인다 */}
       {kind && footer}
-    </Card>
+    </div>
   );
 }

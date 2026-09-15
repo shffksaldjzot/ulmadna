@@ -143,9 +143,10 @@ export default async function FlooringResultPage({ searchParams }: PageProps) {
             </Link>
           }
         />
-        <div className="px-4 py-4 flex flex-col gap-4 max-w-[720px] mx-auto">
+        {/* px-5: 상단바(TopNav)와 좌우 여백을 맞춘다 */}
+        <div className="px-5 py-4 flex flex-col gap-4 max-w-[720px] mx-auto">
           <Card>
-            <p className="text-[16px] text-v1-text-secondary">조건이 비어 있어요</p>
+            <p className="text-[15px] text-v1-text-secondary">조건이 비어 있어요</p>
           </Card>
         </div>
       </>
@@ -168,16 +169,19 @@ export default async function FlooringResultPage({ searchParams }: PageProps) {
         }
       />
 
-      <div className="px-4 py-4 pb-8 flex flex-col gap-4 max-w-[720px] mx-auto">
-        <p className="text-[14px] text-v1-text-secondary tabular-nums">{buildSummary(state)}</p>
+      {/* px-5: 상단바(TopNav)와 좌우 여백을 맞춘다 */}
+      <div className="px-5 py-4 pb-8 flex flex-col gap-4 max-w-[720px] mx-auto">
+        <p className="text-[13px] text-v1-text-secondary tabular-nums">{buildSummary(state)}</p>
 
-        {/* 카드 1 — 물량 */}
+        {/* 결과 카드 — 2026-09-15 디자인 통일 지시: 카드 속 카드 금지, 테두리 카드는 이거
+            하나뿐이다. 물량 → 부자재 → 비용을 얇은 구분선(구획 제목 17/700)으로만 나눈다. */}
         <Card>
+          {/* 물량 */}
           <div className="text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em]">
             {formatNum(quantity.units)}
             {unitLabel}
           </div>
-          <p className="text-[16px] text-foreground leading-[1.6] tabular-nums">
+          <p className="text-[15px] text-foreground leading-[1.6] tabular-nums">
             바닥 {formatNum(quantity.floorSqm)}㎡ · {lossLabel}
             {quantity.pieces != null ? ` · 총 ${formatNum(quantity.pieces)}장` : ''}
           </p>
@@ -190,58 +194,55 @@ export default async function FlooringResultPage({ searchParams }: PageProps) {
                     i === quantity.byRoom.length - 1 ? '' : 'border-b border-v1-line-2'
                   }`}
                 >
-                  <span className="text-[16px] text-foreground">{r.name}</span>
-                  <span className="text-[16px] text-v1-text-secondary tabular-nums">
+                  <span className="text-[15px] text-foreground">{r.name}</span>
+                  <span className="text-[15px] text-v1-text-secondary tabular-nums">
                     {formatNum(r.units)}
                     {unitLabel}{' '}
-                    <span className="text-[14px] text-v1-text-disabled">{formatNum(r.floorSqm)}㎡</span>
+                    <span className="text-[13px] text-v1-text-disabled">{formatNum(r.floorSqm)}㎡</span>
                   </span>
                 </div>
               ))}
             </div>
           </Collapsible>
-        </Card>
 
-        {/* 카드 2 — 부자재 */}
-        <Card>
-          <h2 className="text-[20px] font-bold text-foreground">부자재</h2>
+          {/* 부자재 */}
+          <h2 className="text-[17px] font-bold text-foreground border-t border-v1-line-2 pt-3 mt-1">부자재</h2>
           <div className="flex flex-col">
             {submaterials.map((s, i) => (
               <div key={s.key} className={`py-[10px] ${i === submaterials.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
                 <div className="flex items-center justify-between">
-                  <span className="text-[16px] text-foreground">{s.name}</span>
-                  <span className="text-[16px] text-foreground tabular-nums">
+                  <span className="text-[15px] text-foreground">{s.name}</span>
+                  <span className="text-[15px] text-foreground tabular-nums">
                     {formatNum(s.qty)}
                     {s.unit}
                   </span>
                 </div>
                 {/* 검사관 1라운드 지적 9번: 근거 등급이 C(추정)면 근거줄 끝에 "· 추정"을
                     덧붙인다 — 즉답 화면 ResultPanel과 같은 규칙이라 두 화면 문구가 어긋나지 않는다 */}
-                <p className="text-[14px] text-v1-text-disabled tabular-nums">
+                <p className="text-[13px] text-v1-text-disabled tabular-nums">
                   {s.basis}
                   {s.grade === 'C' && !s.basis.includes('추정') ? ' · 추정' : ''}
                 </p>
               </div>
             ))}
           </div>
-        </Card>
 
-        {/* 카드 3 — 비용 */}
-        <Card>
+          {/* 비용 */}
+          <h2 className="text-[17px] font-bold text-foreground border-t border-v1-line-2 pt-3 mt-1">비용</h2>
           <div className="flex items-center gap-2 flex-wrap">
             <div className="text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em] whitespace-nowrap">
               {formatManRange(cost.min, cost.max)}
             </div>
             {cost.mode === '산식' && (
-              <span className="text-[14px] font-semibold text-brown bg-v1-badge-gold-bg border border-gold rounded-[4px] px-[10px] py-[2px] whitespace-nowrap">
+              <span className="text-[13px] font-semibold text-brown bg-v1-badge-gold-bg border border-gold rounded-[4px] px-[10px] py-[2px] whitespace-nowrap">
                 추정
               </span>
             )}
           </div>
-          <p className="text-[16px] font-semibold text-v1-text-secondary tabular-nums">
+          <p className="text-[15px] font-semibold text-v1-text-secondary tabular-nums">
             중간 {toMan(cost.mid).toLocaleString('ko-KR')}만원
           </p>
-          <p className="text-[16px] text-foreground tabular-nums">{cost.basisLine}</p>
+          <p className="text-[15px] text-foreground tabular-nums">{cost.basisLine}</p>
           <Collapsible title="구성 보기" defaultOpen>
             <div className="flex flex-col">
               {cost.breakdown.map((line, i) => (
@@ -249,15 +250,15 @@ export default async function FlooringResultPage({ searchParams }: PageProps) {
                   {/* 검사관 2라운드 지적 N-2: 이름·금액이 둘 다 긴 줄이 좁은 화면에서 겹치지
                       않게 gap을 주고, 이름은 줄이며 금액은 안 접히게 한다(ResultPanel과 동일) */}
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-[16px] text-foreground min-w-0 truncate">{line.name}</span>
-                    <span className="text-[16px] text-foreground tabular-nums whitespace-nowrap flex-none">
+                    <span className="text-[15px] text-foreground min-w-0 truncate">{line.name}</span>
+                    <span className="text-[15px] text-foreground tabular-nums whitespace-nowrap flex-none">
                       {formatCostLineAmount(line)}
                     </span>
                   </div>
-                  <p className="text-[14px] text-v1-text-disabled tabular-nums">{line.note}</p>
+                  <p className="text-[13px] text-v1-text-disabled tabular-nums">{line.note}</p>
                 </div>
               ))}
-              <p className="text-[14px] text-v1-text-disabled pt-[10px]">소비자가 기준 · 부가세 포함</p>
+              <p className="text-[13px] text-v1-text-disabled pt-[10px]">소비자가 기준 · 부가세 포함</p>
             </div>
           </Collapsible>
         </Card>

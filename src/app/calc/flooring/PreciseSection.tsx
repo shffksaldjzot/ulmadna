@@ -19,7 +19,6 @@
 
 'use client';
 
-import Card from '@/components/v1/Card';
 import Chip from '@/components/v1/Chip';
 import RoomCard from '../wallpaper/precise/RoomCard';
 import type { LengthUnit } from '../wallpaper/precise/units';
@@ -52,12 +51,13 @@ export default function PreciseSection({ unit, onUnitChange, rooms, onRoomsChang
   }
 
   return (
-    <Card>
-      <h2 className="text-[20px] font-bold text-foreground">실측</h2>
+    // 2026-09-15 디자인 통일 지시: 카드 속 카드 금지 — 테두리 카드는 결과 카드 하나에만
+    <div className="flex flex-col gap-4">
+      <h2 className="text-[17px] font-bold text-foreground">실측</h2>
 
       {/* 1. 단위 — 화면에 보이는 숫자만 바뀌고 저장값(m)은 그대로다 */}
       <div className="flex items-center justify-between">
-        <span className="text-[16px] font-semibold text-foreground">단위</span>
+        <span className="text-[15px] font-semibold text-foreground">단위</span>
         <div className="flex gap-2">
           <Chip shape="square" selected={unit === 'm'} onClick={() => onUnitChange('m')}>
             m
@@ -88,11 +88,11 @@ export default function PreciseSection({ unit, onUnitChange, rooms, onRoomsChang
         <button
           type="button"
           onClick={addRoom}
-          className="h-11 rounded-[4px] border border-dashed border-v1-line-3 text-[16px] text-v1-text-secondary"
+          className="h-11 rounded-[4px] border border-dashed border-v1-line-3 text-[15px] text-v1-text-secondary"
         >
           + 방 추가
         </button>
       </div>
-    </Card>
+    </div>
   );
 }

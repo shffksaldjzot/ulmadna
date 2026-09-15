@@ -1,21 +1,11 @@
-// 블로그 헤더 — 로고(홈) + 견적 계산기 / 블로그
-import Link from "next/link";
+// 블로그 헤더 — 이제는 공용 상단바(SiteHeader)를 그대로 감싸기만 하는 얇은 래퍼.
+//
+// 2026-09-15 디자인 통일 작업 A: 블로그만 따로 갖고 있던 헤더(로고+견적계산기/블로그/🔖)를
+// 없애고 홈·계산기와 똑같은 SiteHeader를 쓴다. 블로그 목록·글·카테고리·본 글 페이지가 전부
+// 이 컴포넌트를 그대로 불러 쓰고 있어서, 이 파일만 바꾸면 그 화면들도 자동으로 통일된다
+// (그 페이지 파일들은 건드리지 않음 — import 이름(BlogHeader)이 그대로라 코드 변경 불필요).
+import SiteHeader from "@/components/layout/SiteHeader";
 
 export function BlogHeader() {
-  return (
-    <header className="hdr">
-      <div className="wrap hdr-in">
-        <a href="/" className="logo-link" aria-label="얼마드나 홈">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/ulmadna_logo.png" alt="얼마드나" className="logo-img" />
-        </a>
-        <div className="hdr-right">
-          <Link href="/" className="hdr-nav">견적 계산기</Link>
-          <Link href="/blog" className="hdr-nav">블로그</Link>
-          {/* 로그인 없이 브라우저에 남긴 "본 글/저장/좋아요" 모아보기 진입점 */}
-          <Link href="/blog/my" className="hdr-nav hdr-mybtn" aria-label="내 글">🔖</Link>
-        </div>
-      </div>
-    </header>
-  );
+  return <SiteHeader />;
 }

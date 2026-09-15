@@ -40,9 +40,10 @@ export default function GradeSelector({ value, onChange }: GradeSelectorProps) {
           <button
             key={opt.value}
             onClick={() => onChange(opt.value)}
+            // 활성 칩 채움은 강조색(accent) — 갈색은 글자 전용
             className={`w-full px-4 py-3 rounded-lg text-left transition-all
               ${value === opt.value
-                ? 'bg-brown text-white shadow-md ring-2 ring-gold/40'
+                ? 'bg-accent text-white shadow-md ring-2 ring-gold/40'
                 : 'bg-white text-gray-700 border border-gray-200 hover:border-gold'
               }`}
           >

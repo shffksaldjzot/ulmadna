@@ -21,7 +21,7 @@ import type { MortarCalcInput, MortarCalcResult } from '@/server/calc/mortar';
 import { MORTAR_PRODUCTS } from '@/server/calc/data/mortar-products';
 import { decodeMortarForm, type MortarFormState } from '@/lib/v1/mortarQuery';
 import { toMortarProductOptions } from '@/lib/v1/mortarProductOptions';
-import { toEngineInput, describePreciseInput, sanitizeMortarFormState } from '@/lib/v1/mortarEngineInput';
+import { toEngineInput, describePreciseInput, describeAreaPair, sanitizeMortarFormState } from '@/lib/v1/mortarEngineInput';
 import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
 
 export const metadata: Metadata = {
@@ -165,9 +165,10 @@ export default async function MortarResultPage({ searchParams }: PageProps) {
             </Link>
           }
         />
-        <div className="px-4 py-4 flex flex-col gap-4 max-w-[720px] mx-auto">
+        {/* px-5: 상단바(TopNav)와 좌우 여백을 맞춘다 */}
+        <div className="px-5 py-4 flex flex-col gap-4 max-w-[720px] mx-auto">
           <Card>
-            <p className="text-[16px] text-v1-text-secondary">조건이 비어 있어요</p>
+            <p className="text-[15px] text-v1-text-secondary">조건이 비어 있어요</p>
           </Card>
         </div>
       </>
@@ -188,12 +189,15 @@ export default async function MortarResultPage({ searchParams }: PageProps) {
         }
       />
 
-      <div className="px-4 py-4 pb-8 flex flex-col gap-4 max-w-[720px] mx-auto">
-        <p className="text-[14px] text-v1-text-secondary tabular-nums">{buildSummary(state)}</p>
+      {/* px-5: 상단바(TopNav)와 좌우 여백을 맞춘다 */}
+      <div className="px-5 py-4 pb-8 flex flex-col gap-4 max-w-[720px] mx-auto">
+        <p className="text-[13px] text-v1-text-secondary tabular-nums">{buildSummary(state)}</p>
 
-        {/* 카드 1 — 물량. 큰 숫자는 "레미탈 40kg × N포" 형태(2026-09-15 운영자 현장 기준 피드백 —
-            "몇 kg짜리 몇 포인지"가 안 보였다는 지적) */}
+        {/* 결과 카드 — 2026-09-15 디자인 통일 지시: 카드 속 카드 금지, 테두리 카드는 이거
+            하나뿐이다. 물량 → 부자재 → 비용을 얇은 구분선(구획 제목 17/700)으로만 나눈다. */}
         <Card>
+          {/* 물량. 큰 숫자는 "레미탈 40kg × N포" 형태(2026-09-15 운영자 현장 기준 피드백 —
+              "몇 kg짜리 몇 포인지"가 안 보였다는 지적) */}
           <div className="flex items-baseline gap-1 flex-wrap">
             <span className="text-[20px] font-semibold text-foreground whitespace-nowrap">
               {result.mode} {quantity.bagKg}kg ×
@@ -203,77 +207,81 @@ export default async function MortarResultPage({ searchParams }: PageProps) {
             </span>
             <span className="text-[20px] font-semibold text-foreground">포</span>
           </div>
-          <p className="text-[16px] text-foreground">{quantity.productLabel}</p>
-          <p className="text-[14px] text-v1-text-disabled tabular-nums">
+          <p className="text-[15px] text-foreground">{quantity.productLabel}</p>
+          <p className="text-[13px] text-v1-text-disabled tabular-nums">
             주문 수량: {formatNum(quantity.bags)}포(로스 {quantity.lossPct}% 포함)
           </p>
-          <p className="text-[16px] text-foreground leading-[1.6] tabular-nums">
+          <p className="text-[15px] text-foreground leading-[1.6] tabular-nums">
             {quantity.thicknessMm}mm · 면적 {formatNum(quantity.areaSqm)}㎡ · 몰탈 {quantity.volumeWithLossM3}㎥
           </p>
-          {quantity.standardRangeNote && <p className="text-[14px] text-v1-text-secondary">{quantity.standardRangeNote}</p>}
+          {/* 34평 의미 통일(2026-09-15) — 방통 전체·확장부 바닥은 도배·바닥재처럼
+              "공급 34평 · 전용 84㎡"를 병기한다 */}
+          {describeAreaPair(state) && (
+            <p className="text-[13px] text-v1-text-disabled tabular-nums">{describeAreaPair(state)}</p>
+          )}
+          {quantity.standardRangeNote && <p className="text-[13px] text-v1-text-secondary">{quantity.standardRangeNote}</p>}
           {/* 레미탈은 인원 한 줄(공법 표시 포함), 셀프레벨링은 "시공비는 현장 견적 별도" 안내로 대체한다 */}
           {labor ? (
-            <p className="text-[14px] text-v1-text-disabled tabular-nums">
+            <p className="text-[13px] text-v1-text-disabled tabular-nums">
               {labor.method === '장비타설' ? '장비 타설' : '손미장(추정)'} · 기공 {labor.crewPlasterer}인 · 조공 {labor.crewHelper}인
               {labor.crewMechanic > 0 ? ` · 기계운전 ${labor.crewMechanic}인` : ''}, {labor.days}일 완료
             </p>
           ) : (
-            result.laborAdvisoryNote && <p className="text-[14px] text-v1-text-disabled">{result.laborAdvisoryNote}</p>
+            result.laborAdvisoryNote && <p className="text-[13px] text-v1-text-disabled">{result.laborAdvisoryNote}</p>
           )}
-          {result.equipmentNote && <p className="text-[14px] text-v1-text-disabled">{result.equipmentNote}</p>}
+          {result.equipmentNote && <p className="text-[13px] text-v1-text-disabled">{result.equipmentNote}</p>}
           {quantity.altMix && (
             <Collapsible title="현장 배합 대안">
-              <p className="text-[16px] text-foreground py-2 tabular-nums">
+              <p className="text-[15px] text-foreground py-2 tabular-nums">
                 시멘트 40kg × {formatNum(quantity.altMix.cementBags)}포 + 모래 {quantity.altMix.sandM3}㎥
               </p>
-              <p className="text-[14px] text-v1-text-disabled">배합비 {quantity.altMix.mixRatio} · 참고용, 비용에는 안 넣었어요</p>
+              <p className="text-[13px] text-v1-text-disabled">배합비 {quantity.altMix.mixRatio} · 참고용, 비용에는 안 넣었어요</p>
             </Collapsible>
           )}
-        </Card>
 
-        {/* 카드 2 — 부자재 */}
-        {submaterials.length > 0 && (
-          <Card>
-            <h2 className="text-[20px] font-bold text-foreground">부자재</h2>
-            <div className="flex flex-col">
-              {submaterials.map((s, i) => (
-                <div key={s.key} className={`py-[10px] ${i === submaterials.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[16px] text-foreground">{s.name}</span>
-                    <span className="text-[16px] text-foreground tabular-nums">
-                      {formatNum(s.qty)}
-                      {s.unit}
-                    </span>
+          {/* 부자재 */}
+          {submaterials.length > 0 && (
+            <>
+              <h2 className="text-[17px] font-bold text-foreground border-t border-v1-line-2 pt-3 mt-1">부자재</h2>
+              <div className="flex flex-col">
+                {submaterials.map((s, i) => (
+                  <div key={s.key} className={`py-[10px] ${i === submaterials.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[15px] text-foreground">{s.name}</span>
+                      <span className="text-[15px] text-foreground tabular-nums">
+                        {formatNum(s.qty)}
+                        {s.unit}
+                      </span>
+                    </div>
+                    <p className="text-[13px] text-v1-text-disabled tabular-nums">
+                      {s.basis}
+                      {s.grade === 'C' && !s.basis.includes('추정') ? ' · 추정' : ''}
+                    </p>
                   </div>
-                  <p className="text-[14px] text-v1-text-disabled tabular-nums">
-                    {s.basis}
-                    {s.grade === 'C' && !s.basis.includes('추정') ? ' · 추정' : ''}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </Card>
-        )}
+                ))}
+              </div>
+            </>
+          )}
 
-        {/* 카드 3 — 비용 */}
-        <Card>
+          {/* 비용 */}
+          <h2 className="text-[17px] font-bold text-foreground border-t border-v1-line-2 pt-3 mt-1">비용</h2>
           <div className="flex items-center gap-2 flex-wrap">
             <div className="text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em] whitespace-nowrap">
               {formatManRange(cost.min, cost.max)}
             </div>
             {cost.mode === '산식' && (
-              <span className="text-[14px] font-semibold text-brown bg-v1-badge-gold-bg border border-gold rounded-[4px] px-[10px] py-[2px] whitespace-nowrap">
+              <span className="text-[13px] font-semibold text-brown bg-v1-badge-gold-bg border border-gold rounded-[4px] px-[10px] py-[2px] whitespace-nowrap">
                 추정
               </span>
             )}
           </div>
-          <p className="text-[16px] font-semibold text-v1-text-secondary tabular-nums">
+          <p className="text-[15px] font-semibold text-v1-text-secondary tabular-nums">
             중간 {toMan(cost.mid).toLocaleString('ko-KR')}만원
           </p>
-          <p className="text-[16px] text-foreground tabular-nums">{cost.basisLine}</p>
+          <p className="text-[15px] text-foreground tabular-nums">{cost.basisLine}</p>
           {/* 현장 확인 필요 — 운송·양중·(장비타설시)장비대는 값을 안 넣으면 계산에서 빠진다 */}
           {result.siteConfirmItems.length > 0 && (
-            <p className="text-[14px] text-v1-text-secondary">현장 확인 필요: {result.siteConfirmItems.join('·')}</p>
+            <p className="text-[13px] text-v1-text-secondary">현장 확인 필요: {result.siteConfirmItems.join('·')}</p>
           )}
           {/* 5층 비용 구성표 — 자재/부자재/운송·하차/양중/인건 층별 소계 */}
           <Collapsible title="구성 보기" defaultOpen>
@@ -281,8 +289,8 @@ export default async function MortarResultPage({ searchParams }: PageProps) {
               {groupByLayer(cost.breakdown as CostLineLike[]).map((group) => (
                 <div key={group.layer} className="py-[10px] border-b border-v1-line-2">
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-[14px] font-semibold text-v1-text-label">{group.layer}</span>
-                    <span className="text-[14px] font-semibold text-v1-text-label tabular-nums whitespace-nowrap">
+                    <span className="text-[13px] font-semibold text-v1-text-label">{group.layer}</span>
+                    <span className="text-[13px] font-semibold text-v1-text-label tabular-nums whitespace-nowrap">
                       {formatWonRange(group.subMin, group.subMax)}
                     </span>
                   </div>
@@ -290,12 +298,12 @@ export default async function MortarResultPage({ searchParams }: PageProps) {
                     {group.lines.map((line) => (
                       <div key={line.key} className="py-[6px]">
                         <div className="flex items-center justify-between gap-3">
-                          <span className="text-[16px] text-foreground min-w-0 truncate">{line.name}</span>
-                          <span className="text-[16px] text-foreground tabular-nums whitespace-nowrap flex-none">
+                          <span className="text-[15px] text-foreground min-w-0 truncate">{line.name}</span>
+                          <span className="text-[15px] text-foreground tabular-nums whitespace-nowrap flex-none">
                             {formatCostLineAmount(line)}
                           </span>
                         </div>
-                        <p className="text-[14px] text-v1-text-disabled tabular-nums">
+                        <p className="text-[13px] text-v1-text-disabled tabular-nums">
                           {line.note}
                           {line.grade === 'C' && !line.note.includes('추정') ? ' · 추정' : ''}
                         </p>
@@ -304,7 +312,7 @@ export default async function MortarResultPage({ searchParams }: PageProps) {
                   </div>
                 </div>
               ))}
-              <p className="text-[14px] text-v1-text-disabled pt-[10px]">소비자가 기준 · 부가세 포함</p>
+              <p className="text-[13px] text-v1-text-disabled pt-[10px]">소비자가 기준 · 부가세 포함</p>
             </div>
           </Collapsible>
         </Card>

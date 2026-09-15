@@ -22,9 +22,10 @@ export default function TypeSelector({ value, onChange }: TypeSelectorProps) {
           <button
             key={opt.value}
             onClick={() => onChange(opt.value)}
+            // 활성 칩 채움은 강조색(accent) — 갈색은 글자 전용
             className={`flex-1 px-4 py-3 rounded-lg text-left transition-all
               ${value === opt.value
-                ? 'bg-brown text-white shadow-md'
+                ? 'bg-accent text-white shadow-md'
                 : 'bg-white text-gray-700 border border-gray-200 hover:border-gold'
               }`}
           >

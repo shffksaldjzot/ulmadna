@@ -52,6 +52,12 @@ export interface AreaInputProps {
    * 미장 계산기처럼 바깥에 이미 "면적" 제목이 있고 이 부품은 토글만 맡을 때 쓴다.
    */
   label?: string;
+  /**
+   * true면 이 부품 안에서 평/㎡ 토글 자체를 그리지 않는다(칩·입력칸·캡션만 그린다).
+   * 2026-09-15 디자인 통일 지시 — 미장 "시공 면적" 줄처럼 바깥에서 다른 토글(면적/가로×세로)과
+   * 한 줄로 합쳐서 평/㎡ 토글을 직접 그릴 때 쓴다. 기본 false(지금까지처럼 이 부품이 그린다).
+   */
+  hideUnitToggle?: boolean;
   /** 라벨 아래 캡션 1줄(설명글 최소화 원칙 — 이 부품이 스스로 설명문을 더 만들지 않는다) */
   caption?: string;
   placeholder?: string;
@@ -67,6 +73,7 @@ export default function AreaInput({
   label,
   caption,
   placeholder,
+  hideUnitToggle = false,
 }: AreaInputProps) {
   // 칩 목록 — supply 모드는 평/㎡ 기본 칩이 있고, work·exclusive는 호출한 쪽이 넘겨준다
   const defaultChips = mode === 'supply' ? (unit === '평' ? SUPPLY_PYEONG_CHIPS : EXCLUSIVE_SQM_CHIPS) : undefined;
@@ -103,16 +110,18 @@ export default function AreaInput({
   return (
     <>
       {/* 라벨 + 평/㎡ 토글. 라벨이 없으면(미장처럼 바깥에 이미 제목이 있으면) 토글만 왼쪽 정렬 —
-          미장 QuickAnswer의 기존 토글 UI 마크업을 그대로 옮겨왔다 */}
+          미장 QuickAnswer의 기존 토글 UI 마크업을 그대로 옮겨왔다.
+          hideUnitToggle이 true면(미장 "시공 면적" 줄처럼 바깥에서 다른 토글과 한 줄로 합칠 때)
+          이 자리에서는 아무것도 안 그린다 — 라벨만 있고 토글은 없는 경우는 지금 안 쓴다. */}
       {label ? (
         <div className="flex items-center justify-between">
-          <span className="text-[16px] font-semibold text-foreground">{label}</span>
-          {unitToggle}
+          <span className="text-[15px] font-semibold text-foreground">{label}</span>
+          {!hideUnitToggle && unitToggle}
         </div>
       ) : (
-        unitToggle
+        !hideUnitToggle && unitToggle
       )}
-      {caption && <p className="text-[14px] text-v1-text-secondary">{caption}</p>}
+      {caption && <p className="text-[13px] text-v1-text-secondary">{caption}</p>}
 
       {/* 칩 — 눌러서 바로 값 채우기 */}
       {chipList.length > 0 && (
@@ -134,7 +143,7 @@ export default function AreaInput({
         aria-label="면적 직접 입력"
         className="w-full"
       />
-      {convCaption && <p className="text-[14px] text-v1-text-disabled tabular-nums">{convCaption}</p>}
+      {convCaption && <p className="text-[13px] text-v1-text-disabled tabular-nums">{convCaption}</p>}
     </>
   );
 }

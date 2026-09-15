@@ -39,7 +39,8 @@ export default function CalcSeoSection({ intro, faqs, related }: CalcSeoSectionP
   return (
     // pb-24: 모바일 하단 고정 요약 바(h-14, WallpaperCalculator·FlooringCalculator 쪽)에
     // 마지막 관련 글 링크가 가려지지 않게 여유를 둔다. PC는 그 바가 없어서 pb-12로 충분.
-    <section className="max-w-[1120px] mx-auto px-4 lg:px-8 pb-24 lg:pb-12 flex flex-col gap-3">
+    // px-5: 위 계산기 본문과 좌우 여백을 맞춘다(공용 Container 규칙과 동일)
+    <section className="max-w-[1120px] mx-auto px-5 lg:px-8 pb-24 lg:pb-12 flex flex-col gap-3">
       {/* 계산 근거 — 기본 접힘 */}
       <details className="border-t border-v1-line-2 pt-4 group">
         <summary className="text-[15px] font-semibold text-v1-text-secondary cursor-pointer select-none list-none marker:content-none">

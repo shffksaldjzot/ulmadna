@@ -22,8 +22,9 @@ export default function Chip({ selected, shape = 'pill', className = '', childre
       type="button"
       className={
         `h-11 inline-flex items-center px-4 ${shapeClass} text-[16px] whitespace-nowrap transition-colors duration-150 ` +
+        // 선택 칩 채움은 강조색(accent), 눌림은 약간 어둡게 — 갈색(brown)은 글자·제목 전용이라 채움에는 쓰지 않는다
         (selected
-          ? 'bg-brown text-white font-semibold'
+          ? 'bg-accent active:bg-accent-press text-white font-semibold'
           : 'bg-white border border-v1-line-3 text-v1-text-secondary font-normal') +
         ' ' + className
       }

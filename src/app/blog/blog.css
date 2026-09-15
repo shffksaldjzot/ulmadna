@@ -8,11 +8,19 @@
   --cream2:#F7F2EA; --beige-50:#FBF7F0; --beige-100:#F1E9DB; --beige-200:#E0D3BD;
   --card:#FFFFFF; --accent:#C0613A; --accent-600:#A9512E;
   --ink:#2A2018; --ink-2:#6B5D4F; --ink-3:#9C8C79;
-  --pad:20px; --maxw:1040px;
+  /* 2026-09-15 디자인 통일 작업 A: 공용 컨테이너(src/components/layout/Container.tsx)와
+     같은 폭·여백으로 맞췄다(1120px, 좌우 20px→데스크톱 32px). 예전 값(1040/20 고정)은
+     블로그 안에서는 서로 맞았지만, 공용 상단바(SiteHeader)가 1120 기준으로 로고를 놓기
+     시작하면서 블로그 본문만 더 안쪽에서 시작해 어긋났던 것을 여기서 바로잡는다. */
+  --pad:20px; --maxw:1120px;
   background:var(--cream2); color:var(--ink); min-height:100vh;
   font-family:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
 }
 .blog-scope .wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--pad);}
+/* 데스크톱(1024px~, Tailwind lg 기준)은 좌우 여백도 공용 Container처럼 32px로 넓힌다 */
+@media (min-width:1024px){
+  .blog-scope{ --pad:32px; }
+}
 
 /* ---- header ---- */
 .blog-scope .hdr{position:sticky;top:0;z-index:40;background:rgba(247,242,234,.9);
@@ -249,10 +257,19 @@
 .blog-body blockquote{margin:24px 0;padding:14px 20px;background:var(--beige-50);
   border-left:4px solid var(--brown-300);border-radius:0 10px 10px 0;color:var(--ink-2);font-size:15.5px;}
 .blog-body blockquote p{margin:0;}
-.blog-table-wrap{margin:24px 0;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+/* 표 래퍼 — 표 자체는 렌더러(blog.ts)가 열 개수만큼 min-width를 박아서 내려줌.
+   화면보다 표가 넓으면 이 래퍼 "안에서만" 가로 스크롤되고, 본문 폭은 안 넘침. */
+.blog-table-wrap{position:relative;margin:24px 0;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .blog-body table{width:100%;border-collapse:collapse;font-size:15px;}
 .blog-body .blog-table-wrap table{margin:0;}
+/* 더 스크롤할 내용이 있다는 걸 알려주는 오른쪽 가장자리 페이드(스크롤 힌트) */
+.blog-table-wrap::after{content:"";position:absolute;top:0;right:0;bottom:0;width:22px;
+  background:linear-gradient(to right,transparent,var(--cream2));pointer-events:none;}
+.blog-spoiler-inner .blog-table-wrap::after{background:linear-gradient(to right,transparent,var(--beige-50));}
 .blog-body th,.blog-body td{border:1px solid var(--beige-200);padding:11px 14px;text-align:left;word-break:keep-all;}
+/* 렌더러(blog.ts)가 "짧은 값 칸"(금액·날짜·등급명 등)에만 붙여주는 클래스.
+   글이 긴 설명 칸까지 통째로 nowrap하면 표가 지나치게 넓어지므로 짧은 칸만 골라 적용함 */
+.blog-body td.nowrap,.blog-body th.nowrap{white-space:nowrap;}
 .blog-body th{background:var(--beige-100);font-weight:700;color:var(--brown-700);}
 .blog-body hr{border:none;border-top:1px solid var(--beige-200);margin:36px 0;}
 
@@ -543,10 +560,12 @@
   .blog-body p{margin:16px 0;}
   .blog-body h2{font-size:20px;margin:36px 0 14px;}
   .blog-body h3{font-size:18px;margin:28px 0 10px;}
-  .blog-table-wrap{overflow-x:visible;}
-  .blog-body table{font-size:13px;table-layout:fixed;}
-  .blog-body th,.blog-body td{padding:9px 7px;line-height:1.5;}
-  .blog-body td:first-child,.blog-body th:first-child{width:24%;}
+  /* 예전엔 여기서 overflow-x:visible + table-layout:fixed 로 강제로 좁혀서
+     "9만5,652원" 같은 짧은 금액도 세 줄로 쪼개지는 버그가 있었음.
+     이제는 표 자체가 렌더러에서 받은 min-width만큼 폭을 갖고, 화면보다 넓으면
+     .blog-table-wrap 안에서만 가로 스크롤됨(표 밖 본문 폭은 그대로 유지). */
+  .blog-body table{font-size:13px;}
+  .blog-body th,.blog-body td{padding:9px 10px;line-height:1.5;}
   .blog-cta{flex-direction:column;align-items:flex-start;padding:22px;}
   .blog-cta-btn{width:100%;text-align:center;}
   .blog-cta-btns{width:100%;flex-direction:column;}
@@ -571,8 +590,12 @@
 @media (min-width:1100px){
   /* 두 칸을 담기 위해 바깥 틀만 넓힘 (본문 폭은 .blog-main이 720으로 지킴) */
   .blog-article{max-width:var(--maxw);}
+  /* 2026-09-15 디자인 통일 작업 검수 수정: --maxw가 1040→1120으로 커지면서(작업 A)
+     두 칸(720+236+gap44=1000px)이 남는 공간(1056px) 안에서 justify-content:center로
+     가운데 정렬되어, 본문 왼쪽 시작선이 상단바 로고·목록 페이지보다 28px 오른쪽으로
+     밀리는 문제가 있었다(실측: 로고 112px vs 본문 140px). start로 바꿔 왼쪽을 맞춘다. */
   .blog-layout{display:grid;grid-template-columns:minmax(0,720px) 236px;
-    gap:44px;justify-content:center;align-items:start;}
+    gap:44px;justify-content:start;align-items:start;}
   .blog-main{min-width:0;}
   /* 모바일용 접이식 목차는 이 폭에서 숨김 */
   .blog-toc-mobile{display:none;}

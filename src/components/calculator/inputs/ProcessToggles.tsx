@@ -61,9 +61,10 @@ function RadioChips({ options, selected, onChange, label }: {
           <button
             key={opt.grade}
             onClick={() => onChange(opt.grade)}
+            // 활성 칩 채움은 강조색(accent) — 갈색은 글자 전용
             className={`px-3 py-1.5 text-xs rounded-full border transition-all max-w-full truncate ${
               selected === opt.grade
-                ? 'bg-brown text-white border-brown'
+                ? 'bg-accent text-white border-accent'
                 : 'bg-cream text-gray-600 border-gray-200 hover:border-gold'
             }`}
           >
@@ -90,7 +91,8 @@ function Toggle({ checked, onChange, label, price }: {
       </div>
       <button
         onClick={() => onChange(!checked)}
-        className={`w-8 h-[18px] rounded-full flex-shrink-0 ${checked ? 'bg-brown' : 'bg-gray-300'}`}
+        // 켜짐 채움은 강조색(accent)
+        className={`w-8 h-[18px] rounded-full flex-shrink-0 ${checked ? 'bg-accent' : 'bg-gray-300'}`}
       >
         <div className={`w-3.5 h-3.5 bg-white rounded-full shadow mt-[1px] transition-transform ${
           checked ? 'translate-x-[15px] ml-0.5' : 'ml-[2px]'
@@ -134,16 +136,17 @@ function RadioList({ options, selected, onChange, label }: {
           <button
             key={opt.grade}
             onClick={() => onChange(opt.grade)}
+            // 선택 표시(연한 채움·테두리·글자)는 강조색(accent)으로 통일
             className={`flex items-center gap-2 px-2.5 py-1.5 text-xs text-left rounded-lg border transition-all w-full min-w-0 ${
               selected === opt.grade
-                ? 'bg-brown/5 border-brown/30 text-brown font-medium'
+                ? 'bg-accent/5 border-accent/30 text-accent font-medium'
                 : 'bg-white border-gray-100 text-gray-600 hover:border-gold/50'
             }`}
           >
             <span className={`w-3.5 h-3.5 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
-              selected === opt.grade ? 'border-brown' : 'border-gray-300'
+              selected === opt.grade ? 'border-accent' : 'border-gray-300'
             }`}>
-              {selected === opt.grade && <span className="w-1.5 h-1.5 rounded-full bg-brown" />}
+              {selected === opt.grade && <span className="w-1.5 h-1.5 rounded-full bg-accent" />}
             </span>
             <span className="truncate min-w-0">{opt.name}</span>
             <span className="ml-auto opacity-60 flex-shrink-0 text-[10px]">{fmtPriceUnit(opt)}</span>
@@ -300,13 +303,14 @@ const ProcessToggles = forwardRef<{ expandAll: () => void; collapseAll: () => vo
                 const isCountable = proc.type === 'A_item' && proc.unit && proc.unit !== '1식';
 
                 return (
+                  // 켜진 카드의 테두리·점·스위치 채움은 강조색(accent) — 이름 글자색만 갈색 유지(글자 전용 규칙)
                   <div key={proc.id} className={`rounded-xl border overflow-hidden transition-all ${
-                    on ? 'border-brown/15 bg-white shadow-sm' : 'border-gray-100 bg-gray-50/50'
+                    on ? 'border-accent/15 bg-white shadow-sm' : 'border-gray-100 bg-gray-50/50'
                   }`}>
                     {/* 헤더 */}
                     <div className="flex items-center justify-between px-4 py-3">
                       <button onClick={() => on && toggle(proc.id)} className="flex items-center gap-2 flex-1 text-left min-w-0">
-                        <span className={`w-2 h-2 rounded-full flex-shrink-0 ${on ? 'bg-brown' : 'bg-gray-300'}`} />
+                        <span className={`w-2 h-2 rounded-full flex-shrink-0 ${on ? 'bg-accent' : 'bg-gray-300'}`} />
                         <span className={`text-sm font-semibold truncate ${on ? 'text-brown' : 'text-gray-400'}`}>{proc.name}</span>
                         {on && <span className="text-[10px] text-gray-300 flex-shrink-0">{open ? '▲' : '▼'}</span>}
                       </button>
@@ -314,7 +318,7 @@ const ProcessToggles = forwardRef<{ expandAll: () => void; collapseAll: () => vo
                         {on && amt > 0 && <span className="text-sm font-bold text-gold">{formatWonExact(amt)}</span>}
                         <button
                           onClick={() => { dispatch({ type: 'TOGGLE_PROCESS', payload: proc.id }); if (!on) setExpandedIds(prev => new Set(prev).add(proc.id)); }}
-                          className={`w-9 h-5 rounded-full ${on ? 'bg-brown' : 'bg-gray-300'}`}
+                          className={`w-9 h-5 rounded-full ${on ? 'bg-accent' : 'bg-gray-300'}`}
                         >
                           <div className={`w-4 h-4 bg-white rounded-full shadow mt-0.5 transition-transform ${on ? 'translate-x-4 ml-0.5' : 'ml-0.5'}`} />
                         </button>

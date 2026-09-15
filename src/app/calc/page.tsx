@@ -1,25 +1,25 @@
 // ──────────────────────────────────────────────
 // v1 허브 — 홈
-// 디자인 가이드 v4 아트보드 03(모바일) · 04(PC 1200px) 기준.
-// 검색창 → 공정별 물량 계산기 타일 10개(ProcessTiles) → 인기 글 3 → 인기 질문 3(더미) → 광고 → 하단 고지.
+// 검색창 → 살아있는 계산기 카드(ProcessTiles) → 인기 글 3 → 인기 질문 3(더미) → 광고 → 공용 푸터.
 // PC(lg 이상)는 좌 2단 콘텐츠 + 우 사이드(광고 · 많이 찾는 시세).
 //
 // 작성일: 2026년 08월 28일
-// 2026년 09월 14일: SEO 보강 — H1·canonical·BreadcrumbList 추가(형아 지시, 계산기 페이지
-// SEO 정비 작업의 일부). 이 페이지는 서버 컴포넌트라 원래도 내용이 잘 그려지지만,
-// 제목(H1)과 canonical이 아예 없었어서 채워 넣는다.
+// 2026년 09월 14일: SEO 보강 — H1·canonical·BreadcrumbList 추가.
+// 2026년 09월 15일: 디자인 통일 작업 A — 상단바는 calc/layout.tsx가 그리므로 여기서 제거.
+//   하단 탭은 공용 푸터(SiteFooter)가 같이 그려서 별도 BottomTab 호출을 없앴다.
+//   광고 자리는 점선 플레이스홀더(v1/AdSlot)를 버리고 정책 기반 공용 AdSlot(AD-R)으로 교체.
+//   검색창(HomeSearch)은 실제로 검색하지 않고 항상 도배 계산기로만 보내는 가짜 동작이라 제거.
 // ──────────────────────────────────────────────
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import TopNav from '@/components/v1/TopNav';
-import BottomTab from '@/components/v1/BottomTab';
 import ProcessTiles from './ProcessTiles';
 import SectionHeader from '@/components/v1/SectionHeader';
-import AdSlot from '@/components/v1/AdSlot';
+import AdSlot from '@/components/ads/AdSlot';
 import Disclaimer from '@/components/v1/Disclaimer';
 import ListRow from '@/components/v1/ListRow';
-import HomeSearch from './HomeSearch';
+import SiteFooter from '@/components/layout/SiteFooter';
+import Container from '@/components/layout/Container';
 import { getAllPostMeta } from '@/lib/blog';
 import { JsonLd, breadcrumbLd, SITE_URL } from '@/lib/seo/jsonld';
 
@@ -28,8 +28,6 @@ export const metadata: Metadata = {
   description: '도배·바닥재 등 공정별 물량과 비용을 무료로 바로 계산해보세요. 로그인·개인정보 없음.',
   alternates: { canonical: `${SITE_URL}/calc` },
 };
-
-// 계산기 타일은 ProcessTiles.tsx (2026-09-09 형아 지시: 롤백 전 홈 히어로의 공정 타일 10개를 여기서 보여준다)
 
 // 2026-09-11 검사관 지적: 질문 게시판(/calc/q)·시세 페이지(/calc/price)는 아직 실제 화면이 없다.
 // 화면이 만들어질 때까지 "인기 질문"·"많이 찾는 시세" 섹션 자체를 숨겨둔다.
@@ -55,23 +53,20 @@ export default function V1HomePage() {
 
   return (
     <>
-      <TopNav />
-
-      <main className="pb-24 lg:pb-16">
-        {/* 길잡이(작게) + 제목 — 모바일·PC 공통, 폭이 다른 두 레이아웃 밖에 한 번만 */}
-        <div className="px-4 lg:px-8 pt-3">
+      <main className="pb-8">
+        {/* 길잡이(작게) + 제목 — 모바일·PC 공통, 폭이 다른 두 레이아웃 밖에 한 번만
+            공용 Container로 감싸 상단바 로고와 왼쪽 시작선을 맞춘다(1120px 폭 밖에선 mx-auto로 가운데 정렬). */}
+        <Container as="div" className="pt-3">
           <nav aria-label="현재 위치" className="text-[12px] text-v1-text-disabled flex items-center gap-1">
             <Link href="/" className="hover:text-v1-text-secondary">얼마드나</Link>
             <span aria-hidden="true">›</span>
             <span>계산기</span>
           </nav>
-          <h1 className="text-[20px] font-bold text-foreground mt-1">인테리어 공정별 계산기</h1>
-        </div>
+          <h1 className="t-page text-ink mt-1">인테리어 공정별 계산기</h1>
+        </Container>
 
         {/* ── 모바일: 세로 1단 ── */}
-        <div className="lg:hidden px-4 py-4 flex flex-col gap-6">
-          <HomeSearch />
-
+        <Container as="div" className="lg:hidden py-4 flex flex-col gap-6">
           <ProcessTiles />
 
           <section className="flex flex-col gap-3">
@@ -105,12 +100,13 @@ export default function V1HomePage() {
             </section>
           )}
 
-          <AdSlot />
+          {/* House Ad 폴백(계산기 홍보 카드) — 광고 전역 스위치가 꺼져 있는 동안은 collapse */}
+          <AdSlot id="AD-R" />
           <Disclaimer />
-        </div>
+        </Container>
 
         {/* ── PC: 2단(1fr / 300px) ── */}
-        <div className="hidden lg:grid grid-cols-[1fr_300px] gap-8 px-8 py-8">
+        <Container as="div" className="hidden lg:grid grid-cols-[1fr_300px] gap-8 py-8">
           <div className="flex flex-col gap-8">
             <ProcessTiles />
 
@@ -153,11 +149,12 @@ export default function V1HomePage() {
           </div>
 
           <div className="flex flex-col gap-6">
-            <AdSlot size="300x250" />
+            {/* House Ad 폴백(계산기 홍보 카드) — 광고 전역 스위치가 꺼져 있는 동안은 collapse */}
+            <AdSlot id="AD-R" />
             {/* /calc/price 페이지가 아직 없어서 숨김 (2026-09-11 검사관 지적) */}
             {SHOW_UNFINISHED_SECTIONS && (
               <section className="flex flex-col gap-3">
-                <h2 className="text-[20px] font-bold text-foreground">많이 찾는 시세</h2>
+                <h2 className="t-section text-ink">많이 찾는 시세</h2>
                 <div className="border-t border-v1-line-2">
                   {POPULAR_PRICES.map((label, i) => (
                     <ListRow key={label} href="/calc/price" last={i === POPULAR_PRICES.length - 1}>
@@ -168,10 +165,10 @@ export default function V1HomePage() {
               </section>
             )}
           </div>
-        </div>
+        </Container>
       </main>
 
-      <BottomTab />
+      <SiteFooter />
 
       <JsonLd
         data={breadcrumbLd([
