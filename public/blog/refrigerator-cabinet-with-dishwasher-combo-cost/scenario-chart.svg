@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 520" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="냉장고장 식기세척기 설치 조합 시공 시나리오별 전기·가스 재배치 추가비용 막대그래프 — 경미한 재배치 5~15만원, 표준 조합 13~33만원, 구조변경형 45~115만원">
+  <rect width="860" height="520" fill="#ffffff"/>
+  <text x="40" y="46" font-size="25" font-weight="700" fill="#2b2b2b">냉장고장 식기세척기 설치 — 전기·가스 재배치 추가비용</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">가구 제작비 별도, 전기·가스 재배치만 합산 · 단위: 만원</text>
+
+  <!-- grid -->
+  <line x1="40" y1="420" x2="830" y2="420" stroke="#dddddd" stroke-width="2"/>
+  <line x1="40" y1="300" x2="830" y2="300" stroke="#f0f0f0" stroke-width="1"/>
+  <text x="36" y="304" font-size="12" fill="#bbb" text-anchor="end">60</text>
+  <line x1="40" y1="180" x2="830" y2="180" stroke="#f0f0f0" stroke-width="1"/>
+  <text x="36" y="184" font-size="12" fill="#bbb" text-anchor="end">120</text>
+
+  <!-- A: 경미한 재배치 5~15 -->
+  <rect x="120" y="400" width="120" height="14" rx="4" fill="#E0A98F"/>
+  <text x="180" y="390" font-size="17" font-weight="700" fill="#a8512f" text-anchor="middle">5~15</text>
+  <text x="180" y="450" font-size="15" font-weight="600" fill="#444" text-anchor="middle">경미한 재배치</text>
+  <text x="180" y="470" font-size="12" fill="#999" text-anchor="middle">콘센트 이동·신설만</text>
+  <text x="180" y="488" font-size="12" fill="#999" text-anchor="middle">가스배관 안 건드림</text>
+
+  <!-- B: 표준 조합 13~33 -->
+  <rect x="370" y="368" width="120" height="32" rx="4" fill="#C26B4A"/>
+  <text x="430" y="358" font-size="17" font-weight="700" fill="#a8512f" text-anchor="middle">13~33</text>
+  <text x="430" y="450" font-size="15" font-weight="600" fill="#444" text-anchor="middle">표준 조합 (가장 흔함)</text>
+  <text x="430" y="470" font-size="12" fill="#999" text-anchor="middle">전용회로 노출 10~25</text>
+  <text x="430" y="488" font-size="12" fill="#999" text-anchor="middle">가스배관 우회 3~8</text>
+
+  <!-- C: 구조변경형 45~115 -->
+  <rect x="620" y="130" width="120" height="88" rx="4" fill="#8F4A30"/>
+  <text x="680" y="120" font-size="17" font-weight="700" fill="#a8512f" text-anchor="middle">45~115</text>
+  <text x="680" y="450" font-size="15" font-weight="600" fill="#444" text-anchor="middle">구조변경형 (구축)</text>
+  <text x="680" y="470" font-size="12" fill="#999" text-anchor="middle">매립 전용선+증설 35~100</text>
+  <text x="680" y="488" font-size="12" fill="#999" text-anchor="middle">배관 철거·재배관 10~15</text>
+
+  <text x="40" y="512" font-size="13" fill="#a0a0a0">※ 실제 견적 빅데이터 1,000건+ 및 설치 단가표 기준. 한전 계약전력 증설(30~50만원)은 세대 용량 부족 시에만 추가.</text>
+</svg>
