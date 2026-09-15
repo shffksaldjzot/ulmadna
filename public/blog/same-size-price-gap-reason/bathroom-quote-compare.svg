@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="420" viewBox="0 0 960 420" role="img" aria-label="같은 욕실 리모델링 실제 견적 두 장 비교, 439만원과 709만원">
+  <rect width="960" height="420" fill="#FBF7F1"/>
+  <text x="40" y="52" fill="#5C3A1E" font-family="Pretendard, sans-serif" font-size="28" font-weight="800">욕실 1개 리모델링, 실제 견적 두 장</text>
+  <text x="40" y="80" fill="#9b8579" font-family="Pretendard, sans-serif" font-size="16">같은 '욕실 전체 리모델링'인데 270만원 가까이 차이 나는 이유</text>
+
+  <g font-family="Pretendard, sans-serif">
+    <text x="40" y="140" fill="#3d2512" font-size="18" font-weight="700">A. 439.6만원</text>
+    <rect x="40" y="152" width="70" height="34" fill="#5C3A1E"/>
+    <rect x="110" y="152" width="157" height="34" fill="#a87a45"/>
+    <rect x="267" y="152" width="120" height="34" fill="#c1592f"/>
+    <rect x="387" y="152" width="93" height="34" fill="#c9a673"/>
+
+    <text x="40" y="222" fill="#3d2512" font-size="18" font-weight="700">B. 708.95만원</text>
+    <rect x="40" y="234" width="198" height="34" fill="#5C3A1E"/>
+    <rect x="238" y="234" width="161" height="34" fill="#a87a45"/>
+    <rect x="399" y="234" width="330" height="34" fill="#c1592f"/>
+    <rect x="729" y="234" width="20" height="34" fill="#c9a673"/>
+
+    <text x="399" y="295" fill="#c1592f" font-size="15" font-weight="700">인건비만 210만원 더 듭니다 (120만원 → 330만원)</text>
+  </g>
+
+  <g font-family="Pretendard, sans-serif" font-size="14" fill="#5C3A1E">
+    <rect x="40" y="340" width="16" height="16" fill="#5C3A1E"/>
+    <text x="62" y="353">철거·방수(단열 포함 시 확대)</text>
+    <rect x="290" y="340" width="16" height="16" fill="#a87a45"/>
+    <text x="312" y="353">자재(도기·타일·수전)</text>
+    <rect x="500" y="340" width="16" height="16" fill="#c1592f"/>
+    <text x="522" y="353">인건비</text>
+    <rect x="620" y="340" width="16" height="16" fill="#c9a673"/>
+    <text x="642" y="353">기타(폐기물·잡비)</text>
+  </g>
+  <text x="40" y="396" fill="#9b8579" font-family="Pretendard, sans-serif" font-size="15">※ 자재비는 156만원 vs 161만원으로 거의 같습니다. 벌어진 건 시공 범위와 인건비예요.</text>
+</svg>
