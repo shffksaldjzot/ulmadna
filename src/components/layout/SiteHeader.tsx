@@ -46,16 +46,17 @@ export default function SiteHeader() {
         {/* 좌측: 로고 + 무료 배지(데스크톱 전용, 여기 한 번만) */}
         <div className="flex items-center gap-3 min-w-0">
           <Link href="/" aria-label="얼마드나 홈" className="flex-none flex items-center">
-            {/* 2026-09-15 형아 지시(추가): 로고가 통일 작업 전(계산기 헤더 v1/TopNav.tsx가
-                쓰던 width=130 height=44, 반응형 축소 없음)보다 작아졌다는 지적 — 그 크기
-                그대로 모바일·데스크톱 공통 44px 높이로 되돌린다(h-11 = 44px, 반응형 축소 없음). */}
+            {/* 2026-09-15 형아 지시(2차): 로고가 여전히 작다 → 원인은 원본 PNG(355×204)의 글자 영역이
+                세로 34%뿐이라 44px 박스에 넣어도 글자는 15px밖에 안 됐던 것.
+                글자 영역만 잘라낸 ulmadna_logo_tight.png(315×82)를 쓰고, 높이를 로그인 알약과
+                똑같이 40px(h-10)로 맞춘다 — 로고 글자 높이 = 로그인 버튼 높이. */}
             <Image
-              src="/ulmadna_logo.png"
+              src="/ulmadna_logo_tight.png"
               alt="얼마드나"
-              width={130}
-              height={44}
+              width={154}
+              height={40}
               priority
-              className="h-11 w-auto"
+              className="h-10 w-auto"
             />
           </Link>
           <span className="hidden lg:inline-block t-sub text-ink-2 border border-line rounded-chip px-3 py-1 whitespace-nowrap">
@@ -100,7 +101,7 @@ export default function SiteHeader() {
           ) : (
             <Link
               href="/login"
-              className="t-sub font-semibold text-ink-2 border border-line rounded-chip px-4 py-2 hover:border-accent hover:text-accent transition-colors"
+              className="t-sub font-semibold text-ink-2 border border-line rounded-chip h-10 px-4 inline-flex items-center hover:border-accent hover:text-accent transition-colors"
             >
               로그인
             </Link>
