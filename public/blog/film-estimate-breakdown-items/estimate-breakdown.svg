@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" font-family="'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif">
+  <rect width="800" height="520" fill="#FAF7F4"/>
+  <text x="400" y="42" text-anchor="middle" font-size="21" font-weight="700" fill="#3D3A37">방문 1틀 필름 견적 18만원, 안을 열어보면</text>
+
+  <!-- Stacked bar -->
+  <rect x="60" y="90" width="680" height="56" rx="8" fill="#E9DFD6"/>
+  <rect x="60" y="90" width="245" height="56" fill="#E5B8AC"/>
+  <rect x="305" y="90" width="377" height="56" fill="#C9895A"/>
+  <rect x="682" y="90" width="58" height="56" rx="0" fill="#B9CDB4"/>
+  <rect x="60" y="90" width="680" height="56" rx="8" fill="none" stroke="#DDD6CF" stroke-width="1.5"/>
+
+  <text x="182" y="123" text-anchor="middle" font-size="14" font-weight="700" fill="#7A3A26">자재비</text>
+  <text x="493" y="123" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">인건비</text>
+  <text x="711" y="123" text-anchor="middle" font-size="12" font-weight="700" fill="#2F4A2A">부자재</text>
+
+  <text x="182" y="176" text-anchor="middle" font-size="13.5" fill="#5A5551">약 6만~7만원 (36%)</text>
+  <text x="493" y="176" text-anchor="middle" font-size="13.5" fill="#5A5551">약 10만원 (56%)</text>
+  <text x="711" y="176" text-anchor="middle" font-size="12.5" fill="#5A5551">1만~2만 (8%)</text>
+
+  <text x="400" y="212" text-anchor="middle" font-size="13" fill="#8A837D">필름지 m당 7,000~10,000원 × 약 7m + 숙련공 1일 25만~30만원의 일부</text>
+
+  <line x1="60" y1="244" x2="740" y2="244" stroke="#DDD6CF" stroke-width="1"/>
+
+  <text x="400" y="276" text-anchor="middle" font-size="16" font-weight="700" fill="#3D3A37">같은 면적, 왜 문은 벽보다 비쌀까</text>
+
+  <!-- Wall bar -->
+  <text x="60" y="316" font-size="13.5" font-weight="700" fill="#5A5551">벽 한 면 (평평·넓음)</text>
+  <rect x="230" y="300" width="180" height="26" rx="6" fill="#B9CDB4"/>
+  <text x="420" y="318" font-size="12.5" fill="#8A837D">재단 1~2번, 금방 끝남</text>
+
+  <!-- Door bar -->
+  <text x="60" y="360" font-size="13.5" font-weight="700" fill="#5A5551">문 한 짝 (좁음·모서리多)</text>
+  <rect x="230" y="344" width="440" height="26" rx="6" fill="#C9895A"/>
+  <text x="682" y="362" font-size="12.5" fill="#5A5551">재단 여러 번</text>
+
+  <text x="400" y="404" text-anchor="middle" font-size="13" fill="#8A837D">앞뒤·옆면·손잡이·경첩까지 손이 가서, 같은 ㎡라도 문·몰딩은 시간이 몇 배 더 듭니다</text>
+
+  <!-- Bottom note -->
+  <rect x="40" y="430" width="720" height="66" rx="12" fill="#F1EAE3"/>
+  <text x="400" y="458" text-anchor="middle" font-size="14.5" font-weight="700" fill="#3D3A37">그래서 "평당 얼마"보다 "부위별 물량 × 단가"가 맞는 비교 기준입니다</text>
+  <text x="400" y="480" text-anchor="middle" font-size="12.5" fill="#8A837D">부재 종류·개수, 바탕면 상태, 곡면 여부가 단가를 가릅니다</text>
+</svg>
