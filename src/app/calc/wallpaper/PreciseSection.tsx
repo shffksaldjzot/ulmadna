@@ -116,10 +116,9 @@ export default function PreciseSection(props: PreciseSectionProps) {
   }
 
   return (
-    // 2026-09-15 디자인 통일 지시: 카드 속 카드 금지 — 테두리 카드는 결과 카드 하나에만
+    // 2026-09-15 디자인 통일 지시: 카드 속 카드 금지 — 테두리 카드는 결과 카드 하나에만.
+    // 2026-09-16 튜토리얼식 단계 안내: 제목("실측")은 이제 바깥 StepFlow가 그려서 여기선 뺐다.
     <div className="flex flex-col gap-4">
-      <h2 className="text-[17px] font-bold text-foreground">실측</h2>
-
       {/* 1. 입력 방식 — 방을 하나씩 재느냐, 벽 전체 길이를 아느냐 */}
       <Field label="입력 방식">
         <Segment

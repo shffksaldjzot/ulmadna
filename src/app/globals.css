@@ -88,3 +88,34 @@ body {
 .t-section { font-size: 17px; font-weight: 700; }
 .t-body { font-size: 15px; font-weight: 400; }
 .t-sub { font-size: 13px; font-weight: 400; }
+
+/* ── 계산기 3종 "튜토리얼식 단계 안내"(StepFlow) 강조 애니메이션 (2026-09-16) ──
+   다음 단계가 "현재 단계"로 막 켜졌을 때만 한 번 재생한다(StepFlow.tsx가 그 순간에만
+   .step-flow-enter 클래스를 붙였다가 애니메이션이 끝나면 뗀다).
+   1) 구획 전체가 4px 아래에서 위로 살짝 떠오른다(220ms)
+   2) 강조색(accent) 테두리가 1초 동안 은은하게 켜졌다 꺼진다
+   3) 구획 안 첫 선택지가 짧게 좌우로 흔들려 눈길을 끈다(300ms)
+   prefers-reduced-motion이면 흔들림·떠오름은 끄고, 테두리만 애니메이션 없이 그대로 켠다. */
+@keyframes step-flow-rise {
+  from { opacity: 0.001; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes step-flow-ring {
+  0%, 100% { border-color: transparent; }
+  15%, 85% { border-color: var(--accent); }
+}
+@keyframes step-flow-shake {
+  0%, 100% { transform: translateX(0); }
+  30% { transform: translateX(-2px); }
+  70% { transform: translateX(2px); }
+}
+.step-flow-enter {
+  animation: step-flow-rise 220ms ease-out both, step-flow-ring 1000ms ease-in-out both;
+}
+.step-flow-enter .step-flow-content > :first-child {
+  animation: step-flow-shake 300ms ease-in-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .step-flow-enter { animation: none; border-color: var(--accent); }
+  .step-flow-enter .step-flow-content > :first-child { animation: none; }
+}

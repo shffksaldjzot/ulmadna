@@ -21,7 +21,7 @@
 
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import Segment from '@/components/v1/Segment';
 import NumberField from '@/components/v1/NumberField';
 import { IconChevronDown } from '@/components/v1/icons';
@@ -41,6 +41,14 @@ type CustomFields = {
 };
 
 export interface MaterialPickerProps {
+  /**
+   * 이 카드에서 어느 부분만 그릴지 — 2026-09-16 튜토리얼식 단계 안내 도입으로 "종류"와
+   * "제품"이 서로 다른 단계(StepFlow)에 들어가게 되면서 나뉘었다(도배 PaperPicker와 같은 이유).
+   *   'kind'    — 종류(마루/장판/데코타일) 세그먼트만.
+   *   'product' — 종류를 고른 뒤 나오는 제품 드롭다운 + 직접 입력 칸만.
+   */
+  part: 'kind' | 'product';
+
   /** 바닥재 종류. undefined면 아직 안 고른 상태 — 이때는 세그먼트만 보이고 제품 목록은 비운다 */
   kind: FlooringKind | undefined;
   onKindChange: (v: FlooringKind | undefined) => void;
@@ -55,8 +63,6 @@ export interface MaterialPickerProps {
   /** 직접 입력한 바닥재 */
   product?: FlooringDirectProduct;
   onProductChange?: (v: FlooringDirectProduct | undefined) => void;
-  /** 카드 맨 아래에 붙일 것 — 범위(전체/방만/거실주방) 칩 */
-  footer?: ReactNode;
 }
 
 /** 박스형은 "박스당 가격"이 판매가. 화면 표기 "4.4만/박스" */
@@ -103,6 +109,7 @@ function toFields(product: FlooringDirectProduct | undefined): CustomFields {
 }
 
 export default function MaterialPicker({
+  part,
   kind,
   onKindChange,
   productCode,
@@ -110,7 +117,6 @@ export default function MaterialPicker({
   products,
   product,
   onProductChange,
-  footer,
 }: MaterialPickerProps) {
   // 직접 입력 칸 펼침 여부 — 이미 직접 입력한 값이 있으면 펼친 채로 시작한다
   const [customOpen, setCustomOpen] = useState(product !== undefined);
@@ -185,12 +191,10 @@ export default function MaterialPicker({
         .sort((a, b) => a.brand.localeCompare(b.brand, 'en') || (a.price as number) - (b.price as number))
     : [];
 
-  return (
-    // 2026-09-15 디자인 통일 지시: 카드 속 카드 금지 — 테두리 카드는 결과 카드 하나에만
-    <div className="flex flex-col gap-3">
-      <h2 className="text-[17px] font-bold text-foreground">바닥재</h2>
-
-      {/* 종류 — 기본 미선택. 고르기 전엔 아무 탭도 활성화하지 않는다 */}
+  // 2026-09-16 튜토리얼식 단계 안내: 이 카드가 두 단계(종류·제품)로 나뉜다(도배 PaperPicker와 같은 이유).
+  if (part === 'kind') {
+    return (
+      // 종류 — 기본 미선택. 고르기 전엔 아무 탭도 활성화하지 않는다
       <Segment
         options={[
           { value: '마루', label: '마루' },
@@ -200,10 +204,14 @@ export default function MaterialPicker({
         value={kind}
         onChange={onKindChange}
       />
+    );
+  }
 
-      {/* 종류를 안 골랐으면 제품 선택 자리를 비워 둔다(안내문 없이 — 설명글 최소화 원칙) */}
-      {kind && (
-      <div className="flex flex-col pt-3">
+  // part === 'product' — 종류를 아직 안 골랐으면 그릴 게 없다(방어적 처리)
+  if (!kind) return null;
+
+  return (
+    <div className="flex flex-col">
         {/* 제품 드롭다운 — 첫 줄(빈 값) = 제품 안 고름 → 종류 평균가로 계산.
             마지막 줄 "직접 입력" = 아래 입력칸 펼침. */}
         <label className="text-[13px] text-v1-text-label pb-1" htmlFor="flooring-product-select">
@@ -305,10 +313,6 @@ export default function MaterialPicker({
             </div>
           </div>
         )}
-      </div>
-      )}
-      {/* 범위(전체/방만/거실주방) 칩 — 종류를 고른 뒤에만 보인다 */}
-      {kind && footer}
     </div>
   );
 }

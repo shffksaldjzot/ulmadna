@@ -28,6 +28,13 @@
 // 작성일: 2026년 09월 14일 · 개정: 2026년 09월 15일(운영자 현장 기준 피드백 — 즉답 분리)
 // 화면 재배치(용도 칩으로 모드 흡수): 2026년 09월 15일 (디자인 통일 작업 B)
 // 용도 칩 2개로 축소: 2026년 09월 16일
+//
+// 2026-09-16 튜토리얼식 단계 안내 도입:
+//   처음 들어오면 ModePicker로 모드부터 고른다(도배·바닥재와 같은 규칙). "간단하게"는
+//   용도 → 면적 → 두께(+공법) 3단계를 StepFlow로 순서대로 연다. "정확하게"(PreciseSection)는
+//   필드가 훨씬 많고(실별 면적·배합비·운송비·양중비·옵션·제품…) 이 설계서에 정확 모드의
+//   단계 구조가 따로 없어서, 억지로 3단계에 우겨넣지 않고 예전처럼 한 화면에 그대로 둔다
+//   (판단 갈린 지점 — 보고에 남긴다).
 // ──────────────────────────────────────────────
 
 'use client';
@@ -47,11 +54,14 @@ import type { MortarProductOption } from '@/lib/v1/mortarProductOptions';
 import { useMortarCalc } from '@/lib/v1/useMortarCalc';
 import { useMortarQuickCalc } from '@/lib/v1/useMortarQuickCalc';
 import { formatManRange, formatNum } from '@/lib/v1/money';
-import { sanitizeMortarFormState } from '@/lib/v1/mortarEngineInput';
+import { sanitizeMortarFormState, resolveSimpleAreaSqm } from '@/lib/v1/mortarEngineInput';
 import { USAGE_PRESET, SELF_LEVEL_USAGE_PRESET } from '@/lib/v1/mortarPresets';
 import QuickAnswer from './QuickAnswer';
 import PreciseSection from './PreciseSection';
 import ResultPanel from './ResultPanel';
+import StepFlow from '../_components/StepFlow';
+import { useStepFlow } from '../_components/useStepFlow';
+import ModePicker, { type CalcViewMode } from '../_components/ModePicker';
 
 interface MortarCalculatorProps {
   /** page.tsx(서버 컴포넌트)가 제품 마스터에서 골라 내려주는 화면용 제품 목록 */
@@ -92,9 +102,18 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
   const [form, setForm] = useState<MortarFormState>(initial);
   const resultRef = useRef<HTMLDivElement>(null);
 
+  // 튜토리얼식 단계 안내 — 공유 링크면 모드 선택 화면을 건너뛴다(도배·바닥재와 같은 규칙)
+  const hasSharedLink = !!searchParams.get('d');
+  const [userPickedMode, setUserPickedMode] = useState(false);
+  const modeChosen = hasSharedLink || userPickedMode;
+
+  // 폼이 바뀔 때마다 하나씩 올라가는 숫자 — useStepFlow가 "방금 뭔가 골랐다"를 알아채는 용도
+  const [formVersion, setFormVersion] = useState(0);
+
   /** 폼 상태 부분 갱신 도우미 — 자식 컴포넌트는 항상 이 함수로만 상태를 바꾼다 */
   function patch(p: Partial<MortarFormState>) {
     setForm((prev) => ({ ...prev, ...p }));
+    setFormVersion((v) => v + 1);
   }
 
   const mode = form.mode ?? '레미탈';
@@ -134,6 +153,7 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
         wireMesh: false,
         ...areaReset,
       });
+      touch(0);
       return;
     }
 
@@ -147,6 +167,7 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
       method: undefined,
       ...areaReset,
     });
+    touch(0);
   }
 
   // 즉답 — 서버 없이 바로 계산되는 포수·체적·현장배합(항상 최신 폼 상태를 즉시 반영)
@@ -156,8 +177,80 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
 
   const emptyMessage = view === 'precise' ? '면적을 넣으면 나와요' : '면적과 두께를 넣으면 바로 나와요';
 
+  // ── 튜토리얼식 단계 안내: "간단하게" 모드에서만 3단계(용도 → 면적 → 두께+공법)를 쓴다.
+  // "정확하게"(PreciseSection)는 필드가 훨씬 많아 예전처럼 한 화면에 그대로 둔다(아래 함수
+  // 설명 참고). 훅은 view와 무관하게 항상 불러야 해서(리액트 훅 규칙) 여기서 매번 계산한다.
+  // 2026-09-16 보완: "값이 유효한지(dataComplete)"만으론 기본값(방통·10평 등) 때문에
+  // 진입 즉시 완료로 접혀버린다 — useStepFlow가 touched(실제로 손댔는지)와 함께 가려서
+  // 진짜 완료(completeFlags)를 낸다. 공유 링크(?d=)일 때만 처음부터 전부 손댄 것으로 본다.
+  const step0DataComplete = true; // 용도는 항상 유효한 값(기본 방통)이 있다 — touched로 가린다
+  const step1DataComplete = resolveSimpleAreaSqm(form) !== null;
+  const step2DataComplete = typeof form.thicknessMm === 'number' && form.thicknessMm > 0;
+  const { activeIndex, allDone, completeFlags, reopen, touch } = useStepFlow(
+    [step0DataComplete, step1DataComplete, step2DataComplete],
+    formVersion,
+    hasSharedLink,
+  );
+  const [step0Complete, step1Complete, step2Complete] = completeFlags;
+
+  // 면적 단계 완료 요약 한 줄 — "가로×세로" 입력이면 그 값을, 아니면 면적+단위를 보여준다
+  const areaInputMode = form.areaInputMode ?? 'area';
+  const step1Summary =
+    areaInputMode === 'rect'
+      ? `${form.rectWidth ?? '?'}×${form.rectDepth ?? '?'}m`
+      : `${form.area ?? '?'}${form.areaUnit ?? '평'}`;
+  // 두께 단계 완료 요약 한 줄 — 레미탈이면 공법도 같이 보여준다
+  const step2Summary =
+    mode === '레미탈'
+      ? `${form.thicknessMm}mm · ${(form.method ?? (form.usage ? USAGE_PRESET[form.usage].defaultMethod : '손미장')) === '장비타설' ? '장비 타설' : '손미장'}`
+      : `${form.thicknessMm}mm`;
+
+  // 단계별 안내 한 줄(간단 모드 전용) — StepFlow caption과 하단 고정 바가 같은 문구를 쓴다
+  const stepCaptions = ['용도를 고르세요', '면적을 넣으세요', '두께를 정하세요'];
+  /** 폼 상태를 바꾸면서 동시에 해당 단계를 "손댔다"고 표시하는 도우미 */
+  function patchArea(p: Partial<MortarFormState>) {
+    patch(p);
+    touch(1);
+  }
+  function patchThickness(p: Partial<MortarFormState>) {
+    patch(p);
+    touch(2);
+  }
+
+  // "N/3 · 안내"(간단 모드 전용) — 하단 고정 바와 (완료 전) 결과 패널 자리가 같이 쓰는 문구
+  const progressText = `${Math.min(activeIndex + 1, stepCaptions.length)}/${stepCaptions.length} · ${
+    stepCaptions[Math.min(activeIndex, stepCaptions.length - 1)]
+  }`;
+  // 2026-09-16 보완: 간단 모드는 3단계를 다 "손대서" 끝내기 전엔(allDone) 기본값(방통·10평
+  // 등)으로 이미 계산된 물량·비용을 결과 패널에 보여주지 않는다. quick 자체를 비워서
+  // ResultPanel이 항상 "빈 상태"(placeholder) 가지를 타게 한다 — 정확하게 모드는 단계
+  // 개념이 없어 그대로 둔다.
+  const gateResult = view === 'simple' && !allDone;
+  const quickForPanel = gateResult ? null : quick;
+  const resultForPanel = gateResult ? null : result;
+  const rangeForPanel = gateResult ? null : range;
+  const errorForPanel = gateResult ? null : error;
+  const resultPanelEmptyMessage = gateResult ? progressText : emptyMessage;
+
   function scrollToResult() {
     resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // 첫 화면 — 아직 모드를 안 골랐으면 질문 하나만 보여준다(결과 패널·하단 바 전부 숨김)
+  if (!modeChosen) {
+    return (
+      <>
+        <TopNav title="레미탈 계산기" backHref="/calc" as="p" />
+        <div className="px-5 lg:px-8 max-w-[1120px] mx-auto">
+          <ModePicker
+            onPick={(v: CalcViewMode) => {
+              patch({ view: v });
+              setUserPickedMode(true);
+            }}
+          />
+        </div>
+      </>
+    );
   }
 
   return (
@@ -179,36 +272,71 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
             </p>
           </div>
 
-          {/* 용도 — 두께 기본값을 같이 채우고, 셀프레벨링 칩은 모드 자체를 바꾼다.
-              2026-09-15 디자인 통일 지시로 예전 [레미탈·몰탈|셀프레벨링] 모드 토글을
-              이 칩 한 줄로 합쳤다(첫 화면 토글 4줄 → [간단|정확] + 용도 칩 2줄로 축소). */}
-          <div className="flex flex-col gap-2">
-            <h2 className="text-[17px] font-bold text-foreground">용도</h2>
-            <div className="flex flex-wrap gap-2">
-              {TOP_USAGE_ORDER.map((u) => (
-                <Chip key={u} selected={currentTopUsage === u} onClick={() => selectTopUsage(u)}>
-                  {topUsageLabel(u)}
-                </Chip>
-              ))}
-            </div>
-          </div>
-
-          {/* 카드 — 모드에 따라 하나만 그린다. 훅은 이 컴포넌트 한 곳에서만 불러 자식에는
-              결과(props)만 내려준다(2026-09-14 검사관 지적 — API 중복 호출 방지) */}
           {view === 'simple' ? (
-            <QuickAnswer
-              form={form}
-              patch={patch}
-              quick={quick}
-            />
+            <>
+              {/* 1단계 — 용도. 두께 기본값을 같이 채우고, 셀프레벨링 칩은 모드 자체를 바꾼다.
+                  기본값(방통)이 이미 골라져 있어 처음엔 접힌 채로 보인다 — "바꾸기"로 언제든
+                  셀프레벨링으로 바꿀 수 있다. */}
+              <StepFlow
+                index={0}
+                activeIndex={activeIndex}
+                title="용도"
+                caption={stepCaptions[0]}
+                summary={topUsageLabel(currentTopUsage)}
+                complete={step0Complete}
+                onReopen={() => reopen(0)}
+              >
+                <div className="flex flex-wrap gap-2">
+                  {TOP_USAGE_ORDER.map((u) => (
+                    <Chip key={u} selected={currentTopUsage === u} onClick={() => selectTopUsage(u)}>
+                      {topUsageLabel(u)}
+                    </Chip>
+                  ))}
+                </div>
+              </StepFlow>
+
+              {/* 2단계 — 면적 */}
+              <StepFlow
+                index={1}
+                activeIndex={activeIndex}
+                title="면적"
+                caption={stepCaptions[1]}
+                summary={step1Summary}
+                complete={step1Complete}
+                onReopen={() => reopen(1)}
+              >
+                <QuickAnswer part="area" form={form} patch={patchArea} quick={quick} />
+              </StepFlow>
+
+              {/* 3단계 — 두께(+공법). 값을 계속 조정하는 단계라 끝나도 접지 않는다(keepOpen) */}
+              <StepFlow
+                index={2}
+                activeIndex={activeIndex}
+                title="두께"
+                caption={stepCaptions[2]}
+                summary={step2Summary}
+                complete={step2Complete}
+                keepOpen
+              >
+                <QuickAnswer part="thickness" form={form} patch={patchThickness} quick={quick} />
+              </StepFlow>
+            </>
           ) : (
-            <PreciseSection
-              form={form}
-              patch={patch}
-              products={products}
-              quick={quick}
-              result={result}
-            />
+            <>
+              {/* "정확하게"는 필드가 많아(실별 면적·배합비·운송비·양중비·옵션·제품…) 이 설계서에
+                  단계 구조가 따로 없다 — 예전처럼 용도 칩 + PreciseSection을 한 화면에 그대로 둔다 */}
+              <div className="flex flex-col gap-2">
+                <h2 className="text-[17px] font-bold text-foreground">용도</h2>
+                <div className="flex flex-wrap gap-2">
+                  {TOP_USAGE_ORDER.map((u) => (
+                    <Chip key={u} selected={currentTopUsage === u} onClick={() => selectTopUsage(u)}>
+                      {topUsageLabel(u)}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+              <PreciseSection form={form} patch={patch} products={products} quick={quick} result={result} />
+            </>
           )}
         </div>
 
@@ -218,25 +346,29 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
           className="scroll-mt-16 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto"
         >
           <ResultPanel
-            quick={quick}
-            result={result}
-            range={range}
+            quick={quickForPanel}
+            result={resultForPanel}
+            range={rangeForPanel}
             loading={loading}
-            error={error}
+            error={errorForPanel}
             stale={stale}
             form={form}
-            emptyMessage={emptyMessage}
+            emptyMessage={resultPanelEmptyMessage}
           />
         </div>
       </div>
 
-      {/* 모바일 하단 고정 요약 바 — 포수는 quick(즉시)로, 금액은 서버가 왔을 때만 붙인다 */}
+      {/* 모바일 하단 고정 요약 바 — 포수는 quick(즉시)로, 금액은 서버가 왔을 때만 붙인다.
+          2026-09-16 보완: "간단하게"는 3단계를 다 "손대서" 끝내기 전엔(allDone) 기본값으로
+          이미 계산된 숫자 대신 "N/3 · 안내"를 보여준다. "정확하게"는 단계 개념이 없어 예전 그대로. */}
       <div className="fixed bottom-0 left-0 right-0 h-14 bg-white border-t border-v1-line flex items-center justify-between px-4 lg:hidden z-40">
-        {quick ? (
+        {(view === 'precise' || allDone) && quick ? (
           <span className="text-[16px] font-semibold text-brown tabular-nums">
             {quick.bagKg}kg × {formatNum(quick.bags)}포
             {result && range ? ` · ${formatManRange(range.min, range.max)}` : ''}
           </span>
+        ) : view === 'simple' ? (
+          <span className="text-[14px] text-v1-text-secondary">{progressText}</span>
         ) : (
           <span className="text-[14px] text-v1-text-secondary">{emptyMessage}</span>
         )}

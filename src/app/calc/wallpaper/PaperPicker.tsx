@@ -25,7 +25,7 @@
 
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import Segment from '@/components/v1/Segment';
 import NumberField from '@/components/v1/NumberField';
 import { IconChevronDown } from '@/components/v1/icons';
@@ -46,6 +46,14 @@ type CustomFields = {
 };
 
 export interface PaperPickerProps {
+  /**
+   * 이 카드에서 어느 부분만 그릴지 — 2026-09-16 튜토리얼식 단계 안내 도입으로 "종류"와
+   * "제품"이 서로 다른 단계(StepFlow)에 들어가게 되면서 나뉘었다.
+   *   'type'    — 종류(합지/실크) 세그먼트만.
+   *   'product' — 종류를 고른 뒤 나오는 제품 드롭다운 + 직접 입력 칸만.
+   */
+  part: 'type' | 'product';
+
   /** 벽지 종류. undefined면 아직 안 고른 상태 — 이때는 세그먼트만 보이고 제품 목록은 비운다 */
   paperType: '합지' | '실크' | undefined;
   onPaperTypeChange: (v: '합지' | '실크' | undefined) => void;
@@ -61,8 +69,6 @@ export interface PaperPickerProps {
   /** 직접 입력한 벽지 (롤당 가격·폭·길이·무늬 반복) */
   product?: CustomProduct;
   onProductChange?: (v: CustomProduct | undefined) => void;
-  /** 카드 맨 아래에 붙일 것 — 범위(벽·천장) 칩 (2026-09-09 형아 지시: 범위는 벽지 선택 바로 아래) */
-  footer?: ReactNode;
 }
 
 /** 롤당 가격(원) → 화면 표기 "4.4만/롤". 만 단위 소수 첫째 자리까지, .0이면 떼고 보여 준다 */
@@ -93,6 +99,7 @@ function toFields(product: CustomProduct | undefined): CustomFields {
 }
 
 export default function PaperPicker({
+  part,
   paperType,
   onPaperTypeChange,
   productCode,
@@ -100,7 +107,6 @@ export default function PaperPicker({
   products,
   product,
   onProductChange,
-  footer,
 }: PaperPickerProps) {
   // 직접 입력 칸 펼침 여부 — 이미 직접 입력한 값이 있으면 펼친 채로 시작한다
   const [customOpen, setCustomOpen] = useState(product !== undefined);
@@ -169,13 +175,12 @@ export default function PaperPicker({
   // 드롭다운 아래에 출처 한 줄을 보여 주려고 고른 제품을 찾아 둔다
   const selectedProduct = productCode ? list.find((p) => p.code === productCode) : undefined;
 
-  return (
-    // 2026-09-15 디자인 통일 지시: 카드 속 카드 금지 — 테두리 카드는 결과 카드 하나에만.
-    // 입력 구획은 카드 없이 바탕 위에, 여백+구획 제목(17/700)으로만 나눈다.
-    <div className="flex flex-col gap-3">
-      <h2 className="text-[17px] font-bold text-foreground">벽지</h2>
-
-      {/* 종류 — 기본 미선택. 고르기 전엔 아무 탭도 활성화하지 않는다 */}
+  // 2026-09-16 튜토리얼식 단계 안내: 이 카드가 두 단계(종류·제품)로 나뉘어서, 부르는 쪽이
+  // part로 어느 쪽을 그릴지 정한다. 카드 자체(테두리 없음)는 그대로 두고 h2 제목만 뺐다 —
+  // 제목·번호 배지는 이제 바깥의 StepFlow가 그린다.
+  if (part === 'type') {
+    return (
+      // 종류 — 기본 미선택. 고르기 전엔 아무 탭도 활성화하지 않는다
       <Segment
         options={[
           { value: '합지', label: '합지' },
@@ -184,97 +189,98 @@ export default function PaperPicker({
         value={paperType}
         onChange={onPaperTypeChange}
       />
+    );
+  }
 
-      {/* 종류를 안 골랐으면 제품 선택 자리를 비워 둔다(안내문 없이 — 설명글 최소화 원칙) */}
-      {paperType && (
-      <div className="flex flex-col pt-3">
-        {/* 제품 드롭다운 — 2026-09-09 형아 지시: 제품이 세로로 쭉 나오지 말고 드롭다운으로 고르게.
-            첫 줄(빈 값) = 제품 안 고름 → 종류 평균가로 계산. 마지막 줄 "직접 입력" = 아래 입력칸 펼침. */}
-        <label className="text-[13px] text-v1-text-label pb-1" htmlFor="paper-product-select">
-          벽지 제품
-        </label>
-        <div className="relative">
-          <select
-            id="paper-product-select"
-            aria-label="벽지 제품"
-            value={customOpen ? CUSTOM_VALUE : (productCode ?? '')}
-            onChange={(e) => onSelect(e.target.value)}
-            className={
-              'w-full h-11 appearance-none rounded-lg border border-v1-line-2 bg-white pl-3 pr-10 ' +
-              'text-[16px] text-foreground focus:outline-none focus:border-brown'
-            }
-          >
-            {/* 2026-09-09 형아 지시: 첫 줄 문구는 "제품 선택"으로만 (안 고르면 종류 평균가로 계산되는 건 그대로) */}
-            <option value="">제품 선택</option>
-            {list.map((p) => (
-              <option key={p.code} value={p.code}>
-                {p.brand} {p.name} · {formatRollPrice(p.price as number)}
-              </option>
-            ))}
-            <option value={CUSTOM_VALUE}>직접 입력</option>
-          </select>
-          {/* 오른쪽 화살표 — 브라우저 기본 화살표는 appearance-none 으로 감추고 우리 아이콘을 얹는다 */}
-          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-            <IconChevronDown className="text-v1-text-label" />
-          </span>
-        </div>
+  // part === 'product' — 종류를 아직 안 골랐으면 그릴 게 없다(방어적 처리, 정상 흐름에서는
+  // 이 단계 자체가 종류를 고른 뒤에만 열린다)
+  if (!paperType) return null;
 
-        {/* 고른 제품의 출처 한 줄 (드롭다운 안에는 못 넣어서 아래에 따로) */}
-        {selectedProduct?.sourceLabel && (
-          <span className="text-[13px] text-v1-text-disabled pt-1">{selectedProduct.sourceLabel}</span>
-        )}
+  return (
+    <div className="flex flex-col">
+      {/* 제품 드롭다운 — 2026-09-09 형아 지시: 제품이 세로로 쭉 나오지 말고 드롭다운으로 고르게.
+          첫 줄(빈 값) = 제품 안 고름 → 종류 평균가로 계산. 마지막 줄 "직접 입력" = 아래 입력칸 펼침. */}
+      <label className="text-[13px] text-v1-text-label pb-1" htmlFor="paper-product-select">
+        벽지 제품
+      </label>
+      <div className="relative">
+        <select
+          id="paper-product-select"
+          aria-label="벽지 제품"
+          value={customOpen ? CUSTOM_VALUE : (productCode ?? '')}
+          onChange={(e) => onSelect(e.target.value)}
+          className={
+            'w-full h-11 appearance-none rounded-lg border border-v1-line-2 bg-white pl-3 pr-10 ' +
+            'text-[16px] text-foreground focus:outline-none focus:border-brown'
+          }
+        >
+          {/* 2026-09-09 형아 지시: 첫 줄 문구는 "제품 선택"으로만 (안 고르면 종류 평균가로 계산되는 건 그대로) */}
+          <option value="">제품 선택</option>
+          {list.map((p) => (
+            <option key={p.code} value={p.code}>
+              {p.brand} {p.name} · {formatRollPrice(p.price as number)}
+            </option>
+          ))}
+          <option value={CUSTOM_VALUE}>직접 입력</option>
+        </select>
+        {/* 오른쪽 화살표 — 브라우저 기본 화살표는 appearance-none 으로 감추고 우리 아이콘을 얹는다 */}
+        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+          <IconChevronDown className="text-v1-text-label" />
+        </span>
+      </div>
 
-        {customOpen && (
-          <div className="flex flex-col gap-2 pt-3 pl-3">
-            {/* 가격은 자릿수가 길어 한 줄을 통째로 쓴다(좁은 폰에서 숫자가 잘리지 않게) */}
-            <span className="text-[13px] text-v1-text-label">롤당 가격</span>
+      {/* 고른 제품의 출처 한 줄 (드롭다운 안에는 못 넣어서 아래에 따로) */}
+      {selectedProduct?.sourceLabel && (
+        <span className="text-[13px] text-v1-text-disabled pt-1">{selectedProduct.sourceLabel}</span>
+      )}
+
+      {customOpen && (
+        <div className="flex flex-col gap-2 pt-3 pl-3">
+          {/* 가격은 자릿수가 길어 한 줄을 통째로 쓴다(좁은 폰에서 숫자가 잘리지 않게) */}
+          <span className="text-[13px] text-v1-text-label">롤당 가격</span>
+          <NumberField
+            aria-label="롤당 가격"
+            suffix="원"
+            placeholder="44000"
+            value={custom.rollPrice}
+            onChange={(v) => updateCustom({ rollPrice: v })}
+          />
+
+          {/* 폭·길이는 짧은 숫자라 한 줄에 2칸 */}
+          <div className="flex gap-2 text-[13px] text-v1-text-label pt-1">
+            <span className="flex-1 min-w-0">폭</span>
+            <span className="flex-1 min-w-0">길이</span>
+          </div>
+          <div className="flex gap-2">
             <NumberField
-              aria-label="롤당 가격"
-              suffix="원"
-              placeholder="44000"
-              value={custom.rollPrice}
-              onChange={(v) => updateCustom({ rollPrice: v })}
-            />
-
-            {/* 폭·길이는 짧은 숫자라 한 줄에 2칸 */}
-            <div className="flex gap-2 text-[13px] text-v1-text-label pt-1">
-              <span className="flex-1 min-w-0">폭</span>
-              <span className="flex-1 min-w-0">길이</span>
-            </div>
-            <div className="flex gap-2">
-              <NumberField
-                className="flex-1 min-w-0"
-                aria-label="벽지 폭"
-                suffix="cm"
-                placeholder="106"
-                value={custom.widthCm}
-                onChange={(v) => updateCustom({ widthCm: v })}
-              />
-              <NumberField
-                className="flex-1 min-w-0"
-                aria-label="롤 길이"
-                suffix="m"
-                placeholder="15.6"
-                value={custom.lengthM}
-                onChange={(v) => updateCustom({ lengthM: v })}
-              />
-            </div>
-
-            {/* 무늬 반복은 선택 — 비워 두면 무지로 본다 */}
-            <span className="text-[13px] text-v1-text-label pt-1">무늬 반복</span>
-            <NumberField
-              aria-label="무늬 반복"
+              className="flex-1 min-w-0"
+              aria-label="벽지 폭"
               suffix="cm"
-              placeholder="선택"
-              value={custom.repeatCm}
-              onChange={(v) => updateCustom({ repeatCm: v })}
+              placeholder="106"
+              value={custom.widthCm}
+              onChange={(v) => updateCustom({ widthCm: v })}
+            />
+            <NumberField
+              className="flex-1 min-w-0"
+              aria-label="롤 길이"
+              suffix="m"
+              placeholder="15.6"
+              value={custom.lengthM}
+              onChange={(v) => updateCustom({ lengthM: v })}
             />
           </div>
-        )}
-      </div>
+
+          {/* 무늬 반복은 선택 — 비워 두면 무지로 본다 */}
+          <span className="text-[13px] text-v1-text-label pt-1">무늬 반복</span>
+          <NumberField
+            aria-label="무늬 반복"
+            suffix="cm"
+            placeholder="선택"
+            value={custom.repeatCm}
+            onChange={(v) => updateCustom({ repeatCm: v })}
+          />
+        </div>
       )}
-      {/* 범위(벽·천장) 칩 — 벽지 종류를 고른 뒤에만 보인다 */}
-      {paperType && footer}
     </div>
   );
 }
