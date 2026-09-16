@@ -150,7 +150,7 @@ export default function ResultPanel({ result, range, loading, error, stale, form
         <p className="text-[15px] text-foreground leading-[1.6] tabular-nums">
           벽 {quantity.wallSqm}㎡ · 천장 {quantity.ceilingSqm}㎡ · {lossLabel}
         </p>
-        {/* 간단(평형/㎡) 모드일 때만 "공급 34평 · 전용 84㎡" 병기 — 실측·벽 길이는 이미
+        {/* 간단(평형/㎡) 모드일 때만 "34평 · 84㎡" 병기 — 실측·벽 길이는 이미
             실제 치수라 공급/전용 개념이 없다(2026-09-15 형아 지시 ㎡ 모드 추가) */}
         {quantity.inputMode === '평형' && describeAreaPair(form) && (
           <p className="text-[13px] text-v1-text-disabled tabular-nums">{describeAreaPair(form)}</p>

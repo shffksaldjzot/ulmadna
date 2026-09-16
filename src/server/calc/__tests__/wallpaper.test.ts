@@ -395,8 +395,9 @@ describe('전용면적(㎡) 직접 입력 — 2026-09-15 ㎡ 모드', () => {
     // supplyPyeong도 exclusiveSqm에서 역산한 값(약 34평)이어야 한다 — pyeong:24로 새면 라벨 불일치
     expect(mismatched.supplyPyeong).toBe(pureExclusive.supplyPyeong);
     expect(mismatched.supplyPyeong).not.toBe(24);
-    // source 문구도 "전용 84㎡ ... 공급 약" 형태여야 한다(24평이라고 적히면 안 됨)
-    expect(mismatched.source).toContain('전용 84㎡');
+    // source 문구도 "84㎡ ... 약" 형태여야 한다(24평이라고 적히면 안 됨. 2026-09-16 "공급"·
+    // "전용" 단어를 화면 문구에서 뺐다 — dimensions.ts 참고)
+    expect(mismatched.source).toContain('84㎡');
     expect(mismatched.source).not.toContain('24평');
   });
 });

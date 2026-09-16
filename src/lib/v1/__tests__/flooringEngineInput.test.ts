@@ -155,13 +155,13 @@ describe('㎡ 모드 (전용면적 직접 입력)', () => {
   });
 });
 
-describe('describeAreaPair — 결과 요약줄 "공급 34평 · 전용 84㎡" 병기', () => {
+describe('describeAreaPair — 결과 요약줄 "34평 · 84㎡" 병기 (2026-09-16: "공급"·"전용" 단어 삭제)', () => {
   it('평 모드는 칩 평형표로 전용 ㎡를 병기한다', () => {
-    expect(describeAreaPair({ ...DEFAULT_FLOORING_FORM, pyeong: 34 })).toBe('공급 34평 · 전용 84㎡');
+    expect(describeAreaPair({ ...DEFAULT_FLOORING_FORM, pyeong: 34 })).toBe('34평 · 84㎡');
   });
 
   it('㎡ 모드는 입력한 전용면적을 그대로 쓴다', () => {
     const label = describeAreaPair({ ...DEFAULT_FLOORING_FORM, areaUnit: '㎡', exclusiveSqm: 84 });
-    expect(label).toContain('전용 84㎡');
+    expect(label).toContain('84㎡');
   });
 });

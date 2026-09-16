@@ -3,11 +3,17 @@
 // 도배·바닥재 Calculator.tsx를 그대로 본떠 만들었다.
 //
 //   맨 위 [간단하게 계산하기 | 정확하게 계산하기] 세그먼트 + 캡션 1줄.
-//   그 아래 용도 칩 한 줄(방통 전체 · 확장부 바닥 · 욕실·현관 구배 · 마루 철거 후 보수 ·
-//   셀프레벨링) — 예전엔 이 위에 [레미탈·몰탈 | 셀프레벨링] 모드 토글이 따로 한 줄 더
-//   있었는데, 셀프레벨링을 용도 칩 하나로 흡수해 화면 맨 위 토글 줄을 4줄→2줄로 줄였다
-//   (2026-09-15 디자인 통일 지시). 셀프레벨링 칩을 고르면 예전 모드 토글과 똑같이
-//   mode를 '셀프레벨링'으로 바꾸고 두께·제품·옵션을 그 모드 기본값으로 정리한다.
+//   그 아래 용도 칩 한 줄(방통 · 셀프레벨링) — 예전엔 이 위에 [레미탈·몰탈 | 셀프레벨링]
+//   모드 토글이 따로 한 줄 더 있었는데, 셀프레벨링을 용도 칩 하나로 흡수해 화면 맨 위
+//   토글 줄을 4줄→2줄로 줄였다(2026-09-15 디자인 통일 지시). 셀프레벨링 칩을 고르면
+//   예전 모드 토글과 똑같이 mode를 '셀프레벨링'으로 바꾸고 두께·제품·옵션을 그 모드
+//   기본값으로 정리한다.
+//   2026-09-16 형아 피드백: 용도 칩을 5개(방통 전체·확장부 바닥·욕실·현관 구배·
+//   마루 철거 후 보수·셀프레벨링)에서 2개(방통·셀프레벨링)로 더 줄였다. 확장부 바닥·
+//   욕실·현관 구배·마루 철거 후 보수는 화면에서만 뺐다 — 엔진 타입(MortarUsage)과 계산
+//   로직은 그대로 남아 있고, 옛 공유 링크(?d=)에 그 값이 들어오면 sanitizeMortarFormState가
+//   방통으로 바꿔서 보여준다(mortarEngineInput.ts 참고). "방통 전체"라는 칩 라벨도
+//   "방통"으로 줄였다(라벨만 — 계산에 쓰는 값·usageLabel은 그대로 '방통전체'/'방통 전체').
 //   카드(모드에 따라 QuickAnswer 또는 PreciseSection 중 하나만) — 면적·두께·옵션.
 //   오른쪽(PC)·아래(모바일)에 결과 패널, 모바일엔 하단 고정 요약 바.
 //
@@ -21,6 +27,7 @@
 //
 // 작성일: 2026년 09월 14일 · 개정: 2026년 09월 15일(운영자 현장 기준 피드백 — 즉답 분리)
 // 화면 재배치(용도 칩으로 모드 흡수): 2026년 09월 15일 (디자인 통일 작업 B)
+// 용도 칩 2개로 축소: 2026년 09월 16일
 // ──────────────────────────────────────────────
 
 'use client';
@@ -35,14 +42,13 @@ import {
   DEFAULT_MORTAR_FORM,
   decodeMortarForm,
   type MortarFormState,
-  type MortarUsage,
 } from '@/lib/v1/mortarQuery';
 import type { MortarProductOption } from '@/lib/v1/mortarProductOptions';
 import { useMortarCalc } from '@/lib/v1/useMortarCalc';
 import { useMortarQuickCalc } from '@/lib/v1/useMortarQuickCalc';
 import { formatManRange, formatNum } from '@/lib/v1/money';
 import { sanitizeMortarFormState } from '@/lib/v1/mortarEngineInput';
-import { USAGE_PRESET, USAGE_ORDER, SELF_LEVEL_USAGE_PRESET } from '@/lib/v1/mortarPresets';
+import { USAGE_PRESET, SELF_LEVEL_USAGE_PRESET } from '@/lib/v1/mortarPresets';
 import QuickAnswer from './QuickAnswer';
 import PreciseSection from './PreciseSection';
 import ResultPanel from './ResultPanel';
@@ -59,25 +65,17 @@ const VIEW_OPTIONS = [
 ];
 
 /**
- * 용도 칩 한 줄에 쓰는 값 — 레미탈 용도 4개 + 셀프레벨링(모드 자체를 대표하는 칩) 1개.
- * 2026-09-15 디자인 통일 지시: 예전엔 [레미탈·몰탈|셀프레벨링] 모드 토글이 용도 칩과
- * 별도 줄이었는데, 셀프레벨링을 이 칩 목록의 다섯 번째 항목으로 흡수했다.
+ * 용도 칩 한 줄에 쓰는 값 — 방통(레미탈 대표 용도) + 셀프레벨링(모드 자체를 대표하는 칩).
+ * 2026-09-16 형아 피드백: 예전엔 레미탈 용도 4개(방통 전체·확장부 바닥·욕실·현관 구배·
+ * 마루 철거 후 보수) + 셀프레벨링 1개, 총 5개였는데 방통·셀프레벨링 2개만 남기고 나머지
+ * 3개는 화면에서 뺐다(엔진 타입 MortarUsage 자체는 그대로 둔다 — mortarPresets.ts 참고).
  */
-type TopUsage = MortarUsage | '셀프레벨링';
-const TOP_USAGE_ORDER: TopUsage[] = [...USAGE_ORDER, '셀프레벨링'];
+type TopUsage = '방통전체' | '셀프레벨링';
+const TOP_USAGE_ORDER: TopUsage[] = ['방통전체', '셀프레벨링'];
 
-/** 용도 칩에 보여줄 라벨 */
+/** 용도 칩에 보여줄 라벨 — "방통 전체"는 칩에서만 "방통"으로 줄인다(2026-09-16 형아 피드백) */
 function topUsageLabel(u: TopUsage): string {
-  return u === '셀프레벨링' ? '셀프레벨링' : USAGE_PRESET[u].label;
-}
-
-/**
- * "공급 평형 → 전용 ㎡" 규칙을 쓰는 용도인지 — mortarEngineInput.ts의 SUPPLY_AREA_USAGES와
- * 같은 집합이다(화면 쪽은 export된 함수가 없어 여기서 값만 그대로 다시 적는다. 값 자체는
- * 단가가 아니라 "어떤 계산 규칙을 쓰느냐"라 두 번 적어도 어긋날 일이 없다).
- */
-function isSupplyUsage(u: MortarUsage): boolean {
-  return u === '방통전체' || u === '확장부바닥';
+  return u === '셀프레벨링' ? '셀프레벨링' : '방통';
 }
 
 export default function MortarCalculator({ products }: MortarCalculatorProps) {
@@ -101,21 +99,23 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
 
   const mode = form.mode ?? '레미탈';
   const view = form.view ?? 'simple';
-  // 지금 화면에서 선택된 것으로 보이는 용도 칩 — 모드가 셀프레벨링이면 그 칩, 아니면 레미탈 용도
-  const currentTopUsage: TopUsage = mode === '셀프레벨링' ? '셀프레벨링' : (form.usage ?? '방통전체');
+  // 지금 화면에서 선택된 것으로 보이는 용도 칩 — 칩이 방통·셀프레벨링 둘뿐이라 모드 하나로
+  // 정해진다(레미탈 모드면 항상 방통 칩, 2026-09-16 용도 칩 2개로 축소)
+  const currentTopUsage: TopUsage = mode === '셀프레벨링' ? '셀프레벨링' : '방통전체';
 
   /**
    * 용도 칩을 고르는 유일한 통로(도배 setPaperType과 같은 이유 — 모드·용도·두께·제품을
    * 한 번에 정리해야 옛 값이 남아 화면과 계산이 어긋나는 사고를 막는다).
    *
-   * 34평 의미 통일(2026-09-15): 방통 전체·확장부 바닥(공급 평형 규칙)과 욕실·현관 구배·
-   * 마루 철거 후 보수·셀프레벨링(작업 면적 그 자체) 사이를 넘나들 때는 두 규칙의 "평"이
-   * 서로 다른 크기라(34평 = 전용 84㎡ vs 34평 = 순수 112㎡) 이전 면적 값을 그대로 두면
-   * 엉뚱한 크기로 계산된다 — 그룹이 바뀔 때만 면적을 비우고 단위를 그 그룹 기본값으로 되돌린다.
+   * 34평 의미 통일(2026-09-15): 방통(공급 평형 규칙)과 셀프레벨링(작업 면적 그 자체)
+   * 사이를 넘나들 때는 두 규칙의 "평"이 서로 다른 크기라(34평 = 전용 84㎡ vs 34평 = 순수
+   * 112㎡) 이전 면적 값을 그대로 두면 엉뚱한 크기로 계산된다 — 그룹이 바뀔 때만 면적을
+   * 비우고 단위를 그 그룹 기본값으로 되돌린다. (칩이 2개뿐이라 "공급 규칙인지"는 그냥
+   * 셀프레벨링이 아닌지로 판정한다.)
    */
   function selectTopUsage(u: TopUsage) {
-    const wasSupply = mode !== '셀프레벨링' && isSupplyUsage(form.usage ?? '방통전체');
-    const willSupply = u !== '셀프레벨링' && isSupplyUsage(u);
+    const wasSupply = mode !== '셀프레벨링';
+    const willSupply = u !== '셀프레벨링';
     const crossing = wasSupply !== willSupply;
     const areaReset = crossing
       ? { area: undefined, rectWidth: undefined, rectDepth: undefined, areaUnit: (willSupply ? '평' : '㎡') as '평' | '㎡' }
@@ -240,7 +240,9 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
         ) : (
           <span className="text-[14px] text-v1-text-secondary">{emptyMessage}</span>
         )}
-        <Button variant="primary" className="!h-9 !px-4 !text-[14px]" onClick={scrollToResult}>
+        {/* 2026-09-16 형아 피드백: 칩·세그먼트는 다 줄였지만 이 버튼만은 44px를 유지한다(누르는
+            자리라 너무 작아지면 안 됨) */}
+        <Button variant="primary" className="!h-11 !px-4 !text-[14px]" onClick={scrollToResult}>
           결과 보기
         </Button>
       </div>

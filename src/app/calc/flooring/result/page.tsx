@@ -58,7 +58,7 @@ function buildSummary(state: FlooringFormState): string {
   if (precise?.kind === 'room') {
     parts.push(`실측 ${precise.count}개 실`);
   } else {
-    // 간단 모드 — 평형(공급) 또는 ㎡(전용) 중 지금 쓰는 값을 "공급 34평 · 전용 84㎡"로 병기한다
+    // 간단 모드 — 평형(공급) 또는 ㎡(전용) 중 지금 쓰는 값을 "34평 · 84㎡"로 병기한다
     // (2026-09-15 ㎡ 모드 추가, 도배와 같은 규칙)
     parts.push(describeAreaPair(state) ?? `${state.pyeong}평`, `${state.bay ?? 3}베이`);
     // 검사관 1라운드 지적 1번: 범위(전체/방만/거실·주방·복도)는 실측 모드에선 뜻이 없다

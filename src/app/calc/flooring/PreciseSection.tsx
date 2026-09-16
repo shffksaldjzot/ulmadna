@@ -55,14 +55,15 @@ export default function PreciseSection({ unit, onUnitChange, rooms, onRoomsChang
     <div className="flex flex-col gap-4">
       <h2 className="text-[17px] font-bold text-foreground">실측</h2>
 
-      {/* 1. 단위 — 화면에 보이는 숫자만 바뀌고 저장값(m)은 그대로다 */}
+      {/* 1. 단위 — 화면에 보이는 숫자만 바뀌고 저장값(m)은 그대로다.
+          평/㎡ 토글과 같은 소형 단위 토글이라 size="sm"(32px, 2026-09-16 형아 피드백) */}
       <div className="flex items-center justify-between">
         <span className="text-[15px] font-semibold text-foreground">단위</span>
         <div className="flex gap-2">
-          <Chip shape="square" selected={unit === 'm'} onClick={() => onUnitChange('m')}>
+          <Chip shape="square" size="sm" selected={unit === 'm'} onClick={() => onUnitChange('m')}>
             m
           </Chip>
-          <Chip shape="square" selected={unit === 'mm'} onClick={() => onUnitChange('mm')}>
+          <Chip shape="square" size="sm" selected={unit === 'mm'} onClick={() => onUnitChange('mm')}>
             mm
           </Chip>
         </div>

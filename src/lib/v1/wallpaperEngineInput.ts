@@ -393,15 +393,16 @@ export function toEngineInput(
 }
 
 /**
- * 결과 화면 요약줄에 쓰는 "공급 34평 · 전용 84㎡" 병기 문구.
+ * 결과 화면 요약줄에 쓰는 "34평 · 84㎡" 병기 문구.
  * 2026-09-15 형아 지시 — 간단 모드(평형/㎡)에서만 뜻이 있다(정밀 실측·벽 길이는 이미 실제
  * 치수라 공급/전용 개념이 없다). pyeong·exclusiveSqm 둘 다 없으면 null.
+ * 2026-09-16 형아 피드백: 화면 문구에서 "공급"·"전용" 단어를 뺐다(환산 계산은 그대로).
  */
 export function describeAreaPair(state: WallpaperFormState): string | null {
   if (state.areaUnit === '㎡') {
     if (!isPositive(state.exclusiveSqm)) return null;
-    return `공급 약 ${exclusiveSqmToPyeong(state.exclusiveSqm)}평 · 전용 ${state.exclusiveSqm}㎡`;
+    return `약 ${exclusiveSqmToPyeong(state.exclusiveSqm)}평 · ${state.exclusiveSqm}㎡`;
   }
   if (!isPositive(state.pyeong)) return null;
-  return `공급 ${state.pyeong}평 · 전용 ${pyeongToExclusiveSqm(state.pyeong)}㎡`;
+  return `${state.pyeong}평 · ${pyeongToExclusiveSqm(state.pyeong)}㎡`;
 }

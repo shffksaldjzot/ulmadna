@@ -6,14 +6,15 @@
 // (2026-09-15 디자인 통일 지시 — 예전엔 이 카드도 "레미탈 40kg × N포" 큰 숫자를 따로
 // 보여줘서 ResultPanel과 같은 숫자가 한 화면에 두 번 보이는 중복이었다).
 //
-// 용도(방통 전체·확장부 바닥·욕실·현관 구배·마루 철거 후 보수·셀프레벨링) 칩은 이제
-// MortarCalculator(오케스트레이터)의 화면 맨 위로 옮겨서 [간단|정확] 두 모드가 공유한다
-// (2026-09-15 디자인 통일 지시 — 첫 화면 토글 4줄을 2줄로 줄이는 재배치의 일부).
+// 용도(방통·셀프레벨링) 칩은 MortarCalculator(오케스트레이터)의 화면 맨 위에서
+// [간단|정확] 두 모드가 공유한다(2026-09-15 디자인 통일 지시 — 첫 화면 토글 4줄을 2줄로
+// 줄이는 재배치의 일부. 2026-09-16 형아 피드백으로 용도 칩 자체도 5개→2개로 더 줄었다 —
+// 확장부 바닥·욕실·현관 구배·마루 철거 후 보수는 화면에서 뺐다, MortarCalculator.tsx 참고).
 //
 // 2026-09-15 34평 의미 통일 지시: 시공 면적 입력이 용도에 따라 완전히 다른 부품이다 —
-//   방통 전체·확장부 바닥(공급 평형 규칙, usesSupplyAreaConvention=true): 도배·바닥재와
-//     같은 AreaInput(mode="supply")를 그대로 쓴다 — "34평 · 전용 84㎡" 칩, 평/㎡ 토글.
-//   욕실·현관 구배·마루 철거 후 보수·셀프레벨링(작업 면적 그 자체): 집 평형 칩 대신 작은
+//   방통(공급 평형 규칙, usesSupplyAreaConvention=true): 도배·바닥재와
+//     같은 AreaInput(mode="supply")를 그대로 쓴다 — "34평 · 84㎡" 칩, 평/㎡ 토글.
+//   셀프레벨링(작업 면적 그 자체): 집 평형 칩 대신 작은
 //     직접 면적 칩(3·5·10·20㎡) + 숫자 입력만 쓰고, 평/㎡ 토글 자체가 없다(늘 ㎡).
 // 두 경우 모두 "면적 | 가로×세로" 입력 방식 토글은 그대로 있고, 그 옆에 있던 평/㎡ 토글은
 // (공급 평형 규칙일 때만) 같은 줄 오른쪽으로 합쳤다 — 예전엔 두 줄이었다.
@@ -21,6 +22,7 @@
 // 작성일: 2026년 09월 14일
 // 개정: 2026년 09월 15일(운영자 현장 기준 피드백 2라운드 — 두께 칩·공법 칩 추가)
 // 화면 재배치 + 34평 의미 통일 + 결과 중복 제거: 2026년 09월 15일 (디자인 통일 작업 B)
+// 용도 칩 2개로 축소 + 칩 크기 축소 + "전용" 문구 삭제: 2026년 09월 16일
 // ──────────────────────────────────────────────
 
 'use client';
@@ -45,16 +47,15 @@ export interface QuickAnswerProps {
   quick: MortarQuickResult | null;
 }
 
-/** 작업 면적 그 자체(공급/전용 개념 없음)로 쓰는 용도 — 욕실·현관 구배·마루 철거 후 보수의
- *  작은 직접 면적 칩(㎡) */
+/** 작업 면적 그 자체(공급/전용 개념 없음)로 쓰는 용도 — 셀프레벨링의 작은 직접 면적 칩(㎡) */
 const WORK_AREA_CHIPS_SQM: readonly number[] = [3, 5, 10, 20];
 
 export default function QuickAnswer({ form, patch, quick }: QuickAnswerProps) {
   const mode = form.mode ?? '레미탈';
   const areaInputMode = form.areaInputMode ?? 'area';
   const areaUnit = form.areaUnit ?? '평';
-  // 34평 의미 통일 — 지금 용도가 "공급 평형 → 전용 ㎡" 규칙(방통 전체·확장부 바닥)인지,
-  // 아니면 "바를 면적 그 자체"(욕실·현관 구배·마루 철거 후 보수·셀프레벨링)인지
+  // 34평 의미 통일 — 지금 용도가 "공급 평형 → 전용 ㎡" 규칙(방통)인지,
+  // 아니면 "바를 면적 그 자체"(셀프레벨링)인지
   const supplyArea = usesSupplyAreaConvention(form);
 
   const thicknessChips = mode === '레미탈' ? REMICON_THICKNESS_CHIPS : SELF_LEVEL_THICKNESS_CHIPS;
@@ -68,8 +69,11 @@ export default function QuickAnswer({ form, patch, quick }: QuickAnswerProps) {
       <div className="flex items-center justify-between flex-wrap gap-2">
         <span className="text-[15px] font-semibold text-foreground">시공 면적</span>
         <div className="flex gap-2 flex-wrap">
+          {/* "면적|가로×세로" 입력 방식 토글 — 값이 아니라 입력 방식을 바꾸는 소형 토글이라
+              size="sm"(32px, 2026-09-16 형아 피드백) */}
           <Chip
             shape="square"
+            size="sm"
             selected={areaInputMode === 'area'}
             onClick={() => patch({ areaInputMode: 'area' })}
           >
@@ -77,19 +81,20 @@ export default function QuickAnswer({ form, patch, quick }: QuickAnswerProps) {
           </Chip>
           <Chip
             shape="square"
+            size="sm"
             selected={areaInputMode === 'rect'}
             onClick={() => patch({ areaInputMode: 'rect' })}
           >
             가로×세로
           </Chip>
-          {/* 평/㎡ 토글 — 공급 평형 규칙(방통 전체·확장부 바닥)이고 면적 직접 입력일 때만.
+          {/* 평/㎡ 토글 — 공급 평형 규칙(방통)이고 면적 직접 입력일 때만.
               작업 면적 그 자체인 용도는 평 토글이 없다(늘 ㎡) — 34평 의미 통일 지시 */}
           {supplyArea && areaInputMode === 'area' && (
             <>
-              <Chip shape="square" selected={areaUnit === '평'} onClick={() => patch({ areaUnit: '평' })}>
+              <Chip shape="square" size="sm" selected={areaUnit === '평'} onClick={() => patch({ areaUnit: '평' })}>
                 평
               </Chip>
-              <Chip shape="square" selected={areaUnit === '㎡'} onClick={() => patch({ areaUnit: '㎡' })}>
+              <Chip shape="square" size="sm" selected={areaUnit === '㎡'} onClick={() => patch({ areaUnit: '㎡' })}>
                 ㎡
               </Chip>
             </>
@@ -99,7 +104,7 @@ export default function QuickAnswer({ form, patch, quick }: QuickAnswerProps) {
 
       {areaInputMode === 'area' ? (
         supplyArea ? (
-          // 방통 전체·확장부 바닥 — 도배·바닥재와 같은 공용 부품(AreaInput mode="supply").
+          // 방통 — 도배·바닥재와 같은 공용 부품(AreaInput mode="supply").
           // 평/㎡ 토글은 위 줄에서 이미 그렸으니 hideUnitToggle로 중복을 막는다.
           <AreaInput
             mode="supply"
@@ -108,10 +113,11 @@ export default function QuickAnswer({ form, patch, quick }: QuickAnswerProps) {
             value={form.area ?? ''}
             onValueChange={(v) => patch({ area: v === '' ? undefined : v })}
             hideUnitToggle
-            caption={areaUnit === '㎡' ? '전용면적 ㎡ 그대로 계산해요' : '공급 평형 기준 · 전용 ㎡로 계산해요'}
+            // 2026-09-16 형아 피드백: 캡션에서 "공급"·"전용" 단어 삭제
+            caption={areaUnit === '㎡' ? '면적 ㎡ 그대로 계산해요' : '평형 기준 · ㎡로 계산해요'}
           />
         ) : (
-          // 욕실·현관 구배·마루 철거 후 보수·셀프레벨링 — 집 평형 개념이 없는 작업 면적 그
+          // 셀프레벨링 — 집 평형 개념이 없는 작업 면적 그
           // 자체. 작은 직접 면적 칩(3·5·10·20㎡)만 쓰고 평 토글은 아예 없다.
           <AreaInput
             mode="work"

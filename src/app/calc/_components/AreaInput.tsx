@@ -17,7 +17,11 @@
 //                 쪽과 동일하게 그린다.
 //
 // 캡션(입력칸 옆 "반대 단위 환산"): 항상 순수 단위 환산(×3.3058)만 보여준다.
-//   supply 모드 + 평 단위일 때만 "· 전용 84㎡"를 덧붙인다(공급 평형표 값).
+//   supply 모드 + 평 단위일 때만 "· 84㎡"를 덧붙인다(공급 평형표로 환산한 전용면적 값).
+//
+// 2026-09-16 형아 피드백: 칩·캡션에 쓰던 "공급"·"전용" 단어를 화면에서 뺐다(예: "34평 · 전용
+// 84㎡" → "34평 · 84㎡"). 계산 로직(환산표·×0.75 비율)은 그대로이고, 화면 문구만 줄였다 —
+// 아래 서비스명이 "전용면적을 계산해 준다"는 걸 몰라도 되게, 그냥 두 숫자를 나란히 보여준다.
 //
 // 작성일: 2026년 09월 15일
 // ──────────────────────────────────────────────
@@ -79,29 +83,32 @@ export default function AreaInput({
   const defaultChips = mode === 'supply' ? (unit === '평' ? SUPPLY_PYEONG_CHIPS : EXCLUSIVE_SQM_CHIPS) : undefined;
   const chipList = chips ?? defaultChips ?? [];
 
-  // 칩 라벨 — supply 모드 + 평 단위만 "34평 · 전용 84㎡"로 전용 면적을 병기한다
+  // 칩 라벨 — supply 모드 + 평 단위만 "34평 · 84㎡"로 전용 면적을 병기한다
+  // (2026-09-16 형아 피드백: "전용"이라는 단어는 빼고 숫자만 나란히 보여준다)
   function chipLabel(n: number): string {
-    if (mode === 'supply' && unit === '평') return `${n}평 · 전용 ${pyeongToExclusiveSqm(n)}㎡`;
+    if (mode === 'supply' && unit === '평') return `${n}평 · ${pyeongToExclusiveSqm(n)}㎡`;
     return `${n}${unit}`;
   }
 
   // 입력칸 옆 반대 단위 환산 캡션 — 항상 순수 단위 환산(×3.3058)만. supply+평일 때만 전용 ㎡ 덧붙임
+  // (2026-09-16 형아 피드백: "전용" 단어 삭제)
   function conversionCaption(): string | null {
     if (value === '' || typeof value !== 'number' || value <= 0) return null;
     if (unit === '평') {
       const sqm = pyeongToSupplySqm(value);
-      return mode === 'supply' ? `≈ ${sqm}㎡ · 전용 ${pyeongToExclusiveSqm(value)}㎡` : `≈ ${sqm}㎡`;
+      return mode === 'supply' ? `≈ ${sqm}㎡ · ${pyeongToExclusiveSqm(value)}㎡` : `≈ ${sqm}㎡`;
     }
     return `≈ ${sqmToPyeong(value)}평`;
   }
   const convCaption = conversionCaption();
 
   const unitToggle = (
+    // 평/㎡ 단위 토글 — 값 선택이 아니라 "보기 방식"을 바꾸는 소형 토글이라 size="sm"(32px)
     <div className="flex gap-2">
-      <Chip shape="square" selected={unit === '평'} onClick={() => onUnitChange('평')}>
+      <Chip shape="square" size="sm" selected={unit === '평'} onClick={() => onUnitChange('평')}>
         평
       </Chip>
-      <Chip shape="square" selected={unit === '㎡'} onClick={() => onUnitChange('㎡')}>
+      <Chip shape="square" size="sm" selected={unit === '㎡'} onClick={() => onUnitChange('㎡')}>
         ㎡
       </Chip>
     </div>

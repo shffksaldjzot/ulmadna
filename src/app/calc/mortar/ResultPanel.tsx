@@ -174,8 +174,8 @@ export default function ResultPanel({ quick, result, range, loading, error, stal
         <p className="text-[15px] text-foreground leading-[1.6] tabular-nums">
           {quick.thicknessMm}mm · 면적 {formatNum(quick.areaSqm)}㎡ · 몰탈 {quick.volumeWithLossM3}㎥
         </p>
-        {/* 34평 의미 통일(2026-09-15) — 방통 전체·확장부 바닥은 도배·바닥재처럼
-            "공급 34평 · 전용 84㎡"를 병기해 어떤 규칙으로 계산됐는지 보여준다 */}
+        {/* 34평 의미 통일(2026-09-15) — 방통은 도배·바닥재처럼
+            "34평 · 84㎡"를 병기해 어떤 규칙으로 계산됐는지 보여준다 */}
         {areaPair && <p className="text-[13px] text-v1-text-disabled tabular-nums">{areaPair}</p>}
         {quick.standardRangeNote && <p className="text-[13px] text-v1-text-secondary">{quick.standardRangeNote}</p>}
 

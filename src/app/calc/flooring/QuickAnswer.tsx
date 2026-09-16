@@ -68,7 +68,9 @@ export default function QuickAnswer({
         value={areaUnit === '㎡' ? exclusiveSqm : pyeong}
         onValueChange={(v) => (areaUnit === '㎡' ? onExclusiveSqmChange(v) : onPyeongChange(v))}
         label="면적"
-        caption={areaUnit === '㎡' ? '전용면적 ㎡ 그대로 계산해요' : '공급 평형 기준 · 전용 ㎡로 계산해요'}
+        // 2026-09-16 형아 피드백: 캡션에서 "공급"·"전용" 단어를 뺐다(계산 규칙은 그대로 — 평형
+        // 칩은 공급 평형표로, ㎡ 입력은 전용면적 그대로 계산한다)
+        caption={areaUnit === '㎡' ? '면적 ㎡ 그대로 계산해요' : '평형 기준 · ㎡로 계산해요'}
       />
       {(pyeongTooSmall || sqmTooSmall) && (
         <p className="text-[13px] text-v1-text-disabled">

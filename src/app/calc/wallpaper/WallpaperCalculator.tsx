@@ -200,7 +200,9 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
         ) : (
           <span className="text-[14px] text-v1-text-secondary">{emptyMessage}</span>
         )}
-        <Button variant="primary" className="!h-9 !px-4 !text-[14px]" onClick={scrollToResult}>
+        {/* 2026-09-16 형아 피드백: 칩·세그먼트는 다 줄였지만 이 버튼만은 44px를 유지한다(누르는
+            자리라 너무 작아지면 안 됨) */}
+        <Button variant="primary" className="!h-11 !px-4 !text-[14px]" onClick={scrollToResult}>
           결과 보기
         </Button>
       </div>

@@ -76,7 +76,7 @@ function buildSummary(state: WallpaperFormState): string {
   } else if (precise?.kind === 'length') {
     parts.push(`벽 길이 ${state.wallLength}m`);
   } else {
-    // 간단 모드 — 평형(공급) 또는 ㎡(전용) 중 지금 쓰는 값을 "공급 34평 · 전용 84㎡"로 병기한다
+    // 간단 모드 — 평형(공급) 또는 ㎡(전용) 중 지금 쓰는 값을 "34평 · 84㎡"로 병기한다
     // (2026-09-15 ㎡ 모드 추가. describeAreaPair가 null이면 옛 공유 링크 등 예외라 평형만 적는다)
     parts.push(describeAreaPair(state) ?? `${state.pyeong}평`, `${state.bay ?? 3}베이`);
     parts.push(Array.isArray(state.scope) ? '방 고르기' : state.scope === '거실주방' ? '거실·주방' : '전체');

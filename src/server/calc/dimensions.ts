@@ -320,9 +320,10 @@ function fromPyeong(input: DimensionsInput): DimensionsResult {
     canRealCut: false, // 추정 치수라 "잘라보기"를 하지 않는다
     heightM: height,
     supplyPyeong,
+    // 2026-09-16 형아 피드백: 화면 문구에서 "공급"·"전용" 단어를 뺐다(계산은 그대로, 표시만)
     source: exclusiveSqmWins
-      ? `전용 ${exclusiveSqm}㎡ ${bay}베이 · 62건 비율표로 실별 치수 추정 (공급 약 ${supplyPyeong}평)`
-      : `${pyeong}평 ${bay}베이 · 62건 비율표로 실별 치수 추정 (전용 ${exclusiveSqm}㎡)`,
+      ? `${exclusiveSqm}㎡ ${bay}베이 · 62건 비율표로 실별 치수 추정 (약 ${supplyPyeong}평)`
+      : `${pyeong}평 ${bay}베이 · 62건 비율표로 실별 치수 추정 (${exclusiveSqm}㎡)`,
   };
 }
 

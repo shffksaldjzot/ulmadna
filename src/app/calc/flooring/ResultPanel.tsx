@@ -169,7 +169,7 @@ export default function ResultPanel({
           바닥 {formatNum(quantity.floorSqm)}㎡ · {lossLabel}
           {quantity.pieces != null ? ` · 총 ${formatNum(quantity.pieces)}장` : ''}
         </p>
-        {/* 간단(평형/㎡) 모드일 때만 "공급 34평 · 전용 84㎡" 병기(도배 ResultPanel과 같은 규칙) */}
+        {/* 간단(평형/㎡) 모드일 때만 "34평 · 84㎡" 병기(도배 ResultPanel과 같은 규칙) */}
         {quantity.inputMode === '평형' && describeAreaPair(form) && (
           <p className="text-[13px] text-v1-text-disabled tabular-nums">{describeAreaPair(form)}</p>
         )}

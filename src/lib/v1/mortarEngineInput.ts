@@ -195,9 +195,21 @@ function isFiniteNumber(n: unknown): n is number {
  * 그래서 MortarCalculator(즉답 화면)의 초기 상태와 result/page.tsx(공유 결과 화면) 둘 다,
  * 공유 링크를 읽자마자 이 함수로 한 번 걸러서 "화면에 보여줄 state" 자체를 안전하게
  * 만든 뒤에만 쓴다 — 계산에 쓰는 toEngineInput()의 클램프와는 별개로, 표시용 클램프다.
+ *
+ * 2026-09-16 형아 피드백으로 용도 칩을 방통·셀프레벨링 2개로 줄이면서 확장부 바닥·
+ * 욕실·현관 구배·마루 철거 후 보수를 화면에서 뺐다. 엔진 타입(MortarUsage)은 그대로
+ * 둬서 옛 공유 링크(?d=)에 이 값들이 들어올 수 있는데, 화면에 없는 칩이 선택된 것처럼
+ * 보이면 안 되니 여기서 방통으로 바꿔 담는다(계산 자체는 그 값 그대로도 되지만, 화면
+ * 표시를 안전하게 맞추는 김에 usage도 같이 정리한다).
  */
 export function sanitizeMortarFormState(state: MortarFormState): MortarFormState {
   const next: MortarFormState = { ...state };
+
+  // 용도 — 화면 칩에 없는 옛 값(확장부바닥·욕실현관구배·마루철거보수)이 공유 링크로 들어오면
+  // 방통 전체로 바꿔 담는다(2026-09-16 용도 칩 2개 축소)
+  if (next.usage && next.usage !== '방통전체') {
+    next.usage = '방통전체';
+  }
 
   // 면적(평/㎡) — 단위에 맞는 범위로 클램프. 비정상 값(NaN 등)은 아예 지운다
   if (isFiniteNumber(next.area)) {
@@ -440,10 +452,11 @@ export function toEngineInput(state: MortarFormState, products: MortarProductOpt
 }
 
 /**
- * 결과 화면에 쓰는 "공급 34평 · 전용 84㎡" 병기 문구 — 도배·바닥재 describeAreaPair()와 같은
- * 뜻이다. usesSupplyAreaConvention(state)가 true인 용도(방통 전체·확장부 바닥)에서, 간단
- * 모드(area 입력)일 때만 뜻이 있다. 그 외(욕실 등 작업 면적 직접 입력·가로×세로·정밀 모드)는
+ * 결과 화면에 쓰는 "34평 · 84㎡" 병기 문구 — 도배·바닥재 describeAreaPair()와 같은
+ * 뜻이다. usesSupplyAreaConvention(state)가 true인 용도(방통)에서, 간단
+ * 모드(area 입력)일 때만 뜻이 있다. 그 외(셀프레벨링 등 작업 면적 직접 입력·가로×세로·정밀 모드)는
  * 집 평형 개념이 없어 null.
+ * 2026-09-16 형아 피드백: 화면 문구에서 "공급"·"전용" 단어를 뺐다(환산 계산은 그대로).
  */
 export function describeAreaPair(state: MortarFormState): string | null {
   if (resolveView(state) !== 'simple') return null;
@@ -451,7 +464,7 @@ export function describeAreaPair(state: MortarFormState): string | null {
   if (!usesSupplyAreaConvention(state)) return null;
   if (!isPositive(state.area)) return null;
   if (state.areaUnit === '㎡') {
-    return `공급 약 ${exclusiveSqmToPyeong(state.area)}평 · 전용 ${state.area}㎡`;
+    return `약 ${exclusiveSqmToPyeong(state.area)}평 · ${state.area}㎡`;
   }
-  return `공급 ${state.area}평 · 전용 ${pyeongToExclusiveSqm(state.area)}㎡`;
+  return `${state.area}평 · ${pyeongToExclusiveSqm(state.area)}㎡`;
 }

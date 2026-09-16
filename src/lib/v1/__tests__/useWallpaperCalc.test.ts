@@ -312,17 +312,17 @@ describe('㎡ 모드 (전용면적 직접 입력)', () => {
   });
 });
 
-describe('describeAreaPair — 결과 요약줄 "공급 34평 · 전용 84㎡" 병기', () => {
+describe('describeAreaPair — 결과 요약줄 "34평 · 84㎡" 병기 (2026-09-16: "공급"·"전용" 단어 삭제)', () => {
   it('평 모드는 칩 평형표로 전용 ㎡를 병기한다', () => {
-    expect(describeAreaPair({ ...DEFAULT_CALC_FORM, pyeong: 34 })).toBe('공급 34평 · 전용 84㎡');
+    expect(describeAreaPair({ ...DEFAULT_CALC_FORM, pyeong: 34 })).toBe('34평 · 84㎡');
   });
 
   it('㎡ 모드는 입력한 전용면적을 그대로 쓰고 공급 평형은 역산해서 보여준다', () => {
     // 84㎡는 34평 칩의 표값(PYEONG_TO_EXCLUSIVE_SQM)이라 역산하면 반올림 차이로 33.9평이 된다
     // (34×3.3058×0.75=84.30을 표는 정수 84로 저장 — "약"이라고 적는 이유가 이거다)
     const label = describeAreaPair({ ...DEFAULT_CALC_FORM, areaUnit: '㎡', exclusiveSqm: 84 });
-    expect(label).toContain('전용 84㎡');
-    expect(label).toContain('공급 약 33.9평');
+    expect(label).toContain('84㎡');
+    expect(label).toContain('약 33.9평');
   });
 
   it('평형·전용면적이 둘 다 없으면 null이다', () => {

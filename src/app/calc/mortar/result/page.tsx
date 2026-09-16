@@ -217,8 +217,8 @@ export default async function MortarResultPage({ searchParams }: PageProps) {
           <p className="text-[15px] text-foreground leading-[1.6] tabular-nums">
             {quantity.thicknessMm}mm · 면적 {formatNum(quantity.areaSqm)}㎡ · 몰탈 {quantity.volumeWithLossM3}㎥
           </p>
-          {/* 34평 의미 통일(2026-09-15) — 방통 전체·확장부 바닥은 도배·바닥재처럼
-              "공급 34평 · 전용 84㎡"를 병기한다 */}
+          {/* 34평 의미 통일(2026-09-15) — 방통은 도배·바닥재처럼
+              "34평 · 84㎡"를 병기한다 */}
           {describeAreaPair(state) && (
             <p className="text-[13px] text-v1-text-disabled tabular-nums">{describeAreaPair(state)}</p>
           )}
