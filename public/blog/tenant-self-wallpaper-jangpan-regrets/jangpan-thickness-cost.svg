@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 460" font-family="Pretendard, 'Noto Sans KR', system-ui, sans-serif">
+  <rect width="800" height="460" fill="#F7F2EA"/>
+  <text x="40" y="44" font-size="21" font-weight="700" fill="#2B2B2B">34평/84타입 장판, 두께(T) 하나로 가격이 4배 벌어진다</text>
+  <text x="40" y="70" font-size="14" fill="#6B6B6B">두께가 두꺼울수록 쿠션감·내구성은 올라가지만 가격도 함께 뛴다</text>
+  <!-- axes -->
+  <line x1="90" y1="340" x2="740" y2="340" stroke="#B9B2A6" stroke-width="1.5"/>
+  <line x1="90" y1="110" x2="90" y2="340" stroke="#B9B2A6" stroke-width="1.5"/>
+  <!-- y gridlines -->
+  <g stroke="#E3DCCF" stroke-width="1">
+    <line x1="90" y1="282.5" x2="740" y2="282.5"/>
+    <line x1="90" y1="225" x2="740" y2="225"/>
+    <line x1="90" y1="167.5" x2="740" y2="167.5"/>
+    <line x1="90" y1="110" x2="740" y2="110"/>
+  </g>
+  <g font-size="12" fill="#6B6B6B" text-anchor="end">
+    <text x="82" y="345">0만원</text>
+    <text x="82" y="287">100만원</text>
+    <text x="82" y="230">200만원</text>
+    <text x="82" y="172">300만원</text>
+    <text x="82" y="115">400만원</text>
+  </g>
+  <!-- bars (height = midpoint of range, scaled 0~400만원 over 230px) -->
+  <g>
+    <rect x="140" y="294" width="90" height="46" fill="#E8BC95"/>
+    <rect x="290" y="274" width="90" height="66" fill="#D99A66"/>
+    <rect x="440" y="231" width="90" height="109" fill="#C8763A"/>
+    <rect x="590" y="144" width="90" height="196" fill="#A85A2A"/>
+  </g>
+  <g font-size="14" font-weight="700" fill="#2B2B2B" text-anchor="middle">
+    <text x="185" y="284">70만~90만원</text>
+    <text x="335" y="264">100만~130만원</text>
+    <text x="485" y="221">170만~210만원</text>
+    <text x="635" y="134">280만~400만원</text>
+  </g>
+  <g font-size="13" fill="#4A4A4A" text-anchor="middle">
+    <text x="185" y="362">1.8~2.0T</text>
+    <text x="335" y="362">2.2T</text>
+    <text x="485" y="362">2.7~3.2T</text>
+    <text x="635" y="362">4.5~5.0T</text>
+  </g>
+  <text x="415" y="392" font-size="13" fill="#6B6B6B" text-anchor="middle">장판 두께(T) → 34평/84타입 전체 시공비 범위(자재+인건비 포함)</text>
+  <rect x="90" y="408" width="650" height="36" rx="8" fill="#FFFFFF" stroke="#E3DCCF"/>
+  <text x="415" y="431" font-size="13" fill="#2B2B2B" text-anchor="middle">이사비 아끼려 가장 싼 1.8T를 셀프로 깔면, 몇 년 안 가 찢기고 눌려 <tspan font-weight="700" fill="#C8763A">재시공비가 더 나가기도</tspan> 한다</text>
+</svg>
