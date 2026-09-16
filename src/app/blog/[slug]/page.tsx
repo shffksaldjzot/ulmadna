@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import CalculatorCta from "@/components/blog/CalculatorCta";
 import { CALCULATORS } from "@/lib/blog-calculators";
+import ServiceCta from "@/components/blog/ServiceCta";
+import { getService } from "@/lib/services";
 import { notFound } from "next/navigation";
 import { getPost, getAllSlugs, getAllPostMeta } from "@/lib/blog";
 import { detectCategories, getCategory } from "@/lib/blog-categories";
@@ -300,6 +302,9 @@ export default async function BlogPost({
             {post.calculator.map((key) => (
               <CalculatorCta key={key} calculator={key} variant="card" />
             ))}
+
+            {/* 계산기 카드 아래 — "직접 제작·시공" 서비스 카드 1장(글에 매치된 서비스가 있을 때만) */}
+            {post.cta && getService(post.cta) && <ServiceCta service={getService(post.cta)!} />}
 
             {ADSENSE_SLOTS.blogInArticle && (
               <div className="blog-ad">

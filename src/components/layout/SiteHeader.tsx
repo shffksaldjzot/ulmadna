@@ -21,6 +21,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import Container from './Container';
+import { openContactSheet } from '@/lib/contactSheet';
 
 // 메뉴 3개 — 홈은 로고가 그 역할을 하므로 메뉴에 안 넣는다
 const NAV_ITEMS: { href: string; label: string; match: (p: string) => boolean }[] = [
@@ -82,8 +83,16 @@ export default function SiteHeader() {
           })}
         </nav>
 
-        {/* 우측: 로그인 상태에 따라 분기 */}
+        {/* 우측: "문의" 알약(로그인 옆, 모바일도 항상 보임) + 로그인 상태에 따라 분기 */}
         <div className="flex-none flex items-center gap-3">
+          {/* 2026-09-16 형아 지시: 전역 문의 진입점 — 눌리면 공용 문의 시트(전화·카톡·서비스 보기)가 뜬다 */}
+          <button
+            type="button"
+            onClick={() => openContactSheet('header')}
+            className="t-sub font-semibold text-ink-2 border border-line rounded-chip h-10 px-4 inline-flex items-center hover:border-accent hover:text-accent transition-colors"
+          >
+            문의
+          </button>
           {session?.user ? (
             <>
               <Link href="/my-estimates" className="hidden lg:inline t-sub font-semibold text-ink-2 hover:text-ink">

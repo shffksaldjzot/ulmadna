@@ -25,6 +25,7 @@ import { toEngineInput, describePreciseInput, describeAreaPair, sanitizeMortarFo
 import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
 // 2026-09-15 디자인 통일 작업: 도배 결과 화면에만 있던 저장·공유 기능을 레미탈에도 그대로 붙인다
 import { PostToBoardCheckbox, ResultFab } from '../../_components/ResultActions';
+import CalcContactCta from '../../_components/CalcContactCta';
 
 export const metadata: Metadata = {
   title: '레미탈 계산기 결과 — 얼마드나',
@@ -322,6 +323,7 @@ export default async function MortarResultPage({ searchParams }: PageProps) {
 
         <PostToBoardCheckbox />
 
+        <CalcContactCta />
         <Disclaimer />
       </div>
 

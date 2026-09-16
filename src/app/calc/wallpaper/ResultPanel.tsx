@@ -24,6 +24,7 @@ import Toggle from '@/components/v1/Toggle';
 import Button from '@/components/v1/Button';
 import Disclaimer from '@/components/v1/Disclaimer';
 import Toast, { showToast } from '@/components/v1/Toast';
+import CalcContactCta from '../_components/CalcContactCta';
 import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
 import { type WallpaperFormState, encodeWallpaperForm } from '@/lib/v1/wallpaperQuery';
 import { trimFormForShare, describeAreaPair } from '@/lib/v1/wallpaperEngineInput';
@@ -258,6 +259,7 @@ export default function ResultPanel({ result, range, loading, error, stale, form
         <Button variant="secondary" fullWidth onClick={handleShare}>
           결과 공유
         </Button>
+        <CalcContactCta />
         <Disclaimer />
       </div>
       <Toast message={toast} />

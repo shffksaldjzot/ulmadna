@@ -62,6 +62,28 @@ export function faqLd(faqs: { q: string; a: string }[]) {
   };
 }
 
+/**
+ * 서비스 카탈로그(/service) 전용 — "이런 서비스를 직접 제공한다"를 구글에 알리는 구조화 데이터.
+ * Service 여러 개를 ItemList로 감싸서, 검색 결과가 카탈로그 전체를 하나의 목록으로 이해하게 한다.
+ */
+export function serviceListLd(items: { name: string; description: string; url: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: items.map((it, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      item: {
+        "@type": "Service",
+        name: it.name,
+        description: it.description,
+        url: it.url,
+        areaServed: "KR",
+      },
+    })),
+  };
+}
+
 /** 길잡이(빵부스러기) 구조화 데이터 — Breadcrumbs.tsx(블로그용)와 같은 모양 */
 export function breadcrumbLd(items: { name: string; href?: string }[]) {
   return {

@@ -28,6 +28,7 @@ import Collapsible from '@/components/v1/Collapsible';
 import Button from '@/components/v1/Button';
 import Disclaimer from '@/components/v1/Disclaimer';
 import Toast, { showToast } from '@/components/v1/Toast';
+import CalcContactCta from '../_components/CalcContactCta';
 import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
 import { type MortarFormState, encodeMortarForm } from '@/lib/v1/mortarQuery';
 import { trimFormForShare, describeAreaPair } from '@/lib/v1/mortarEngineInput';
@@ -313,6 +314,7 @@ export default function ResultPanel({ quick, result, range, loading, error, stal
         <Button variant="secondary" fullWidth onClick={handleShare}>
           결과 공유
         </Button>
+        <CalcContactCta />
         <Disclaimer />
       </div>
       <Toast message={toast} />

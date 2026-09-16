@@ -5,6 +5,8 @@ import AuthProvider from "@/components/layout/AuthProvider";
 // 페이지 이동(클라이언트 내비게이션)마다 GA4에 page_view를 보내주는 추적기.
 // useSearchParams를 쓰기 때문에 Suspense로 감싸야 빌드 경고 없이 돈다.
 import RouteChangeTracker from "@/components/layout/RouteChangeTracker";
+// 공용 문의 시트 — 헤더 알약·하단 탭이 어디서든 열 수 있게 루트에 딱 한 번만 마운트
+import ContactSheet from "@/components/layout/ContactSheet";
 
 // env 값에 줄바꿈/공백이 붙는 경우가 있어 trim (GA ID 깨짐 방지)
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID?.trim();
@@ -67,6 +69,8 @@ export default function RootLayout({
         <AuthProvider>
           {children}
         </AuthProvider>
+        {/* 문의 시트 — 평소엔 닫혀 있어 화면에 아무것도 안 그림(null 반환) */}
+        <ContactSheet />
         {/* 라우트 이동 추적 — 화면엔 아무것도 안 그림(null 반환). fallback도 null이라 안전 */}
         <Suspense fallback={null}>
           <RouteChangeTracker />

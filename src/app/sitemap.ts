@@ -24,6 +24,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // 신뢰 페이지 — 소개/문의/약관 (구글 애드센스 색인용)
     { url: `${SITE}/about`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
     { url: `${SITE}/contact`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
+    // 직접 제작·시공 서비스 카탈로그 (2026-09-16 신설)
+    { url: `${SITE}/service`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${SITE}/terms`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
     { url: `${SITE}/privacy`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
     // calc 허브 + 공정별 계산기 (2026-09-10: 바닥재 계산기 U 지시서 — 지금까지 사이트맵에 아예

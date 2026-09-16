@@ -33,6 +33,7 @@ import { toEngineInput, describePreciseInput, describeAreaPair } from '@/lib/v1/
 import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
 // 2026-09-15 디자인 통일 작업: 결과 화면 저장·공유 부품을 계산기 3종 공용 위치로 옮겼다
 import { PostToBoardCheckbox, ResultFab } from '../../_components/ResultActions';
+import CalcContactCta from '../../_components/CalcContactCta';
 
 export const metadata = {
   title: '도배 계산기 결과 — 얼마드나',
@@ -288,6 +289,7 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
           )}
         </div>
 
+        <CalcContactCta />
         <Disclaimer />
       </div>
 

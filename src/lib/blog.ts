@@ -8,6 +8,7 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 import { detectCalculator, type CalculatorKey } from "./blog-calculators";
+import { detectServiceCta } from "./services";
 import { unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkGfm from "remark-gfm";
@@ -46,6 +47,11 @@ export interface PostMeta {
   // 프런트매터 `calculator:` 로 직접 정하거나, 없으면 제목·태그 신호 단어로 자동 판정한다.
   // (lib/blog-calculators.ts 참고, 2026년 09월 09일 / 2026년 09월 11일: 배열로 변경)
   calculator: CalculatorKey[];
+  // 이 글 하단에 붙일 "직접 제작·시공" 서비스 카드 slug (lib/services.ts 참고). 없으면 null.
+  // 계산기(calculator)와 달리 카드는 글 하나에 1장만 붙는다 — 프런트매터 `cta:` 로 직접
+  // 정하거나(사람이 최종 결정), 없으면 제목·태그 신호 단어로 자동 판정한다.
+  // 작성일: 2026년 09월 16일 (직접 서비스 CTA)
+  cta: string | null;
 }
 
 export interface Heading {
@@ -108,6 +114,7 @@ function readMeta(file: string): PostMeta {
     readingTime: calcReadingTime(content),
     draft: data.draft === true, // 프런트매터에 draft: true 라고 적힌 글만 비공개 처리
     calculator: detectCalculator(data.title ?? slug, Array.isArray(data.tags) ? data.tags : [], data.calculator),
+    cta: detectServiceCta(data.title ?? slug, Array.isArray(data.tags) ? data.tags : [], data.cta),
   };
 }
 
@@ -318,6 +325,7 @@ export async function getPost(slug: string): Promise<Post | null> {
     tags: Array.isArray(data.tags) ? data.tags : [],
     draft: data.draft === true, // 비공개(검토용) 글이면 상세 페이지에서 noindex 처리
     calculator: detectCalculator(data.title ?? slug, Array.isArray(data.tags) ? data.tags : [], data.calculator),
+    cta: detectServiceCta(data.title ?? slug, Array.isArray(data.tags) ? data.tags : [], data.cta),
     html,
     faq,
     headings,

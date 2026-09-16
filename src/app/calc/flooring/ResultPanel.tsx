@@ -22,6 +22,7 @@ import Toggle from '@/components/v1/Toggle';
 import Button from '@/components/v1/Button';
 import Disclaimer from '@/components/v1/Disclaimer';
 import Toast, { showToast } from '@/components/v1/Toast';
+import CalcContactCta from '../_components/CalcContactCta';
 import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
 import { type FlooringFormState, encodeFlooringForm } from '@/lib/v1/flooringQuery';
 import { trimFormForShare, describeAreaPair } from '@/lib/v1/flooringEngineInput';
@@ -285,6 +286,7 @@ export default function ResultPanel({
         <Button variant="secondary" fullWidth onClick={handleShare}>
           결과 공유
         </Button>
+        <CalcContactCta />
         <Disclaimer />
       </div>
       <Toast message={toast} />
