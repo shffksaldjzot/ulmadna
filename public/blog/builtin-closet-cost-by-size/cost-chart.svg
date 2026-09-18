@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 500" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="붙박이장 가격 등급별 범위 막대그래프 — 12자(3.6m) 84타입 안방 기준, 실속형 110만에서 145만원, 중급형 155만에서 195만원, 고급형 215만에서 275만원">
+  <rect width="860" height="500" fill="#ffffff"/>
+  <text x="40" y="46" font-size="25" font-weight="700" fill="#2b2b2b">붙박이장 가격 — 등급별 범위</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">12자(3.6m) · 84타입 안방 벽면 기준 · 단위: 만원 · 철거·부가세 별도</text>
+
+  <line x1="40" y1="420" x2="830" y2="420" stroke="#dddddd" stroke-width="2"/>
+
+  <!-- 실속형 110~145 -->
+  <rect x="100" y="251" width="160" height="169" rx="4" fill="#C26B4A"/>
+  <text x="180" y="243" font-size="17" fill="#a8512f" text-anchor="middle">110~145</text>
+  <text x="180" y="448" font-size="15" font-weight="600" fill="#444" text-anchor="middle">실속형(기본)</text>
+
+  <!-- 중급형 155~195 -->
+  <rect x="350" y="193" width="160" height="227" rx="4" fill="#C26B4A"/>
+  <text x="430" y="185" font-size="17" fill="#a8512f" text-anchor="middle">155~195</text>
+  <text x="430" y="448" font-size="15" font-weight="600" fill="#444" text-anchor="middle">중급형</text>
+
+  <!-- 고급형 215~275 -->
+  <rect x="600" y="100" width="160" height="320" rx="4" fill="#A8512F"/>
+  <text x="680" y="92" font-size="17" font-weight="700" fill="#a8512f" text-anchor="middle">215~275</text>
+  <text x="680" y="448" font-size="15" font-weight="600" fill="#444" text-anchor="middle">고급형(프리미엄)</text>
+
+  <text x="40" y="480" font-size="13" fill="#9a9a9a">막대 = 시중 견적에서 관측되는 하한~상한. 브랜드 정찰제냐 제작업체냐에 따라 위아래로 더 움직일 수 있습니다.</text>
+</svg>
