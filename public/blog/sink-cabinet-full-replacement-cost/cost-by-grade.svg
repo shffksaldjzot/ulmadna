@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 330" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <rect width="800" height="330" fill="#fdfaf7"/>
+  <text x="40" y="46" font-size="22" font-weight="700" fill="#2d2a26">싱크대 전체 교체, 자재 등급별 실제 단가 (84타입 기준)</text>
+  <text x="40" y="72" font-size="13" fill="#8a8378">실제 견적 빅데이터 기준 · 가구+상판 제작비 (단위: 만원)</text>
+
+  <g stroke="#e8e2da" stroke-width="1">
+    <line x1="150" y1="95" x2="150" y2="250"/>
+    <line x1="288" y1="95" x2="288" y2="250"/>
+    <line x1="425" y1="95" x2="425" y2="250"/>
+    <line x1="563" y1="95" x2="563" y2="250"/>
+    <line x1="700" y1="95" x2="700" y2="250"/>
+  </g>
+  <g font-size="12" fill="#a09888" text-anchor="middle">
+    <text x="150" y="273">0</text>
+    <text x="288" y="273">200만</text>
+    <text x="425" y="273">400만</text>
+    <text x="563" y="273">600만</text>
+    <text x="700" y="273">800만</text>
+  </g>
+
+  <!-- 사제/가성비형 280~350 -->
+  <text x="138" y="122" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">사제·가성비형</text>
+  <rect x="343" y="106" width="48" height="22" rx="11" fill="#c96f4a"/>
+  <text x="401" y="122" font-size="13" fill="#6b6459">280만~350만원</text>
+
+  <!-- 브랜드 표준형 400~550 -->
+  <text x="138" y="180" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">브랜드 표준형(한샘·리바트 등)</text>
+  <rect x="425" y="164" width="103" height="22" rx="11" fill="#b56749"/>
+  <text x="538" y="180" font-size="13" fill="#6b6459">400만~550만원</text>
+
+  <!-- 하이엔드/프리미엄 700 이상 -->
+  <text x="138" y="238" font-size="15" font-weight="600" fill="#2d2a26" text-anchor="end">하이엔드/프리미엄</text>
+  <rect x="631" y="222" width="69" height="22" rx="11" fill="#a3624f"/>
+  <path d="M700,222 L714,233 L700,244 Z" fill="#a3624f"/>
+  <text x="722" y="238" font-size="13" fill="#6b6459">700만원~</text>
+
+  <text x="40" y="300" font-size="12.5" fill="#8a8378">※ 30평대(84타입, 3.5~4m) 기준 · 가구+상판 제작비. 타일·후드·전기는 범위에 따라 별도로 붙습니다.</text>
+  <text x="40" y="318" font-size="12.5" fill="#8a8378">※ 실제 견적 사례에서는 세라믹 상판+후드 포함 패키지가 590만원대로 나타나기도 합니다(브랜드~하이엔드 사이).</text>
+</svg>
