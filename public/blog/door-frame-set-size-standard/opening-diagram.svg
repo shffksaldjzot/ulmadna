@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 430" role="img" aria-labelledby="t d" font-family="Pretendard, 'Noto Sans KR', 'Malgun Gothic', sans-serif">
+  <title id="t">공틀도어 개구부 실측 위치 — 폭·높이 3곳, 완성 벽 두께</title>
+  <desc id="d">정면에서는 개구부 폭을 위·중간·아래 3곳, 높이를 좌·중·우 3곳 재고, 위에서 본 단면에서는 마감이 끝난 뒤의 벽 두께를 잰다.</desc>
+  <rect width="820" height="430" fill="#FFFFFF"/>
+
+  <!-- 왼쪽: 정면 -->
+  <text x="200" y="28" text-anchor="middle" font-size="16" font-weight="700" fill="#2B2B2B">정면 — 폭·높이는 각 3곳</text>
+  <rect x="60" y="50" width="280" height="300" fill="#F1EBE4"/>
+  <rect x="120" y="110" width="160" height="240" fill="#FFFFFF" stroke="#B85C38" stroke-width="7"/>
+  <line x1="60" y1="350" x2="340" y2="350" stroke="#8A8A8A" stroke-width="2"/>
+
+  <!-- 폭 3곳 -->
+  <g stroke="#2B2B2B" stroke-width="1.5" fill="none">
+    <line x1="120" y1="132" x2="280" y2="132"/>
+    <line x1="120" y1="230" x2="280" y2="230"/>
+    <line x1="120" y1="328" x2="280" y2="328"/>
+  </g>
+  <g fill="#2B2B2B" font-size="13" text-anchor="middle">
+    <text x="200" y="126">① 폭 (위)</text>
+    <text x="200" y="224">② 폭 (중간)</text>
+    <text x="200" y="322">③ 폭 (아래)</text>
+  </g>
+  <!-- 높이 -->
+  <line x1="304" y1="110" x2="304" y2="350" stroke="#B85C38" stroke-width="1.8"/>
+  <line x1="298" y1="110" x2="310" y2="110" stroke="#B85C38" stroke-width="1.8"/>
+  <line x1="298" y1="350" x2="310" y2="350" stroke="#B85C38" stroke-width="1.8"/>
+  <text x="312" y="226" font-size="13" fill="#B85C38" font-weight="700">높이</text>
+  <text x="312" y="244" font-size="12" fill="#B85C38">좌·중·우</text>
+  <text x="200" y="378" text-anchor="middle" font-size="13" fill="#5A5A5A">바닥 마감(장판·마루)이 끝난 높이를 기준으로</text>
+  <text x="200" y="398" text-anchor="middle" font-size="13" fill="#5A5A5A">가장 작은 값을 개구부 치수로 잡습니다</text>
+
+  <!-- 오른쪽: 단면 -->
+  <text x="620" y="28" text-anchor="middle" font-size="16" font-weight="700" fill="#2B2B2B">위에서 본 단면 — 벽 두께</text>
+  <rect x="440" y="150" width="130" height="100" fill="#F1EBE4"/>
+  <rect x="670" y="150" width="130" height="100" fill="#F1EBE4"/>
+  <rect x="570" y="150" width="9" height="100" fill="#B85C38"/>
+  <rect x="661" y="150" width="9" height="100" fill="#B85C38"/>
+  <rect x="582" y="196" width="76" height="8" fill="#8A8A8A"/>
+  <text x="620" y="186" text-anchor="middle" font-size="12" fill="#5A5A5A">문틀 사이 개구부</text>
+  <text x="620" y="224" text-anchor="middle" font-size="12" fill="#5A5A5A">도어</text>
+
+  <line x1="424" y1="150" x2="424" y2="250" stroke="#B85C38" stroke-width="1.8"/>
+  <line x1="418" y1="150" x2="430" y2="150" stroke="#B85C38" stroke-width="1.8"/>
+  <line x1="418" y1="250" x2="430" y2="250" stroke="#B85C38" stroke-width="1.8"/>
+  <text x="414" y="204" text-anchor="end" font-size="13" fill="#B85C38" font-weight="700">벽</text>
+  <text x="414" y="222" text-anchor="end" font-size="13" fill="#B85C38" font-weight="700">두께</text>
+
+  <text x="620" y="290" text-anchor="middle" font-size="13" fill="#5A5A5A">골조 + 석고보드 + 마감재까지 더한</text>
+  <text x="620" y="310" text-anchor="middle" font-size="13" fill="#5A5A5A">'완성 후' 두께로 문틀 폭을 정합니다</text>
+  <text x="620" y="345" text-anchor="middle" font-size="12" fill="#8A8A8A">75mm와 100mm 가벽은 문틀도 다르게 갑니다</text>
+</svg>

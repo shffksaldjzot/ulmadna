@@ -1,0 +1,16 @@
+[
+  {
+    "file": "hero.jpg",
+    "photographer": "Bernard Hermant",
+    "profile": "https://unsplash.com/@bernardhermant",
+    "source": "https://unsplash.com/photos/an-empty-room-with-a-white-wall-and-a-white-door-p5ncQVrH5ic",
+    "query": "white interior door frame hallway"
+  },
+  {
+    "file": "hero.jpg",
+    "photographer": "Irena Oze",
+    "profile": "https://unsplash.com/@iistyle",
+    "source": "https://unsplash.com/photos/modern-white-hallway-with-arched-doorways-and-dark-flooring-laazSoSwtsE",
+    "query": "apartment interior white door wood floor"
+  }
+]
