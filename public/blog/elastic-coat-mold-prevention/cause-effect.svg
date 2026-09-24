@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" role="img" aria-labelledby="t d" font-family="'Pretendard','Noto Sans KR','Malgun Gothic',sans-serif">
+  <title id="t">베란다 곰팡이 원인별 탄성코트 단독 효과</title>
+  <desc id="d">표면 결로는 탄성코트 효과 큼, 심한 결로·열교는 단열 선행, 누수는 방수 선행, 생활 습기는 환기 습관이 우선이라는 비교 도표</desc>
+  <rect width="800" height="420" fill="#faf7f2"/>
+  <text x="400" y="38" text-anchor="middle" font-size="20" font-weight="700" fill="#2b2b2b">곰팡이 원인별 — 탄성코트 단독 효과</text>
+  <text x="400" y="62" text-anchor="middle" font-size="13" fill="#777">원인이 뭐냐에 따라 같은 시공도 결과가 갈립니다</text>
+
+  <!-- header -->
+  <text x="40" y="100" font-size="13" font-weight="700" fill="#555">곰팡이 원인</text>
+  <text x="300" y="100" font-size="13" font-weight="700" fill="#555">탄성코트 단독 효과</text>
+  <text x="560" y="100" font-size="13" font-weight="700" fill="#555">먼저 할 일</text>
+  <line x1="30" y1="110" x2="770" y2="110" stroke="#d9d0c3"/>
+
+  <!-- row 1 -->
+  <text x="40" y="148" font-size="15" font-weight="700" fill="#2b2b2b">약한 표면 결로</text>
+  <text x="40" y="168" font-size="12" fill="#888">겨울 창가·모서리 물기</text>
+  <rect x="300" y="135" width="220" height="22" rx="11" fill="#eee6da"/>
+  <rect x="300" y="135" width="176" height="22" rx="11" fill="#c8623f"/>
+  <text x="300" y="180" font-size="12" fill="#c8623f" font-weight="700">효과 큼 (조습형 도료)</text>
+  <text x="560" y="152" font-size="13" fill="#444">곰팡이 제거 + 완전 건조</text>
+  <text x="560" y="170" font-size="13" fill="#444">→ 탄성코트 2회 이상</text>
+  <line x1="30" y1="190" x2="770" y2="190" stroke="#eee6da"/>
+
+  <!-- row 2 -->
+  <text x="40" y="228" font-size="15" font-weight="700" fill="#2b2b2b">심한 결로·열교</text>
+  <text x="40" y="248" font-size="12" fill="#888">물방울이 흘러내리는 외벽</text>
+  <rect x="300" y="215" width="220" height="22" rx="11" fill="#eee6da"/>
+  <rect x="300" y="215" width="88" height="22" rx="11" fill="#c8623f"/>
+  <text x="300" y="260" font-size="12" fill="#c8623f" font-weight="700">효과 보통 (보조 수단)</text>
+  <text x="560" y="232" font-size="13" fill="#444">단열 보강(이보드 등) 먼저</text>
+  <text x="560" y="250" font-size="13" fill="#444">→ 그 위에 도장</text>
+  <line x1="30" y1="270" x2="770" y2="270" stroke="#eee6da"/>
+
+  <!-- row 3 -->
+  <text x="40" y="308" font-size="15" font-weight="700" fill="#2b2b2b">누수</text>
+  <text x="40" y="328" font-size="12" fill="#888">비 온 뒤 젖는 벽·창호 주변</text>
+  <rect x="300" y="295" width="220" height="22" rx="11" fill="#eee6da"/>
+  <rect x="300" y="295" width="22" height="22" rx="11" fill="#c8623f"/>
+  <text x="300" y="340" font-size="12" fill="#c8623f" font-weight="700">효과 거의 없음</text>
+  <text x="560" y="312" font-size="13" fill="#444">누수 부위 방수·실리콘 보수</text>
+  <text x="560" y="330" font-size="13" fill="#444">→ 마르면 도장</text>
+  <line x1="30" y1="350" x2="770" y2="350" stroke="#eee6da"/>
+
+  <!-- row 4 -->
+  <text x="40" y="384" font-size="15" font-weight="700" fill="#2b2b2b">생활 습기·환기 부족</text>
+  <text x="40" y="402" font-size="12" fill="#888">세탁실·가구 밀착</text>
+  <rect x="300" y="371" width="220" height="22" rx="11" fill="#eee6da"/>
+  <rect x="300" y="371" width="132" height="22" rx="11" fill="#c8623f"/>
+  <text x="300" y="410" font-size="12" fill="#c8623f" font-weight="700">보통 이상 (관리 병행)</text>
+  <text x="560" y="382" font-size="13" fill="#444">환기·제습·가구 이격</text>
+  <text x="560" y="400" font-size="13" fill="#444">→ 도장은 마감 수단</text>
+</svg>
