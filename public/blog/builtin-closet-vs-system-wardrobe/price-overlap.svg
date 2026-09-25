@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 420" font-family="Pretendard, 'Noto Sans KR', Apple SD Gothic Neo, sans-serif" role="img" aria-label="12자(3.6m) 벽면 기준 붙박이장과 시스템장 가격대 비교: 시스템장 기본형 42만~60만원, 옵션 가득 시스템장 100만~230만원, 붙박이장 실속형 110만~145만원, 중급형 155만~195만원, 고급형 215만~275만원. 옵션이 늘면 시스템장 가격대가 붙박이장과 겹친다">
+  <rect width="820" height="420" fill="#fffdf9"/>
+  <text x="30" y="40" font-size="20" font-weight="700" fill="#2b2b2b">12자(3.6m) 벽면 기준, 가격대는 어디서 겹칠까</text>
+  <text x="30" y="64" font-size="13" fill="#777">붙박이장 vs 시스템장 · 옷장 본체 기준(철거·배송 별도) · 단위: 만원</text>
+
+  <!-- axis -->
+  <line x1="250" y1="90" x2="250" y2="370" stroke="#ddd"/>
+  <line x1="250" y1="370" x2="780" y2="370" stroke="#ddd"/>
+  <g font-size="11" fill="#999">
+    <text x="250" y="388" text-anchor="middle">0</text>
+    <text x="427" y="388" text-anchor="middle">100</text>
+    <line x1="427" y1="90" x2="427" y2="370" stroke="#eee"/>
+    <text x="603" y="388" text-anchor="middle">200</text>
+    <line x1="603" y1="90" x2="603" y2="370" stroke="#eee"/>
+    <text x="780" y="388" text-anchor="middle">300</text>
+  </g>
+
+  <!-- 겹치는 구간 강조 -->
+  <rect x="444" y="96" width="213" height="268" fill="#c8623d" opacity="0.06"/>
+  <text x="550" y="112" font-size="12" font-weight="600" fill="#c8623d" text-anchor="middle">가격이 겹치는 구간</text>
+
+  <!-- 1 시스템 기본 -->
+  <text x="240" y="150" font-size="14" font-weight="600" fill="#2b2b2b" text-anchor="end">시스템장 기본형</text>
+  <text x="240" y="167" font-size="11" fill="#888" text-anchor="end">행거·선반 위주</text>
+  <rect x="324" y="140" width="32" height="24" fill="#c8623d"/>
+  <text x="364" y="157" font-size="13" font-weight="700" fill="#c8623d">42~60</text>
+
+  <!-- 2 시스템 옵션 -->
+  <text x="240" y="205" font-size="14" font-weight="600" fill="#2b2b2b" text-anchor="end">시스템장 옵션 가득</text>
+  <text x="240" y="222" font-size="11" fill="#888" text-anchor="end">서랍·거울장·선반장</text>
+  <rect x="427" y="195" width="230" height="24" fill="#c8623d"/>
+  <text x="665" y="212" font-size="13" font-weight="700" fill="#c8623d">100~230</text>
+
+  <!-- 3 붙박이 실속 -->
+  <text x="240" y="260" font-size="14" font-weight="600" fill="#2b2b2b" text-anchor="end">붙박이장 실속형</text>
+  <text x="240" y="277" font-size="11" fill="#888" text-anchor="end">여닫이·행거·선반</text>
+  <rect x="444" y="250" width="62" height="24" fill="#d9cbb8"/>
+  <text x="514" y="267" font-size="13" font-weight="600" fill="#555">110~145</text>
+
+  <!-- 4 붙박이 중급 -->
+  <text x="240" y="305" font-size="14" font-weight="600" fill="#2b2b2b" text-anchor="end">붙박이장 중급형</text>
+  <text x="240" y="322" font-size="11" fill="#888" text-anchor="end">서랍·바지걸이 추가</text>
+  <rect x="524" y="295" width="71" height="24" fill="#d9cbb8"/>
+  <text x="603" y="312" font-size="13" font-weight="600" fill="#555">155~195</text>
+
+  <!-- 5 붙박이 고급 -->
+  <text x="240" y="350" font-size="14" font-weight="600" fill="#2b2b2b" text-anchor="end">붙박이장 고급형</text>
+  <rect x="630" y="333" width="106" height="24" fill="#d9cbb8"/>
+  <text x="744" y="350" font-size="13" font-weight="600" fill="#555">215~275</text>
+</svg>
