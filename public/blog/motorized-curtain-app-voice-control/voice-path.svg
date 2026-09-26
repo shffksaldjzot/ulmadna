@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 440" role="img" aria-label="전동커튼 음성제어 경로도 — 와이파이 제품은 스피커에서 클라우드를 거쳐 커튼으로, 지그비·블루투스 제품은 중간에 허브가 한 단계 더 필요하고, RF 리모컨 제품은 음성 경로가 없다">
+  <style>
+    text { font-family: 'Pretendard','Noto Sans KR','Malgun Gothic',sans-serif; }
+    .t { font-size: 17px; font-weight: 700; fill: #2b2b2b; }
+    .s { font-size: 13px; fill: #6b6b6b; }
+    .n { font-size: 14px; font-weight: 600; fill: #2b2b2b; }
+    .w { font-size: 14px; font-weight: 600; fill: #ffffff; }
+    .box { fill: #f5efe9; stroke: #d9c9bb; stroke-width: 1.5; }
+    .hub { fill: #c9603a; stroke: #c9603a; }
+    .no { fill: #efefef; stroke: #cfcfcf; stroke-width: 1.5; stroke-dasharray: 5 4; }
+    .ar { stroke: #8a8a8a; stroke-width: 2; fill: none; marker-end: url(#a); }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8a8a8a"/>
+    </marker>
+  </defs>
+  <rect width="800" height="440" fill="#ffffff"/>
+  <text x="30" y="36" class="t">"커튼 열어줘" 한마디가 커튼까지 가는 길</text>
+  <text x="30" y="58" class="s">통신 방식에 따라 중간에 거치는 장비가 달라집니다</text>
+
+  <!-- row 1 Wi-Fi -->
+  <text x="30" y="100" class="n">① 와이파이 제품</text>
+  <rect x="30" y="110" width="150" height="46" rx="10" class="box"/><text x="105" y="138" text-anchor="middle" class="n">AI 스피커</text>
+  <path d="M180 133 H250" class="ar"/>
+  <rect x="255" y="110" width="170" height="46" rx="10" class="box"/><text x="340" y="138" text-anchor="middle" class="n">제조사 클라우드</text>
+  <path d="M425 133 H495" class="ar"/>
+  <rect x="500" y="110" width="150" height="46" rx="10" class="box"/><text x="575" y="138" text-anchor="middle" class="n">커튼 모터</text>
+  <text x="665" y="138" class="s">허브 불필요</text>
+
+  <!-- row 2 Zigbee -->
+  <text x="30" y="200" class="n">② 지그비 제품</text>
+  <rect x="30" y="210" width="110" height="46" rx="10" class="box"/><text x="85" y="238" text-anchor="middle" class="n">AI 스피커</text>
+  <path d="M140 233 H185" class="ar"/>
+  <rect x="190" y="210" width="130" height="46" rx="10" class="box"/><text x="255" y="238" text-anchor="middle" class="n">클라우드</text>
+  <path d="M320 233 H365" class="ar"/>
+  <rect x="370" y="210" width="110" height="46" rx="10" class="hub"/><text x="425" y="238" text-anchor="middle" class="w">허브</text>
+  <path d="M480 233 H525" class="ar"/>
+  <rect x="530" y="210" width="110" height="46" rx="10" class="box"/><text x="585" y="238" text-anchor="middle" class="n">커튼 모터</text>
+  <text x="652" y="238" class="s">허브 필수</text>
+
+  <!-- row 3 Bluetooth -->
+  <text x="30" y="300" class="n">③ 블루투스 제품</text>
+  <rect x="30" y="310" width="110" height="46" rx="10" class="box"/><text x="85" y="338" text-anchor="middle" class="n">AI 스피커</text>
+  <path d="M140 333 H185" class="ar"/>
+  <rect x="190" y="310" width="130" height="46" rx="10" class="box"/><text x="255" y="338" text-anchor="middle" class="n">클라우드</text>
+  <path d="M320 333 H365" class="ar"/>
+  <rect x="370" y="310" width="110" height="46" rx="10" class="hub"/><text x="425" y="338" text-anchor="middle" class="w">브릿지 허브</text>
+  <path d="M480 333 H525" class="ar"/>
+  <rect x="530" y="310" width="110" height="46" rx="10" class="box"/><text x="585" y="338" text-anchor="middle" class="n">커튼 모터</text>
+  <text x="652" y="338" class="s">허브 필수</text>
+
+  <!-- row 4 RF -->
+  <text x="30" y="400" class="n">④ RF 리모컨 전용 제품</text>
+  <rect x="30" y="408" width="150" height="26" rx="8" class="no"/><text x="105" y="426" text-anchor="middle" class="s">AI 스피커</text>
+  <text x="200" y="426" class="s">✕ 음성 경로 없음 — 리모컨 버튼으로만 작동 (별도 변환 장비가 있어야 연동)</text>
+</svg>
