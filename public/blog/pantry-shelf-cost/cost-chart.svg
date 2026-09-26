@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" width="800" height="360" role="img" aria-label="팬트리 선반 비용 방식별 가격 범위 차트 — 랙+정리함 조합 10만원대, 셀프 DIY 15만~35만, 조립식 시스템 선반 30만~60만, 전문업체 맞춤 시공 70만~150만 이상">
+  <style>
+    .t { font-family: -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; fill: #2b2622; }
+    .lab { font-size: 15px; font-weight: 600; }
+    .sub { font-size: 12px; fill: #7a6f66; }
+    .val { font-size: 13px; font-weight: 700; fill: #2b2622; }
+    .axis { font-size: 11px; fill: #9a8f86; }
+    .title { font-size: 18px; font-weight: 700; }
+  </style>
+  <rect width="800" height="360" fill="#fbf8f4"/>
+  <text x="32" y="38" class="t title">팬트리 선반 비용 — 방식별 실제 가격 범위</text>
+  <text x="32" y="60" class="t sub">자재+설치 총액 기준 · 실제 견적 빅데이터 1,000건+ 정리</text>
+
+  <!-- axis: 0 ~ 160만 → x 250..730 (3px/만) -->
+  <g class="t axis">
+    <line x1="250" y1="80" x2="250" y2="310" stroke="#e2d9d0"/>
+    <line x1="370" y1="80" x2="370" y2="310" stroke="#eee7df" stroke-dasharray="3 3"/>
+    <line x1="490" y1="80" x2="490" y2="310" stroke="#eee7df" stroke-dasharray="3 3"/>
+    <line x1="610" y1="80" x2="610" y2="310" stroke="#eee7df" stroke-dasharray="3 3"/>
+    <line x1="730" y1="80" x2="730" y2="310" stroke="#eee7df" stroke-dasharray="3 3"/>
+    <text x="250" y="328" text-anchor="middle">0</text>
+    <text x="370" y="328" text-anchor="middle">40만</text>
+    <text x="490" y="328" text-anchor="middle">80만</text>
+    <text x="610" y="328" text-anchor="middle">120만</text>
+    <text x="730" y="328" text-anchor="middle">160만</text>
+  </g>
+
+  <text x="32" y="106" class="t lab">① 랙 + 정리함 조합</text>
+  <text x="32" y="124" class="t sub">조립식 랙 + 1천~5천원 정리함</text>
+  <rect x="280" y="92" width="27" height="24" rx="6" fill="#c9a98f"/>
+  <text x="315" y="109" class="t val">10만원대</text>
+
+  <text x="32" y="168" class="t lab">② 셀프 DIY 설치</text>
+  <text x="32" y="186" class="t sub">자재 직접 구매·조립</text>
+  <rect x="295" y="154" width="60" height="24" rx="6" fill="#c9a98f"/>
+  <text x="363" y="171" class="t val">15만 ~ 35만원</text>
+
+  <text x="32" y="230" class="t lab">③ 조립식 시스템 선반</text>
+  <text x="32" y="248" class="t sub">기성 시스템 · 실측 후 자가 설치</text>
+  <rect x="340" y="216" width="90" height="24" rx="6" fill="#d98c6b"/>
+  <text x="438" y="233" class="t val">30만 ~ 60만원</text>
+
+  <text x="32" y="292" class="t lab">④ 전문업체 맞춤 시공</text>
+  <text x="32" y="310" class="t sub">실측 + 주문제작 + 방문 설치</text>
+  <rect x="460" y="278" width="240" height="24" rx="6" fill="#b5664a"/>
+  <rect x="700" y="278" width="30" height="24" rx="6" fill="#e6cdbd"/>
+  <text x="498" y="295" class="t val" style="fill:#fff">70만 ~ 150만원+</text>
+</svg>
