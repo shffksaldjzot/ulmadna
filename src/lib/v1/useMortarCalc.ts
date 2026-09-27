@@ -261,7 +261,7 @@ export function useMortarCalc(
     };
 
     // 실측 입력 중(면적 빈 구역 카드)이고 면적만 바뀌는 중이면 새로 계산하지 않고 직전 결과를 둔다.
-    // 용도·두께·공법·제품 등 나머지가 바뀌었으면 아래로 내려가 채운 구역만으로(없으면 10평 가정) 다시 계산한다.
+    // 용도·두께·공법·제품 등 나머지가 바뀌었으면 아래로 내려가 채운 구역만으로(없으면 면적 가정) 다시 계산한다.
     if (canHoldWhileMeasuring(built, resultRef.current ? shownRestKeyRef.current : null)) {
       abortRef.current?.abort();
       setLoading(false);

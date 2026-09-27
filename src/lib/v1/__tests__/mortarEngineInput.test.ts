@@ -14,7 +14,8 @@ import {
   toEngineInputWithAssumed,
   assumedAreaSqm,
   presetThicknessMm,
-  ASSUMED_MORTAR_AREA_PYEONG,
+  ASSUMED_SUPPLY_AREA_PYEONG,
+  ASSUMED_WORK_AREA_PYEONG,
   nonDimensionKey,
   canHoldWhileMeasuring,
   mortarRequestKey,
@@ -42,12 +43,13 @@ describe('미장 좁혀가기 — 첫 단계(용도)', () => {
 });
 
 describe('미장 좁혀가기 — 가정값', () => {
-  it('용도만 고르면 면적 10평·기본 두께·손미장 가정으로 결과가 나온다', () => {
+  it('용도만 고르면 방통은 34평·기본 두께·손미장 가정으로 결과가 나온다(2026-09-27 지휘관 결정)', () => {
     const input = toEngineInputWithAssumed(DEFAULT_MORTAR_FORM, [], USAGE_ONLY)!;
     expect(input.assumed).toEqual(['area', 'thickness', 'method']);
-    expect(ASSUMED_MORTAR_AREA_PYEONG).toBe(10);
-    // 방통은 공급 평형 → 전용 ㎡ 표 규칙(기존 규칙 그대로)
-    expect(input.request.areaSqm).toBe(pyeongToExclusiveSqm(10));
+    expect(ASSUMED_SUPPLY_AREA_PYEONG).toBe(34);
+    // 방통은 공급 평형 → 전용 ㎡ 표 규칙(기존 규칙 그대로) — 34평이면 84㎡
+    expect(input.request.areaSqm).toBe(pyeongToExclusiveSqm(34));
+    expect(input.request.areaSqm).toBe(84);
     expect(input.request.thicknessMm).toBe(45);
     // 공법 가정이면 공법 칸을 비워 보낸다 → 서버가 기본 손미장으로 계산
     expect(input.request.method).toBeUndefined();
@@ -65,15 +67,18 @@ describe('미장 좁혀가기 — 가정값', () => {
     };
     const input = toEngineInputWithAssumed(state, [], USAGE_ONLY)!;
     expect(input.assumed).toEqual(['area', 'thickness']);
+    // 셀프레벨링은 기존 기본값 10평을 순수 환산한 약 33㎡(화면 글 "33㎡ 가정")
+    expect(ASSUMED_WORK_AREA_PYEONG).toBe(10);
     expect(input.request.areaSqm).toBeCloseTo(10 * SQM_PER_PYEONG, 1);
+    expect(Math.round(input.request.areaSqm)).toBe(33);
     expect(input.request.thicknessMm).toBe(5);
     expect(presetThicknessMm(state)).toBe(5);
     expect(assumedAreaSqm(state)).toBe(input.request.areaSqm);
   });
 
-  it('touched.area가 false면 폼에 면적(20평)이 있어도 10평 가정으로 계산한다', () => {
+  it('touched.area가 false면 폼에 면적(20평)이 있어도 방통 34평 가정으로 계산한다', () => {
     const input = toEngineInputWithAssumed({ ...DEFAULT_MORTAR_FORM, area: 20 }, [], USAGE_ONLY)!;
-    expect(input.request.areaSqm).toBe(pyeongToExclusiveSqm(10));
+    expect(input.request.areaSqm).toBe(pyeongToExclusiveSqm(34));
   });
 
   it('면적을 고르면 area 가정이 빠진다', () => {
@@ -142,9 +147,9 @@ describe('미장 정확 모드 — 실측 입력 중', () => {
   const TOUCHED = { touched: { usage: true, thickness: true } };
   const shownKey = nonDimensionKey(toEngineInputWithAssumed(SHOWN, [], TOUCHED)!);
 
-  it('구역이 전부 비었으면 10평 가정 + area·measuring', () => {
+  it('구역이 전부 비었으면 방통 34평 가정 + area·measuring', () => {
     const input = toEngineInputWithAssumed({ ...SHOWN, preciseRooms: [{ name: '', areaSqm: 0 }] }, [], TOUCHED)!;
-    expect(input.request.areaSqm).toBe(pyeongToExclusiveSqm(10));
+    expect(input.request.areaSqm).toBe(pyeongToExclusiveSqm(34));
     expect(input.assumed).toEqual(['area', 'method', 'measuring']);
   });
 
