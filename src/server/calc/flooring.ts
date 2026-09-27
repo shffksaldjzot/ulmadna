@@ -15,6 +15,8 @@
 // 내보내지 않는 것: 업자가, 단가 출처 문서명, 산식 내부값.
 //
 // 작성일: 2026년 09월 10일
+// 2026년 09월 27일: 좁혀가기 — 제품 없이 자재만 오면 그 자재의 노출 제품 전체로 금액 범위를 만든다
+//   (calcFlooringKindRange). 제품이 있는 계산은 예전 본체(calcFlooringOne) 그대로다.
 // ──────────────────────────────────────────────
 
 import 'server-only';
@@ -57,6 +59,12 @@ import {
   type FlooringDirectProduct,
   type PriceBand,
 } from '../pricing/flooring';
+// 제품 미정일 때 "그 자재의 노출 제품 전체"로 범위를 만들기 위한 제품 마스터와 변환 함수.
+// 변환 함수는 화면(브라우저)도 쓰는 순수 함수라 src/lib/v1 에 있다 — 서버가 lib을 불러오는 건
+// 괜찮다(반대 방향, 즉 브라우저 쪽이 src/server를 불러오는 것만 금지).
+import { FLOORING_PRODUCTS } from './data/flooring-products';
+import { toFlooringProductOptions, isShowableFlooringProduct } from '@/lib/v1/flooringProductOptions';
+import { productOptionToRequest } from '@/lib/v1/flooringEngineInput';
 
 // ── 입력 타입 ──────────────────────────────────
 
@@ -163,6 +171,13 @@ export interface FlooringCalcResult {
     inputMode: FlooringMode;
     /** 실별 보기 */
     byRoom: FlooringRoomQuantity[];
+    /**
+     * (2026-09-27 추가) 제품을 안 골라 "자재 전체 범위"로 계산했을 때만 붙는다.
+     * 제품마다 박스당 ㎡·롤 폭이 달라 사야 하는 수량이 달라지므로, 가장 적게 ~ 가장 많이 드는
+     * 제품의 수량(단위는 위 unit과 같음 — 박스 또는 m)을 알려 준다.
+     * 위 units 칸은 그 자재의 대표 규격 기준 수량이다.
+     */
+    unitsRange?: { min: number; max: number };
   };
   submaterials: FlooringSubmaterialLine[];
   cost: {
@@ -284,10 +299,119 @@ function noteFor(basis: string, grade: EvidenceGrade): string {
 // ── 본체 ──────────────────────────────────────
 
 /**
- * 바닥재 계산기 본체.
- * 입력 한 번으로 치수 → 물량 → 부자재 → 인건 → 비용까지 한 번에 돌린다.
+ * 바닥재 계산기 입구.
+ *
+ * 2026-09-27 좁혀가기(형아 결정, 도배와 같은 방식)로 두 갈래가 됐다.
+ *   1) 제품이 있으면(목록에서 골랐거나 직접 입력) → 예전과 똑같이 한 번 계산(calcFlooringOne).
+ *      완전한 입력의 계산 결과 숫자는 이 작업 전과 한 푼도 다르지 않다.
+ *   2) 제품이 없으면(자재만 골랐거나 "아직 안 정했어요") → 그 자재의 **노출 제품 전체**로 한 번씩
+ *      계산해서 가장 싼 결과의 아래쪽 ~ 가장 비싼 결과의 위쪽을 금액 범위로 돌려준다
+ *      (calcFlooringKindRange). 그래서 나중에 어떤 노출 제품을 골라도 범위는 좁아지거나 같다.
+ *      노출 제품이 하나도 없는 자재면 예전처럼 자재 평균 단가 밴드로 한 번 계산한다.
  */
 export function calcFlooring(input: FlooringCalcInput): FlooringCalcResult {
+  // 제품이 정해졌으면 그 제품 하나로 — 예전 동작 그대로
+  if (input.product) return calcFlooringOne(input);
+  // 제품 미정 — 자재 전체 범위
+  return calcFlooringKindRange(input);
+}
+
+/**
+ * 자재 하나의 "노출 제품"(화면 제품 목록에 뜨는 제품) 전부를 서버 계산 입력 모양으로 돌려준다.
+ * 화면이 제품을 골랐을 때 보내는 값과 **완전히 같은 변환 함수**(toFlooringProductOptions →
+ * isShowableFlooringProduct → productOptionToRequest)를 거친다.
+ */
+export function exposedFlooringProducts(kind: FlooringKind): FlooringDirectProduct[] {
+  const out: FlooringDirectProduct[] = [];
+  for (const option of toFlooringProductOptions(FLOORING_PRODUCTS)) {
+    // 다른 자재이거나 목록에 안 뜨는 제품(가격·규격 미확인)은 뺀다
+    if (option.kind !== kind || !isShowableFlooringProduct(option)) continue;
+    const request = productOptionToRequest(option);
+    if (request) out.push(request);
+  }
+  return out;
+}
+
+/**
+ * 제품 미정일 때 — 그 자재의 노출 제품 전체로 금액 범위를 만든다(도배 calcWallpaperTypeRange와 같은 방식).
+ *   1) 노출 제품마다 한 번씩 계산한다
+ *   2) 금액: 가장 낮은 최저값을 낸 제품(lo)의 최저 ~ 가장 높은 최고값을 낸 제품(hi)의 최고
+ *   3) 물량(면적·수량·부자재): 그 자재의 대표 규격으로 한 번 더 계산한 값을 보여준다.
+ *      수량은 제품 규격에 따라 달라지므로 quantity.unitsRange에 제품별 최소~최대 수량을 싣는다.
+ *   4) 구성 보기: 줄마다 최저 금액은 lo 제품, 최고 금액은 hi 제품의 그 줄 → 줄 합계가 결과와 정확히 맞는다.
+ * ⚠️ 응답에는 합쳐진 금액·물량뿐. 제품 이름·개별 제품 단가·산식은 싣지 않는다.
+ */
+function calcFlooringKindRange(input: FlooringCalcInput): FlooringCalcResult {
+  const candidates = exposedFlooringProducts(input.kind);
+
+  // 대표 규격으로 한 번 — 물량 표시용. 노출 제품이 없으면 이 결과(옛 자재 평균가 방식)를 그대로 쓴다
+  const representative = calcFlooringOne(input);
+  if (candidates.length === 0) return representative;
+
+  // 노출 제품마다 한 번씩 계산
+  const each = candidates.map((product) => calcFlooringOne({ ...input, product }));
+
+  // 최저를 낸 제품(lo)과 최고를 낸 제품(hi). 같은 값이면 먼저 나온 제품
+  let lo = each[0];
+  let hi = each[0];
+  for (const r of each) {
+    if (r.cost.min < lo.cost.min) lo = r;
+    if (r.cost.max > hi.cost.max) hi = r;
+  }
+
+  /** 어떤 결과에서 키가 같은 구성 줄을 찾는다 */
+  const lineOf = (r: FlooringCalcResult, key: string) => r.cost.breakdown.find((b) => b.key === key);
+
+  // 시공 품수가 제품에 따라 달라지는지(헤링본급 로스율 제품은 품이 더 든다) 확인해 문구에 반영
+  const laborQtys = each.map((r) => lineOf(r, 'labor')?.qty).filter((q): q is number => q != null);
+  const laborMin = laborQtys.length ? Math.min(...laborQtys) : 0;
+  const laborMax = laborQtys.length ? Math.max(...laborQtys) : 0;
+
+  // 구성 보기 — 줄 순서·수량은 대표 계산, 금액은 lo·hi 제품에서
+  const breakdown: FlooringCostLine[] = representative.cost.breakdown.map((line) => {
+    const loLine = lineOf(lo, line.key) ?? line;
+    const hiLine = lineOf(hi, line.key) ?? line;
+    // 단가 범위: 모든 노출 제품의 그 줄 단가 중 가장 낮은 값 ~ 가장 높은 값
+    const lines = each.map((r) => lineOf(r, line.key)).filter((l): l is FlooringCostLine => l != null);
+    const unitPriceMin = lines.length ? Math.min(...lines.map((l) => l.unitPriceMin)) : line.unitPriceMin;
+    const unitPriceMax = lines.length ? Math.max(...lines.map((l) => l.unitPriceMax)) : line.unitPriceMax;
+
+    // 근거 문구: 자재 줄은 "제품 미정", 시공 줄은 품수가 갈리면 범위로
+    let note = line.note;
+    if (line.key === 'material') note = '제품 미정 · 목록 제품 전체 범위';
+    if (line.key === 'labor' && laborMin !== laborMax) note = `바닥 시공 ${laborMin}~${laborMax}품 · 제품에 따라 다름`;
+
+    return { ...line, unitPriceMin, unitPriceMax, amountMin: loLine.amountMin, amountMax: hiLine.amountMax, note };
+  });
+
+  // 수량 범위 — 제품 규격(박스당 ㎡·롤 폭)에 따라 달라진다
+  const unitsList = each.map((r) => r.quantity.units);
+  const min = lo.cost.min;
+  const max = hi.cost.max;
+
+  return {
+    quantity: {
+      ...representative.quantity,
+      unitsRange: { min: Math.min(...unitsList), max: Math.max(...unitsList) },
+    },
+    submaterials: representative.submaterials,
+    cost: {
+      min,
+      mid: roundWon((min + max) / 2),
+      max,
+      mode: representative.cost.mode,
+      basisLine: representative.cost.basisLine,
+      breakdown,
+    },
+  };
+}
+
+/**
+ * 바닥재 계산 한 번(제품 하나 또는 자재 평균 밴드).
+ * 입력 한 번으로 치수 → 물량 → 부자재 → 인건 → 비용까지 한 번에 돌린다.
+ * (2026-09-27 전까지 calcFlooring이라는 이름이던 본체 그대로 — 계산 내용은 한 줄도 안 바꿨다)
+ */
+function calcFlooringOne(input: FlooringCalcInput): FlooringCalcResult {
   // ── 0) 입력 기본값 정리 ──
   const mode: FlooringMode = input.mode ?? '평형';
   const scope: FlooringScope = input.scope ?? '전체';

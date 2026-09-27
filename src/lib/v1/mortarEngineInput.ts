@@ -17,9 +17,13 @@
 // 이상한 숫자를 띄우지 않는다.
 //
 // 작성일: 2026년 09월 14일 · 개정: 2026년 09월 14일(검사관 1라운드)
+// 2026년 09월 27일: 좁혀가기(도배·바닥재와 같은 원칙) — 용도를 고른 뒤부터 항상 계산하고, 안 고른
+//   면적·두께·공법은 가정값으로 채워 assumed 목록으로 알려 준다(toEngineInputWithAssumed).
 // ──────────────────────────────────────────────
 
 import type { MortarAreaInputMode, MortarDirectProduct, MortarFormState, MortarMode, MortarMethod, MortarUsage } from './mortarQuery';
+// 면적 가정값을 새 화면 초기값에서 읽어 오기 위해(값 자체는 단가가 아닌 화면 기본값)
+import { DEFAULT_MORTAR_FORM } from './mortarQuery';
 import type { MortarProductOption } from './mortarProductOptions';
 import {
   USAGE_PRESET,
@@ -365,24 +369,118 @@ function resolveUsageLabel(state: MortarFormState, mode: MortarMode): string | u
   return state.selfLevelUsage ? SELF_LEVEL_USAGE_PRESET[state.selfLevelUsage].label : undefined;
 }
 
+// ── 좁혀가기(2026-09-27 형아 결정, 도배·바닥재와 같은 원칙) — 가정값과 가정 목록 ──────────
+
 /**
- * 폼 상태 → 엔진 요청.
- *   1) 두께가 없으면 null(계산 안 함). 있으면 서버 허용 범위로 클램프한다.
- *   2) view === 'precise'(정확하게 계산하기): 실별 면적 중 유효한 값이 있을 때만 계산한다.
- *      간단 모드의 면적으로 폴백하지 않는다.
- *   3) view === 'simple'(기본값): 면적(직접 입력 또는 가로×세로)이 있어야 계산한다.
- *
- * useMortarCalc(클라이언트 훅)와 result/page.tsx(공유 링크 결과, 서버 컴포넌트) 둘 다
- * 이 함수 하나로 계산 규칙을 맞춘다 — result/page.tsx는 API 손검증을 거치지 않고 바로
- * calcMortar()를 부르므로, 클램프는 여기(공용 함수) 안에서 반드시 해야 결과 페이지도
- * 같이 보호된다(2026-09-14 검사관 지적).
+ * 아직 사용자가 정하지 않아서 **가정값으로 채워 계산한** 항목 이름.
+ * 미장은 제품 단계가 없고, 첫 단계(용도)는 가정하지 않는다(용도를 고르기 전엔 아예 계산 안 함).
+ *   'area'      면적을 안 넣었다(또는 값이 무효하다) → ASSUMED_MORTAR_AREA_PYEONG(10평)으로 계산.
+ *               평→㎡ 변환은 기존 규칙 그대로(방통=공급→전용 표, 셀프레벨링=순수 단위 환산)
+ *   'thickness' 두께를 안 골랐다 → 용도별 기본 두께(방통 45mm · 셀프레벨링 마루·장판 전 5mm 등)
+ *   'method'    (레미탈만) 공법 조정 칩을 아직 안 건드렸다 → 기본 손미장
+ *   'measuring' (정확 모드) 구역 카드는 있는데 면적이 비었다 → "실측 입력 중" 표시용
+ * 순서는 화면 단계 순서(용도 → 면적 → 두께 → 조정 칩)를 따른다.
  */
-export function toEngineInput(state: MortarFormState, products: MortarProductOption[]): MortarCalcRequest | null {
-  if (!isPositive(state.thicknessMm)) return null;
+export type MortarAssumption = 'area' | 'thickness' | 'method' | 'measuring';
+
+/** 가정 목록을 늘 같은 순서로 돌려주기 위한 순서표 */
+const ASSUMPTION_ORDER: MortarAssumption[] = ['area', 'thickness', 'method', 'measuring'];
+
+/**
+ * 면적을 안 넣었을 때 가정하는 값(평). 지휘관 지시 "기존 기본값을 쓰되 없으면 20평"에 따라
+ * 새 화면 초기값(DEFAULT_MORTAR_FORM.area, 지금 10평)을 그대로 쓴다. 이 값이 지워지면 20평.
+ */
+export const ASSUMED_MORTAR_AREA_PYEONG: number = DEFAULT_MORTAR_FORM.area ?? 20;
+
+/**
+ * 화면이 "사용자가 이 값을 직접 건드렸는지"를 알려 주는 표시.
+ *   usage      용도 칩을 사용자가 직접 골랐는가 — **true가 아니면 계산하지 않는다**(결과 null)
+ *   area       면적 단계를 완료했는가
+ *   thickness  두께 단계를 완료했는가
+ *   method     공법 조정 칩을 한 번이라도 눌렀는가
+ * true가 아니면(false 또는 빠짐) "아직 안 건드림"으로 본다.
+ */
+export interface MortarTouched {
+  usage?: boolean;
+  area?: boolean;
+  thickness?: boolean;
+  method?: boolean;
+}
+
+/** toEngineInput·toEngineInputWithAssumed의 선택 인자 */
+export interface MortarEngineOptions {
+  /** 넘기지 않으면(옛 화면·공유 결과 화면) 용도 기본값으로 계산하고, 값이 폼에 있는지만 보고 가정을 판정한다 */
+  touched?: MortarTouched;
+}
+
+/** toEngineInputWithAssumed가 돌려주는 값 */
+export interface MortarEngineInput {
+  /** 서버에 보낼 요청 그대로 */
+  request: MortarCalcRequest;
+  /** 가정값으로 채운 항목 목록(없으면 빈 배열). 순서는 ASSUMPTION_ORDER 고정 */
+  assumed: MortarAssumption[];
+}
+
+/** 용도별 기본 두께(mm) — 프리셋 표(mortarPresets.ts)에서 그대로 읽는다 */
+export function presetThicknessMm(state: MortarFormState): number {
+  if (resolveMode(state) === '셀프레벨링') {
+    // 셀프레벨링 칩을 누르면 화면이 '마루장판전'을 기본으로 채운다(MortarCalculator selectTopUsage와 같은 값)
+    return SELF_LEVEL_USAGE_PRESET[state.selfLevelUsage ?? '마루장판전'].defaultMm;
+  }
+  return USAGE_PRESET[state.usage ?? '방통전체'].defaultMm;
+}
+
+/**
+ * 면적 가정값(10평)을 이 용도의 규칙으로 ㎡로 바꾼다 — 방통은 공급 평형→전용 ㎡ 표,
+ * 셀프레벨링 등은 순수 단위 환산(기존 resolveSimpleAreaSqm 규칙 그대로).
+ */
+export function assumedAreaSqm(state: MortarFormState): number {
+  return resolveSimpleAreaSqm({ ...state, areaInputMode: 'area', area: ASSUMED_MORTAR_AREA_PYEONG, areaUnit: '평' }) as number;
+}
+
+/**
+ * 폼 상태 → 엔진 요청 + 가정 목록.
+ *
+ * 2026-09-27 좁혀가기 규칙:
+ *   1) 화면이 touched를 넘겼는데 touched.usage가 true가 아니면 null(계산 안 함) — 첫 단계 전.
+ *      touched를 안 넘기면(옛 화면·공유 결과 화면) 예전처럼 용도 기본값으로 계산한다.
+ *   2) 두께가 없거나(예전엔 null) 화면이 "두께 미완료"라고 알려 주면 용도별 기본 두께로 가정.
+ *   3) view === 'simple': 면적이 없거나 무효하거나 "면적 미완료"면 10평 가정(예전엔 null).
+ *   4) view === 'precise': 면적을 채운 구역이 있으면 그 합계, 없으면 10평 가정(예전엔 null).
+ *      면적이 빈 구역 카드가 있으면 'measuring'을 넣는다(계산 훅이 직전 결과를 유지).
+ *   5) 공법(레미탈): 조정 칩을 안 건드렸으면 'method' — 공법 칸을 비워 보내 서버가 기본 손미장으로 계산.
+ *
+ * 클램프(공유 링크 방어)는 예전과 같이 여기서 한다(result/page.tsx도 이 함수를 쓰므로).
+ */
+export function toEngineInputWithAssumed(
+  state: MortarFormState,
+  products: MortarProductOption[],
+  options?: MortarEngineOptions,
+): MortarEngineInput | null {
+  const touched = options?.touched;
+  // 용도를 사용자가 직접 고르기 전에는 계산하지 않는다(속에 기본값 '방통'이 있어도)
+  if (touched && touched.usage !== true) return null;
+
+  const assumedSet = new Set<MortarAssumption>();
   const mode = resolveMode(state);
+
+  // ── 두께: 화면이 "미완료"라고 하거나 값이 없으면 용도별 기본 두께로 가정 ──
+  const thicknessAssumed = (touched && touched.thickness !== true) || !isPositive(state.thicknessMm);
+  if (thicknessAssumed) assumedSet.add('thickness');
+  const rawThickness = thicknessAssumed ? presetThicknessMm(state) : (state.thicknessMm as number);
   // 두께 상한이 모드마다 다르다(레미탈 150 · 셀프레벨링 50, 2026-09-15 운영자 현장 기준 피드백 — 현장에서
   // 방통은 50~150mm까지 흔하다) — mode를 먼저 정한 뒤에 그 모드의 상한으로 클램프한다.
-  const thicknessMm = clamp(state.thicknessMm, THICKNESS_MM_MIN, thicknessMmMax(mode));
+  const thicknessMm = clamp(rawThickness, THICKNESS_MM_MIN, thicknessMmMax(mode));
+
+  // ── 공법(레미탈 전용): 조정 칩을 안 건드렸으면 가정. 이때는 공법 칸을 비워 보내 서버 기본값(손미장)을 쓴다 ──
+  const methodAssumed = mode === '레미탈' && (touched ? touched.method !== true : state.method === undefined);
+  if (methodAssumed) assumedSet.add('method');
+
+  /** 모은 가정 목록을 고정 순서 배열로 바꿔 요청과 함께 돌려준다 */
+  const done = (request: MortarCalcRequest): MortarEngineInput => ({
+    request,
+    assumed: ASSUMPTION_ORDER.filter((a) => assumedSet.has(a)),
+  });
 
   const product = resolveProductSelection(state, products);
   const usageLabel = resolveUsageLabel(state, mode);
@@ -393,9 +491,10 @@ export function toEngineInput(state: MortarFormState, products: MortarProductOpt
 
   // 셀프레벨링 모드는 와이어메시 옵션 자체가 없다(레미탈 전용) — 값이 남아 있어도 안 보낸다
   const wireMesh = mode === '레미탈' ? state.wireMesh : undefined;
-  // usage·method도 레미탈 전용(공법 판정에 쓴다) — 셀프레벨링에선 아예 안 보낸다
+  // usage·method도 레미탈 전용(공법 판정에 쓴다) — 셀프레벨링에선 아예 안 보낸다.
+  // 공법이 가정이면(칩을 안 건드림) 비워 보낸다 → 서버가 용도 기본값(손미장)으로 계산해 "손미장 가정"과 맞는다
   const usage = mode === '레미탈' ? state.usage : undefined;
-  const method = mode === '레미탈' ? state.method : undefined;
+  const method = mode === '레미탈' && !methodAssumed ? state.method : undefined;
 
   // 운송·양중 — 정밀 모드 전용 입력(06_미장.md §11-2·§11-3). 비정상 값 방어로 서버 상한과
   // 같은 값으로 클램프한다(음수·초과값이 공유 링크로 들어와도 안전하게).
@@ -409,12 +508,35 @@ export function toEngineInput(state: MortarFormState, products: MortarProductOpt
     ? clamp(state.forkliftFeeWon, 0, MONEY_INPUT_WON_MAX)
     : undefined;
 
+  /** 면적만 빼고 나머지가 같은 요청을 만든다(간단·정밀·가정 세 갈래가 같이 쓴다) */
+  const simpleRequest = (areaSqm: number): MortarCalcRequest => ({
+    mode,
+    areaSqm,
+    thicknessMm,
+    usage,
+    usageLabel,
+    method,
+    mixRatio: state.mixRatio,
+    lossRate,
+    wireMesh,
+    primer: state.primer,
+    product,
+  });
+
   if (view === 'precise') {
+    // 구역 카드 중 면적이 빈 카드가 하나라도 있으면 "실측 입력 중"
+    if ((state.preciseRooms ?? []).some((r) => !isPositive(r.areaSqm))) assumedSet.add('measuring');
+
     const rooms = validPreciseRooms(state);
-    if (rooms.length === 0) return null; // 정밀 입력이 없으면 간단 모드 면적으로 폴백하지 않는다
+    if (rooms.length === 0) {
+      // 실측이 비었다 — 2026-09-27부터 null 대신 면적 가정값(10평)으로 계산한다
+      assumedSet.add('area');
+      // 정확 모드에서 직접 넣은 운송·양중 금액은 면적 가정과 상관없이 그대로 싣는다
+      return done({ ...simpleRequest(assumedAreaSqm(state)), deliveryFeeWon, forkliftFeeWon, liftingFeeWon });
+    }
     // resolvePreciseAreaSqm()과 같은 계산(방 목록은 여기서만 더 필요해서 따로 부른다)
     const areaSqm = resolvePreciseAreaSqm(state) as number;
-    return {
+    return done({
       mode,
       areaSqm,
       thicknessMm,
@@ -430,25 +552,83 @@ export function toEngineInput(state: MortarFormState, products: MortarProductOpt
       deliveryFeeWon,
       forkliftFeeWon,
       liftingFeeWon,
-    };
+    });
   }
 
-  // view === 'simple' — 면적(직접 입력 또는 가로×세로)이 있어야 계산한다
-  const areaSqm = resolveSimpleAreaSqm(state);
-  if (areaSqm === null) return null;
-  return {
-    mode,
-    areaSqm,
-    thicknessMm,
-    usage,
-    usageLabel,
-    method,
-    mixRatio: state.mixRatio,
-    lossRate,
-    wireMesh,
-    primer: state.primer,
-    product,
-  };
+  // view === 'simple' — 면적(직접 입력 또는 가로×세로). 없거나 "면적 미완료"면 10평 가정(예전엔 null)
+  const areaSqm = touched && touched.area !== true ? null : resolveSimpleAreaSqm(state);
+  if (areaSqm === null) {
+    assumedSet.add('area');
+    return done(simpleRequest(assumedAreaSqm(state)));
+  }
+  return done(simpleRequest(areaSqm));
+}
+
+/**
+ * 폼 상태 → 엔진 요청(가정 목록 없이 요청만). 공유 링크 결과 화면(result/page.tsx) 등 예전부터
+ * 이 함수를 쓰던 곳이 그대로 돌아가도록 이름·돌려주는 모양을 유지한다.
+ * 규칙은 toEngineInputWithAssumed와 같다.
+ *
+ * useMortarCalc(클라이언트 훅)와 result/page.tsx(공유 링크 결과, 서버 컴포넌트) 둘 다
+ * 이 규칙 하나로 계산을 맞춘다 — result/page.tsx는 API 손검증을 거치지 않고 바로
+ * calcMortar()를 부르므로, 클램프는 여기(공용 함수) 안에서 반드시 해야 결과 페이지도
+ * 같이 보호된다(2026-09-14 검사관 지적).
+ */
+export function toEngineInput(
+  state: MortarFormState,
+  products: MortarProductOption[],
+  options?: MortarEngineOptions,
+): MortarCalcRequest | null {
+  return toEngineInputWithAssumed(state, products, options)?.request ?? null;
+}
+
+/**
+ * 요청 하나를 가리키는 열쇠(문자열). 즉시 포수(useMortarQuickCalc)의 inputKey와 서버 금액
+ * (useMortarCalc)의 resultKey가 같은 값이면 "수량과 금액이 같은 입력에서 나왔다"는 뜻이다.
+ */
+export function mortarRequestKey(request: MortarCalcRequest): string {
+  return JSON.stringify(request);
+}
+
+// ──────────────────────────────────────────────
+// 실측 입력 중 "직전 결과 유지"를 언제까지 해도 되는지 (도배에서 검사관이 잡은 결함을 되풀이하지 않게)
+// 직전 결과 유지는 **구역 면적만 바뀌는 동안**에만 한다. 요청을 면적 부분과 나머지로 나눠, 나머지의
+// 열쇠가 지금 보이는 결과를 계산할 때와 다르면(용도·두께·공법·제품·운송비 등) 다시 계산한다.
+// ──────────────────────────────────────────────
+
+/** 요청에서 면적 칸(areaSqm·구역 목록)을 뺀 나머지로 열쇠를 만든다 */
+export function nonDimensionKey(input: MortarEngineInput): string {
+  const { areaSqm: _areaSqm, rooms: _rooms, ...rest } = input.request;
+  return JSON.stringify(rest);
+}
+
+/**
+ * 실측 입력 중일 때 새 계산 없이 지금 보이는 결과를 그대로 둬도 되는가.
+ * 실측 입력 중이고, 보이는 결과가 있고, 그 결과의 나머지 열쇠가 지금과 같을 때만 true.
+ * @param shownKey 지금 화면에 보이는 결과를 계산할 때의 nonDimensionKey. 결과가 없으면 null
+ */
+export function canHoldWhileMeasuring(input: MortarEngineInput, shownKey: string | null): boolean {
+  if (!input.assumed.includes('measuring')) return false;
+  if (shownKey === null) return false;
+  return nonDimensionKey(input) === shownKey;
+}
+
+/**
+ * 화면의 금액이 지금 입력(= 즉시 포수가 보여 주는 입력)과 다른 입력에서 나온 것인가.
+ * true면 "새 수량 + 옛 금액"이 같이 보이는 상태라 금액(과 수량)을 흐리게 해야 한다.
+ *   - 보이는 금액이 없으면 false(흐릴 것이 없다)
+ *   - 실측 입력 중 면적만 바뀌는 "직전 결과 유지" 상태면 false(즉시 포수도 같은 직전 값을 유지한다)
+ *   - 그 밖에는 지금 요청 열쇠와 보이는 금액의 요청 열쇠가 다르면 true
+ * @param now   지금 입력(toEngineInputWithAssumed 결과). 용도 미선택이면 null
+ * @param shown 보이는 금액을 만든 요청의 열쇠들. 금액이 없으면 null
+ */
+export function mortarCostOutOfSync(
+  now: MortarEngineInput | null,
+  shown: { requestKey: string; restKey: string } | null,
+): boolean {
+  if (!now || !shown) return false;
+  if (canHoldWhileMeasuring(now, shown.restKey)) return false;
+  return mortarRequestKey(now.request) !== shown.requestKey;
 }
 
 /**
