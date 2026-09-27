@@ -38,6 +38,8 @@ import type { WallpaperFormState, WallpaperProductOption } from './wallpaperQuer
 // (그 파일은 'use client' 훅을 못 쓰는 서버 컴포넌트라 이 로직만 따로 뺐다)
 import {
   toEngineInput,
+  nonDimensionKey,
+  canHoldWhileMeasuring,
   type WallpaperCalcRequest,
   type WallpaperAssumption,
   type WallpaperEngineOptions,
@@ -188,6 +190,9 @@ export function useWallpaperCalc(
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // 지금 화면에 결과가 있는지(실측 입력 중일 때 "직전 결과 유지"를 할 수 있는지 판단용)
   const resultRef = useRef<WallpaperCalcResultDTO | null>(null);
+  // 지금 화면에 보이는 결과를 계산할 때 쓴 "치수 뺀 나머지" 열쇠(nonDimensionKey).
+  // 실측 입력 중에 종류·범위 등이 바뀌었는지 알아보는 데 쓴다(2026-09-27 검사관 결함 수리)
+  const shownRestKeyRef = useRef<string | null>(null);
 
   // 폼 상태 + 건드림 표시를 JSON 문자열로 비교해야 얕은 비교로 잡히지 않는 변화(방 배열 내용 등)도 감지한다.
   // options는 화면이 매번 새 객체로 넘길 수 있으니 참조가 아니라 내용(touched)으로 비교한다.
@@ -206,6 +211,7 @@ export function useWallpaperCalc(
       // 벽지 종류를 아직 안 골랐다 — 호출하지 않고 결과를 비운다(빈 상태 착시 방지 원칙)
       abortRef.current?.abort();
       resultRef.current = null;
+      shownRestKeyRef.current = null;
       setResult(null);
       setRange(null);
       setLoading(false);
@@ -221,10 +227,16 @@ export function useWallpaperCalc(
     const nextAssumed = engineInput.assumed.filter((a) => a !== 'measuring');
     setMeasuring(isMeasuring);
 
+    // 이번 요청의 "치수 뺀 나머지" 열쇠 — 결과를 화면에 올릴 때 같이 기억해 둔다
+    const restKey = nonDimensionKey(engineInput);
+
     // 지시서 5-4: 실측이 절반만 들어간 상태(방 카드는 있는데 치수가 빔)에서는 새로 계산하지 않고
     // 직전 결과를 그대로 둔다. 화면은 assumed의 'measuring'을 보고 "실측 입력 중"을 표시한다.
-    // (직전 결과가 아예 없으면 — 예: 정확 모드로 막 들어와 방부터 추가한 경우 — 아래로 내려가 계산한다)
-    if (isMeasuring && resultRef.current) {
+    // 2026-09-27 검사관 결함 수리: 이 유지는 **치수만 바뀌는 동안**에만 한다. 지금 보이는 결과를
+    // 계산할 때의 나머지 열쇠(종류·제품·벽/천장·철거 등)와 지금 입력의 열쇠가 다르면 유지하지 않고
+    // 아래로 내려가 다시 계산한다(덜 찬 방은 이미 요청에서 빠져 있고, 유효한 방이 없으면 34평 가정).
+    // (보이는 결과가 아예 없어도 아래로 내려가 계산한다)
+    if (canHoldWhileMeasuring(engineInput, resultRef.current ? shownRestKeyRef.current : null)) {
       abortRef.current?.abort();
       setLoading(false);
       setStale(false);
@@ -246,6 +258,7 @@ export function useWallpaperCalc(
     if (cached) {
       abortRef.current?.abort();
       resultRef.current = cached.result;
+      shownRestKeyRef.current = restKey; // 화면에 올린 결과의 나머지 열쇠
       setResult(cached.result);
       setRange(cached.range);
       setShownAssumed(nextAssumed);
@@ -279,6 +292,7 @@ export function useWallpaperCalc(
           const rg: WallpaperRange = { min: r.cost.min, max: r.cost.max };
           cacheRef.current.set(cacheKey, { result: r, range: rg });
           resultRef.current = r;
+          shownRestKeyRef.current = restKey; // 화면에 올린 결과의 나머지 열쇠
           setResult(r);
           setRange(rg);
           // 이 결과를 계산할 때 쓴 가정 목록 — 결과와 같은 순간에 바꾼다

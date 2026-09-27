@@ -545,3 +545,42 @@ export function describeAreaPair(state: WallpaperFormState): string | null {
   if (!isPositive(state.pyeong)) return null;
   return `${state.pyeong}평 · ${pyeongToExclusiveSqm(state.pyeong)}㎡`;
 }
+
+// ──────────────────────────────────────────────
+// 실측 입력 중 "직전 결과 유지"를 언제까지 해도 되는지 (2026-09-27 검사관 결함 수리)
+//
+// 결함: 정확 모드에서 덜 찬 방 카드가 하나라도 있으면 계산 훅이 직전 결과를 통째로 유지했다.
+//   그래서 그 사이 벽지 종류·범위(벽/천장) 등을 바꿔도 금액이 옛 조건 그대로 남았다
+//   (화면엔 "실크"인데 금액은 합지 기준).
+// 고친 규칙: 직전 결과 유지는 **치수만 바뀌는 동안**에만 한다. 요청을 "치수 부분"과
+//   "나머지 부분"으로 나눠, 나머지 부분의 열쇠가 지금 화면에 보이는 결과를 계산할 때와
+//   다르면 실측 입력 중이어도 다시 계산한다(덜 찬 방은 빼고 유효한 방만, 없으면 34평 가정).
+// ──────────────────────────────────────────────
+
+/**
+ * 요청에서 치수에 해당하는 칸을 뺀 나머지로 열쇠(문자열)를 만든다.
+ * 치수 칸 = 입력 방식(mode: 실측↔34평 가정 전환도 치수 입력 때문에 생긴다) · 방 목록 · 높이 ·
+ *           면적 · 평형 · 전용 ㎡ · 베이(정확 모드에선 34평 가정의 기본값일 뿐이라 치수 쪽에 둔다).
+ * 나머지 = 벽지 종류 · 제품 · 벽/천장 · 구축 · 철거 · 시공 범위 등 계산에 들어가는 다른 모든 값.
+ * 새 칸이 요청에 생기면 자동으로 "나머지" 쪽에 들어가므로, 모르는 값이 바뀌어도 다시 계산된다(안전한 쪽).
+ */
+export function nonDimensionKey(input: WallpaperEngineInput): string {
+  // 치수 칸들을 떼어 버리고 남은 칸만 모은다
+  const { mode: _mode, rooms: _rooms, heightM: _heightM, areas: _areas, pyeong: _pyeong, exclusiveSqm: _sqm, bay: _bay, ...rest } =
+    input.base;
+  return JSON.stringify({ rest, paperType: input.paper.paperType, product: input.paper.product ?? null });
+}
+
+/**
+ * 실측 입력 중일 때 새 계산 없이 지금 보이는 결과를 그대로 둬도 되는가.
+ *   - 실측 입력 중('measuring')이 아니면 → false (평소처럼 계산)
+ *   - 화면에 보이는 결과가 없으면 → false (계산해야 뭐라도 보인다)
+ *   - 보이는 결과의 "나머지 부분 열쇠"와 지금 입력의 열쇠가 같으면 → true (치수만 바뀌는 중)
+ *   - 다르면 → false (종류·범위 등이 바뀌었다 — 다시 계산)
+ * @param shownKey 지금 화면에 보이는 결과를 계산할 때의 nonDimensionKey. 결과가 없으면 null
+ */
+export function canHoldWhileMeasuring(input: WallpaperEngineInput, shownKey: string | null): boolean {
+  if (!input.assumed.includes('measuring')) return false;
+  if (shownKey === null) return false;
+  return nonDimensionKey(input) === shownKey;
+}

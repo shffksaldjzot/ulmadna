@@ -20,6 +20,8 @@ import {
   resolveView,
   ASSUMED_PYEONG,
   productOptionToRequest,
+  nonDimensionKey,
+  canHoldWhileMeasuring,
 } from '../wallpaperEngineInput';
 import {
   DEFAULT_CALC_FORM,
@@ -504,5 +506,78 @@ describe('좁혀가기 — 가정값·가정 목록', () => {
     const restored = decodeWallpaperForm(encodeWallpaperForm(state))!;
     expect(restored).toEqual(state);
     expect(toEngineInput(restored, NO_PRODUCTS)).toEqual(toEngineInput(state, NO_PRODUCTS));
+  });
+});
+
+// ──────────────────────────────────────────────
+// 2026-09-27 검사관 결함 수리 — 실측 입력 중 "직전 결과 유지"는 치수만 바뀌는 동안에만
+// 재현: 정확 → 합지 → 제품 미정 → 빈 방 추가 → 천장 끔 → 실크로 바꿈. 예전엔 금액이 합지·천장 포함 그대로였다.
+// 훅은 canHoldWhileMeasuring이 false면 새 요청을 만든다(true면 요청 없이 직전 결과 유지).
+// ──────────────────────────────────────────────
+describe('실측 입력 중 직전 결과 유지 범위', () => {
+  /** 직전 결과를 계산할 때의 상태: 합지·제품 미정·정확 모드·유효한 방 1개 + 빈 방 카드 1개 */
+  const SHOWN: WallpaperFormState = {
+    ...DEFAULT_CALC_FORM,
+    paperType: '합지',
+    view: 'precise',
+    entry: 'room',
+    target: 'both',
+    preciseRooms: [
+      { w: 4, d: 3, openings: [] },
+      { w: 0, d: 0, openings: [] }, // 방 추가만 하고 치수를 비운 카드
+    ],
+  };
+  const shownKey = nonDimensionKey(toEngineInput(SHOWN, NO_PRODUCTS)!);
+
+  it('치수만 바뀌고 여전히 덜 찬 상태면 새 요청 없이 직전 결과를 유지한다', () => {
+    const next: WallpaperFormState = {
+      ...SHOWN,
+      preciseRooms: [
+        { w: 4.5, d: 3, openings: [] }, // 유효한 방의 치수만 바뀜
+        { w: 2, d: 0, openings: [] }, // 빈 카드는 가로만 넣어 아직 덜 참
+      ],
+    };
+    const input = toEngineInput(next, NO_PRODUCTS)!;
+    expect(input.assumed).toContain('measuring');
+    expect(canHoldWhileMeasuring(input, shownKey)).toBe(true);
+  });
+
+  it('실측 입력 중에 벽지 종류를 바꾸면 새 요청을 만든다(유효한 방만으로 다시 계산)', () => {
+    const input = toEngineInput({ ...SHOWN, paperType: '실크' }, NO_PRODUCTS)!;
+    expect(input.assumed).toContain('measuring');
+    expect(canHoldWhileMeasuring(input, shownKey)).toBe(false);
+    // 새 요청은 덜 찬 방을 뺀 유효한 방 1개로 만들어진다
+    expect(input.base.mode).toBe('실측');
+    expect(input.base.rooms).toHaveLength(1);
+    expect(input.paper.paperType).toBe('실크');
+  });
+
+  it('실측 입력 중에 범위(천장 끔)를 바꾸면 새 요청을 만든다', () => {
+    const input = toEngineInput({ ...SHOWN, target: 'wall' }, NO_PRODUCTS)!;
+    expect(canHoldWhileMeasuring(input, shownKey)).toBe(false);
+    expect(input.base.ceiling).toBe(false);
+  });
+
+  it('실측 입력 중에 철거 여부를 바꿔도 새 요청을 만든다', () => {
+    const input = toEngineInput({ ...SHOWN, removeOld: false }, NO_PRODUCTS)!;
+    expect(canHoldWhileMeasuring(input, shownKey)).toBe(false);
+  });
+
+  it('유효한 방이 하나도 없으면 34평 가정으로 새 요청을 만들고, 그 뒤 치수만 바뀌는 동안은 유지한다', () => {
+    const empty: WallpaperFormState = { ...SHOWN, paperType: '실크', preciseRooms: [{ w: 0, d: 0, openings: [] }] };
+    const first = toEngineInput(empty, NO_PRODUCTS)!;
+    // 보이는 결과(합지)와 종류가 달라 다시 계산 — 요청은 34평 가정
+    expect(canHoldWhileMeasuring(first, shownKey)).toBe(false);
+    expect(first.base.pyeong).toBe(ASSUMED_PYEONG);
+    // 그 결과가 화면에 올라간 뒤, 빈 카드에 가로만 넣는 동안은 유지
+    const typing = toEngineInput({ ...empty, preciseRooms: [{ w: 3, d: 0, openings: [] }] }, NO_PRODUCTS)!;
+    expect(canHoldWhileMeasuring(typing, nonDimensionKey(first))).toBe(true);
+  });
+
+  it('보이는 결과가 없거나 실측 입력 중이 아니면 유지하지 않는다', () => {
+    const input = toEngineInput(SHOWN, NO_PRODUCTS)!;
+    expect(canHoldWhileMeasuring(input, null)).toBe(false);
+    const done = toEngineInput({ ...SHOWN, preciseRooms: [{ w: 4, d: 3, openings: [] }] }, NO_PRODUCTS)!;
+    expect(canHoldWhileMeasuring(done, shownKey)).toBe(false);
   });
 });
