@@ -17,6 +17,7 @@
 import { useEffect, useRef } from 'react';
 import StepRow from './StepRow';
 import type { FlowStepDef } from './types';
+import { ensureFocusModalityTracking } from './focusModality';
 
 export interface FlowShellProps {
   steps: FlowStepDef[];
@@ -31,6 +32,12 @@ export default function FlowShell({ steps, activeIndex, completeFlags, reopen }:
   // "지난번" activeIndex를 기억해서, 칩·숫자만 바뀌고 단계 번호는 그대로인 경우엔
   // 스크롤을 절대 시키지 않는다(지시서 3-5절 핵심 규칙)
   const prevActiveIndexRef = useRef(activeIndex);
+
+  // 2026-09-27 재검수 추가 지적 5번: 새 틀 전용 초점 테두리 규칙이 쓸 "마지막 입력 방식"
+  // 추적을 여기서 한 번 켠다(중복 호출은 안에서 알아서 막는다).
+  useEffect(() => {
+    ensureFocusModalityTracking();
+  }, []);
 
   useEffect(() => {
     if (activeIndex === prevActiveIndexRef.current) return;
@@ -66,7 +73,8 @@ export default function FlowShell({ steps, activeIndex, completeFlags, reopen }:
   return (
     // gap-2(8px): 단계 사이 세로 간격을 지시서 3-2절대로 8px로 통일한다(예전엔 간격이 0이라
     // 완료 줄 밑줄이 바로 아래 카드 윗선과 거의 붙어 보였다 — 검수 지적 7번)
-    <div className="flex flex-col gap-2">
+    // flowFocusScope: 이 안(칩·세그먼트·버튼)에서만 새 초점 테두리 규칙(globals.css)이 적용된다
+    <div className="flex flex-col gap-2 flowFocusScope">
       {steps.map((step, i) => (
         <StepRow
           key={step.key}

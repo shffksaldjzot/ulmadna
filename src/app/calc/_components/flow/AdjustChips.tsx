@@ -22,7 +22,8 @@ export interface AdjustChipsProps {
 export default function AdjustChips({ visible, groups }: AdjustChipsProps) {
   if (!visible || groups.length === 0) return null;
   return (
-    <div className="flex flex-col gap-3">
+    // flowFocusScope: 조정 칩도 새 틀 부품이라 같은 초점 테두리 규칙을 쓴다(2026-09-27 지적 5번)
+    <div className="flex flex-col gap-3 flowFocusScope">
       {groups.map((g) => (
         <div key={g.key} className="flex items-center gap-2 flex-wrap">
           <span className="t-sub text-ink-2 flex-none">{g.label}</span>

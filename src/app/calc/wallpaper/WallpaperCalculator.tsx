@@ -88,10 +88,91 @@ interface WallpaperSession {
  * 통째로 버리고 기본 상태로 시작하게 한다. 옛 판(형식이 바뀌기 전) 데이터나, 다른 코드가
  * sessionStorage를 건드려 놓은 경우 등을 방어한다.
  */
+/**
+ * 개구부(문·창) 목록 하나가 우리가 기대하는 모양인지 — {kind, w, h, count} 전부 정확한 형.
+ * 2026-09-27 배포 전 재검수 지적 3번: preciseRooms 안쪽까지 안 보면, 방은 배열인데 그 안의
+ * openings가 배열이 아니거나 방 자체가 {w,d} 없이 이상한 값이면 나중에 정밀 폼 컴포넌트가
+ * `.filter`·`.map`을 부르다 그대로 멈춘다.
+ */
+function isValidOpening(v: unknown): boolean {
+  if (!v || typeof v !== 'object') return false;
+  const o = v as Record<string, unknown>;
+  return (
+    (o.kind === 'door' || o.kind === 'window') &&
+    typeof o.w === 'number' &&
+    typeof o.h === 'number' &&
+    typeof o.count === 'number'
+  );
+}
+
+/** 정밀 폼 방 하나(PreciseRoomInput)의 모양 검사 — w·d는 필수 숫자, h는 있으면 숫자, openings는 배열 */
+function isValidPreciseRoom(v: unknown): boolean {
+  if (!v || typeof v !== 'object') return false;
+  const r = v as Record<string, unknown>;
+  if (typeof r.w !== 'number' || typeof r.d !== 'number') return false;
+  if (r.h !== undefined && typeof r.h !== 'number') return false;
+  if (!Array.isArray(r.openings) || !r.openings.every(isValidOpening)) return false;
+  return true;
+}
+
+/**
+ * 세션에 저장된 폼 상태(WallpaperFormState) 자체의 모양을 검사한다(2026-09-27 배포 전
+ * 재검수 지적 3번). 실제 사고 사례: preciseRooms가 배열이 아닌 값으로 저장돼 있으면
+ * `(state.preciseRooms ?? []).filter is not a function`으로 화면이 그대로 멈췄다.
+ * 여기서 배열·숫자·문자열·허용된 값까지 미리 걸러서, 하나라도 어긋나면 세션 전체를
+ * 버리고 기본 상태로 시작하게 한다(폼 안쪽 칸 하나 때문에 전체를 못 쓰게 되는 게
+ * 어설프게 부분만 살리는 것보다 안전하다 — 계산에 쓰는 값들끼리 서로 앞뒤가 안 맞을
+ * 위험이 없어진다).
+ */
+function isValidWallpaperFormState(v: unknown): v is WallpaperFormState {
+  if (!v || typeof v !== 'object') return false;
+  const f = v as Record<string, unknown>;
+
+  // 필수 칸(WallpaperFormState 정의상 물음표가 없는 칸) — 없거나 모양이 다르면 바로 탈락
+  if (f.mode !== '평형' && f.mode !== '실측' && f.mode !== '면적') return false;
+  if (typeof f.ceiling !== 'boolean') return false;
+  if (
+    f.scope !== '전체' &&
+    f.scope !== '거실주방' &&
+    !(Array.isArray(f.scope) && f.scope.every((s) => typeof s === 'string'))
+  ) {
+    return false;
+  }
+
+  if (f.paperType !== undefined && f.paperType !== '합지' && f.paperType !== '실크') return false;
+  if (f.view !== undefined && f.view !== 'simple' && f.view !== 'precise') return false;
+  if (f.areaUnit !== undefined && f.areaUnit !== '평' && f.areaUnit !== '㎡') return false;
+  if (f.bay !== undefined && f.bay !== 2 && f.bay !== 3 && f.bay !== 4) return false;
+  if (f.pyeong !== undefined && typeof f.pyeong !== 'number') return false;
+  if (f.exclusiveSqm !== undefined && typeof f.exclusiveSqm !== 'number') return false;
+  if (f.target !== undefined && f.target !== 'wall' && f.target !== 'ceiling' && f.target !== 'both') return false;
+  if (f.entry !== undefined && f.entry !== 'room' && f.entry !== 'length') return false;
+  if (f.unit !== undefined && f.unit !== 'mm' && f.unit !== 'm') return false;
+  if (f.heightM !== undefined && typeof f.heightM !== 'number') return false;
+  if (f.wallLength !== undefined && typeof f.wallLength !== 'number') return false;
+  if (f.directCeilingSqm !== undefined && typeof f.directCeilingSqm !== 'number') return false;
+  if (f.removeOld !== undefined && typeof f.removeOld !== 'boolean') return false;
+  if (f.productCode !== undefined && typeof f.productCode !== 'string') return false;
+  if (f.product !== undefined) {
+    if (!f.product || typeof f.product !== 'object') return false;
+    const p = f.product as Record<string, unknown>;
+    if (typeof p.rollPrice !== 'number' || typeof p.widthCm !== 'number' || typeof p.lengthM !== 'number') return false;
+    if (p.repeatCm !== undefined && typeof p.repeatCm !== 'number') return false;
+  }
+  // 실제 사고가 났던 그 칸 — 배열이어야 하고, 안의 방 하나하나도 모양이 맞아야 한다
+  if (f.preciseRooms !== undefined && (!Array.isArray(f.preciseRooms) || !f.preciseRooms.every(isValidPreciseRoom))) {
+    return false;
+  }
+  if (f.lengthOpenings !== undefined && (!Array.isArray(f.lengthOpenings) || !f.lengthOpenings.every(isValidOpening))) {
+    return false;
+  }
+  return true;
+}
+
 function isValidWallpaperSession(v: unknown): v is WallpaperSession {
   if (!v || typeof v !== 'object') return false;
   const s = v as Record<string, unknown>;
-  if (!s.form || typeof s.form !== 'object') return false;
+  if (!isValidWallpaperFormState(s.form)) return false;
   if (!Array.isArray(s.touched) || !s.touched.every((t) => typeof t === 'boolean')) return false;
   if (typeof s.userPickedMode !== 'boolean') return false;
   if (typeof s.bayTouched !== 'boolean') return false;
@@ -171,7 +252,15 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
    * 건드린다(제품을 이미 골라 둔 채로 있어야 한다).
    */
   function setPaperType(v: '합지' | '실크' | undefined) {
-    if (v === form.paperType) return;
+    if (v === form.paperType) {
+      // 2026-09-27 배포 전 재검수 지적 2번: 값이 안 바뀌었어도(같은 종류를 다시 누름)
+      // "바꾸기"로 강제로 열어 둔 단계는 지시서 4-2절대로 원래 모습으로 접혀야 한다.
+      // 폼 값·제품 손댐 표시는 절대 안 건드리고, formVersion만 올려서 useFlowSteps의
+      // "강제 열림 해제" 효과(버전이 바뀌면 overrideIndex를 null로 되돌리는 로직)만
+      // 그대로 재사용한다 — patch({})는 값은 그대로 두고 새 객체 참조만 만든다.
+      patch({});
+      return;
+    }
     patch({ paperType: v, productCode: undefined, product: undefined });
     touch(0);
     resetTouched([1]);

@@ -163,7 +163,12 @@ export default function ProductSheet({
 
   return createPortal(
     // items-end: 모바일은 화면 아래에 붙는다. md 이상은 items-center로 가운데 창이 된다(3-11절)
-    <div className="fixed inset-0 z-50 flex items-end justify-center md:items-center" onKeyDown={handleKeyDown}>
+    // flowFocusScope: document.body에 바로 붙는 포털이라 조상 클래스를 못 물려받으므로,
+    // 여기 직접 붙여 시트 줄·적용 버튼도 같은 초점 테두리 규칙을 쓰게 한다(2026-09-27 지적 5번)
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center md:items-center flowFocusScope"
+      onKeyDown={handleKeyDown}
+    >
       {/* 어두운 배경 — 누르면 닫힌다(시트만, 뒤로 가기 스택은 collapseBackLayer로 정리) */}
       <button type="button" aria-label="닫기" onClick={onClose} className="absolute inset-0 bg-black/40" />
 

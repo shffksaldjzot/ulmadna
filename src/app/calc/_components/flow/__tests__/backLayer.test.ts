@@ -18,15 +18,33 @@ import { createBackStack, type HistoryAdapter } from '../backLayer';
  * entries[0]은 "우리가 손대기 전의 원래 페이지"를 뜻하고, index가 지금 위치다.
  * pushState는 현재 위치 뒤를 잘라내고 새 항목을 추가(진짜 브라우저와 동일 동작),
  * back()은 위치를 하나 줄이고 그 자리의 popstate 리스너를 전부 부른다.
+ *
+ * pathnames: 각 칸의 주소(경로)를 같이 기억한다(5번 재수리 시험용). pushState로 쌓는 칸은
+ * 항상 "지금 계산기 페이지" 주소를 그대로 물려받는다(실제로도 우리 pushState는 주소를
+ * 안 바꾼다). 진짜 다른 페이지로 이동한 것을 흉내 내려면 simulateNavigateTo()를 쓴다
+ * (실제 브라우저에서 링크를 눌러 다른 페이지로 간 것과 같다 — 우리 어댑터의 pushState를
+ * 거치지 않는다).
  */
 class FakeHistory implements HistoryAdapter {
   entries: unknown[] = [null];
+  pathnames: string[] = ['/calc/wallpaper'];
   index = 0;
   private listeners: Array<(state: unknown) => void> = [];
 
   pushState(state: unknown): void {
     this.entries = this.entries.slice(0, this.index + 1);
+    this.pathnames = this.pathnames.slice(0, this.index + 1);
     this.entries.push(state);
+    this.pathnames.push(this.pathnames[this.index]); // 주소는 그대로 물려받는다
+    this.index++;
+  }
+
+  /** 시험 전용 — 진짜 다른 페이지로 이동한 것을 흉내 낸다(주소가 실제로 바뀐다) */
+  simulateNavigateTo(pathname: string): void {
+    this.entries = this.entries.slice(0, this.index + 1);
+    this.pathnames = this.pathnames.slice(0, this.index + 1);
+    this.entries.push(null);
+    this.pathnames.push(pathname);
     this.index++;
   }
 
@@ -42,6 +60,10 @@ class FakeHistory implements HistoryAdapter {
     return () => {
       this.listeners = this.listeners.filter((f) => f !== fn);
     };
+  }
+
+  getPathname(): string {
+    return this.pathnames[this.index];
   }
 }
 
@@ -159,6 +181,89 @@ describe('backLayer — 쌓임 스택 순수 로직', () => {
       expect(calls).toEqual([]);
     },
   );
+
+  it(
+    '[배포 전 재검수 지적 1번 재현] 새로 고침 뒤(메모리 스택은 비었지만 브라우저 기록엔 ' +
+      '옛 칸이 남아 있을 때) 뒤로 가기 한 번이 그 옛 칸들을 전부 건너뛰어 곧장 계산기 ' +
+      '이전 페이지로 나간다 — 예전엔 짝 없는 칸마다 무반응이었다',
+    () => {
+      const history = new FakeHistory();
+      // "이전 세션"에서 세 칸을 쌓아 뒀다고 흉내낸다(간단→합지→제품→완료 등) — 이 시점엔
+      // 아직 createBackStack을 안 만들었으니 그 칸들을 기억하는 메모리 자체가 없다.
+      history.pushState({ calcId: 'wallpaper', seq: 1 });
+      history.pushState({ calcId: 'wallpaper', seq: 2 });
+      history.pushState({ calcId: 'wallpaper', seq: 3 });
+      expect(history.index).toBe(3);
+
+      // 새로 고침 — 메모리 스택은 완전히 새로 만든다(비어 있다). 브라우저 history는 그대로.
+      const stack = createBackStack(history);
+      expect(stack.__debugStack()).toEqual([]);
+
+      // 사용자가 뒤로 가기를 "한 번"만 누른다
+      history.back();
+
+      // 옛 칸 세 개(seq 3·2·1)를 전부 건너뛰어, 표식이 없는 원래 페이지(index 0)까지
+      // 곧장 도달해야 한다 — "뒤로 가기 한 번 = 눈에 보이는 변화 한 번"
+      expect(history.index).toBe(0);
+    },
+  );
+
+  it(
+    '[실기기 재검증 중 추가 발견 재현] 표식이 없어도 주소가 아직 계산기 페이지 그대로면 ' +
+      '건너뛴다(Next.js 라우터 등이 계산기 페이지 안쪽에 만들어 둔 칸) — 그 아래 주소가 ' +
+      '실제로 다른 진짜 이전 페이지(허브)에 닿아야 비로소 멈춘다',
+    () => {
+      const history = new FakeHistory();
+      // index0: 진짜 이전 페이지(허브, /calc) — 주소가 계산기와 다르다
+      history.pathnames[0] = '/calc';
+      // index1: 계산기 페이지를 처음 열 때 생긴, 표식 없는 칸(주소는 계산기 그대로)
+      history.simulateNavigateTo('/calc/wallpaper');
+      // index2, index3: 우리가 쌓은 표식 있는 칸 두 개
+      history.pushState({ calcId: 'wallpaper', seq: 1 });
+      history.pushState({ calcId: 'wallpaper', seq: 2 });
+      expect(history.index).toBe(3);
+
+      // 새로 고침 흉내 — 메모리 스택은 비어서 시작한다(homePathname은 지금 주소 '/calc/wallpaper'로 잡힌다)
+      createBackStack(history);
+
+      // 사용자가 뒤로 가기를 "한 번"만 누른다
+      history.back();
+
+      // 표식 있는 칸 두 개 + 표식 없지만 같은 주소인 칸까지 전부 건너뛰어, 주소가 실제로
+      // 다른 허브 페이지(index0)에 곧장 닿아야 한다 — "뒤로 가기 한 번 = 눈에 보이는 변화 한 번"
+      expect(history.index).toBe(0);
+    },
+  );
+
+  it('주소가 실제로 다른 진짜 이전 페이지에 닿으면(표식도 없고 계산기 주소도 아니면) 더 건너뛰지 않고 멈춘다', () => {
+    const history = new FakeHistory();
+    history.pathnames[0] = '/blog/some-post'; // 진짜 다른 페이지(블로그 글)
+    history.simulateNavigateTo('/calc/wallpaper'); // index1: 계산기 페이지 도착(표식 없음)
+    history.pushState({ calcId: 'wallpaper', seq: 1 }); // index2: 표식 있는 칸
+
+    createBackStack(history);
+    history.back();
+
+    // index2(표식) → index1(표식 없지만 같은 주소, 건너뜀) → index0(진짜 다른 페이지, 멈춤)
+    expect(history.index).toBe(0);
+
+    // 한 번 더 눌러도(이미 진짜 원래 페이지 바깥이라 더 갈 곳이 없다) 그대로다
+    history.back();
+    expect(history.index).toBe(0);
+  });
+
+  it('짝 없는 옛 칸이 상한(MAX_ORPHAN_SKIP)보다 많아도 무한 반복하지 않고 멈춘다', () => {
+    const history = new FakeHistory();
+    // 상한을 넉넉히 넘는 40칸을 쌓아 둔다
+    for (let i = 1; i <= 40; i++) history.pushState({ calcId: 'wallpaper', seq: i });
+    createBackStack(history);
+
+    history.back();
+
+    // 상한(30개)까지만 건너뛰고 멈춰야 한다 — index가 0까지 다 안 내려가고 남아 있어야 한다
+    expect(history.index).toBeGreaterThan(0);
+    expect(history.index).toBe(40 - 1 - 30);
+  });
 
   it('서로 다른 계산기(calcId) 몫은 clearBackLayers로 섞이지 않는다', () => {
     const history = new FakeHistory();

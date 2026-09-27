@@ -38,6 +38,27 @@ type CustomFields = {
   repeatCm: number | '';
 };
 
+/**
+ * 서버(route.ts의 parseProduct)가 실제로 받아 주는 범위와 반드시 같은 값이어야 한다.
+ * 서버 전용 파일은 클라이언트 번들에 섞이면 안 되므로(단가 로직 유출 금지) 숫자만
+ * 따로 복사해서 화면 쪽 검사에 쓴다 — route.ts:132-134 값이 바뀌면 여기도 같이 고칠 것.
+ * 2026-09-27 배포 전 재검수 지적 4번: 이 범위 밖 값도 예전엔 [적용]이 눌려서, 서버가
+ * 거절하면 "실패해 이전 값이에요"만 뜨고 왜 실패했는지 알 수 없었다 — 아예 화면에서 막는다.
+ */
+const CUSTOM_PRODUCT_LIMITS = {
+  rollPrice: { min: 1000, max: 1000000, unit: '원' },
+  widthCm: { min: 20, max: 400, unit: 'cm' },
+  lengthM: { min: 1, max: 100, unit: 'm' },
+} as const;
+
+/** 값이 하나라도 범위를 벗어나면 짧은 안내 문구를(마침표 없이) 돌려주고, 안 벗어나면 undefined */
+function customRangeError(value: number | '', limit: { min: number; max: number; unit: string }): string | undefined {
+  if (value === '') return undefined; // 아직 안 적은 칸은 범위 오류가 아니라 "안 채움"이므로 메시지를 안 보인다
+  if (value < limit.min) return `${limit.min.toLocaleString('ko-KR')}${limit.unit} 이상`;
+  if (value > limit.max) return `${limit.max.toLocaleString('ko-KR')}${limit.unit} 이하`;
+  return undefined;
+}
+
 export interface PaperPickerProps {
   /**
    * 이 카드에서 어느 부분만 그릴지 — "종류"와 "제품"이 서로 다른 단계(StepRow)에 들어간다.
@@ -144,8 +165,23 @@ export default function PaperPicker({
     setCustom((prev) => ({ ...prev, ...p }));
   }
 
-  /** 지금 임시 입력값(custom)이 실제로 쓸 수 있는 값인지 — "적용" 버튼 활성화 판정 */
-  const customValid = custom.rollPrice !== '' && custom.rollPrice > 0 && custom.widthCm !== '' && custom.widthCm > 0 && custom.lengthM !== '' && custom.lengthM > 0;
+  // 세 칸 각각의 범위 오류 문구 — 값이 서버가 거절할 범위면 칸 아래에 짧게 보인다
+  const priceError = customRangeError(custom.rollPrice, CUSTOM_PRODUCT_LIMITS.rollPrice);
+  const widthError = customRangeError(custom.widthCm, CUSTOM_PRODUCT_LIMITS.widthCm);
+  const lengthError = customRangeError(custom.lengthM, CUSTOM_PRODUCT_LIMITS.lengthM);
+
+  /**
+   * 지금 임시 입력값(custom)이 실제로 쓸 수 있는 값인지 — "적용" 버튼 활성화 판정.
+   * 2026-09-27 배포 전 재검수 지적 4번: 세 칸이 채워졌는지뿐 아니라, 서버가 받아 줄
+   * 범위 안인지까지 같이 봐야 한다(안 그러면 가격 1원·폭 1cm 같은 값도 눌려 버린다).
+   */
+  const customValid =
+    custom.rollPrice !== '' &&
+    custom.widthCm !== '' &&
+    custom.lengthM !== '' &&
+    !priceError &&
+    !widthError &&
+    !lengthError;
 
   /**
    * "적용" 버튼을 눌렀을 때만 부른다 — 이 순간에만 폼에 실제로 반영되고(onProductChange),
@@ -293,6 +329,8 @@ export default function PaperPicker({
               value={custom.rollPrice}
               onChange={(v) => updateCustom({ rollPrice: v })}
             />
+            {/* 2026-09-27 재검수 지적 4번: 서버가 거절할 범위면 칸 바로 아래 한 줄로 알려 준다 */}
+            {priceError && <span className="t-sub text-danger -mt-1">{priceError}</span>}
             <div className="flex gap-2 t-sub text-ink-2 pt-1">
               <span className="flex-1 min-w-0">폭</span>
               <span className="flex-1 min-w-0">길이</span>
@@ -315,6 +353,12 @@ export default function PaperPicker({
                 onChange={(v) => updateCustom({ lengthM: v })}
               />
             </div>
+            {(widthError || lengthError) && (
+              <div className="flex gap-2 t-sub text-danger -mt-1">
+                <span className="flex-1 min-w-0">{widthError}</span>
+                <span className="flex-1 min-w-0">{lengthError}</span>
+              </div>
+            )}
             <span className="t-sub text-ink-2 pt-1">무늬 반복(선택)</span>
             <NumberField
               aria-label="무늬 반복"

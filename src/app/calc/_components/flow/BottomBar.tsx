@@ -57,7 +57,8 @@ export default function BottomBar({
   onRetry,
 }: BottomBarProps) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-14 bg-surface border-t border-line flex items-center justify-between gap-3 px-4 lg:hidden z-40">
+    // flowFocusScope: 하단 바 버튼도 새 틀 부품이라 같은 초점 테두리 규칙을 쓴다(2026-09-27 지적 5번)
+    <div className="fixed bottom-0 left-0 right-0 h-14 bg-surface border-t border-line flex items-center justify-between gap-3 px-4 lg:hidden z-40 flowFocusScope">
       {failed ? (
         <>
           <span className="t-body text-ink">계산하지 못했어요</span>
