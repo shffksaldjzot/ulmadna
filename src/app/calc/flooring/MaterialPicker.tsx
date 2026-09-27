@@ -345,23 +345,18 @@ export default function MaterialPicker({
         <IconChevronRight className="text-ink-2 flex-none" />
       </button>
 
-      {/* ⚠️ 임시 연결(2026-09-27 지휘관 2차 전달): onReopen·calcId는 지금 공용 틀
-          (flow/ProductSheet.tsx)의 옛 계약이다. 도배 쪽엔 이미 이 두 속성을 없애고
-          뒤로 가기 등록을 useSheetBackNav 훅(FlooringCalculator 같은 맨 위 부품에서
-          부름)으로 옮긴 새 커밋(36cfcf3)이 있는데, 이 작업 폴더의 공용 틀은 아직 옛
-          모양이라 지금은 이 방식으로 연결해 둔다. 지휘관이 그 커밋을 가져오면 이 두
-          줄(onReopen·calcId)을 지우고, FlooringCalculator.tsx의 sheetOpen 선언부에
-          적어 둔 useSheetBackNav 호출로 바꿀 것. */}
+      {/* 뒤로·앞으로 가기 감시는 이 부품이 안 한다 — 계산기 맨 위(FlooringCalculator)가
+          useSheetBackNav로 직접 한다(모드 카드로 돌아가면 이 부품 자체가 사라지므로,
+          여기서 감시하면 죽은 인스턴스를 가리키는 사고가 난다). 이 부품은 열림 여부만
+          받아 그리는 순수 표시 전용이다. */}
       <ProductSheet
         open={sheetOpen}
         onClose={() => onSheetOpenChange(false)}
-        onReopen={() => onSheetOpenChange(true)}
         title="바닥재 제품"
         items={items}
         selectedCode={selectedCode}
         onSelect={onSheetSelect}
         undecidedPriceLabel={undecidedPriceLabel}
-        calcId="flooring"
         customForm={
           kind === '장판' ? (
             <>

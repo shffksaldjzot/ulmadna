@@ -49,6 +49,7 @@ import AdjustChips from '../_components/flow/AdjustChips';
 import BottomBar from '../_components/flow/BottomBar';
 import { useFlowSteps } from '../_components/flow/useFlowSteps';
 import { useFlowBackNav } from '../_components/flow/useFlowBackNav';
+import { useSheetBackNav } from '../_components/flow/useSheetBackNav';
 import { loadSessionState, saveSessionState } from '../_components/flow/sessionPersist';
 import type { FlowStepDef } from '../_components/flow/types';
 import ModePicker, { type CalcViewMode } from '../_components/ModePicker';
@@ -173,15 +174,6 @@ export default function FlooringCalculator({ products }: FlooringCalculatorProps
   // MaterialPicker는 화면에서 사라지지만 이 컴포넌트(FlooringCalculator) 자체는 계속
   // 마운트된 채라, 뒤로 가기 스택이 쥔 "시트 다시 열기" 콜백이 죽은 컴포넌트 인스턴스를
   // 가리키는 사고(도배에서 실제로 난 결함)가 안 생긴다.
-  //
-  // ⚠️ 임시 연결(2026-09-27 지휘관 2차 전달): 도배 쪽 공용 틀에 이 상태의 뒤로 가기
-  // 등록을 전담하는 새 훅 useSheetBackNav(flow/useSheetBackNav.ts)가 생겼는데, 이
-  // 작업 폴더에는 아직 없다(다른 브랜치 커밋 36cfcf3). 지금은 옛 방식대로 MaterialPicker
-  // 안의 ProductSheet가 calcId="flooring"·onReopen prop을 받아 직접 뒤로 가기 스택에
-  // 등록한다(아래 MaterialPicker 호출부 참고). 지휘관이 도배 쪽 커밋을 이 브랜치로
-  // 가져온 뒤에는 여기서 바로
-  //   useSheetBackNav({ calcId: CALC_ID, open: sheetOpen, onClose: () => setSheetOpen(false), onReopen: () => setSheetOpen(true) })
-  // 를 부르고, MaterialPicker에 넘기던 calcId·onReopen 관련 배선은 걷어낼 것.
   const [sheetOpen, setSheetOpen] = useState(false);
 
 
@@ -238,6 +230,16 @@ export default function FlooringCalculator({ products }: FlooringCalculatorProps
       setSheetOpen(false);
     },
     onReenterMode: () => setUserPickedMode(true),
+  });
+
+  // 제품 시트의 뒤로·앞으로 가기 감시 — 반드시 이 최상위(절대 언마운트 안 되는) 계산기가
+  // 직접 부른다(useSheetBackNav.ts 주석 참고, 도배 7차 검사 치명 수리와 같은 이유 —
+  // MaterialPicker처럼 모드 카드로 돌아가면 사라지는 부품 안에서 부르면 안 된다).
+  useSheetBackNav({
+    calcId: CALC_ID,
+    open: sheetOpen,
+    onClose: () => setSheetOpen(false),
+    onReopen: () => setSheetOpen(true),
   });
 
   // 새로 고침 복원 — 공유 링크로 들어온 게 아니면 값이 바뀔 때마다 세션에 저장해 둔다.
