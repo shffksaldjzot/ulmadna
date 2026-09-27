@@ -25,6 +25,12 @@ import { calcFlooringLabor, laborSpecManDays } from '../labor-flooring';
 import { calcSheet } from '../cutting/sheet';
 import { calcRollFloor } from '../cutting/rollFloor';
 import { POST, GET } from '@/app/api/calc/flooring/route';
+// 2026-09-27 좁혀가기 테스트용 — 화면이 쓰는 변환 함수·제품 목록을 그대로 거쳐 계산한다
+import { exposedFlooringProducts } from '../flooring';
+import { FLOORING_PRODUCTS } from '../data/flooring-products';
+import { toFlooringProductOptions, isShowableFlooringProduct } from '@/lib/v1/flooringProductOptions';
+import { toEngineInput } from '@/lib/v1/flooringEngineInput';
+import { DEFAULT_FLOORING_FORM, type FlooringFormState } from '@/lib/v1/flooringQuery';
 
 /** 테스트에서 자주 쓰는 34평 3베이 전체 조건 */
 const BASE_34 = { mode: '평형' as const, pyeong: 34, bay: 3 as const, scope: '전체' as const };
@@ -537,5 +543,92 @@ describe('전용면적(㎡) 직접 입력 — 2026-09-15 ㎡ 모드', () => {
   it('API 라우트 — exclusiveSqm이 허용 범위(20~300) 밖이면 400이다', async () => {
     const res = await POST(post({ mode: '평형', exclusiveSqm: 10, bay: 3, kind: '마루' }));
     expect(res.status).toBe(400);
+  });
+});
+
+// ──────────────────────────────────────────────
+// 2026-09-27 좁혀가기 — 제품 없이 자재만 오면 그 자재의 노출 제품 전체 범위
+// 핵심 약속: 어떤 노출 제품을 골라도 금액 범위는 좁아지거나 같다(자재 전체 범위 안).
+// ──────────────────────────────────────────────
+describe('좁혀가기 — 자재 전체 범위', () => {
+  const OPTIONS = toFlooringProductOptions(FLOORING_PRODUCTS);
+
+  /** 화면 폼 상태 → 화면 변환 함수 → 서버 계산(화면에서 실제로 일어나는 길 그대로) */
+  function calcViaScreen(state: FlooringFormState) {
+    const request = toEngineInput(state, OPTIONS);
+    if (!request) throw new Error('요청이 만들어지지 않았다');
+    return calcFlooring(request);
+  }
+
+  const CONDITIONS: { label: string; extra: Partial<FlooringFormState> }[] = [
+    { label: '34평 3베이 전체', extra: {} },
+    { label: '24평 2베이 방만', extra: { pyeong: 24, bay: 2, scope: '방만' } },
+    { label: '40평 4베이 거실주방·철거 끔', extra: { pyeong: 40, bay: 4, scope: '거실주방', removeOld: false } },
+    { label: '정확 모드 방 2개·걸레받이 끔', extra: { view: 'precise', preciseRooms: [{ w: 4, d: 3.2 }, { w: 5.1, d: 3 }], baseboard: false } },
+  ];
+
+  for (const kind of ['마루', '장판', '데코타일'] as const) {
+    it(`${kind}: 자재만 고르면 결과가 나오고 수량 범위가 붙는다`, () => {
+      const r = calcViaScreen({ ...DEFAULT_FLOORING_FORM, kind });
+      expect(r.cost.min).toBeGreaterThan(0);
+      expect(r.cost.max).toBeGreaterThanOrEqual(r.cost.min);
+      expect(r.quantity.unitsRange).toBeDefined();
+      expect(r.quantity.unitsRange!.min).toBeLessThanOrEqual(r.quantity.unitsRange!.max);
+    });
+
+    for (const cond of CONDITIONS) {
+      it(`${kind} · ${cond.label}: 노출 제품 하나하나를 골라도 범위가 자재 전체 범위 안에 든다`, () => {
+        const base: FlooringFormState = { ...DEFAULT_FLOORING_FORM, kind, ...cond.extra };
+        const kindRange = calcViaScreen(base);
+        const showable = OPTIONS.filter((p) => p.kind === kind && isShowableFlooringProduct(p));
+        expect(showable.length).toBeGreaterThan(0);
+        for (const p of showable) {
+          const picked = calcViaScreen({ ...base, productCode: p.code });
+          expect(picked.quantity.unitsRange).toBeUndefined();
+          expect(picked.cost.min, `${p.brand} ${p.name} ${p.variant} 최저`).toBeGreaterThanOrEqual(kindRange.cost.min);
+          expect(picked.cost.max, `${p.brand} ${p.name} ${p.variant} 최고`).toBeLessThanOrEqual(kindRange.cost.max);
+        }
+      });
+    }
+  }
+
+  it('구성 보기 줄 금액을 더하면 결과 최저·최고와 맞는다(1,000원 단위 반올림)', () => {
+    for (const kind of ['마루', '장판', '데코타일'] as const) {
+      const r = calcFlooring({ ...BASE_34, kind });
+      const sumMin = r.cost.breakdown.reduce((s, l) => s + l.amountMin, 0);
+      const sumMax = r.cost.breakdown.reduce((s, l) => s + l.amountMax, 0);
+      expect(Math.round(sumMin / 1000) * 1000).toBe(r.cost.min);
+      expect(Math.round(sumMax / 1000) * 1000).toBe(r.cost.max);
+    }
+  });
+
+  it('자재 전체 범위 응답에 제품 이름·브랜드·출처가 새지 않는다', () => {
+    for (const kind of ['마루', '장판', '데코타일'] as const) {
+      const json = JSON.stringify(calcFlooring({ ...BASE_34, kind }));
+      for (const p of FLOORING_PRODUCTS) {
+        if (p.kind !== kind) continue;
+        // 두 글자 이하 라인명은 일반 낱말과 겹칠 수 있어 브랜드+라인 묶음으로 본다
+        expect(json).not.toContain(`${p.brand} ${p.line}`);
+      }
+      for (const word of ['세부설계서', 'EST-', 'ulmadna_db', '_dev-docs', 'http']) {
+        expect(json).not.toContain(word);
+      }
+      expect(Object.keys(calcFlooring({ ...BASE_34, kind })).sort()).toEqual(['cost', 'quantity', 'submaterials']);
+    }
+  });
+
+  it('exposedFlooringProducts는 화면 목록 규칙과 같은 제품 수를 돌려준다', () => {
+    for (const kind of ['마루', '장판', '데코타일'] as const) {
+      const fromScreen = OPTIONS.filter((p) => p.kind === kind && isShowableFlooringProduct(p));
+      expect(exposedFlooringProducts(kind).length).toBe(fromScreen.length);
+    }
+  });
+
+  it('API: 제품 없이 자재만 보내도 200과 자재 전체 범위·수량 범위를 돌려준다', async () => {
+    const res = await POST(post({ mode: '평형', pyeong: 34, bay: 3, kind: '마루' }));
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.cost.max).toBeGreaterThanOrEqual(json.cost.min);
+    expect(json.quantity.unitsRange.min).toBeLessThanOrEqual(json.quantity.unitsRange.max);
   });
 });
