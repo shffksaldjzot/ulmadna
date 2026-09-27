@@ -34,6 +34,9 @@ import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
 // 2026-09-15 디자인 통일 작업: 결과 화면 저장·공유 부품을 계산기 3종 공용 위치로 옮겼다
 import { PostToBoardCheckbox, ResultFab } from '../../_components/ResultActions';
 import CalcContactCta from '../../_components/CalcContactCta';
+// 비용 구성 한 줄 표기 — 즉답 화면(ResultPanel.tsx)과 완전히 같은 규칙을 쓰려고 공용 파일로
+// 뺐다(2026-09-27 4차 검수 지적 2번 — 만 원 미만 단가가 "0만"으로 보이던 문제 수리)
+import { formatCostLineAmount } from '../costLineFormat';
 
 export const metadata = {
   title: '도배 계산기 결과 — 얼마드나',
@@ -96,27 +99,8 @@ function buildSummary(state: WallpaperFormState): string {
   return parts.join(' · ');
 }
 
-/** 비용 구성 한 줄을 "28롤 × 3.2만 = 90만" 또는 범위 문자열로 만든다 */
-function formatCostLineAmount(line: {
-  key: string;
-  qty: number;
-  unit: string;
-  unitPriceMin: number;
-  unitPriceMax: number;
-  amountMin: number;
-  amountMax: number;
-}): string {
-  // 일반경비는 unitPrice 칸에 원이 아니라 %가 들어 있어 따로 표기한다
-  if (line.key === 'overhead') {
-    return line.unitPriceMin === line.unitPriceMax
-      ? `${line.unitPriceMin}%`
-      : `${line.unitPriceMin}~${line.unitPriceMax}%`;
-  }
-  if (line.unitPriceMin === line.unitPriceMax) {
-    return `${formatNum(line.qty)}${line.unit} × ${toMan(line.unitPriceMin)}만 = ${toMan(line.amountMin)}만`;
-  }
-  return formatManRange(line.amountMin, line.amountMax);
-}
+// 비용 구성 한 줄 표기(formatCostLineAmount)는 위에서 costLineFormat.ts를 import해 쓴다 —
+// 즉답 화면(ResultPanel.tsx)이 쓰던 것과 완전히 같은 함수라 여기서 따로 만들지 않는다.
 
 interface PageProps {
   searchParams: Promise<{ d?: string }>;

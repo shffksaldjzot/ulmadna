@@ -174,7 +174,12 @@ function SheetRow({
     // 안쪽 padding이 아니라 바깥 margin으로 인세트를 줘야 실제로 짧아진다). 안쪽 button은
     // 자기 padding을 안 두고 이 div 폭 그대로 써서, 글자 시작·끝 위치가 구분선 양 끝과
     // 정확히 같아진다(검수 지적 2번).
-    <div className={topDivider ? 'border-t border-line mx-1' : ''}>
+    //
+    // 2026-09-27 지휘관 4차 검수 지적 1번 수리: mx-1을 topDivider가 true일 때만 줬더니,
+    // 구분선이 없는 맨 위 줄("아직 안 정했어요")만 좌우 인세트가 아예 빠져서 다른 줄보다
+    // 4px씩 더 튀어나와 보였다. mx-1은 구분선 유무와 상관없이 항상 주고, border-t만
+    // topDivider로 켜고 끈다 — 그래야 모든 줄의 좌우 위치가 똑같아진다.
+    <div className={'mx-1' + (topDivider ? ' border-t border-line' : '')}>
       <button
         type="button"
         onClick={onClick}
