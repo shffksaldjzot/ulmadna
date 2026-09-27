@@ -15,10 +15,34 @@
 // 한 번 부르면(여러 번 불러도 안전 — 내부에서 중복 등록을 막는다) 문서 전체에
 // keydown / pointerdown / touchstart 리스너가 붙는다.
 //
-// 작성일: 2026년 09월 27일
+// 2026-09-27 지휘관 촬영본 지적(배포 전) — "숫자 칸 안에 주황 네모가 하나 더 그려진다":
+// 예전엔 "어떤 키든 누르면 키보드 조작"으로 봐서, 숫자 칸에 글자를 치는 것(키보드로
+// 숫자를 눌러 입력)까지 "키보드 조작"으로 기록해 버렸다. 그러면 그 칸 자신도
+// globals.css의 .flowFocusScope 키보드 테두리 규칙 대상이 돼, 칸을 감싸는 틀의 테두리
+// (기존 초점 표시)에 더해 칸 안쪽에 강조색 네모가 하나 더 그려지는 사고가 났다(폰에서도
+// 화면 자판으로 글자를 치는 순간 똑같이 생긴다 — 손가락 입력이라고 안심할 수 없었다).
+// 고침: "키보드 조작"으로 볼 키를 이동·실행 키(Tab·Shift+Tab·방향키·Enter·Space·Escape)
+// 로만 좁히고, 그중에서도 글자 입력 칸(input·textarea·select) 안에 초점이 있을 때는
+// Enter·방향키·Space도 "칸 안 조작"(커서 이동·값 확정·글자 입력)으로 보아 제외한다.
+// Tab·Escape는 칸 안에서 눌러도 그대로 인정한다 — 초점이 칸 밖으로 옮겨 가는 진짜
+// 키보드 이동이므로, 다음에 초점 받는 요소는 정상적으로 테두리를 보여줘야 한다.
 // ──────────────────────────────────────────────
 
 let attached = false;
+
+/** "키보드로 조작했다"고 볼 이동·실행 키 전체 — 이 목록에 없는 키(문자·숫자·백스페이스
+ *  등 실제로 "치는" 키)는 어디서 눌러도 절대 입력 방식을 안 바꾼다 */
+const NAV_ACTION_KEYS = new Set(['Tab', 'Enter', ' ', 'Escape', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
+/** 글자 입력 칸(input·textarea·select) 안에서는 "칸 안 조작"이라 이동 키 취급을 안 하는 것들
+ *  (커서 이동용 방향키·값 확정용 Enter·글자로서의 스페이스) — Tab·Escape는 여기 없다 */
+const IN_BOX_ONLY_KEYS = new Set(['Enter', ' ', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
+
+/** 지금 이 요소가 글자를 직접 치는 칸인지(input·textarea·select) */
+function isTextEntryElement(el: EventTarget | null): boolean {
+  if (!(el instanceof HTMLElement)) return false;
+  const tag = el.tagName;
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+}
 
 /**
  * 문서 전체에 딱 한 번만 리스너를 붙인다. 여러 계산기 화면(도배 등)을 오가며 FlowShell이
@@ -33,9 +57,21 @@ export function ensureFocusModalityTracking(): void {
     document.documentElement.dataset.focusModality = v;
   };
 
-  // Tab·화살표·Enter 등 어떤 키든 누르면 "지금은 키보드로 조작 중"으로 본다.
+  // 이동·실행 키(Tab·Shift+Tab·방향키·Enter·Space·Escape)만 "지금은 키보드로 조작 중"으로
+  // 본다. 문자를 치는 키(숫자·글자·백스페이스 등)는 NAV_ACTION_KEYS에 아예 없으니 여기서
+  // 걸러진다. 그중에서도 글자 입력 칸(input·textarea·select) 안에 초점이 있을 때는
+  // Enter·방향키·Space를 "칸 안 조작"으로 보아 제외한다(IN_BOX_ONLY_KEYS) — Tab·Escape는
+  // 칸 안에서 눌러도 초점이 칸 밖으로 옮겨 가는 진짜 이동이라 그대로 인정한다.
   // capture: true로 붙여서, 이벤트를 누가 가로채 stopPropagation을 부르더라도 놓치지 않는다.
-  document.addEventListener('keydown', () => setModality('keyboard'), { capture: true });
+  document.addEventListener(
+    'keydown',
+    (e) => {
+      if (!NAV_ACTION_KEYS.has(e.key)) return;
+      if (isTextEntryElement(e.target) && IN_BOX_ONLY_KEYS.has(e.key)) return;
+      setModality('keyboard');
+    },
+    { capture: true },
+  );
   // 손가락·마우스로 누르면 그 즉시 "포인터로 조작 중"으로 되돌린다 — 뒤이어 스크립트가
   // .focus()를 불러도(단계 전환 자동 초점 등) 이 값 그대로 유지된다.
   document.addEventListener('pointerdown', () => setModality('pointer'), { capture: true });
