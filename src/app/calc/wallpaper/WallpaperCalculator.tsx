@@ -46,7 +46,7 @@ import PreciseSection from './PreciseSection';
 import PaperPicker from './PaperPicker';
 import ConditionChips from './ConditionChips';
 import ResultPanel from './ResultPanel';
-import { describeWallpaperBottomBarAssumption } from './assumptionText';
+import { describeWallpaperBottomBarAssumption } from '../_components/assumptionText';
 import FlowShell from '../_components/flow/FlowShell';
 import AdjustChips from '../_components/flow/AdjustChips';
 import BottomBar from '../_components/flow/BottomBar';

@@ -39,8 +39,8 @@ import CalcContactCta from '../../_components/CalcContactCta';
 // 2026-09-27 배포 전 검사관 지적 7번: 롤 수 범위·"제품 미정" 표시도 즉답 화면과 같은
 // 함수(formatRollsText·describeWallpaperAreaAssumptionLine)로 맞춘다 — 안 그러면 공유
 // 링크를 받은 사람이 보낸 사람과 다른 정보를 보게 된다.
-import { formatCostLineAmount, formatRollsText } from '../costLineFormat';
-import { describeWallpaperAreaAssumptionLine } from '../assumptionText';
+import { formatCostLineAmount, formatRollsText } from '../../_components/costLineFormat';
+import { describeWallpaperAreaAssumptionLine } from '../../_components/assumptionText';
 
 export const metadata = {
   title: '도배 계산기 결과 — 얼마드나',

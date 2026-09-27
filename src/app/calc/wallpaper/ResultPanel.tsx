@@ -40,8 +40,8 @@ import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
 import { type WallpaperFormState, encodeWallpaperForm } from '@/lib/v1/wallpaperQuery';
 import { trimFormForShare, describeAreaPair, type WallpaperAssumption } from '@/lib/v1/wallpaperEngineInput';
 import type { WallpaperCalcResultDTO, WallpaperRange } from '@/lib/v1/useWallpaperCalc';
-import { describeWallpaperAreaAssumptionLine } from './assumptionText';
-import { formatCostLineAmount, formatRollsText } from './costLineFormat';
+import { describeWallpaperAreaAssumptionLine } from '../_components/assumptionText';
+import { formatCostLineAmount, formatRollsText } from '../_components/costLineFormat';
 // GA4 — 결과 노출/구성 보기 펼침/공유 버튼 클릭 이벤트
 import { track } from '@/lib/analytics';
 
