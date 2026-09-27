@@ -25,6 +25,9 @@
 //
 // 작성일: 2026년 09월 08일
 // 2026년 09월 09일: toEngineInput 등을 wallpaperEngineInput.ts로 분리
+// 2026년 09월 27일: 좁혀가기 — 종류만 골라도 계산(제품 미정 = 종류 전체 범위, 면적 미정 = 34평 가정).
+//   돌려주는 값에 assumed(가정 목록)를 추가했다. 정확 모드에서 실측 입력 중이면 직전 결과를 유지한다.
+//   기존 돌려주는 값(result·range·loading·error·stale)은 이름·뜻 그대로다.
 // ──────────────────────────────────────────────
 
 'use client';
@@ -33,7 +36,12 @@ import { useEffect, useRef, useState } from 'react';
 import type { WallpaperFormState, WallpaperProductOption } from './wallpaperQuery';
 // 폼 상태 → 엔진 요청 변환은 순수 함수라 서버 결과 페이지(result/page.tsx)와 공유한다.
 // (그 파일은 'use client' 훅을 못 쓰는 서버 컴포넌트라 이 로직만 따로 뺐다)
-import { toEngineInput, type WallpaperCalcRequest } from './wallpaperEngineInput';
+import {
+  toEngineInput,
+  type WallpaperCalcRequest,
+  type WallpaperAssumption,
+  type WallpaperEngineOptions,
+} from './wallpaperEngineInput';
 // GA4에 "계산이 실제로 실행됐다"는 이벤트를 보낸다(개인정보 없이 모드·평형대만)
 import { track, pyeongBucket } from '@/lib/analytics';
 
@@ -82,6 +90,12 @@ export interface WallpaperCalcResultDTO {
     lossMode: '실제' | '추정' | '면적';
     inputMode: '평형' | '실측' | '면적';
     byRoom: WallpaperRoomQuantity[];
+    /**
+     * (2026-09-27 추가) 제품 미정으로 "종류 전체 범위"를 계산했을 때만 온다.
+     * 제품 폭에 따라 롤 수가 달라서(합지 소폭·장폭 등) 최소~최대 롤 수를 따로 준다.
+     * 이때 위 rolls는 그 종류의 대표 규격(광폭) 기준 롤 수다.
+     */
+    rollsRange?: { min: number; max: number };
   };
   submaterials: WallpaperSubmaterialLine[];
   cost: {
@@ -111,6 +125,14 @@ export interface UseWallpaperCalcResult {
   error: string | null;
   /** 다음 결과가 오기 전까지 화면에 남겨 둔 "이전" 값이라는 표시 (깜빡임 방지용) */
   stale: boolean;
+  /**
+   * (2026-09-27 추가) 지금 화면에 보이는 result가 어떤 가정값으로 계산됐는지.
+   * result와 **같은 순간에** 바뀐다(새 결과가 오기 전엔 옛 결과의 가정 목록 그대로) — 금액과
+   * 가정 줄이 서로 다른 계산에서 오는 순간이 없게 하기 위해서다.
+   * 단 'measuring'(실측 입력 중)만은 지금 입력 상태를 바로 따른다(이때 결과는 직전 값이 유지된다).
+   * result가 null이면 빈 배열.
+   */
+  assumed: WallpaperAssumption[];
 }
 
 /** POST /api/calc/wallpaper 호출 한 번 */
@@ -136,25 +158,43 @@ interface CacheEntry {
 
 /**
  * 도배 계산기 메인 훅.
- * QuickAnswer·PreciseSection·PaperPicker가 만든 폼 상태를 받아 결과를 돌려준다.
+ * 화면이 만든 폼 상태를 받아 결과를 돌려준다.
+ *
+ * @param state    폼 상태
+ * @param products 제품 목록(서버 페이지가 내려준 것)
+ * @param options  (2026-09-27 추가, 선택) 사용자가 직접 건드린 값 표시 { touched: { area, bay, scope } }.
+ *                 넘기면 가정 목록(assumed) 판정에 쓰인다. 안 넘기면 예전처럼 값이 있는지만 본다.
+ *
+ * 2026-09-27 좁혀가기: 벽지 종류만 고르면 바로 계산한다(제품·면적 등은 가정값). 가정 목록은 assumed로 돌려준다.
  */
-export function useWallpaperCalc(state: WallpaperFormState, products: WallpaperProductOption[]): UseWallpaperCalcResult {
+export function useWallpaperCalc(
+  state: WallpaperFormState,
+  products: WallpaperProductOption[],
+  options?: WallpaperEngineOptions,
+): UseWallpaperCalcResult {
   const [result, setResult] = useState<WallpaperCalcResultDTO | null>(null);
   const [range, setRange] = useState<WallpaperRange | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [stale, setStale] = useState(false);
+  // 지금 보이는 result를 계산할 때 쓴 가정 목록 — result와 반드시 함께 바꾼다
+  const [shownAssumed, setShownAssumed] = useState<WallpaperAssumption[]>([]);
+  // 지금 입력이 "실측 입력 중"(방 카드 치수가 덜 참)인지 — 이건 입력 즉시 반영한다
+  const [measuring, setMeasuring] = useState(false);
 
   // 리렌더와 무관하게 값을 들고 있어야 하는 것들 — 전부 ref
   const cacheRef = useRef<Map<string, CacheEntry>>(new Map());
   const abortRef = useRef<AbortController | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // 지금 화면에 결과가 있는지(실측 입력 중일 때 "직전 결과 유지"를 할 수 있는지 판단용)
+  const resultRef = useRef<WallpaperCalcResultDTO | null>(null);
 
-  // 폼 상태를 JSON 문자열로 비교해야 얕은 비교로 잡히지 않는 변화(방 배열 내용 등)도 감지한다
-  const stateKey = JSON.stringify(state);
+  // 폼 상태 + 건드림 표시를 JSON 문자열로 비교해야 얕은 비교로 잡히지 않는 변화(방 배열 내용 등)도 감지한다.
+  // options는 화면이 매번 새 객체로 넘길 수 있으니 참조가 아니라 내용(touched)으로 비교한다.
+  const stateKey = JSON.stringify({ state, touched: options?.touched ?? null });
 
   useEffect(() => {
-    const engineInput = toEngineInput(state, products);
+    const engineInput = toEngineInput(state, products, options);
 
     // 대기 중인 디바운스 타이머는 항상 정리
     if (timerRef.current) {
@@ -163,16 +203,39 @@ export function useWallpaperCalc(state: WallpaperFormState, products: WallpaperP
     }
 
     if (!engineInput) {
-      // 입력이 비어 있다 — 호출하지 않고 결과를 비운다(빈 상태 착시 방지 원칙)
+      // 벽지 종류를 아직 안 골랐다 — 호출하지 않고 결과를 비운다(빈 상태 착시 방지 원칙)
       abortRef.current?.abort();
+      resultRef.current = null;
       setResult(null);
       setRange(null);
       setLoading(false);
       setError(null);
       setStale(false);
+      setShownAssumed([]);
+      setMeasuring(false);
       return;
     }
 
+    // 이번 입력의 가정 목록('measuring'은 따로 떼어 즉시 반영하고, 나머지는 결과와 함께 바꾼다)
+    const isMeasuring = engineInput.assumed.includes('measuring');
+    const nextAssumed = engineInput.assumed.filter((a) => a !== 'measuring');
+    setMeasuring(isMeasuring);
+
+    // 지시서 5-4: 실측이 절반만 들어간 상태(방 카드는 있는데 치수가 빔)에서는 새로 계산하지 않고
+    // 직전 결과를 그대로 둔다. 화면은 assumed의 'measuring'을 보고 "실측 입력 중"을 표시한다.
+    // (직전 결과가 아예 없으면 — 예: 정확 모드로 막 들어와 방부터 추가한 경우 — 아래로 내려가 계산한다)
+    if (isMeasuring && resultRef.current) {
+      abortRef.current?.abort();
+      setLoading(false);
+      setStale(false);
+      setError(null);
+      return;
+    }
+
+    // 캐시 열쇠 = 서버에 실제로 보내는 요청 그대로. 제품이 없으면 product 칸이 JSON에서 빠지므로
+    // "종류 전체 범위" 요청과 "제품 하나" 요청은 서로 다른 열쇠가 된다. 34평 가정 요청도
+    // 실제 34평 요청과 보내는 값이 같으니 같은 열쇠를 쓴다(서버 결과가 같으므로 문제없다 —
+    // 가정 목록은 캐시에 넣지 않고 매번 이번 입력의 것을 쓴다).
     const cacheKey = JSON.stringify({
       base: engineInput.base,
       paperType: engineInput.paper.paperType,
@@ -182,8 +245,10 @@ export function useWallpaperCalc(state: WallpaperFormState, products: WallpaperP
     const cached = cacheRef.current.get(cacheKey);
     if (cached) {
       abortRef.current?.abort();
+      resultRef.current = cached.result;
       setResult(cached.result);
       setRange(cached.range);
+      setShownAssumed(nextAssumed);
       setLoading(false);
       setError(null);
       setStale(false);
@@ -213,8 +278,11 @@ export function useWallpaperCalc(state: WallpaperFormState, products: WallpaperP
         .then((r) => {
           const rg: WallpaperRange = { min: r.cost.min, max: r.cost.max };
           cacheRef.current.set(cacheKey, { result: r, range: rg });
+          resultRef.current = r;
           setResult(r);
           setRange(rg);
+          // 이 결과를 계산할 때 쓴 가정 목록 — 결과와 같은 순간에 바꾼다
+          setShownAssumed(nextAssumed);
           setStale(false);
           // GA4: 서버 계산이 실제로 성공했을 때 1번 기록(입력 원문 없이 모드·평형대만)
           track('calc_run', {
@@ -251,5 +319,8 @@ export function useWallpaperCalc(state: WallpaperFormState, products: WallpaperP
     };
   }, []);
 
-  return { result, range, loading, error, stale };
+  // 돌려줄 가정 목록: 보이는 결과의 가정 + (지금 실측 입력 중이면) 'measuring'. 결과가 없으면 빈 배열
+  const assumed: WallpaperAssumption[] = result ? (measuring ? [...shownAssumed, 'measuring'] : shownAssumed) : [];
+
+  return { result, range, loading, error, stale, assumed };
 }

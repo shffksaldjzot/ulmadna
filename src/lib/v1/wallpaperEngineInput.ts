@@ -13,6 +13,9 @@
 //    (src/server/calc/wallpaper.ts)이 바뀌면 이쪽도 같이 확인할 것.
 //
 // 작성일: 2026년 09월 09일
+// 2026년 09월 27일: 좁혀가기(형아 결정) — 벽지 종류만 골라도 계산한다. 안 고른 값은 가정값
+//   (면적 34평·제품 전체 범위·베이/범위 기본값)으로 채우고, 무엇을 가정했는지 assumed 목록으로 돌려준다.
+//   이 파일에는 여전히 단가·계수가 하나도 없다(가정값 34평·3베이는 화면 기본값일 뿐 단가가 아니다).
 // ──────────────────────────────────────────────
 
 import type { WallpaperFormState, WallpaperProductOption, WallpaperOpening, PreciseRoomInput } from './wallpaperQuery';
@@ -198,14 +201,94 @@ export interface PaperSelection {
 }
 
 /**
+ * 제품 목록의 한 줄(WallpaperProductOption) → 서버에 보낼 제품 칸(WallpaperProductRequest).
+ * 규격(폭·길이)이나 가격 중 하나라도 비어 있으면 계산에 쓸 수 없으니 null을 돌려준다.
+ *
+ * 2026-09-27 좁혀가기 작업으로 resolvePaperSelection 안에서 밖으로 뺐다 — 서버가 "제품 미정"일 때
+ * 그 종류의 노출 제품 전체로 범위를 만들 때도 **이 함수 하나로** 제품 칸을 만든다. 화면이 보내는
+ * 제품 값과 서버가 범위 계산에 쓰는 제품 값이 한 글자라도 다르면, 제품을 골랐을 때 범위가 종류
+ * 전체 범위 밖으로 나갈 수 있기 때문이다(이 파일엔 단가가 없다 — 가격은 이미 공개된 제품 소비자가다).
+ */
+export function productOptionToRequest(found: WallpaperProductOption): WallpaperProductRequest | null {
+  // 폭·길이·가격이 전부 양수로 채워져 있어야 계산에 쓸 수 있다
+  const hasFullSpec = isPositive(found.widthCm ?? undefined) && isPositive(found.lengthM ?? undefined) && isPositive(found.price ?? undefined);
+  if (!hasFullSpec) return null;
+  return {
+    rollPrice: found.price as number,
+    widthCm: found.widthCm as number,
+    lengthM: found.lengthM as number,
+    // 무늬 반복 간격: null(미확인)은 "안 보냄"으로 바꾼다 — 서버는 없으면 0(무지)으로 계산한다
+    repeatCm: found.repeatCm ?? undefined,
+    // 제품 마스터에서 고른 제품이면 "브랜드 이름"으로 출처를 밝힌다 (조사 기준일은 쓰지 않음 — 2026-09-09 형아 지시)
+    sourceLabel: found.sourceLabel ? `${found.brand} ${found.name} · ${found.sourceLabel}` : `${found.brand} ${found.name}`,
+  };
+}
+
+// ── 좁혀가기(2026-09-27 형아 결정) — 가정값과 가정 목록 ──────────────────
+
+/**
+ * 아직 사용자가 정하지 않아서 **가정값으로 채워 계산한** 항목 이름.
+ *   'area'      면적을 안 골랐다(또는 값이 무효하다) → 34평으로 계산
+ *   'product'   벽지 제품을 안 골랐다("아직 안 정했어요" 포함) → 그 종류의 노출 제품 전체 범위
+ *   'bay'       (간단 모드) 베이 조정 칩을 아직 안 건드렸다 → 기본 3베이
+ *   'scope'     범위(벽·천장) 조정 칩을 아직 안 건드렸다 → 기본 벽+천장
+ *   'measuring' (정확 모드) 방 카드는 있는데 치수가 덜 채워졌다 → "실측 입력 중" 표시용
+ * 화면은 이 목록으로 결과 카드의 가정 줄("34평 · 3베이 가정")을 만들고, 하나라도 있으면 결과 공유를 숨긴다.
+ */
+export type WallpaperAssumption = 'area' | 'product' | 'bay' | 'scope' | 'measuring';
+
+/** 가정 목록을 늘 같은 순서로 돌려주기 위한 순서표(화면 문구 순서가 흔들리지 않게) */
+const ASSUMPTION_ORDER: WallpaperAssumption[] = ['area', 'product', 'bay', 'scope', 'measuring'];
+
+/** 면적을 안 골랐을 때 가정하는 평형(지시서 5-2: 도배·바닥재 = 34평) */
+export const ASSUMED_PYEONG = 34;
+
+/** 베이를 안 골랐을 때 쓰는 기본 베이(기존 기본값 그대로) */
+const DEFAULT_BAY: 2 | 3 | 4 = 3;
+
+/**
+ * 화면이 "사용자가 이 값을 직접 건드렸는지"를 알려 주는 표시.
+ * 값 자체는 폼 상태(state)에 기본값이 미리 들어 있어서, 값만 보고는 "사용자가 고른 34평"인지
+ * "기본으로 들어 있는 34평"인지 구분할 수 없다 — 그래서 화면이 따로 알려 준다.
+ *   area   면적 단계를 사용자가 완료했는가(칩을 눌렀거나 유효한 숫자를 넣었는가)
+ *   bay    베이 조정 칩을 사용자가 한 번이라도 눌렀는가
+ *   scope  범위(벽·천장) 조정 칩을 사용자가 한 번이라도 눌렀는가
+ * true가 아니면(false 또는 빠짐) "아직 안 건드림 = 가정"으로 본다.
+ */
+export interface WallpaperTouched {
+  area?: boolean;
+  bay?: boolean;
+  scope?: boolean;
+}
+
+/** toEngineInput의 선택 인자 */
+export interface WallpaperEngineOptions {
+  /**
+   * 사용자가 직접 건드린 값 표시. **넘기지 않으면**(옛 화면·공유 링크 결과 화면) 값이 폼 상태에
+   * 들어 있는지만 보고 판정한다(값이 있으면 사용자가 고른 것으로 본다 — 예전 동작 그대로).
+   */
+  touched?: WallpaperTouched;
+}
+
+/** toEngineInput이 돌려주는 값 */
+export interface WallpaperEngineInput {
+  /** 서버에 보낼 요청 중 벽지 종류·제품을 뺀 나머지 */
+  base: Omit<WallpaperCalcRequest, 'paperType' | 'product'>;
+  /** 벽지 종류와(있으면) 제품 */
+  paper: PaperSelection;
+  /** 가정값으로 채운 항목 목록(없으면 빈 배열). 순서는 ASSUMPTION_ORDER 고정 */
+  assumed: WallpaperAssumption[];
+}
+
+/**
  * 벽지 종류/제품 선택 상태를 정리한다.
  * 2026-09-09 화면 재배치(벽지 최우선 A안): 벽지 종류를 안 골랐으면 null을 돌려준다 —
  * 예전의 "종류를 아직 안 고르면 합지·실크를 둘 다 계산해 범위를 합친다"(병합 즉답)는
  * 폐기했다. 벽지 카드가 화면 맨 위 1번 카드가 되면서 종류부터 고르는 흐름으로 바뀌었기 때문.
  *   1) productCode가 있고 목록에서 찾아지면 그 제품 규격으로 (규격·가격 중 하나라도 없으면
- *      규격 없이 종류만 넘겨 평균가로 대체 — 조사 미완료 제품 대응)
+ *      규격 없이 종류만 넘긴다 — 서버가 그 종류의 노출 제품 전체 범위로 계산한다)
  *   2) 아니면 직접 입력(product)이 있으면 그대로
- *   3) 아니면 종류만
+ *   3) 아니면 종류만 (= "아직 안 정했어요". 2026-09-27부터 서버가 종류 전체 범위로 계산)
  */
 export function resolvePaperSelection(state: WallpaperFormState, products: WallpaperProductOption[]): PaperSelection | null {
   if (!state.paperType) return null; // 벽지 종류를 안 골랐다 — 계산하지 않는다
@@ -220,19 +303,10 @@ export function resolvePaperSelection(state: WallpaperFormState, products: Wallp
       return { paperType };
     }
     if (found) {
-      const hasFullSpec = isPositive(found.widthCm ?? undefined) && isPositive(found.lengthM ?? undefined) && isPositive(found.price ?? undefined);
+      // 규격·가격이 다 있으면 그 제품으로, 하나라도 비었으면 제품 없이(= 종류 전체 범위로) 계산한다
       return {
         paperType,
-        product: hasFullSpec
-          ? {
-              rollPrice: found.price as number,
-              widthCm: found.widthCm as number,
-              lengthM: found.lengthM as number,
-              repeatCm: found.repeatCm ?? undefined,
-              // 제품 마스터에서 고른 제품이면 "브랜드 이름"으로 출처를 밝힌다 (조사 기준일은 쓰지 않음 — 2026-09-09 형아 지시)
-              sourceLabel: found.sourceLabel ? `${found.brand} ${found.name} · ${found.sourceLabel}` : `${found.brand} ${found.name}`,
-            }
-          : undefined,
+        product: productOptionToRequest(found) ?? undefined,
       };
     }
     // 목록에 없는 코드면(캐시 어긋남 등) 아래 일반 로직으로 폴백
@@ -249,24 +323,43 @@ export function resolvePaperSelection(state: WallpaperFormState, products: Wallp
 /**
  * 폼 상태 → 엔진 요청.
  *
- * 2026-09-09 화면 재배치(벽지 최우선 A안) 규칙:
- *   1) 벽지 종류를 안 골랐으면 null(계산 안 함) — resolvePaperSelection이 판정한다.
- *   2) view === 'precise'(정확하게 계산하기): 방별 실측 또는 벽 길이 중 유효한 값이 있을
- *      때만 계산한다. **평형으로 폴백하지 않는다** — 정밀 모드는 정밀 값이 없으면 그냥 없다.
- *   3) view === 'simple'(간단하게 계산하기, 기본값): 평형만 본다. 정밀 폼에 값이 남아
- *      있어도(예: 정밀 모드를 썼다가 간단 모드로 돌아온 경우) 무시한다.
+ * 2026-09-27 좁혀가기(형아 결정) 규칙 — 9/9 규칙을 아래처럼 바꿨다:
+ *   1) 벽지 종류를 안 골랐으면 null(계산 안 함) — resolvePaperSelection이 판정한다. (그대로)
+ *      → 종류를 고른 뒤부터는 **항상 결과가 나온다**. 아직 안 정한 값은 가정값으로 채운다.
+ *   2) 제품을 안 골랐으면 제품 칸을 비워 보낸다 → 서버가 그 종류의 노출 제품 전체 범위로 계산.
+ *      (9/9에는 간단 모드에서 제품이 없으면 null이었다 — 폐기)
+ *   3) view === 'simple': 평형(또는 ㎡)만 본다. 면적이 없거나 무효하면(5평 미만 등) 34평으로 가정.
+ *      화면이 touched.area !== true 로 알려 주면 폼에 값이 있어도 34평 가정으로 계산한다.
+ *   4) view === 'precise': 방별 실측 또는 벽 길이 중 유효한 값이 있으면 그걸로 계산한다.
+ *      실측이 비었으면 34평으로 가정해 계산한다(9/9의 "정밀 값 없으면 null"은 폐기, 지시서 5-4).
+ *      방 카드 중 치수가 덜 찬 카드가 있으면 'measuring'(실측 입력 중)을 가정 목록에 넣는다 —
+ *      계산 훅은 이때 새로 계산하지 않고 직전 결과를 유지한다.
  *
  * useWallpaperCalc(클라이언트 훅)와 result/page.tsx(공유 링크 결과, 서버 컴포넌트) 둘 다
  * 이 함수 하나로 계산 규칙을 맞춘다 — 두 곳이 각자 변환 로직을 두면 즉답 화면과 공유 결과
  * 화면의 금액이 어긋날 수 있다.
+ *
+ * @param options 선택. touched(사용자가 직접 건드린 값 표시)를 넘기면 가정 판정에 그걸 쓴다.
  */
 export function toEngineInput(
   state: WallpaperFormState,
   products: WallpaperProductOption[],
-): { base: Omit<WallpaperCalcRequest, 'paperType' | 'product'>; paper: PaperSelection } | null {
-  // 벽지 종류를 안 골랐으면 다른 값이 다 차 있어도 계산하지 않는다(새 규칙)
+  options?: WallpaperEngineOptions,
+): WallpaperEngineInput | null {
+  // 벽지 종류를 안 골랐으면 다른 값이 다 차 있어도 계산하지 않는다(좁혀가기의 출발점 — 첫 단계)
   const paper = resolvePaperSelection(state, products);
   if (!paper) return null;
+
+  // ── 가정 목록 모으기 (나중에 ASSUMPTION_ORDER 순서로 정렬해 돌려준다) ──
+  const assumedSet = new Set<WallpaperAssumption>();
+  const touched = options?.touched;
+  // 제품이 정해지지 않았다(목록 미선택·"아직 안 정했어요"·조사 미완료 제품) → 종류 전체 범위로 계산
+  if (!paper.product) assumedSet.add('product');
+  // 범위(벽·천장) 조정 칩: 화면이 touched를 넘겼으면 그 표시로, 안 넘겼으면 값이 비었는지로 판정
+  const scopeAssumed = touched ? touched.scope !== true : state.target === undefined;
+  if (scopeAssumed) assumedSet.add('scope');
+  /** 모은 가정 목록을 고정 순서 배열로 바꾼다 */
+  const assumedList = (): WallpaperAssumption[] => ASSUMPTION_ORDER.filter((a) => assumedSet.has(a));
 
   const target = state.target ?? 'both';
   // 벽·천장은 각각 켜고 끈다(2026-09-09 형아 지시). 'wall'=벽만, 'ceiling'=천장만, 'both'=둘 다.
@@ -282,11 +375,35 @@ export function toEngineInput(
   // view가 없는 옛 공유 링크는 resolveView가 정밀 값 유무로 추정한다(검사관 2라운드 지적 2번)
   const view = resolveView(state);
 
-  // 2026-09-09 형아 지시: "간단하게 계산하기"는 벽지 제품(목록 선택 또는 직접 입력)까지 골라야 계산한다.
-  // 종류만 고른 상태에서는 금액이 안 나와야 하므로 아예 요청을 만들지 않는다(화면은 안내 문구만).
-  if (view === 'simple' && !paper.product) return null;
+  // (2026-09-09의 "간단 모드는 제품까지 골라야 계산" 규칙은 2026-09-27 좁혀가기로 폐기했다 —
+  //  제품이 없으면 위에서 'product'를 가정 목록에 넣고, 서버가 종류 전체 범위로 계산한다)
+
+  /**
+   * 34평 가정 요청을 만든다. 간단 모드에서 면적이 없거나 무효할 때,
+   * 정확 모드에서 실측이 비었을 때 같이 쓴다. 'area'를 가정 목록에 넣는 것도 여기서 한다.
+   * @param bay 쓸 베이 수(간단 모드는 사용자가 조정 칩으로 바꾼 값, 정확 모드는 기본값)
+   */
+  const assumedAreaBase = (bay: 2 | 3 | 4): WallpaperEngineInput['base'] => {
+    assumedSet.add('area');
+    return {
+      mode: '평형',
+      pyeong: ASSUMED_PYEONG,
+      bay,
+      scope: '전체',
+      wall,
+      ceiling,
+      isOld,
+      removeOld,
+    };
+  };
 
   if (view === 'precise') {
+    // 방 카드 중 가로·세로가 덜 채워진 카드가 하나라도 있으면 "실측 입력 중"이다
+    // (방을 추가만 하고 치수를 아직 안 넣은 빈 카드도 포함 — 지시서 5-4)
+    const hasUnfinishedRoom =
+      state.entry === 'room' && (state.preciseRooms ?? []).some((r) => !(isPositive(r.w) && isPositive(r.d)));
+    if (hasUnfinishedRoom) assumedSet.add('measuring');
+
     // 1) 방별 실측
     if (state.entry === 'room' && state.preciseRooms && state.preciseRooms.length > 0) {
       const validRooms = validPreciseRooms(state);
@@ -315,6 +432,7 @@ export function toEngineInput(
             removeOld,
           },
           paper,
+          assumed: assumedList(),
         };
       }
     }
@@ -339,14 +457,32 @@ export function toEngineInput(
           removeOld,
         },
         paper,
+        assumed: assumedList(),
       };
     }
 
-    // 정밀 입력이 유효하지 않다 — 간단 모드(평형)로 폴백하지 않는다(새 규칙)
-    return null;
+    // 3) 실측이 비었다(또는 전부 덜 찼다) — 2026-09-27부터 null 대신 34평으로 가정해 계산한다(지시서 5-4).
+    //    정확 모드엔 베이 조정 칩이 없으니 베이는 기본값(3), 'bay'는 가정 목록에 넣지 않는다
+    //    ("34평 가정" 한 줄이 베이까지 포함한 가정이다).
+    const base = assumedAreaBase(DEFAULT_BAY); // 먼저 만들어야 'area'가 가정 목록에 들어간다
+    return { base, paper, assumed: assumedList() };
   }
 
-  // view === 'simple' — 평형(또는 전용 ㎡ 직접 입력)만 본다.
+  // ── view === 'simple' — 평형(또는 전용 ㎡ 직접 입력)만 본다 ──
+
+  // 베이 조정 칩: 화면이 touched를 넘겼으면 그 표시로, 안 넘겼으면 값이 비었는지로 판정
+  const bayAssumed = touched ? touched.bay !== true : state.bay === undefined;
+  if (bayAssumed) assumedSet.add('bay');
+  // 베이 값 자체는 폼에 있는 값을 그대로 쓴다(칩을 안 건드렸으면 폼 기본값 3)
+  const bay = state.bay ?? DEFAULT_BAY;
+
+  // 화면이 "면적 단계를 아직 완료 안 했다"고 알려 주면, 폼에 기본값(34평 등)이 들어 있어도 가정으로 본다.
+  // 이때는 가정 줄 문구("34평 가정")와 실제 계산이 어긋나지 않게 폼 값 대신 34평으로 계산한다.
+  if (touched && touched.area !== true) {
+    const base = assumedAreaBase(bay); // 먼저 만들어야 'area'가 가정 목록에 들어간다
+    return { base, paper, assumed: assumedList() };
+  }
+
   // 2026-09-15 형아 지시(㎡ 모드): areaUnit이 '㎡'면 pyeong 대신 exclusiveSqm을 그대로 보낸다
   // — 84㎡를 직접 넣으면 34평 칩과 같은 결과가 나와야 하므로 pyeong 환산을 거치지 않는다.
   if (state.areaUnit === '㎡') {
@@ -355,7 +491,7 @@ export function toEngineInput(
         base: {
           mode: '평형',
           exclusiveSqm: state.exclusiveSqm,
-          bay: state.bay ?? 3,
+          bay,
           scope: '전체',
           wall,
           ceiling,
@@ -363,21 +499,22 @@ export function toEngineInput(
           removeOld,
         },
         paper,
+        assumed: assumedList(),
       };
     }
-    // 전용 ㎡ 직접 입력이 없거나 범위 밖이다 — 계산하지 않는다
-    return null;
+    // 전용 ㎡ 직접 입력이 없거나 범위 밖이다 — 2026-09-27부터 null 대신 34평으로 가정해 계산한다
+    const base = assumedAreaBase(bay); // 먼저 만들어야 'area'가 가정 목록에 들어간다
+    return { base, paper, assumed: assumedList() };
   }
 
-  // 서버가 5평 미만은 거부한다(route.ts min:5). 1~4평처럼 애매한 값을 그대로 보내면 매번
-  // "계산에 실패했어요"만 뜨니, 여기서 아예 걸러 null로 돌려준다 — 화면(QuickAnswer)이 그
-  // 범위를 알아채 "5평부터 계산해요" 안내로 바꿔 보여준다.
+  // 서버가 5평 미만은 거부한다(route.ts min:5). 1~4평처럼 애매한 값은 서버로 보내지 않는다 —
+  // 2026-09-27부터는 null 대신 34평 가정으로 계산해, 종류를 고른 뒤 결과가 사라지지 않게 한다.
   if (isPositive(state.pyeong) && state.pyeong >= MIN_PYEONG) {
     return {
       base: {
         mode: '평형',
         pyeong: state.pyeong,
-        bay: state.bay ?? 3,
+        bay,
         scope: '전체',
         wall,
         ceiling,
@@ -385,11 +522,13 @@ export function toEngineInput(
         removeOld,
       },
       paper,
+      assumed: assumedList(),
     };
   }
 
-  // 평형이 없다 — 계산하지 않는다
-  return null;
+  // 평형이 없거나 무효하다 — 34평으로 가정해 계산한다
+  const assumedBase = assumedAreaBase(bay); // 먼저 만들어야 'area'가 가정 목록에 들어간다
+  return { base: assumedBase, paper, assumed: assumedList() };
 }
 
 /**

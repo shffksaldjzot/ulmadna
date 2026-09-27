@@ -12,9 +12,14 @@
 // ──────────────────────────────────────────────
 
 import { describe, it, expect } from 'vitest';
-import { calcWallpaper } from '../wallpaper';
+import { calcWallpaper, exposedWallpaperProducts } from '../wallpaper';
 import { calcLabor, laborSanityFloor } from '../labor';
 import { resolveDimensions } from '../dimensions';
+// 2026-09-27 좁혀가기 테스트용 — 화면이 쓰는 변환 함수·제품 목록을 그대로 거쳐 계산한다
+import { WALLPAPER_PRODUCTS } from '../data/wallpaper-products';
+import { toWallpaperProductOptions, isShowableWallpaperProduct } from '@/lib/v1/wallpaperProductOptions';
+import { toEngineInput } from '@/lib/v1/wallpaperEngineInput';
+import { DEFAULT_CALC_FORM, type WallpaperFormState } from '@/lib/v1/wallpaperQuery';
 
 /** 테스트에서 자주 쓰는 34평 3베이 전체 실크 조건 */
 const BASE_34 = {
@@ -399,5 +404,101 @@ describe('전용면적(㎡) 직접 입력 — 2026-09-15 ㎡ 모드', () => {
     // "전용" 단어를 화면 문구에서 뺐다 — dimensions.ts 참고)
     expect(mismatched.source).toContain('84㎡');
     expect(mismatched.source).not.toContain('24평');
+  });
+});
+
+// ──────────────────────────────────────────────
+// 2026-09-27 좁혀가기 — 제품 없이 종류만 오면 그 종류의 노출 제품 전체 범위
+// 핵심 약속: 어떤 노출 제품을 골라도 금액 범위는 "좁아지거나 같다"(종류 전체 범위 안에 들어간다).
+// 제품을 고를 때 화면이 보내는 값과 똑같이 만들기 위해 화면 쪽 변환 함수(toEngineInput)를 그대로 거친다.
+// ──────────────────────────────────────────────
+describe('좁혀가기 — 종류 전체 범위', () => {
+  /** 화면이 받는 제품 목록(서버 페이지가 내려주는 것과 같은 변환) */
+  const OPTIONS = toWallpaperProductOptions(WALLPAPER_PRODUCTS);
+
+  /** 화면 폼 상태 → 화면 변환 함수 → 서버 계산. 화면에서 실제로 일어나는 길 그대로 */
+  function calcViaScreen(state: WallpaperFormState) {
+    const engine = toEngineInput(state, OPTIONS);
+    if (!engine) throw new Error('요청이 만들어지지 않았다');
+    return calcWallpaper({ ...engine.base, paperType: engine.paper.paperType, product: engine.paper.product });
+  }
+
+  // 여러 조건에서 같은 약속이 지켜지는지 본다(34평 전체 / 24평 2베이 / 40평 4베이 벽만 / 철거 끔)
+  const CONDITIONS: { label: string; extra: Partial<WallpaperFormState> }[] = [
+    { label: '34평 3베이 벽+천장', extra: {} },
+    { label: '24평 2베이', extra: { pyeong: 24, bay: 2 } },
+    { label: '40평 4베이 벽만', extra: { pyeong: 40, bay: 4, target: 'wall' } },
+    { label: '34평 천장만·철거 끔', extra: { target: 'ceiling', removeOld: false } },
+  ];
+
+  for (const paperType of ['합지', '실크'] as const) {
+    it(`${paperType}: 종류만 고르면 결과가 나오고 롤 수 범위가 붙는다`, () => {
+      const r = calcViaScreen({ ...DEFAULT_CALC_FORM, paperType });
+      expect(r.cost.min).toBeGreaterThan(0);
+      expect(r.cost.max).toBeGreaterThan(r.cost.min);
+      expect(r.cost.mid).toBeGreaterThanOrEqual(r.cost.min);
+      expect(r.cost.mid).toBeLessThanOrEqual(r.cost.max);
+      expect(r.quantity.rollsRange).toBeDefined();
+      expect(r.quantity.rollsRange!.min).toBeLessThanOrEqual(r.quantity.rolls);
+      expect(r.quantity.rollsRange!.max).toBeGreaterThanOrEqual(r.quantity.rolls);
+    });
+
+    for (const cond of CONDITIONS) {
+      it(`${paperType} · ${cond.label}: 노출 제품 하나하나를 골라도 범위가 종류 전체 범위 안에 든다`, () => {
+        const base: WallpaperFormState = { ...DEFAULT_CALC_FORM, paperType, ...cond.extra };
+        const typeRange = calcViaScreen(base);
+        const showable = OPTIONS.filter((p) => p.kind === paperType && isShowableWallpaperProduct(p));
+        // 노출 제품이 실제로 여러 개 있어야 이 검사가 뜻이 있다
+        expect(showable.length).toBeGreaterThan(3);
+        for (const p of showable) {
+          const picked = calcViaScreen({ ...base, productCode: p.code });
+          // 제품을 고른 계산에는 롤 수 범위가 안 붙는다(제품 하나라 롤 수가 하나)
+          expect(picked.quantity.rollsRange).toBeUndefined();
+          expect(picked.cost.min, `${p.brand} ${p.name} 최저`).toBeGreaterThanOrEqual(typeRange.cost.min);
+          expect(picked.cost.max, `${p.brand} ${p.name} 최고`).toBeLessThanOrEqual(typeRange.cost.max);
+        }
+      });
+    }
+  }
+
+  it('구성 보기 줄 금액을 더하면 결과 최저·최고와 맞는다(1,000원 단위 반올림)', () => {
+    for (const paperType of ['합지', '실크'] as const) {
+      const r = calcWallpaper({ mode: '평형', pyeong: 34, bay: 3, paperType, isOld: true, removeOld: true });
+      const sumMin = r.cost.breakdown.reduce((s, l) => s + l.amountMin, 0);
+      const sumMax = r.cost.breakdown.reduce((s, l) => s + l.amountMax, 0);
+      expect(Math.round(sumMin / 1000) * 1000).toBe(r.cost.min);
+      expect(Math.round(sumMax / 1000) * 1000).toBe(r.cost.max);
+    }
+  });
+
+  it('종류 전체 범위 응답에 제품 이름·출처·산식이 새지 않는다', () => {
+    const r = calcWallpaper({ mode: '평형', pyeong: 34, bay: 3, paperType: '실크', isOld: true });
+    const json = JSON.stringify(r);
+    // 제품 이름·브랜드가 응답 어디에도 없어야 한다(개별 제품 단가를 이름과 짝지어 드러내지 않게)
+    for (const p of WALLPAPER_PRODUCTS) {
+      expect(json).not.toContain(p.line);
+    }
+    for (const word of ['LX', '개나리', '신한', 'daumdeco', '01_도배.md', '품수 공식', 'applied', 'rawManDays']) {
+      expect(json).not.toContain(word);
+    }
+    // 최상위 키는 여전히 셋뿐
+    expect(Object.keys(r).sort()).toEqual(['cost', 'quantity', 'submaterials']);
+  });
+
+  it('exposedWallpaperProducts는 화면 목록 규칙(검수 끝·규격 다 있음)과 같은 제품만 돌려준다', () => {
+    for (const paperType of ['합지', '실크'] as const) {
+      const fromServer = exposedWallpaperProducts(paperType);
+      const fromScreen = OPTIONS.filter((p) => p.kind === paperType && isShowableWallpaperProduct(p));
+      expect(fromServer.length).toBe(fromScreen.length);
+    }
+  });
+
+  it('제품을 고른(완전한 입력) 계산은 예전 계산과 같다 — 34평 실크 직접 입력 제품', () => {
+    // 제품이 있으면 좁혀가기 전의 본체를 그대로 한 번 부른다. 롤 수 범위 칸도 안 붙는다.
+    const r = calcWallpaper({ ...BASE_34, product: { rollPrice: 43500, widthCm: 106, lengthM: 15.6 } });
+    expect(r.quantity.rollsRange).toBeUndefined();
+    const line = r.cost.breakdown.find((b) => b.key === 'wallpaper')!;
+    expect(line.unitPriceMin).toBe(43500);
+    expect(line.unitPriceMax).toBe(43500);
   });
 });

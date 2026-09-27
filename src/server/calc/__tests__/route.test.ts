@@ -74,6 +74,15 @@ describe('POST /api/calc/wallpaper', () => {
     expect(json.quantity.byRoom.length).toBe(1);
   });
 
+  it('2026-09-27 좁혀가기: 제품 없이 종류만 보내도 200과 종류 전체 금액 범위·롤 수 범위를 돌려준다', async () => {
+    const res = await POST(post({ mode: '평형', pyeong: 34, bay: 3, paperType: '합지', isOld: true, removeOld: true }));
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.cost.min).toBeGreaterThan(0);
+    expect(json.cost.max).toBeGreaterThan(json.cost.min);
+    expect(json.quantity.rollsRange.min).toBeLessThanOrEqual(json.quantity.rollsRange.max);
+  });
+
   it('JSON 이 아니면 400', async () => {
     const req = new Request('http://localhost/api/calc/wallpaper', {
       method: 'POST',

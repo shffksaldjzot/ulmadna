@@ -13,8 +13,21 @@
 // ──────────────────────────────────────────────
 
 import { describe, expect, it } from 'vitest';
-import { toEngineInput, describePreciseInput, describeAreaPair, resolveView } from '../wallpaperEngineInput';
-import { DEFAULT_CALC_FORM, type WallpaperFormState, type WallpaperProductOption } from '../wallpaperQuery';
+import {
+  toEngineInput,
+  describePreciseInput,
+  describeAreaPair,
+  resolveView,
+  ASSUMED_PYEONG,
+  productOptionToRequest,
+} from '../wallpaperEngineInput';
+import {
+  DEFAULT_CALC_FORM,
+  encodeWallpaperForm,
+  decodeWallpaperForm,
+  type WallpaperFormState,
+  type WallpaperProductOption,
+} from '../wallpaperQuery';
 
 // 제품 마스터 목록이 필요한 자리엔 빈 배열을 넣는다(이 테스트들은 productCode를 쓰지 않는다)
 const NO_PRODUCTS: WallpaperProductOption[] = [];
@@ -29,9 +42,15 @@ describe('toEngineInput', () => {
     product: { rollPrice: 40000, widthCm: 106, lengthM: 15.6 },
   };
 
-  it('간단 모드에서 벽지 종류만 고르고 제품을 안 고르면 계산하지 않는다(null) — 2026-09-09 형아 지시', () => {
+  it('간단 모드에서 벽지 종류만 고르면 제품 없이 계산하고 "제품" 가정을 표시한다 — 2026-09-27 좁혀가기', () => {
+    // 2026-09-09에는 여기서 null(계산 안 함)이었다. 좁혀가기 결정으로 바뀌었다:
+    // 제품 칸을 비워 보내면 서버가 그 종류의 노출 제품 전체 범위로 계산한다.
     const noProduct: WallpaperFormState = { ...DEFAULT_CALC_FORM, paperType: '실크' };
-    expect(toEngineInput(noProduct, NO_PRODUCTS)).toBeNull();
+    const input = toEngineInput(noProduct, NO_PRODUCTS);
+    expect(input).not.toBeNull();
+    expect(input!.paper.paperType).toBe('실크');
+    expect(input!.paper.product).toBeUndefined();
+    expect(input!.assumed).toContain('product');
   });
 
   it('벽지 종류를 안 골랐으면 다른 값이 다 차 있어도 계산하지 않는다(null) — 병합 즉답 폐기', () => {
@@ -98,16 +117,25 @@ describe('toEngineInput', () => {
     expect(input!.base.areas?.wallSqm).toBeCloseTo(20.8, 5);
   });
 
-  it('precise 모드에서 방이 전부 빈 값이면 평형으로 폴백하지 않고 null이다', () => {
-    // 2026-09-09 재배치 새 규칙: "간단하게"와 "정확하게"가 이제 아예 다른 카드라서,
-    // 정밀 입력이 무효하다고 평형(간단 모드) 값으로 조용히 넘어가면 안 된다.
+  it('precise 모드에서 방이 전부 빈 값이면 34평 가정으로 계산하고 "면적"·"실측 입력 중"을 표시한다 — 2026-09-27', () => {
+    // 2026-09-09에는 null이었다. 좁혀가기(지시서 5-4)로 바뀌었다: 실측이 비었으면 34평으로 가정한다.
+    // 이때 사용자가 폼에 넣어 둔 간단 모드 평형(예: 24평)이 아니라 가정값 34평을 써야 가정 줄과 계산이 맞는다.
     const state: WallpaperFormState = {
       ...SILK,
+      pyeong: 24,
       view: 'precise',
       entry: 'room',
       preciseRooms: [{ w: 0, d: 0, openings: [] }], // 아직 아무 것도 안 채운 빈 방 카드 1장
     };
-    expect(toEngineInput(state, NO_PRODUCTS)).toBeNull();
+    const input = toEngineInput(state, NO_PRODUCTS);
+    expect(input).not.toBeNull();
+    expect(input!.base.mode).toBe('평형');
+    expect(input!.base.pyeong).toBe(ASSUMED_PYEONG);
+    expect(input!.base.bay).toBe(3);
+    expect(input!.assumed).toContain('area');
+    expect(input!.assumed).toContain('measuring');
+    // 정확 모드엔 베이 조정 칩이 없으니 'bay'는 가정 목록에 안 넣는다
+    expect(input!.assumed).not.toContain('bay');
   });
 
   it('simple 모드면 정밀 폼에 값이 남아 있어도 무시하고 평형만 본다', () => {
@@ -125,9 +153,12 @@ describe('toEngineInput', () => {
     expect(input!.base.pyeong).toBe(24);
   });
 
-  it('평형이 1~4처럼 5 미만이면 계산하지 않는다(null)', () => {
+  it('평형이 1~4처럼 5 미만이면 서버로 보내지 않고 34평 가정으로 계산한다 — 2026-09-27', () => {
     // 검사관 지적: 서버가 5평 미만을 거부하는데 그대로 보내면 매번 실패만 뜬다.
-    expect(toEngineInput({ ...SILK, pyeong: 4 }, NO_PRODUCTS)).toBeNull();
+    // 2026-09-09에는 null이었지만, 좁혀가기에서는 종류를 고른 뒤 결과가 사라지면 안 되므로 34평 가정으로 바꿨다.
+    const input = toEngineInput({ ...SILK, pyeong: 4 }, NO_PRODUCTS);
+    expect(input!.base.pyeong).toBe(ASSUMED_PYEONG);
+    expect(input!.assumed).toContain('area');
   });
 
   it('평형 5는 그대로 통과한다(경계값)', () => {
@@ -293,14 +324,20 @@ describe('㎡ 모드 (전용면적 직접 입력)', () => {
     expect(input!.base.pyeong).toBeUndefined();
   });
 
-  it('㎡ 모드에서 전용면적이 최소값(20) 미만이면 계산하지 않는다(null)', () => {
+  it('㎡ 모드에서 전용면적이 최소값(20) 미만이면 34평 가정으로 계산한다 — 2026-09-27(예전엔 null)', () => {
     const state: WallpaperFormState = { ...SILK, areaUnit: '㎡', exclusiveSqm: 10 };
-    expect(toEngineInput(state, NO_PRODUCTS)).toBeNull();
+    const input = toEngineInput(state, NO_PRODUCTS);
+    expect(input!.base.pyeong).toBe(ASSUMED_PYEONG);
+    expect(input!.base.exclusiveSqm).toBeUndefined();
+    expect(input!.assumed).toContain('area');
   });
 
-  it('㎡ 모드인데 exclusiveSqm이 없으면 계산하지 않는다(평형으로 폴백하지 않는다)', () => {
-    const state: WallpaperFormState = { ...SILK, areaUnit: '㎡', exclusiveSqm: undefined };
-    expect(toEngineInput(state, NO_PRODUCTS)).toBeNull();
+  it('㎡ 모드인데 exclusiveSqm이 없으면 폼의 평형 값이 아니라 34평 가정으로 계산한다 — 2026-09-27(예전엔 null)', () => {
+    // 폼에 남아 있는 pyeong(24)으로 조용히 넘어가지 않는다 — 가정값 34평이어야 "34평 가정" 표시와 맞는다
+    const state: WallpaperFormState = { ...SILK, areaUnit: '㎡', exclusiveSqm: undefined, pyeong: 24 };
+    const input = toEngineInput(state, NO_PRODUCTS);
+    expect(input!.base.pyeong).toBe(ASSUMED_PYEONG);
+    expect(input!.assumed).toContain('area');
   });
 
   it('기존 공유 링크(areaUnit 필드 없음)는 평 모드로 그대로 해석된다', () => {
@@ -327,5 +364,145 @@ describe('describeAreaPair — 결과 요약줄 "34평 · 84㎡" 병기 (2026-09
 
   it('평형·전용면적이 둘 다 없으면 null이다', () => {
     expect(describeAreaPair({ ...DEFAULT_CALC_FORM, pyeong: undefined })).toBeNull();
+  });
+});
+
+// ──────────────────────────────────────────────
+// 2026-09-27 좁혀가기(형아 결정) — 가정값과 가정 목록(assumed)
+// 첫 단계(벽지 종류)만 골라도 계산이 되고, 안 고른 값은 가정값으로 채운 뒤 무엇을 가정했는지 알려 준다.
+// ──────────────────────────────────────────────
+describe('좁혀가기 — 가정값·가정 목록', () => {
+  it('종류를 안 골랐으면 가정값이 있어도 계산하지 않는다(null = 훅이 서버를 부르지 않는다)', () => {
+    // 건드림 표시를 전부 켜서 넘겨도 종류가 없으면 null이어야 한다
+    expect(toEngineInput(DEFAULT_CALC_FORM, NO_PRODUCTS, { touched: { area: true, bay: true, scope: true } })).toBeNull();
+  });
+
+  it('종류만 있고 면적이 비었으면 34평으로 가정하고 assumed에 area·product가 들어간다', () => {
+    const state: WallpaperFormState = { ...DEFAULT_CALC_FORM, paperType: '합지', pyeong: undefined };
+    const input = toEngineInput(state, NO_PRODUCTS);
+    expect(input).not.toBeNull();
+    expect(input!.base.mode).toBe('평형');
+    expect(input!.base.pyeong).toBe(34);
+    expect(input!.assumed).toEqual(['area', 'product']);
+  });
+
+  it('화면이 touched를 넘기면 폼에 기본값(34평·3베이·벽+천장)이 있어도 안 건드린 것은 전부 가정이다', () => {
+    const state: WallpaperFormState = { ...DEFAULT_CALC_FORM, paperType: '실크' };
+    const input = toEngineInput(state, NO_PRODUCTS, { touched: {} });
+    // 순서는 늘 area → product → bay → scope 로 고정
+    expect(input!.assumed).toEqual(['area', 'product', 'bay', 'scope']);
+  });
+
+  it('touched.area가 false면 폼의 평형(24평)이 아니라 가정값 34평으로 계산한다(가정 줄과 계산이 어긋나지 않게)', () => {
+    const state: WallpaperFormState = { ...DEFAULT_CALC_FORM, paperType: '실크', pyeong: 24 };
+    const input = toEngineInput(state, NO_PRODUCTS, { touched: { area: false } });
+    expect(input!.base.pyeong).toBe(ASSUMED_PYEONG);
+    expect(input!.assumed).toContain('area');
+  });
+
+  it('면적을 고르면 area 가정이 빠지고 그 평형으로 계산한다', () => {
+    const state: WallpaperFormState = { ...DEFAULT_CALC_FORM, paperType: '실크', pyeong: 24 };
+    const input = toEngineInput(state, NO_PRODUCTS, { touched: { area: true } });
+    expect(input!.base.pyeong).toBe(24);
+    expect(input!.assumed).not.toContain('area');
+  });
+
+  it('베이·범위 칩을 건드리면 bay·scope 가정이 빠지고, 고른 베이가 요청에 실린다', () => {
+    const state: WallpaperFormState = { ...DEFAULT_CALC_FORM, paperType: '실크', bay: 2, target: 'wall' };
+    const input = toEngineInput(state, NO_PRODUCTS, { touched: { area: true, bay: true, scope: true } });
+    expect(input!.base.bay).toBe(2);
+    expect(input!.base.wall).toBe(true);
+    expect(input!.base.ceiling).toBe(false);
+    expect(input!.assumed).toEqual(['product']);
+  });
+
+  it('면적 가정 중에도 사용자가 바꾼 베이는 그대로 쓴다(34평 · 2베이)', () => {
+    const state: WallpaperFormState = { ...DEFAULT_CALC_FORM, paperType: '실크', bay: 2 };
+    const input = toEngineInput(state, NO_PRODUCTS, { touched: { area: false, bay: true } });
+    expect(input!.base.pyeong).toBe(34);
+    expect(input!.base.bay).toBe(2);
+    expect(input!.assumed).not.toContain('bay');
+  });
+
+  it('touched를 안 넘기면(옛 화면·공유 결과 화면) 값이 들어 있는 것은 사용자가 고른 것으로 본다 — 예전 동작 그대로', () => {
+    const SILK_FULL: WallpaperFormState = {
+      ...DEFAULT_CALC_FORM,
+      paperType: '실크',
+      product: { rollPrice: 40000, widthCm: 106, lengthM: 15.6 },
+    };
+    const input = toEngineInput(SILK_FULL, NO_PRODUCTS);
+    expect(input!.assumed).toEqual([]);
+    expect(input!.base.pyeong).toBe(34);
+  });
+
+  it('목록에서 제품을 고르면 product 가정이 빠지고, 규격·가격이 빈 제품은 가정(종류 전체 범위)으로 남는다', () => {
+    const products: WallpaperProductOption[] = [
+      { code: 'ok', brand: 'A', name: '가', kind: '실크', widthCm: 106, lengthM: 15.6, repeatCm: null, price: 45000, sourceLabel: '' },
+      { code: 'half', brand: 'B', name: '나', kind: '실크', widthCm: null, lengthM: 15.6, repeatCm: null, price: 45000, sourceLabel: '' },
+    ];
+    const picked = toEngineInput({ ...DEFAULT_CALC_FORM, paperType: '실크', productCode: 'ok' }, products);
+    expect(picked!.paper.product?.rollPrice).toBe(45000);
+    expect(picked!.assumed).not.toContain('product');
+    const half = toEngineInput({ ...DEFAULT_CALC_FORM, paperType: '실크', productCode: 'half' }, products);
+    expect(half!.paper.product).toBeUndefined();
+    expect(half!.assumed).toContain('product');
+  });
+
+  it('productOptionToRequest는 규격이 하나라도 비면 null, 다 있으면 서버 요청 모양을 만든다', () => {
+    const full: WallpaperProductOption = { code: 'x', brand: 'A', name: '가', kind: '합지', widthCm: 93, lengthM: 17.75, repeatCm: null, price: 25400, sourceLabel: '' };
+    expect(productOptionToRequest(full)).toEqual({ rollPrice: 25400, widthCm: 93, lengthM: 17.75, repeatCm: undefined, sourceLabel: 'A 가' });
+    expect(productOptionToRequest({ ...full, price: null })).toBeNull();
+  });
+
+  it('정확 모드: 유효한 방 + 덜 찬 방 카드가 섞이면 유효한 방으로 요청을 만들고 measuring을 표시한다', () => {
+    const state: WallpaperFormState = {
+      ...DEFAULT_CALC_FORM,
+      paperType: '실크',
+      view: 'precise',
+      entry: 'room',
+      preciseRooms: [
+        { w: 4, d: 3, openings: [] },
+        { w: 3, d: 0, openings: [] }, // 세로를 아직 안 넣은 카드
+      ],
+    };
+    const input = toEngineInput(state, NO_PRODUCTS);
+    expect(input!.base.mode).toBe('실측');
+    expect(input!.base.rooms).toHaveLength(1);
+    expect(input!.assumed).toContain('measuring');
+    expect(input!.assumed).not.toContain('area');
+  });
+
+  it('정확 모드: 방이 다 차 있으면 measuring·area 가정이 없다', () => {
+    const state: WallpaperFormState = {
+      ...DEFAULT_CALC_FORM,
+      paperType: '실크',
+      view: 'precise',
+      entry: 'room',
+      preciseRooms: [{ w: 4, d: 3, openings: [] }],
+    };
+    const input = toEngineInput(state, NO_PRODUCTS);
+    expect(input!.assumed).not.toContain('measuring');
+    expect(input!.assumed).not.toContain('area');
+  });
+
+  it('정확 모드 벽 길이 입력이 비었으면 34평 가정이다(measuring은 방 카드에만 쓴다)', () => {
+    const state: WallpaperFormState = { ...DEFAULT_CALC_FORM, paperType: '실크', view: 'precise', entry: 'length' };
+    const input = toEngineInput(state, NO_PRODUCTS);
+    expect(input!.base.pyeong).toBe(34);
+    expect(input!.assumed).toContain('area');
+    expect(input!.assumed).not.toContain('measuring');
+  });
+
+  it('공유 링크(?d=) 형식은 그대로다 — 옛 링크를 풀어도 같은 요청이 나온다', () => {
+    // 가정 정보는 공유 형식에 넣지 않는다. 인코딩→디코딩을 거쳐도 요청이 똑같아야 한다.
+    const state: WallpaperFormState = {
+      ...DEFAULT_CALC_FORM,
+      paperType: '실크',
+      pyeong: 24,
+      product: { rollPrice: 40000, widthCm: 106, lengthM: 15.6 },
+    };
+    const restored = decodeWallpaperForm(encodeWallpaperForm(state))!;
+    expect(restored).toEqual(state);
+    expect(toEngineInput(restored, NO_PRODUCTS)).toEqual(toEngineInput(state, NO_PRODUCTS));
   });
 });

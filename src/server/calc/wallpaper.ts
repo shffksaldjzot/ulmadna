@@ -14,6 +14,8 @@
 // 내보내지 않는 것: 업자가, 산식 내부값(재단 중간값·품수 보정 계수 등).
 //
 // 작성일: 2026년 08월 28일
+// 2026년 09월 27일: 좁혀가기 — 제품 없이 종류만 오면 그 종류의 노출 제품 전체로 금액 범위를 만든다
+//   (calcWallpaperTypeRange). 제품이 있는 계산은 예전 본체(calcWallpaperOne) 그대로다.
 // ──────────────────────────────────────────────
 
 import 'server-only';
@@ -40,6 +42,12 @@ import {
   type DirectProduct,
   type PriceBand,
 } from '../pricing/wallpaper';
+// 제품 미정일 때 "그 종류의 노출 제품 전체"로 범위를 만들기 위한 제품 마스터와 변환 함수.
+// 변환 함수는 화면(브라우저)도 쓰는 순수 함수라 src/lib/v1 에 있다 — 서버가 lib을 불러오는 건
+// 괜찮다(반대 방향, 즉 브라우저 쪽이 src/server를 불러오는 것만 금지).
+import { WALLPAPER_PRODUCTS } from './data/wallpaper-products';
+import { toWallpaperProductOptions, isShowableWallpaperProduct } from '@/lib/v1/wallpaperProductOptions';
+import { productOptionToRequest } from '@/lib/v1/wallpaperEngineInput';
 
 // ── 입력 타입 ──────────────────────────────────
 
@@ -154,6 +162,13 @@ export interface WallpaperCalcResult {
     inputMode: DimensionMode;
     /** 실별 보기 (면적 모드는 1행) */
     byRoom: RoomQuantity[];
+    /**
+     * (2026-09-27 추가) 제품을 안 골라 "종류 전체 범위"로 계산했을 때만 붙는다.
+     * 노출 제품마다 롤 폭·길이가 달라(예: 합지 소폭 53cm vs 장폭 93cm) 롤 수가 제품에 따라 달라지므로,
+     * 가장 적게 드는 제품 ~ 가장 많이 드는 제품의 롤 수를 알려 준다.
+     * 위 rolls 칸은 그 종류의 대표 규격(광폭) 기준 롤 수다.
+     */
+    rollsRange?: { min: number; max: number };
   };
   submaterials: SubmaterialLine[];
   cost: {
@@ -248,10 +263,134 @@ function noteFor(basis: string, grade: EvidenceGrade): string {
 // ── 본체 ──────────────────────────────────────
 
 /**
- * 도배 계산기 본체.
- * 입력 한 번으로 치수 → 물량 → 부자재 → 인건 → 비용까지 한 번에 돌린다.
+ * 도배 계산기 입구.
+ *
+ * 2026-09-27 좁혀가기(형아 결정)로 두 갈래가 됐다.
+ *   1) 제품이 있으면(목록에서 골랐거나 직접 입력) → 예전과 똑같이 한 번 계산(calcWallpaperOne).
+ *      완전한 입력의 계산 결과 숫자는 이 작업 전과 한 푼도 다르지 않다.
+ *   2) 제품이 없으면(벽지 종류만 골랐거나 "아직 안 정했어요") → 그 종류의 **노출 제품 전체**로
+ *      한 번씩 계산해서, 가장 싼 결과의 아래쪽 ~ 가장 비싼 결과의 위쪽을 금액 범위로 돌려준다
+ *      (calcWallpaperTypeRange). 그래서 나중에 어떤 노출 제품을 골라도 범위는 좁아지거나 같다.
+ *      노출 제품이 하나도 없는 종류면(지금은 없음) 예전처럼 종류 평균 단가 밴드로 한 번 계산한다.
  */
 export function calcWallpaper(input: WallpaperCalcInput): WallpaperCalcResult {
+  // 제품이 정해졌으면 그 제품 하나로 계산 — 예전 동작 그대로
+  if (input.product) return calcWallpaperOne(input);
+  // 제품 미정 — 종류 전체 범위
+  return calcWallpaperTypeRange(input);
+}
+
+/**
+ * 벽지 종류 하나의 "노출 제품"(화면 제품 목록에 뜨는 제품) 전부를 서버 계산 입력 모양으로 돌려준다.
+ * 화면이 제품을 골랐을 때 보내는 값과 **완전히 같은 변환 함수**(toWallpaperProductOptions →
+ * isShowableWallpaperProduct → productOptionToRequest)를 거친다. 그래야 "제품을 골랐더니 범위가
+ * 종류 전체 범위 밖으로 나갔다"가 구조적으로 생기지 않는다.
+ */
+export function exposedWallpaperProducts(paperType: PaperType): DirectProduct[] {
+  const out: DirectProduct[] = [];
+  for (const option of toWallpaperProductOptions(WALLPAPER_PRODUCTS)) {
+    // 다른 종류이거나 목록에 안 뜨는 제품(검수 대기·규격 미확인)은 뺀다
+    if (option.kind !== paperType || !isShowableWallpaperProduct(option)) continue;
+    const request = productOptionToRequest(option);
+    if (request) out.push(request);
+  }
+  return out;
+}
+
+/**
+ * 제품 미정일 때 — 그 종류의 노출 제품 전체로 금액 범위를 만든다.
+ *
+ * 하는 일:
+ *   1) 노출 제품마다 한 번씩 계산한다(제품 수만큼. 지금 합지 8개·실크 20개 안팎, 한 번에 수 밀리초)
+ *   2) 금액: 가장 낮은 최저값을 낸 제품(lo)의 최저 ~ 가장 높은 최고값을 낸 제품(hi)의 최고
+ *   3) 물량(면적·롤·부자재): 그 종류의 대표 규격(광폭)으로 한 번 더 계산한 값을 보여준다.
+ *      롤 수는 제품 폭에 따라 달라지므로 quantity.rollsRange에 제품별 최소~최대 롤 수를 따로 싣는다.
+ *   4) 구성 보기: 줄마다 최저 금액은 lo 제품의 그 줄, 최고 금액은 hi 제품의 그 줄을 쓴다.
+ *      → 줄 금액을 더하면 결과 최저·최고와 정확히 맞는다(모든 줄이 같은 두 제품에서 오므로).
+ *
+ * ⚠️ 응답에 나가는 건 합쳐진 금액·물량뿐이다. 제품 이름·개별 제품 단가·산식은 싣지 않는다.
+ *    (줄별 단가 범위 unitPriceMin~Max는 제품을 골랐을 때도 원래 나가던 값이라 새로 드러나는 것이 없다)
+ */
+function calcWallpaperTypeRange(input: WallpaperCalcInput): WallpaperCalcResult {
+  const paperType: PaperType = input.paperType ?? '실크';
+  const candidates = exposedWallpaperProducts(paperType);
+
+  // 대표 규격(종류 기본 광폭 규격)으로 한 번 — 물량 표시용. 노출 제품이 없으면 이 결과를 그대로 쓴다(옛 평균가 방식)
+  const representative = calcWallpaperOne(input);
+  if (candidates.length === 0) return representative;
+
+  // 노출 제품마다 한 번씩 계산
+  const each = candidates.map((product) => calcWallpaperOne({ ...input, product }));
+
+  // 최저를 낸 제품(lo)과 최고를 낸 제품(hi)을 고른다. 같은 값이면 먼저 나온 제품
+  let lo = each[0];
+  let hi = each[0];
+  for (const r of each) {
+    if (r.cost.min < lo.cost.min) lo = r;
+    if (r.cost.max > hi.cost.max) hi = r;
+  }
+
+  /** 어떤 결과에서 키가 같은 구성 줄을 찾는다 */
+  const lineOf = (r: WallpaperCalcResult, key: string) => r.cost.breakdown.find((b) => b.key === key);
+
+  // 시공 품수가 제품에 따라 달라지는지(디아망급 고급 실크는 품이 조금 더 든다) 확인해 문구에 반영
+  const laborQtys = each.map((r) => lineOf(r, 'labor')?.qty).filter((q): q is number => q != null);
+  const laborMin = laborQtys.length ? Math.min(...laborQtys) : 0;
+  const laborMax = laborQtys.length ? Math.max(...laborQtys) : 0;
+
+  // 구성 보기 — 줄 순서와 수량은 대표 계산을 따르고, 금액은 lo·hi 제품에서 가져온다
+  const breakdown: CostLine[] = representative.cost.breakdown.map((line) => {
+    const loLine = lineOf(lo, line.key) ?? line;
+    const hiLine = lineOf(hi, line.key) ?? line;
+    // 단가 범위: 모든 노출 제품의 그 줄 단가 중 가장 낮은 값 ~ 가장 높은 값
+    const lines = each.map((r) => lineOf(r, line.key)).filter((l): l is CostLine => l != null);
+    const unitPriceMin = lines.length ? Math.min(...lines.map((l) => l.unitPriceMin)) : line.unitPriceMin;
+    const unitPriceMax = lines.length ? Math.max(...lines.map((l) => l.unitPriceMax)) : line.unitPriceMax;
+
+    // 근거 문구: 벽지 줄은 "제품 미정"을 밝히고, 시공 줄은 품수가 갈리면 범위로 적는다
+    let note = line.note;
+    if (line.key === 'wallpaper') note = '제품 미정 · 목록 제품 전체 범위';
+    if (line.key === 'labor' && laborMin !== laborMax) note = `도배공 ${laborMin}~${laborMax}품 · 제품에 따라 다름`;
+
+    return {
+      ...line,
+      unitPriceMin,
+      unitPriceMax,
+      amountMin: loLine.amountMin,
+      amountMax: hiLine.amountMax,
+      note,
+    };
+  });
+
+  // 롤 수 범위 — 제품 폭·길이에 따라 달라진다
+  const rollsList = each.map((r) => r.quantity.rolls);
+  const min = lo.cost.min;
+  const max = hi.cost.max;
+
+  return {
+    quantity: {
+      ...representative.quantity,
+      rollsRange: { min: Math.min(...rollsList), max: Math.max(...rollsList) },
+    },
+    submaterials: representative.submaterials,
+    cost: {
+      min,
+      // 중간값은 두 끝의 가운데(1,000원 단위 반올림)
+      mid: roundWon((min + max) / 2),
+      max,
+      mode: representative.cost.mode,
+      basisLine: representative.cost.basisLine,
+      breakdown,
+    },
+  };
+}
+
+/**
+ * 도배 계산 한 번(제품 하나 또는 종류 평균 밴드).
+ * 입력 한 번으로 치수 → 물량 → 부자재 → 인건 → 비용까지 한 번에 돌린다.
+ * (2026-09-27 전까지 calcWallpaper라는 이름이던 본체 그대로 — 계산 내용은 한 줄도 안 바꿨다)
+ */
+function calcWallpaperOne(input: WallpaperCalcInput): WallpaperCalcResult {
   // ── 0) 입력 기본값 정리 ──
   const mode: DimensionMode = input.mode ?? '평형';
   const scope: WallpaperScope = input.scope ?? '전체';
