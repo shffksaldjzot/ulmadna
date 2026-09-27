@@ -1,18 +1,28 @@
 // ──────────────────────────────────────────────
 // v1 허브 — 도배 계산기: 결과 패널
-// 물량 먼저, 비용 다음(설계 정본 0절). PC에서는 입력 오른쪽에 sticky로 붙는다.
 //
-// 2026-09-15 디자인 통일 지시(계산기 3종 화면 정리):
-//   예전엔 물량·부자재·비용을 각각 테두리 카드(Card) 3장으로 나눠 그렸다 — "카드 속 카드
-//   금지, 테두리 카드는 결과 카드 하나에만" 원칙에 따라 이제 이 패널 전체가 카드 한 장이고,
-//   안쪽은 여백 + 구획 제목(17/700) + 얇은 구분선으로만 나눈다.
-//   또한 빈 상태(아직 계산할 값이 없을 때) 안내문("벽지를 고르면 바로 나와요" 등)은 모바일에서
-//   하단 고정 요약 바와 겹쳐 같은 문장이 두 번 보이는 중복이었다 — 모바일 화면(<lg)에서는
-//   하단 바 하나만 남기고 이 패널의 빈 상태 문구는 PC(lg 이상)에서만 보여준다.
+// 2026-09-27 지시서(계산기 단계 흐름 개선) 3-13절: 카드 안 순서를 아래로 바꿨다(계산
+// 내용·항목 자체는 그대로다).
+//   1. 금액 범위(가장 큰 숫자) + "추정" 표시 + 중간값 한 줄
+//   2. 수량 한 줄 — 제품 미정(assumed에 'product')이면 롤 수도 범위로 보여준다(rollsRange)
+//   3. 가정 줄(가정이 있을 때만) — "34평 가정 · 제품 미정" 등, ink-2 보조색
+//   4. 기준 줄(cost.basisLine)
+//   5. 구성 보기(접힘) · 부자재 · 실별 보기(접힘)
+//   6. 공유·문의
+//
+// 공유 버튼은 지휘관이 3-13절을 수정한 규칙을 따른다(2026-09-27):
+//   "결과 공유는 필수 단계 3개(종류·제품·면적)가 모두 완료됐을 때만 보인다. 조정 칩
+//   (베이·범위)과 '아직 안 정했어요'(제품)는 공유를 막지 않는다. 'area'·'measuring'
+//   가정이 남아 있으면 숨긴다." → allDone && !assumed.includes('area'|'measuring')로 구현.
+//
+// 3-13절: "첫 단계를 고르기 전에는 결과 카드를 그리지 않는다" — result가 null이면(계산
+// 담당의 useWallpaperCalc가 벽지 종류를 아직 못 골라 계산을 안 한 상태) 통째로 아무것도
+// 안 그린다. 종류는 골랐는데 계산 자체가 실패했으면(드묾) 짧은 실패 문구만 보여준다.
 //
 // 작성일: 2026년 09월 08일
 // 채움: 2026년 09월 09일 (B 지시서)
 // 카드 통합 + 빈 상태 중복 제거: 2026년 09월 15일 (디자인 통일 작업 B)
+// 결과 카드 순서 재배치 + 좁혀가기 연동: 2026년 09월 27일 (단계 흐름 개선)
 // ──────────────────────────────────────────────
 
 'use client';
@@ -27,8 +37,9 @@ import Toast, { showToast } from '@/components/v1/Toast';
 import CalcContactCta from '../_components/CalcContactCta';
 import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
 import { type WallpaperFormState, encodeWallpaperForm } from '@/lib/v1/wallpaperQuery';
-import { trimFormForShare, describeAreaPair } from '@/lib/v1/wallpaperEngineInput';
+import { trimFormForShare, describeAreaPair, type WallpaperAssumption } from '@/lib/v1/wallpaperEngineInput';
 import type { WallpaperCalcResultDTO, WallpaperCostLine, WallpaperRange } from '@/lib/v1/useWallpaperCalc';
+import { describeWallpaperAssumptions } from './assumptionText';
 // GA4 — 결과 노출/구성 보기 펼침/공유 버튼 클릭 이벤트
 import { track } from '@/lib/analytics';
 
@@ -41,15 +52,12 @@ export interface ResultPanelProps {
   error: string | null;
   /** true면 지금 보이는 값이 최신 입력 이전 값이라는 뜻(깜빡임 방지용 표시) */
   stale: boolean;
+  /** 지금 보이는 result가 어떤 값을 가정해서 계산됐는지(계산 담당 useWallpaperCalc가 돌려준다) */
+  assumed: WallpaperAssumption[];
+  /** 3단계(종류·제품·면적/실측)가 전부 "손대서" 끝났는지 — 공유 버튼 노출 판정에 쓴다 */
+  allDone: boolean;
   /** "결과 공유" 버튼이 링크를 만들 때 쓰는 현재 폼 상태 */
   form: WallpaperFormState;
-  /**
-   * 결과가 없을 때(!result) 보여줄 한 줄 안내. WallpaperCalculator가 폼 상태를 보고
-   * "벽지를 고르면 바로 나와요" / "평형을 고르면 바로 나와요" / "치수를 넣으면 나와요" 중
-   * 하나로 미리 계산해 내려준다. 모바일은 하단 고정 바가 이미 같은 문구를 보여주고 있어
-   * 이 패널은 PC(lg 이상)에서만 그린다(2026-09-15 중복 제거).
-   */
-  emptyMessage: string;
   /** 구성 보기의 "기존 벽지 제거" 토글 — 켜고 끄면 폼 상태(removeOld)가 바뀌어 다시 계산된다 */
   onRemoveOldChange: (v: boolean) => void;
 }
@@ -68,8 +76,17 @@ function formatCostLineAmount(line: WallpaperCostLine): string {
   return formatManRange(line.amountMin, line.amountMax);
 }
 
-export default function ResultPanel({ result, range, loading, error, stale, form, emptyMessage,
-  onRemoveOldChange, }: ResultPanelProps) {
+export default function ResultPanel({
+  result,
+  range,
+  loading,
+  error,
+  stale,
+  assumed,
+  allDone,
+  form,
+  onRemoveOldChange,
+}: ResultPanelProps) {
   // "링크를 복사했어요" 같은 짧은 토스트 메시지
   const [toast, setToast] = useState<string | null>(null);
 
@@ -78,17 +95,11 @@ export default function ResultPanel({ result, range, loading, error, stale, form
     if (result) track('calc_result_view', { process: 'wallpaper' });
   }, [result]);
 
-  // 빈 상태 — 아직 계산할 값이 없거나(벽지 미선택 / 평형 미입력 / 치수 미입력) 계산이
-  // 실패했을 때. 같은 문구를 모바일 하단 고정 바가 이미 보여주고 있어서(2026-09-15 중복
-  // 제거 지시), 이 카드는 PC(lg 이상)에서만 그린다 — 모바일은 통째로 숨긴다.
+  // 3-13절: 첫 단계를 고르기 전(계산 담당이 아직 계산할 게 없다고 본 상태)에는 통째로 안 그린다.
+  // 종류는 골랐는데 계산 자체가 실패했으면(드묾) 짧은 실패 문구만 보여준다.
   if (!result) {
-    return (
-      <div className="hidden lg:block">
-        <Card>
-          <p className="text-[15px] text-v1-text-secondary">{error ? '계산에 실패했어요' : emptyMessage}</p>
-        </Card>
-      </div>
-    );
+    if (error) return <p className="t-body text-ink">계산에 실패했어요</p>;
+    return null;
   }
 
   const { quantity, submaterials, cost } = result;
@@ -101,18 +112,22 @@ export default function ResultPanel({ result, range, loading, error, stale, form
         : `추정 로스 ${quantity.lossPct}%`;
 
   // 큰 숫자는 훅이 계산해 준 범위(범위가 없으면 이 결과 자체의 min~max)를 쓴다.
-  // 지금은 항상 한 번만 계산하므로 range는 사실상 늘 result.cost.min~max와 같다.
   const bigRange = range ?? { min: cost.min, max: cost.max };
 
   // 로딩 중이거나 이전 값을 보여주는 중이거나, 방금 계산이 실패해 예전 값을 그대로 보여주는
   // 중이면 카드 전체를 옅게 한다(깜빡임 방지 규칙 + 검사관 지적 12번)
   const dim = loading || stale || !!error;
 
+  // 가정 줄 문구 — 없으면(전부 사용자가 직접 골랐으면) 아예 안 그린다
+  const assumedText = describeWallpaperAssumptions(assumed);
+
+  // 지휘관 확정 규칙(2026-09-27, 3-13절 수정): 공유는 3단계가 전부 끝났고, 'area'·'measuring'
+  // 가정이 안 남아 있을 때만 보인다. 베이·범위 조정 칩과 "제품 미정"은 공유를 막지 않는다.
+  const canShare = allDone && !assumed.includes('area') && !assumed.includes('measuring');
+
   /** "결과 공유" — 모바일은 공유 시트가 있으면 그것부터, 아니면 링크 복사 */
   async function handleShare() {
     track('calc_cta_click', { process: 'wallpaper', target: 'share' });
-    // 지금 모드에서 안 쓰는 값(예: simple인데 실측 방 목록)은 링크에 안 싣는다 — 폼 상태
-    // 원본(form)은 그대로 두고 공유용 사본만 깎는다(검사관 2라운드 지적 3번)
     const url = `${window.location.origin}/calc/wallpaper/result?d=${encodeWallpaperForm(trimFormForShare(form))}`;
     const nav = navigator as Navigator & { share?: (data: ShareData) => Promise<void> };
     if (nav.share) {
@@ -120,10 +135,7 @@ export default function ResultPanel({ result, range, loading, error, stale, form
         await nav.share({ title: '얼마드나 도배 계산 결과', url });
         return;
       } catch (e) {
-        // 사용자가 공유 시트를 취소한 것(AbortError)이면 아무 것도 안 하고 조용히 끝낸다
-        // (검사관 지적 15번 — 취소했는데 클립보드 폴백·토스트가 뜨는 건 잘못된 안내)
         if (e instanceof DOMException && e.name === 'AbortError') return;
-        // 그 외 실패(공유 시트 자체가 오류)는 아래 클립보드 복사로 폴백한다
       }
     }
     try {
@@ -136,27 +148,38 @@ export default function ResultPanel({ result, range, loading, error, stale, form
 
   return (
     <>
-      {/* 결과가 있는 상태에서 방금 계산이 실패했으면(예: 값 바꾸다 5평 미만 등) 침묵하지 않고
-          알려준다 — 아래 카드와 달리 옅어지지 않게 dim 바깥에 둔다(검사관 지적 12번) */}
-      {error && (
-        <p className="text-[13px] text-danger mb-2">마지막 계산에 실패해 이전 값이에요</p>
-      )}
-      {/* 결과 카드 — 이 화면에서 테두리 카드는 이거 하나뿐이다(카드 속 카드 금지 원칙).
-          물량 → 부자재 → 비용 순서를 얇은 구분선(구획 제목 17/700)으로만 나눈다. */}
+      {error && <p className="text-[13px] text-danger mb-2">마지막 계산에 실패해 이전 값이에요</p>}
       <Card className={`transition-opacity duration-150 ${dim ? 'opacity-60' : ''}`}>
-        {/* 물량 */}
-        <div className="text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em]">
-          {formatNum(quantity.rolls)}롤
+        {/* 1. 금액 범위(가장 큰 숫자) + 추정 표시 + 중간값 한 줄 — 지시서 3-13절 순서 1번 */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em] whitespace-nowrap">
+            {formatManRange(bigRange.min, bigRange.max)}
+          </div>
+          {cost.mode === '산식' && (
+            <span className="text-[13px] font-semibold text-brown bg-v1-badge-gold-bg border border-gold rounded-[4px] px-[10px] py-[2px] whitespace-nowrap">
+              추정
+            </span>
+          )}
         </div>
-        <p className="text-[15px] text-foreground leading-[1.6] tabular-nums">
-          벽 {quantity.wallSqm}㎡ · 천장 {quantity.ceilingSqm}㎡ · {lossLabel}
+        <p className="t-body font-semibold text-ink-2 tabular-nums">중간 {toMan(cost.mid).toLocaleString('ko-KR')}만원</p>
+
+        {/* 2. 수량 한 줄 — 제품 미정이면 롤 수도 범위로("19~46롤") */}
+        <p className="t-body text-ink leading-[1.6] tabular-nums pt-2 border-t border-v1-line-2">
+          {quantity.rollsRange ? `${formatNum(quantity.rollsRange.min)}~${formatNum(quantity.rollsRange.max)}롤` : `${formatNum(quantity.rolls)}롤`}
+          {' · '}벽 {quantity.wallSqm}㎡ · 천장 {quantity.ceilingSqm}㎡ · {lossLabel}
         </p>
-        {/* 간단(평형/㎡) 모드일 때만 "34평 · 84㎡" 병기 — 실측·벽 길이는 이미
-            실제 치수라 공급/전용 개념이 없다(2026-09-15 형아 지시 ㎡ 모드 추가) */}
+        {/* 간단(평형/㎡) 모드일 때만 "34평 · 84㎡" 병기 */}
         {quantity.inputMode === '평형' && describeAreaPair(form) && (
-          <p className="text-[13px] text-v1-text-disabled tabular-nums">{describeAreaPair(form)}</p>
+          <p className="t-sub text-v1-text-disabled tabular-nums">{describeAreaPair(form)}</p>
         )}
-        {/* 면적(벽 길이) 모드는 방별 물량이 없어 "실별 보기"가 뜻이 없다 — 숨긴다(검사관 지적 17번) */}
+
+        {/* 3. 가정 줄 — 가정이 있을 때만("34평 가정 · 제품 미정" 등) */}
+        {assumedText && <p className="t-sub text-ink-2">{assumedText}</p>}
+
+        {/* 4. 기준 줄 */}
+        <p className="t-body text-ink tabular-nums">{cost.basisLine}</p>
+
+        {/* 면적(벽 길이) 모드는 방별 물량이 없어 "실별 보기"가 뜻이 없다 — 숨긴다 */}
         {quantity.inputMode !== '면적' && (
           <Collapsible title="실별 보기">
             <div className="flex flex-col">
@@ -180,7 +203,7 @@ export default function ResultPanel({ result, range, loading, error, stale, form
           </Collapsible>
         )}
 
-        {/* 부자재 — 구획 제목(17/700) + 얇은 구분선으로 물량과 나눈다(카드 속 카드 금지) */}
+        {/* 5. 부자재 */}
         <h2 className="text-[17px] font-bold text-foreground border-t border-v1-line-2 pt-3 mt-1">부자재</h2>
         <div className="flex flex-col">
           {submaterials.map((s, i) => (
@@ -192,8 +215,6 @@ export default function ResultPanel({ result, range, loading, error, stale, form
                   {s.unit}
                 </span>
               </div>
-              {/* 근거 등급이 C(추정)면 근거줄 끝에 "· 추정"을 덧붙인다. 단 basis 자체에 이미
-                  "추정"이 들어 있으면(계수 문구에 포함된 경우) 중복으로 안 붙인다(검사관 지적 7번) */}
               <p className="text-[13px] text-v1-text-disabled tabular-nums">
                 {s.basis}
                 {s.grade === 'C' && !s.basis.includes('추정') ? ' · 추정' : ''}
@@ -202,43 +223,15 @@ export default function ResultPanel({ result, range, loading, error, stale, form
           ))}
         </div>
 
-        {/* 비용 — 구획 제목(17/700) + 얇은 구분선으로 부자재와 나눈다 */}
-        <h2 className="text-[17px] font-bold text-foreground border-t border-v1-line-2 pt-3 mt-1">비용</h2>
-        {/* 금액과 단위는 줄바꿈으로 갈라지면 안 되므로(디자인 가이드 원칙) whitespace-nowrap.
-            배지가 자리 부족하면 배지만 다음 줄로 내려가게 flex-wrap 허용 */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em] whitespace-nowrap">
-            {formatManRange(bigRange.min, bigRange.max)}
-          </div>
-          {cost.mode === '산식' && (
-            <span className="text-[13px] font-semibold text-brown bg-v1-badge-gold-bg border border-gold rounded-[4px] px-[10px] py-[2px] whitespace-nowrap">
-              추정
-            </span>
-          )}
-        </div>
-        <p className="text-[15px] font-semibold text-v1-text-secondary tabular-nums">
-          중간 {toMan(cost.mid).toLocaleString('ko-KR')}만원
-        </p>
-        <p className="text-[15px] text-foreground tabular-nums">{cost.basisLine}</p>
-        {/* 구성 보기 — 2026-09-09 형아 결정: 기본으로 전부 펼쳐 보여준다(접을 수는 있다).
-            견적은 전부 구축 기준이라 맨 위에 "기존 벽지 제거" 토글을 두고 사용자가 보고 판단한다. */}
-        <Collapsible
-          title="구성 보기"
-          defaultOpen
-          onOpen={() => track('calc_detail_open', { process: 'wallpaper' })}
-        >
+        {/* 구성 보기 — 2026-09-09 형아 결정: 기본으로 전부 펼쳐 보여준다(접을 수는 있다) */}
+        <Collapsible title="구성 보기" defaultOpen onOpen={() => track('calc_detail_open', { process: 'wallpaper' })}>
           <div className="flex flex-col">
             <div className="py-[10px] border-b border-v1-line-2 flex items-center justify-between gap-3">
               <div className="flex flex-col gap-[2px] min-w-0">
                 <span className="text-[15px] text-foreground">기존 벽지 제거</span>
                 <span className="text-[13px] text-v1-text-disabled">구축 기준 견적 · 끄면 철거비를 뺍니다</span>
               </div>
-              <Toggle
-                checked={form.removeOld ?? true}
-                onChange={onRemoveOldChange}
-                label="기존 벽지 제거 포함"
-                className="flex-none"
-              />
+              <Toggle checked={form.removeOld ?? true} onChange={onRemoveOldChange} label="기존 벽지 제거 포함" className="flex-none" />
             </div>
             {cost.breakdown.map((line, i) => (
               <div key={line.key} className={`py-[10px] ${i === cost.breakdown.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
@@ -254,11 +247,13 @@ export default function ResultPanel({ result, range, loading, error, stale, form
         </Collapsible>
       </Card>
 
-      {/* 공유 행 — 저장 버튼은 이번 화면에 없음(로그인 미구현) */}
+      {/* 6. 공유·문의 — 가정값이 남아 있으면(3단계를 다 안 끝냈으면) 공유는 숨긴다 */}
       <div className="flex flex-col gap-4 mt-4">
-        <Button variant="secondary" fullWidth onClick={handleShare}>
-          결과 공유
-        </Button>
+        {canShare && (
+          <Button variant="secondary" fullWidth onClick={handleShare}>
+            결과 공유
+          </Button>
+        )}
         <CalcContactCta />
         <Disclaimer />
       </div>

@@ -1,15 +1,12 @@
 // ──────────────────────────────────────────────
-// v1 허브 — 도배 계산기: 범위·지역·상태 칩 3줄 (공용 부품)
+// v1 허브 — 도배 계산기: 범위(벽·천장) 칩
 //
-// 이 파일이 하는 일:
-//   "간단하게 계산하기"(QuickAnswer)와 "정확하게 계산하기"(PreciseSection) 두 카드가
-//   똑같이 쓰는 칸이라 여기 하나로 뺐다. 벽지 종류는 이제 벽지 카드(PaperPicker)에서
-//   고르므로 이 부품에는 없다(2026-09-09 화면 재배치 — 벽지 최우선 A안).
-//
-//   상태는 이 컴포넌트가 갖지 않는다. 부르는 쪽(QuickAnswer·PreciseSection)이
-//   폼 상태를 그대로 들고 있고, 여기서는 "값 + 바꾸는 함수"만 받아 쓴다.
+// 2026-09-27 지시서(계산기 단계 흐름 개선) 3-12절: 범위는 더 이상 단계 안에 있지 않고
+// "조정 칩" 구역(결과 위)으로 옮겼다. 그래서 이 부품은 이제 라벨·테두리 없이 칩 두 개만
+// 그린다 — "범위" 라벨은 조정 칩 구역(AdjustChips)이 공용으로 붙여 준다.
 //
 // 작성일: 2026년 09월 09일
+// 조정 칩으로 이동(라벨·테두리 제거): 2026년 09월 27일
 // ──────────────────────────────────────────────
 
 'use client';
@@ -17,43 +14,27 @@
 import Chip from '@/components/v1/Chip';
 
 export interface ConditionChipsProps {
-  /** 도배 대상 — 벽+천장 / 벽만 (이 화면은 두 개만 노출) */
+  /** 도배 대상 — 벽+천장 / 벽만 / 천장만 */
   target: 'wall' | 'ceiling' | 'both';
   onTargetChange: (v: 'wall' | 'ceiling' | 'both') => void;
-  /** 지역(선택). 비용에만 영향 */
-  /** 구축(재도배) 여부. 기본 false(신축·빈집) */
 }
 
-export default function ConditionChips({
-  target,
-  onTargetChange,
-}: ConditionChipsProps) {
+export default function ConditionChips({ target, onTargetChange }: ConditionChipsProps) {
   return (
-    <div className="flex flex-col gap-3 pt-2 border-t border-v1-line-2">
-      {/* 범위 — 벽·천장을 각각 켜고 끈다 (2026-09-09 형아 지시). 둘 다 끄는 건 막는다(마지막 하나는 안 꺼짐) */}
-      <div className="flex flex-col gap-1">
-        <span className="text-[13px] text-v1-text-label">범위</span>
-        <div className="flex gap-2">
-          <Chip
-            selected={target !== 'ceiling'}
-            onClick={() => onTargetChange(target === 'both' ? 'ceiling' : target === 'ceiling' ? 'both' : 'wall')}
-          >
-            벽
-          </Chip>
-          <Chip
-            selected={target !== 'wall'}
-            onClick={() => onTargetChange(target === 'both' ? 'wall' : target === 'wall' ? 'both' : 'ceiling')}
-          >
-            천장
-          </Chip>
-        </div>
-      </div>
-
-      {/* 지역 칩은 2026-09-09 형아 결정으로 뺐다 — 계산은 전부 수도권 기준. 지역은 나중에 광고 배너를
-          접속 IP 기준으로 띄울 때 쓴다. */}
-
-      {/* 상태(신축/구축) 칩은 2026-09-09 형아 결정으로 뺐다 — 견적은 전부 구축 기준,
-          기존 벽지 제거만 결과 카드의 구성 보기에서 토글로 켜고 끈다. */}
-    </div>
+    <>
+      {/* 벽·천장을 각각 켜고 끈다. 둘 다 끄는 건 막는다(마지막 하나는 안 꺼짐) */}
+      <Chip
+        selected={target !== 'ceiling'}
+        onClick={() => onTargetChange(target === 'both' ? 'ceiling' : target === 'ceiling' ? 'both' : 'wall')}
+      >
+        벽
+      </Chip>
+      <Chip
+        selected={target !== 'wall'}
+        onClick={() => onTargetChange(target === 'both' ? 'wall' : target === 'wall' ? 'both' : 'ceiling')}
+      >
+        천장
+      </Chip>
+    </>
   );
 }

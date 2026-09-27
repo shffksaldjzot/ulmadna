@@ -2,25 +2,18 @@
 // v1 허브 — 도배 계산기: 벽지 카드 (종류 + 제품 고르기)
 //
 // 이 파일이 하는 일:
-//   화면 맨 위 1번 카드 — 벽지 종류(합지/실크)부터 고른다. 종류를 고르면 그 아래 제품
-//   목록이 나온다. 한 줄을 누르면 그 제품의 규격·판매가로 계산하고, 같은 줄을 다시 누르면
-//   선택이 풀린다(종류 평균가로 돌아간다). 마지막 줄 "직접 입력"은 목록에 없는 벽지를
-//   직접 적는 자리다. 목록 제품과 직접 입력은 둘 중 하나만 살아 있다.
+//   1단계 — 벽지 종류(합지/실크) 세그먼트.
+//   2단계 — 벽지 제품. 2026-09-27 지시서(3-11절)로 기본 드롭다운을 버리고 "제품 고르기"
+//   버튼 + 목록 시트(ProductSheet)로 바꿨다. 시트 맨 위 "아직 안 정했어요"를 골라도
+//   이 단계는 완료된다(그 종류 노출 제품 전체 범위로 계산 — 계산 담당이 서버에서 처리).
+//   마지막 줄 "직접 입력"은 목록에 없는 벽지를 직접 적는 자리(기존 기능 그대로 연결).
 //
-//   2026-09-09 화면 재배치(벽지 최우선 A안):
-//     · 종류 세그먼트를 이 카드 안으로 다시 들여왔다(즉답 블록 칩 4줄에 있던 걸 옮김) —
-//       이제 벽지가 화면 첫 카드라 종류를 여기서 바로 고른다. "아직 몰라요" 칩은 없앴다
-//       (기본이 미선택이라 굳이 옵션으로 안 둬도 된다).
-//     · 종류를 안 골라도 이 카드는 항상 그려진다(세그먼트를 보여줘야 하니까). 종류를
-//       안 골랐을 때만 제품 목록 자리를 비워 둔다(안내문 없이 — 설명글 최소화 원칙).
-//     · 규격·가격이 확인된 제품만 보여 준다. 조사가 덜 끝났거나 "확인 필요"가 붙은 제품은
-//       목록에서 아예 뺀다("조사 중"·"확인 중" 같은 미완성 흔적을 손님에게 보이지 않는다).
-//
-//   상태는 이 컴포넌트가 갖지 않는다(직접 입력 칸의 글자만 화면 전용으로 들고 있고,
-//   바깥 product 값이 바뀌면 그 값에 맞춰 다시 채운다).
+//   상태는 이 컴포넌트가 갖지 않는다(시트 열림 여부·직접 입력 칸의 글자만 화면 전용으로
+//   들고 있고, 바깥 productCode·product 값이 바뀌면 그 값에 맞춰 다시 채운다).
 //
 // 작성일: 2026년 09월 09일
 // 재배치: 2026년 09월 09일 (벽지 최우선 A안)
+// 목록 시트로 교체: 2026년 09월 27일 (지시서 3-11절 — 단계 흐름 개선)
 // ──────────────────────────────────────────────
 
 'use client';
@@ -28,11 +21,11 @@
 import { useState } from 'react';
 import Segment from '@/components/v1/Segment';
 import NumberField from '@/components/v1/NumberField';
-import { IconChevronDown } from '@/components/v1/icons';
+import { IconChevronRight } from '@/components/v1/icons';
 import type { WallpaperProductOption } from '@/lib/v1/wallpaperQuery';
-
-/** 드롭다운에서 "직접 입력" 줄의 값 (제품 코드와 겹치지 않는 문자열) */
-const CUSTOM_VALUE = '__custom__';
+import { isShowableWallpaperProduct } from '@/lib/v1/wallpaperProductOptions';
+import ProductSheet, { PRODUCT_SHEET_CUSTOM, PRODUCT_SHEET_UNDECIDED } from '../_components/flow/ProductSheet';
+import type { PickerItem } from '../_components/flow/types';
 
 /** 직접 입력한 벽지 한 개의 모양 (폼 상태 product 칸과 같은 모양) */
 type CustomProduct = { rollPrice: number; widthCm: number; lengthM: number; repeatCm?: number };
@@ -47,14 +40,13 @@ type CustomFields = {
 
 export interface PaperPickerProps {
   /**
-   * 이 카드에서 어느 부분만 그릴지 — 2026-09-16 튜토리얼식 단계 안내 도입으로 "종류"와
-   * "제품"이 서로 다른 단계(StepFlow)에 들어가게 되면서 나뉘었다.
+   * 이 카드에서 어느 부분만 그릴지 — "종류"와 "제품"이 서로 다른 단계(StepRow)에 들어간다.
    *   'type'    — 종류(합지/실크) 세그먼트만.
-   *   'product' — 종류를 고른 뒤 나오는 제품 드롭다운 + 직접 입력 칸만.
+   *   'product' — 종류를 고른 뒤 나오는 "제품 고르기" 버튼 + 목록 시트만.
    */
   part: 'type' | 'product';
 
-  /** 벽지 종류. undefined면 아직 안 고른 상태 — 이때는 세그먼트만 보이고 제품 목록은 비운다 */
+  /** 벽지 종류. undefined면 아직 안 고른 상태 */
   paperType: '합지' | '실크' | undefined;
   onPaperTypeChange: (v: '합지' | '실크' | undefined) => void;
 
@@ -65,10 +57,15 @@ export interface PaperPickerProps {
   /** page.tsx가 서버 제품 마스터에서 골라 내려준 목록 (규격·가격 미확인인 제품은 null 칸 포함) */
   products: WallpaperProductOption[];
 
-  // ── 아래 두 칸은 새로 생긴 자리라 optional이다(배선 전에도 화면이 안 깨진다) ──
   /** 직접 입력한 벽지 (롤당 가격·폭·길이·무늬 반복) */
   product?: CustomProduct;
   onProductChange?: (v: CustomProduct | undefined) => void;
+
+  /**
+   * 2단계를 사용자가 실제로 손댔는지(제품 고르기 버튼에 "제품 고르기" 대신 고른 값을
+   * 보여줄지 판단하는 데 쓴다). 아직 한 번도 안 눌렀으면 false.
+   */
+  touched?: boolean;
 }
 
 /** 롤당 가격(원) → 화면 표기 "4.4만/롤". 만 단위 소수 첫째 자리까지, .0이면 떼고 보여 준다 */
@@ -76,16 +73,6 @@ function formatRollPrice(won: number): string {
   const man = Math.round((won / 10000) * 10) / 10;
   const text = Number.isInteger(man) ? String(man) : man.toFixed(1);
   return `${text}만/롤`;
-}
-
-/**
- * 손님에게 보여도 되는 제품인지.
- * 가격·폭·롤 길이가 전부 조사돼 있어야 하고(계산에 써야 하니까),
- * 출처에 "확인 필요"가 붙은(=아직 검수 안 끝난) 제품은 목록에서 뺀다.
- */
-function isShowable(p: WallpaperProductOption): boolean {
-  if (p.price == null || p.widthCm == null || p.lengthM == null) return false;
-  return !p.sourceLabel.includes('확인 필요');
 }
 
 /** 바깥에서 받은 직접 입력 값 → 화면 칸 네 개 */
@@ -107,20 +94,25 @@ export default function PaperPicker({
   products,
   product,
   onProductChange,
+  touched = false,
 }: PaperPickerProps) {
-  // 직접 입력 칸 펼침 여부 — 이미 직접 입력한 값이 있으면 펼친 채로 시작한다
-  const [customOpen, setCustomOpen] = useState(product !== undefined);
+  // 목록 시트 열림 여부 — 이 카드가 직접 들고 있는 유일한 상태
+  const [sheetOpen, setSheetOpen] = useState(false);
+  // "직접 입력" 줄을 눌러서 그 아래 입력 폼을 펼쳐 둔 상태인지 — 이미 직접 입력한 값이
+  // 있으면 처음부터 펼친 채로 시작한다. 이 상태만으로는 아직 단계를 완료 처리하지 않는다
+  // (세 칸을 다 채워야 진짜 "손댔다"고 본다 — 그래야 값도 없이 다음 단계로 훌쩍 넘어가지 않는다)
+  const [customFormOpen, setCustomFormOpen] = useState(product !== undefined);
   // 직접 입력 칸에 적히는 값(화면 전용)
   const [custom, setCustom] = useState<CustomFields>(() => toFields(product));
   // 바깥 product가 바뀐 걸 알아채려고 직전 값을 같이 기억해 둔다
   const [lastProduct, setLastProduct] = useState<CustomProduct | undefined>(product);
 
-  // 바깥에서 직접 입력 값이 바뀌면(예: 벽지 종류를 바꿔 B가 product를 지웠을 때) 화면 칸도 맞춘다
+  // 바깥에서 직접 입력 값이 바뀌면(예: 벽지 종류를 바꿔 종류가 지웠을 때) 화면 칸도 맞춘다
   if (product !== lastProduct) {
     setLastProduct(product);
     setCustom(toFields(product));
-    // 값이 통째로 지워졌으면 펼쳐 둘 이유도 없다
-    if (product === undefined) setCustomOpen(false);
+    // 값이 통째로 지워졌으면(다른 데서 초기화된 것) 펼쳐 둘 이유도 없다
+    if (product === undefined) setCustomFormOpen(false);
   }
 
   /**
@@ -147,37 +139,35 @@ export default function PaperPicker({
   }
 
   /**
-   * 드롭다운에서 고른 값 하나로 세 가지 상태를 정리한다(둘 중 하나만 살아 있다는 규칙 유지).
-   *   ''            → 제품 안 고름: 목록 선택·직접 입력 둘 다 지운다 → 종류 평균가
-   *   CUSTOM_VALUE  → 직접 입력 펼침: 목록 선택은 지우고, 이미 적어 둔 값이 있으면 다시 반영
-   *   제품 코드     → 그 제품: 직접 입력은 접고 지운다
+   * 시트에서 한 줄을 고르면 전부 이 함수로 온다.
+   * "직접 입력"만 예외 — 그 자리에서 바로 완료 처리하지 않고 입력 폼만 펼친다(3-11절:
+   * 세 칸을 다 채워야 진짜 값이 생기므로, 줄을 누른 순간이 아니라 다 채웠을 때 완료된다).
+   * 나머지 두 줄("아직 안 정했어요"·목록 제품)은 누르는 즉시 시트가 닫히고 단계가 완료된다.
    */
-  function onSelect(value: string) {
-    if (value === CUSTOM_VALUE) {
-      setCustomOpen(true);
-      onProductCodeChange(undefined);
-      updateCustom({});
+  function onSheetSelect(code: string) {
+    if (code === PRODUCT_SHEET_CUSTOM) {
+      setCustomFormOpen(true);
       return;
     }
-    setCustomOpen(false);
+    if (code === PRODUCT_SHEET_UNDECIDED) {
+      // "아직 안 정했어요" — 목록 선택·직접 입력 둘 다 지운다. 종류 전체 범위로 계산되고 단계는 완료된다
+      setCustomFormOpen(false);
+      setLastProduct(undefined);
+      onProductChange?.(undefined);
+      setCustom(toFields(undefined));
+      onProductCodeChange(undefined);
+      setSheetOpen(false);
+      return;
+    }
+    // 목록에서 실제 제품 하나를 골랐다 — 직접 입력은 지운다
+    setCustomFormOpen(false);
     setLastProduct(undefined);
     onProductChange?.(undefined);
-    onProductCodeChange(value === '' ? undefined : value);
+    setCustom(toFields(undefined));
+    onProductCodeChange(code);
+    setSheetOpen(false);
   }
 
-  // 고른 종류 중 손님에게 보여도 되는 제품만 남긴다(종류를 안 골랐으면 빈 목록)
-  // 정렬은 브랜드순(영문 브랜드 GNI·LX 먼저, 그다음 가나다) → 같은 브랜드 안에서는 싼 것부터 (2026-09-09 형아 지시)
-  const list = paperType
-    ? products
-        .filter((p) => p.kind === paperType && isShowable(p))
-        .sort((a, b) => a.brand.localeCompare(b.brand, 'en') || (a.price as number) - (b.price as number))
-    : [];
-  // 드롭다운 아래에 출처 한 줄을 보여 주려고 고른 제품을 찾아 둔다
-  const selectedProduct = productCode ? list.find((p) => p.code === productCode) : undefined;
-
-  // 2026-09-16 튜토리얼식 단계 안내: 이 카드가 두 단계(종류·제품)로 나뉘어서, 부르는 쪽이
-  // part로 어느 쪽을 그릴지 정한다. 카드 자체(테두리 없음)는 그대로 두고 h2 제목만 뺐다 —
-  // 제목·번호 배지는 이제 바깥의 StepFlow가 그린다.
   if (part === 'type') {
     return (
       // 종류 — 기본 미선택. 고르기 전엔 아무 탭도 활성화하지 않는다
@@ -192,95 +182,111 @@ export default function PaperPicker({
     );
   }
 
-  // part === 'product' — 종류를 아직 안 골랐으면 그릴 게 없다(방어적 처리, 정상 흐름에서는
-  // 이 단계 자체가 종류를 고른 뒤에만 열린다)
+  // part === 'product' — 종류를 아직 안 골랐으면 그릴 게 없다(방어적 처리)
   if (!paperType) return null;
 
+  // 고른 종류 중 손님에게 보여도 되는 제품만 남긴다(계산 담당의 isShowableWallpaperProduct와
+  // 같은 규칙 — 목록과 서버 "종류 전체 범위" 계산이 같은 제품 집합을 봐야 한다)
+  // 정렬은 브랜드순(영문 브랜드 GNI·LX 먼저, 그다음 가나다) → 같은 브랜드 안에서는 싼 것부터
+  const list = products
+    .filter((p) => p.kind === paperType && isShowableWallpaperProduct(p))
+    .sort((a, b) => a.brand.localeCompare(b.brand, 'en') || (a.price as number) - (b.price as number));
+
+  const items: PickerItem[] = list.map((p) => ({
+    code: p.code,
+    title: `${p.brand} ${p.name}`,
+    priceLabel: formatRollPrice(p.price as number),
+  }));
+
+  // 시트 안에서 강조 표시할 줄 — 직접 입력 폼이 펼쳐져 있으면(아직 값을 다 안 채웠어도) 그 줄을 강조한다
+  const selectedCode = customFormOpen
+    ? PRODUCT_SHEET_CUSTOM
+    : productCode
+      ? productCode
+      : touched
+        ? PRODUCT_SHEET_UNDECIDED
+        : undefined;
+
+  // 트리거 버튼에 보여줄 글자 — 아직 한 번도 손 안 댔으면 "제품 고르기", 손댔으면 실제로 값이
+  // 갖춰진 것만 보여준다(직접 입력 폼을 펼치기만 하고 값을 안 채웠으면 아직 "제품 고르기"인 채로 둔다)
+  const selectedProduct = productCode ? list.find((p) => p.code === productCode) : undefined;
+  const triggerLabel = selectedProduct
+    ? `${selectedProduct.brand} ${selectedProduct.name}`
+    : product !== undefined
+      ? '직접 입력'
+      : touched
+        ? '아직 안 정했어요'
+        : '제품 고르기';
+
   return (
-    <div className="flex flex-col">
-      {/* 제품 드롭다운 — 2026-09-09 형아 지시: 제품이 세로로 쭉 나오지 말고 드롭다운으로 고르게.
-          첫 줄(빈 값) = 제품 안 고름 → 종류 평균가로 계산. 마지막 줄 "직접 입력" = 아래 입력칸 펼침. */}
-      <label className="text-[13px] text-v1-text-label pb-1" htmlFor="paper-product-select">
-        벽지 제품
-      </label>
-      <div className="relative">
-        <select
-          id="paper-product-select"
-          aria-label="벽지 제품"
-          value={customOpen ? CUSTOM_VALUE : (productCode ?? '')}
-          onChange={(e) => onSelect(e.target.value)}
-          className={
-            'w-full h-11 appearance-none rounded-lg border border-v1-line-2 bg-white pl-3 pr-10 ' +
-            'text-[16px] text-foreground focus:outline-none focus:border-brown'
-          }
-        >
-          {/* 2026-09-09 형아 지시: 첫 줄 문구는 "제품 선택"으로만 (안 고르면 종류 평균가로 계산되는 건 그대로) */}
-          <option value="">제품 선택</option>
-          {list.map((p) => (
-            <option key={p.code} value={p.code}>
-              {p.brand} {p.name} · {formatRollPrice(p.price as number)}
-            </option>
-          ))}
-          <option value={CUSTOM_VALUE}>직접 입력</option>
-        </select>
-        {/* 오른쪽 화살표 — 브라우저 기본 화살표는 appearance-none 으로 감추고 우리 아이콘을 얹는다 */}
-        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-          <IconChevronDown className="text-v1-text-label" />
-        </span>
-      </div>
+    <div className="flex flex-col gap-2">
+      <button
+        type="button"
+        onClick={() => setSheetOpen(true)}
+        className="w-full h-12 flex items-center justify-between rounded-[8px] border border-line bg-surface px-4 text-left"
+      >
+        <span className="t-body text-ink truncate">{triggerLabel}</span>
+        <IconChevronRight className="text-ink-2 flex-none" />
+      </button>
 
-      {/* 고른 제품의 출처 한 줄 (드롭다운 안에는 못 넣어서 아래에 따로) */}
-      {selectedProduct?.sourceLabel && (
-        <span className="text-[13px] text-v1-text-disabled pt-1">{selectedProduct.sourceLabel}</span>
-      )}
-
-      {customOpen && (
-        <div className="flex flex-col gap-2 pt-3 pl-3">
-          {/* 가격은 자릿수가 길어 한 줄을 통째로 쓴다(좁은 폰에서 숫자가 잘리지 않게) */}
-          <span className="text-[13px] text-v1-text-label">롤당 가격</span>
-          <NumberField
-            aria-label="롤당 가격"
-            suffix="원"
-            placeholder="44000"
-            value={custom.rollPrice}
-            onChange={(v) => updateCustom({ rollPrice: v })}
-          />
-
-          {/* 폭·길이는 짧은 숫자라 한 줄에 2칸 */}
-          <div className="flex gap-2 text-[13px] text-v1-text-label pt-1">
-            <span className="flex-1 min-w-0">폭</span>
-            <span className="flex-1 min-w-0">길이</span>
-          </div>
-          <div className="flex gap-2">
+      <ProductSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        title="벽지 제품"
+        items={items}
+        selectedCode={selectedCode}
+        onSelect={onSheetSelect}
+        customForm={
+          <>
+            <span className="t-sub text-ink-2">롤당 가격</span>
             <NumberField
-              className="flex-1 min-w-0"
-              aria-label="벽지 폭"
+              aria-label="롤당 가격"
+              suffix="원"
+              placeholder="44000"
+              value={custom.rollPrice}
+              onChange={(v) => updateCustom({ rollPrice: v })}
+            />
+            <div className="flex gap-2 t-sub text-ink-2 pt-1">
+              <span className="flex-1 min-w-0">폭</span>
+              <span className="flex-1 min-w-0">길이</span>
+            </div>
+            <div className="flex gap-2">
+              <NumberField
+                className="flex-1 min-w-0"
+                aria-label="벽지 폭"
+                suffix="cm"
+                placeholder="106"
+                value={custom.widthCm}
+                onChange={(v) => updateCustom({ widthCm: v })}
+              />
+              <NumberField
+                className="flex-1 min-w-0"
+                aria-label="롤 길이"
+                suffix="m"
+                placeholder="15.6"
+                value={custom.lengthM}
+                onChange={(v) => updateCustom({ lengthM: v })}
+              />
+            </div>
+            <span className="t-sub text-ink-2 pt-1">무늬 반복(선택)</span>
+            <NumberField
+              aria-label="무늬 반복"
               suffix="cm"
-              placeholder="106"
-              value={custom.widthCm}
-              onChange={(v) => updateCustom({ widthCm: v })}
+              placeholder="선택"
+              value={custom.repeatCm}
+              onChange={(v) => updateCustom({ repeatCm: v })}
             />
-            <NumberField
-              className="flex-1 min-w-0"
-              aria-label="롤 길이"
-              suffix="m"
-              placeholder="15.6"
-              value={custom.lengthM}
-              onChange={(v) => updateCustom({ lengthM: v })}
-            />
-          </div>
-
-          {/* 무늬 반복은 선택 — 비워 두면 무지로 본다 */}
-          <span className="text-[13px] text-v1-text-label pt-1">무늬 반복</span>
-          <NumberField
-            aria-label="무늬 반복"
-            suffix="cm"
-            placeholder="선택"
-            value={custom.repeatCm}
-            onChange={(v) => updateCustom({ repeatCm: v })}
-          />
-        </div>
-      )}
+            {/* 셋 다 채워지면 자동으로 계산에 반영된다 — 직접 입력을 마쳤으면 시트를 닫는다 */}
+            <button
+              type="button"
+              onClick={() => setSheetOpen(false)}
+              className="h-11 mt-1 rounded-[8px] bg-accent text-white t-body font-semibold"
+            >
+              닫기
+            </button>
+          </>
+        }
+      />
     </div>
   );
 }
