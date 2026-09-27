@@ -53,9 +53,15 @@ function getSnapshot(): ContactSheetState {
   return state;
 }
 
+// 서버 렌더링 스냅샷은 항상 이 값 하나뿐이다(시트는 클라이언트 상호작용 전용) — 매번 새
+// 객체를 만들어 돌려주면 useSyncExternalStore가 "스냅샷이 바뀌었다"고 오인해 계속 다시
+// 렌더링을 시도한다(React 경고: "getServerSnapshot should be cached"). 모듈 한 번만 만든
+// 상수를 그대로 돌려줘서 참조가 항상 같게 한다.
+const SERVER_SNAPSHOT: ContactSheetState = { open: false, place: "header" };
+
 /** 서버 렌더링 스냅샷 — 항상 닫힌 상태(시트는 클라이언트 상호작용 전용) */
 function getServerSnapshot(): ContactSheetState {
-  return { open: false, place: "header" };
+  return SERVER_SNAPSHOT;
 }
 
 /** 지금 문의 시트가 열려 있는지 + 누가 열었는지를 구독한다 */

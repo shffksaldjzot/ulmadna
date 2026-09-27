@@ -57,7 +57,12 @@ export default function SiteHeader() {
               width={154}
               height={40}
               priority
-              className="h-10 w-auto"
+              // 2026-09-27 검수 지적: width(154)·height(40)가 원본(315×82)과 이미 같은 비율이라
+              // "w-auto"로 폭을 다시 CSS로 흔들 필요가 없었다 — 오히려 Next Image가 "높이만
+              // CSS로 고정하고 폭은 안 그랬다"고 오인해 콘솔 경고("has either width or height
+              // modified, but not the other")를 냈다. 높이만 클래스로 고정하고 폭은 손대지
+              // 않으면(=HTML 속성 154 그대로 씀) 경고가 사라진다. 화면에 보이는 크기는 그대로다.
+              className="h-10"
             />
           </Link>
           <span className="hidden lg:inline-block t-sub text-ink-2 border border-line rounded-chip px-3 py-1 whitespace-nowrap">
