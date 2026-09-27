@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="싱크대 부분 교체 범위 5단계 — 경첩·문짝, 상부장 속장, 하부장, 하부장+상판, 전체 교체 기준">
+  <style>
+    text { font-family: 'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif; }
+    .t { font-size: 18px; font-weight: 700; fill: #2b2b2b; }
+    .h { font-size: 15px; font-weight: 700; fill: #2b2b2b; }
+    .s { font-size: 13px; fill: #555; }
+    .n { font-size: 15px; font-weight: 700; fill: #fff; }
+  </style>
+  <rect width="640" height="400" fill="#faf6f1"/>
+  <text x="24" y="36" class="t">싱크대, 어디까지 바꿀까 — 범위 5단계</text>
+  <text x="24" y="58" class="s">위에서부터 확인하고, 해당하는 첫 단계에서 멈추세요</text>
+
+  <g>
+    <rect x="24" y="76" width="592" height="52" rx="10" fill="#fff" stroke="#e4d8cb"/>
+    <circle cx="52" cy="102" r="14" fill="#c4704a"/><text x="52" y="107" text-anchor="middle" class="n">1</text>
+    <text x="80" y="98" class="h">경첩 조절·교체 / 문짝만 교체</text>
+    <text x="80" y="117" class="s">몸통 멀쩡, 경첩 나사 잘 물림 · 표면만 낡음</text>
+
+    <rect x="24" y="136" width="592" height="52" rx="10" fill="#fff" stroke="#e4d8cb"/>
+    <circle cx="52" cy="162" r="14" fill="#c4704a"/><text x="52" y="167" text-anchor="middle" class="n">2</text>
+    <text x="80" y="158" class="h">상부장 한 칸만 속장(몸통) 교체 + 문짝 재사용</text>
+    <text x="80" y="177" class="s">그 칸만 처짐·들뜸 · 문짝은 양호 · 약 1시간 30분 작업</text>
+
+    <rect x="24" y="196" width="592" height="52" rx="10" fill="#fff" stroke="#e4d8cb"/>
+    <circle cx="52" cy="222" r="14" fill="#c4704a"/><text x="52" y="227" text-anchor="middle" class="n">3</text>
+    <text x="80" y="218" class="h">하부장 몸통 교체 (상판은 살리기)</text>
+    <text x="80" y="237" class="s">싱크볼 아래 몸통만 손상 · 상판 멀쩡 · 분리 구조일 때만</text>
+
+    <rect x="24" y="256" width="592" height="52" rx="10" fill="#fff" stroke="#e4d8cb"/>
+    <circle cx="52" cy="282" r="14" fill="#c4704a"/><text x="52" y="287" text-anchor="middle" class="n">4</text>
+    <text x="80" y="278" class="h">하부장 + 상판 + 싱크볼·수전 (상부장 유지)</text>
+    <text x="80" y="297" class="s">하부장 전체 손상 · 상부장은 멀쩡 · 벽 타일 건드릴 일 없음</text>
+
+    <rect x="24" y="316" width="592" height="52" rx="10" fill="#f3e3d8" stroke="#c4704a"/>
+    <circle cx="52" cy="342" r="14" fill="#8a4a2e"/><text x="52" y="347" text-anchor="middle" class="n">5</text>
+    <text x="80" y="338" class="h">싱크대 전체 교체</text>
+    <text x="80" y="357" class="s">누수 진행 · 여러 장 손상 · 구조 변경(냉장고·식세기) · 15년 이상</text>
+  </g>
+</svg>
