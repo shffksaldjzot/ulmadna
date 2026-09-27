@@ -10,6 +10,16 @@
 //   2) 초기 touched 값을 밖에서 주입할 수 있다(initialTouched) — 새로 고침 복원 시
 //      "이미 손댔던 단계"를 그대로 살려서 시작하기 위해서다.
 //
+// 2026-09-27 배포 전 검사관 지적 5번 반영 — "매인 관계" 되돌리기 추가:
+//   벽지 종류(0단계)를 바꾸면 제품(1단계)도 다시 골라야 하는데, 예전엔 "손댔다"는 표시
+//   (touchedFlags[1])가 그대로 남아서 제품 단계가 저절로 완료 처리(잘못된 값 "제품
+//   미정"으로) 돼 버렸다. resetTouched(indices)를 새로 내보내서, 매인 단계 값이 바뀔 때
+//   그 뒤 단계의 손댐 표시를 되돌릴 수 있게 했다 — 지금은 도배(종류→제품)만 쓰지만
+//   바닥재(자재→제품) 등 다른 계산기도 같은 훅·같은 함수로 그대로 쓸 수 있다(일반화).
+//
+// 계산 부분(진짜 로직)은 React 없이도 시험할 수 있게 순수 함수(deriveFlowState·applyTouch·
+// applyResetTouched)로 따로 뺐다 — __tests__/useFlowSteps.test.ts가 이 함수들만 부른다.
+//
 // 나머지 규칙은 옛 훅과 동일하다:
 //   · 완료 = touched(실제로 손댐) && valid(값이 유효함) 둘 다 true.
 //   · 맨 앞부터 봐서 처음으로 안 끝난 단계가 "현재 단계". 전부 끝났으면 배열 길이.
@@ -17,6 +27,7 @@
 //     그 안에서 실제로 값이 바뀌면(version이 오르면) 강제 열림을 풀고 자동 계산으로 돌아간다.
 //
 // 작성일: 2026년 09월 27일
+// 매인 관계(resetTouched) 추가: 2026년 09월 27일
 // ──────────────────────────────────────────────
 
 'use client';
@@ -50,6 +61,54 @@ export interface FlowStepsState {
   reopen: (index: number) => void;
   /** 이 단계에서 실제로 뭔가 손댔다는 표시. 각 입력 핸들러 안에서 불러 준다 */
   touch: (index: number) => void;
+  /**
+   * "매인 관계" 되돌리기 — 앞 단계 값이 실제로 바뀌어서 뒤 단계를 다시 골라야 할 때,
+   * 그 뒤 단계들의 손댐 표시를 지운다(=다시 "현재 단계"로 열린다). 값 자체(폼 상태)는
+   * 이 훅이 모르므로 안 건드린다 — 부르는 쪽이 폼 값도 같이 지워야 한다.
+   */
+  resetTouched: (indices: number[]) => void;
+}
+
+/**
+ * 손댐 배열에 index 하나를 true로 표시한다(순수 함수). 이미 true면 같은 배열 참조를
+ * 그대로 돌려줘서 불필요한 리렌더를 막는다.
+ */
+export function applyTouch(touchedFlags: boolean[], index: number): boolean[] {
+  if (touchedFlags[index]) return touchedFlags;
+  const next = [...touchedFlags];
+  next[index] = true;
+  return next;
+}
+
+/** 손댐 배열에서 여러 index를 한 번에 false로 되돌린다(순수 함수, 매인 관계 되돌리기) */
+export function applyResetTouched(touchedFlags: boolean[], indices: number[]): boolean[] {
+  if (indices.length === 0) return touchedFlags;
+  const next = [...touchedFlags];
+  let changed = false;
+  for (const i of indices) {
+    if (next[i]) {
+      next[i] = false;
+      changed = true;
+    }
+  }
+  return changed ? next : touchedFlags;
+}
+
+/**
+ * "지금 값이 유효한지"(dataComplete) + "실제로 손댔는지"(touchedFlags)만 보고
+ * 완료 여부·현재 단계·전부 끝났는지를 계산하는 순수 함수. React를 전혀 안 써서
+ * 화면 없이(vitest) 그대로 시험할 수 있다.
+ */
+export function deriveFlowState(
+  dataComplete: boolean[],
+  touchedFlags: boolean[],
+): { completeFlags: boolean[]; activeIndex: number; allDone: boolean } {
+  // 진짜 완료 = 손댔고(touched) + 값도 유효함(valid) 둘 다일 때만
+  const completeFlags = dataComplete.map((valid, i) => (touchedFlags[i] ?? false) && valid);
+  // 맨 앞부터 봐서 처음으로 안 끝난 단계 — 없으면(전부 끝) 배열 길이
+  const firstIncomplete = completeFlags.findIndex((done) => !done);
+  const activeIndex = firstIncomplete === -1 ? completeFlags.length : firstIncomplete;
+  return { completeFlags, activeIndex, allDone: activeIndex === completeFlags.length };
 }
 
 export function useFlowSteps({ dataComplete, version, allTouched, initialTouched }: UseFlowStepsOptions): FlowStepsState {
@@ -71,29 +130,25 @@ export function useFlowSteps({ dataComplete, version, allTouched, initialTouched
     }
   }, [version]);
 
-  /** 그 단계에서 실제로 뭔가 골랐다는 표시 — 이미 true면 다시 안 바꾼다(불필요한 리렌더 방지) */
+  /** 그 단계에서 실제로 뭔가 골랐다는 표시 — applyTouch(순수 함수)를 그대로 쓴다 */
   function touch(index: number) {
-    setTouchedFlags((prev) => {
-      if (prev[index]) return prev;
-      const next = [...prev];
-      next[index] = true;
-      return next;
-    });
+    setTouchedFlags((prev) => applyTouch(prev, index));
   }
 
-  // 진짜 완료 = 손댔고(touched) + 값도 유효함(valid) 둘 다일 때만
-  const completeFlags = dataComplete.map((valid, i) => (touchedFlags[i] ?? false) && valid);
+  /** 매인 단계 값이 바뀌어 뒤 단계를 다시 골라야 할 때 — applyResetTouched(순수 함수)를 쓴다 */
+  function resetTouched(indices: number[]) {
+    setTouchedFlags((prev) => applyResetTouched(prev, indices));
+  }
 
-  // 맨 앞부터 봐서 처음으로 안 끝난 단계 — 없으면(전부 끝) 배열 길이
-  const firstIncomplete = completeFlags.findIndex((done) => !done);
-  const derivedIndex = firstIncomplete === -1 ? completeFlags.length : firstIncomplete;
+  const { completeFlags, activeIndex: derivedIndex, allDone } = deriveFlowState(dataComplete, touchedFlags);
 
   return {
     activeIndex: overrideIndex ?? derivedIndex,
-    allDone: derivedIndex === completeFlags.length,
+    allDone,
     completeFlags,
     touchedFlags,
     reopen: (index: number) => setOverrideIndex(index),
     touch,
+    resetTouched,
   };
 }

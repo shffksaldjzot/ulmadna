@@ -10,18 +10,33 @@
 //   - 시트 밖을 누르거나 뒤로 가기를 누르면 닫힌다. 열려 있는 동안 뒤는 스크롤 안 됨.
 //   - 고르면 시트가 닫히고 단계가 완료된다(실제 완료 처리는 부르는 쪽이 한다).
 //
+// 2026-09-27 배포 전 검사관 지적 1번(치명) 수리 — createPortal로 문서 몸통 끝에 그린다:
+//   예전엔 이 컴포넌트가 단계 카드(StepRow) 내용물 안에서 그려졌다. 도배 제품 "직접
+//   입력"으로 세 칸을 다 채우면 그 순간 2단계가 "완료" 처리돼 접히고(그 안의 모든 걸
+//   0높이+inert로 숨기는 StepRow 규칙), 그 안에 있던 이 시트까지 같이 숨겨지는 치명적
+//   버그였다. createPortal로 항상 document.body 바로 밑에 그리면, 이 시트를 부른
+//   단계가 접히든 말든 시트 자신은 전혀 영향을 안 받는다.
+//
 // 뒤로 가기(4-3절: "제품 시트가 열려 있을 때 뒤로 가기 = 시트만 닫힘")는 backLayer.ts의
-// 쌓임 스택을 그대로 쓴다 — 시트가 열릴 때 한 칸 쌓아 두고, 사용자가 브라우저 뒤로 가기를
-// 누르면 그 칸이 꺼지면서 onClose만 불린다(단계 흐름 쪽 스택은 안 건드린다).
+// 쌓임 스택을 쓴다. 2026-09-27 검사관 지적 2번 수리 — 뒤로 가기가 아닌 방법(선택·바깥
+// 누름·닫기·Esc)으로 닫힐 때는 collapseBackLayer()로 쌓아 둔 기록 칸까지 실제로 거둔다
+// (예전엔 메모리에서만 뺐어서, 다음 뒤로 가기가 엉뚱한 칸을 건너뛰는 사고가 있었다).
+//
+// 2026-09-27 검사관 지적 8번(접근성) 수리:
+//   - role="dialog" aria-modal="true" aria-labelledby(제목).
+//   - 열릴 때 시트 안 첫 항목으로 초점, 닫힐 때 시트를 열었던 버튼으로 되돌린다.
+//   - Tab 키가 시트 밖으로 안 나가게 가둔다(포커스 트랩). Esc로 닫힌다.
 //
 // 작성일: 2026년 09월 27일
+// 포털·접근성·뒤로 가기 재설계: 2026년 09월 27일
 // ──────────────────────────────────────────────
 
 'use client';
 
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { IconCheck } from '@/components/v1/icons';
-import { pushBackLayer, dropBackLayer } from './backLayer';
+import { pushBackLayer, collapseBackLayer } from './backLayer';
 import type { PickerItem } from './types';
 
 /** "직접 입력" 줄을 고르면 selectedCode 자리에 이 값이 온다(다른 코드와 안 겹치게) */
@@ -45,6 +60,8 @@ export interface ProductSheetProps {
    * 2026-09-27 검수 지적 11번 — 없으면(계산 못 했거나 목록이 비었으면) 그 자리를 비워 둔다.
    */
   undecidedPriceLabel?: string;
+  /** 이 시트가 어느 계산기 소속인지(뒤로 가기 스택 정리용, 예: 'wallpaper') */
+  calcId: string;
 }
 
 export default function ProductSheet({
@@ -56,7 +73,13 @@ export default function ProductSheet({
   onSelect,
   customForm,
   undecidedPriceLabel,
+  calcId,
 }: ProductSheetProps) {
+  const titleId = useId();
+  const panelRef = useRef<HTMLDivElement>(null);
+  // 시트를 열기 직전에 초점이 있던 요소 — 닫힐 때 여기로 되돌린다(검사관 지적 8번)
+  const openerRef = useRef<Element | null>(null);
+
   // 시트가 열려 있는 동안 뒤 배경 스크롤 막기
   useEffect(() => {
     if (!open) return;
@@ -68,28 +91,87 @@ export default function ProductSheet({
   }, [open]);
 
   // 뒤로 가기 = 시트만 닫힘(4-3절). open이 true로 바뀔 때 한 칸 쌓고, false로 바뀌면
-  // (버튼 클릭 등으로 화면이 스스로 닫은 경우) 쌓아 둔 칸을 조용히 비운다.
+  // (버튼 클릭 등으로 화면이 스스로 닫은 경우) collapseBackLayer로 그 칸을 실제로 거둔다.
+  // closedByBackRef: 방금 "뒤로 가기 자체"가 닫은 거면 스택이 이미 알아서 정리했으니
+  // collapseBackLayer를 또 부르면 안 된다 — 이 표시로 구분한다.
   const wasOpenRef = useRef(false);
+  const closedByBackRef = useRef(false);
   useEffect(() => {
     if (open && !wasOpenRef.current) {
-      pushBackLayer(onClose);
+      // 열리는 순간 — 지금 초점이 있던 요소(트리거 버튼)를 기억해 둔다
+      openerRef.current = document.activeElement;
+      pushBackLayer(calcId, () => {
+        closedByBackRef.current = true;
+        onClose();
+      });
     } else if (!open && wasOpenRef.current) {
-      dropBackLayer();
+      if (closedByBackRef.current) {
+        // 뒤로 가기가 이미 스택 정리까지 끝냈다 — 여기서 또 손대지 않는다
+        closedByBackRef.current = false;
+      } else {
+        // 선택·바깥 누름·닫기·Esc 등 다른 방법으로 닫힘 — 쌓아 둔 기록 칸을 거둔다(제품
+        // 선택처럼 같은 순간 다음 단계가 완료돼 새 칸이 쌓이면 backLayer.ts가 알아서
+        // "교체"로 처리해 history를 두 번 안 건드린다 — 위 backLayer.ts 3번 설명 참고)
+        collapseBackLayer(calcId);
+      }
+      // 초점을 시트를 열었던 곳으로 되돌린다(검사관 지적 8번)
+      if (openerRef.current instanceof HTMLElement) {
+        openerRef.current.focus({ preventScroll: true });
+      }
     }
     wasOpenRef.current = open;
     // onClose는 상위에서 안정적으로 넘겨준다고 가정(useState setter 등)
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, calcId]);
+
+  // 열리면 시트 안 첫 항목(첫 버튼)으로 초점을 옮긴다(검사관 지적 8번, 3-6절과 같은 원칙 —
+  // 숫자 입력칸이 아니라 버튼으로 먼저 보낸다)
+  useEffect(() => {
+    if (!open) return;
+    const first = panelRef.current?.querySelector<HTMLElement>('button');
+    // 포털이 이번 렌더에 막 붙었을 수 있어 다음 틱에 안전하게 포커스한다
+    const t = setTimeout(() => first?.focus({ preventScroll: true }), 0);
+    return () => clearTimeout(t);
   }, [open]);
 
-  if (!open) return null;
+  /** Esc로 닫기 + Tab 키를 시트 안에 가두기(포커스 트랩, 검사관 지적 8번) */
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Escape') {
+      e.stopPropagation();
+      onClose();
+      return;
+    }
+    if (e.key !== 'Tab' || !panelRef.current) return;
+    const focusables = panelRef.current.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+    if (focusables.length === 0) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
 
-  return (
+  if (!open) return null;
+  // SSR·아직 document가 없는 극초반 렌더에서는 포털을 만들 수 없다(안전망)
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     // items-end: 모바일은 화면 아래에 붙는다. md 이상은 items-center로 가운데 창이 된다(3-11절)
-    <div className="fixed inset-0 z-50 flex items-end justify-center md:items-center">
-      {/* 어두운 배경 — 누르면 닫힌다(시트만, 뒤로 가기 스택은 dropBackLayer로 정리) */}
+    <div className="fixed inset-0 z-50 flex items-end justify-center md:items-center" onKeyDown={handleKeyDown}>
+      {/* 어두운 배경 — 누르면 닫힌다(시트만, 뒤로 가기 스택은 collapseBackLayer로 정리) */}
       <button type="button" aria-label="닫기" onClick={onClose} className="absolute inset-0 bg-black/40" />
 
       <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
         className={
           'relative w-full bg-surface flex flex-col gap-1 overflow-y-auto flow-sheet-in ' +
           // 모바일: 아래에서 올라오는 시트, 최대 화면 80%. md 이상: 가운데 창, 폭 480px 고정
@@ -99,7 +181,9 @@ export default function ProductSheet({
       >
         {/* 손잡이(모바일 전용 — 아래에서 올라오는 시트라는 느낌) */}
         <span className="w-10 h-1 rounded-full bg-line self-center md:hidden" />
-        <h3 className="t-section text-ink px-1 pt-2 pb-1">{title}</h3>
+        <h3 id={titleId} className="t-section text-ink px-1 pt-2 pb-1">
+          {title}
+        </h3>
 
         {/* 줄 사이에 1px --line 구분선 — 2026-09-27 검수 지적 10번.
             처음엔 Tailwind의 divide-y를 썼는데 버튼 기본 스타일(테두리 0 리셋)에 눌려
@@ -138,7 +222,8 @@ export default function ProductSheet({
           <div className="px-1 pt-2 flex flex-col gap-2">{customForm}</div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -169,16 +254,8 @@ function SheetRow({
   topDivider?: boolean;
 }) {
   return (
-    // 구분선 전용 바깥 칸 — mx-1(margin)로 상자 자체를 좁혀서 테두리(border)가 그 좁아진
-    // 자리에서 시작·끝나게 한다(border는 padding을 무시하고 상자 전체 폭에 그려지므로,
-    // 안쪽 padding이 아니라 바깥 margin으로 인세트를 줘야 실제로 짧아진다). 안쪽 button은
-    // 자기 padding을 안 두고 이 div 폭 그대로 써서, 글자 시작·끝 위치가 구분선 양 끝과
-    // 정확히 같아진다(검수 지적 2번).
-    //
-    // 2026-09-27 지휘관 4차 검수 지적 1번 수리: mx-1을 topDivider가 true일 때만 줬더니,
-    // 구분선이 없는 맨 위 줄("아직 안 정했어요")만 좌우 인세트가 아예 빠져서 다른 줄보다
-    // 4px씩 더 튀어나와 보였다. mx-1은 구분선 유무와 상관없이 항상 주고, border-t만
-    // topDivider로 켜고 끈다 — 그래야 모든 줄의 좌우 위치가 똑같아진다.
+    // 2026-09-27 지휘관 4차 검수 지적 1번 수리: mx-1은 구분선 유무와 상관없이 항상 주고,
+    // border-t만 topDivider로 켜고 끈다 — 그래야 모든 줄의 좌우 위치가 똑같아진다.
     <div className={'mx-1' + (topDivider ? ' border-t border-line' : '')}>
       <button
         type="button"

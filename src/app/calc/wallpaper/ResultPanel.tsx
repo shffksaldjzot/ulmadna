@@ -41,7 +41,7 @@ import { type WallpaperFormState, encodeWallpaperForm } from '@/lib/v1/wallpaper
 import { trimFormForShare, describeAreaPair, type WallpaperAssumption } from '@/lib/v1/wallpaperEngineInput';
 import type { WallpaperCalcResultDTO, WallpaperRange } from '@/lib/v1/useWallpaperCalc';
 import { describeWallpaperAreaAssumptionLine } from './assumptionText';
-import { formatCostLineAmount } from './costLineFormat';
+import { formatCostLineAmount, formatRollsText } from './costLineFormat';
 // GA4 — 결과 노출/구성 보기 펼침/공유 버튼 클릭 이벤트
 import { track } from '@/lib/analytics';
 
@@ -161,9 +161,7 @@ export default function ResultPanel({
             (가운뎃점을 항상 "앞 조각 끝"에 붙여 뒀기 때문). */}
         <p className="t-body text-ink tabular-nums pt-2 border-t border-v1-line-2 flex flex-wrap gap-x-1">
           {[
-            quantity.rollsRange && quantity.rollsRange.min !== quantity.rollsRange.max
-              ? `${formatNum(quantity.rollsRange.min)}~${formatNum(quantity.rollsRange.max)}롤`
-              : `${formatNum(quantity.rollsRange ? quantity.rollsRange.min : quantity.rolls)}롤`,
+            formatRollsText(quantity),
             `벽 ${Math.round(quantity.wallSqm)}㎡`,
             `천장 ${Math.round(quantity.ceilingSqm)}㎡`,
           ].map((chunk, i, arr) => (

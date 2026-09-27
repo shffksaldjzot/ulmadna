@@ -65,6 +65,11 @@ interface WallpaperCalculatorProps {
 const SESSION_KEY = 'calc:wallpaper:v1';
 const SESSION_VERSION = 1;
 
+/** 뒤로 가기 스택에서 "이 계산기가 쌓은 몫"을 구분하는 값 */
+const CALC_ID = 'wallpaper';
+/** 계속 펼쳐 두는 마지막 단계(면적/실측) 인덱스 — keepOpen 전이는 뒤로 가기에 안 쌓는다(검사관 지적 3번) */
+const KEEP_OPEN_STEP_INDEX = 2;
+
 /** 세션에 저장하는 값의 모양 */
 interface WallpaperSession {
   form: WallpaperFormState;
@@ -75,6 +80,23 @@ interface WallpaperSession {
   /** 조정 칩(베이·범위)을 사용자가 직접 건드렸는지 */
   bayTouched: boolean;
   scopeTouched: boolean;
+}
+
+/**
+ * 세션에서 읽은 값이 우리가 기대하는 모양인지 검사한다(2026-09-27 검사관 지적 11번).
+ * 필수 칸이 없거나 형이 다르면(예: touched가 배열이 아님) false — 부르는 쪽이 이 값을
+ * 통째로 버리고 기본 상태로 시작하게 한다. 옛 판(형식이 바뀌기 전) 데이터나, 다른 코드가
+ * sessionStorage를 건드려 놓은 경우 등을 방어한다.
+ */
+function isValidWallpaperSession(v: unknown): v is WallpaperSession {
+  if (!v || typeof v !== 'object') return false;
+  const s = v as Record<string, unknown>;
+  if (!s.form || typeof s.form !== 'object') return false;
+  if (!Array.isArray(s.touched) || !s.touched.every((t) => typeof t === 'boolean')) return false;
+  if (typeof s.userPickedMode !== 'boolean') return false;
+  if (typeof s.bayTouched !== 'boolean') return false;
+  if (typeof s.scopeTouched !== 'boolean') return false;
+  return true;
 }
 
 /** 제목 줄 모드 전환 옵션 — 값은 폼 상태 view와 그대로 맞춘다 */
@@ -89,9 +111,17 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
 
   // 공유 링크(?d=)가 있으면 그 값이 최우선(지시서 4-4절). 없으면 세션에 남은 값을 복원하고,
   // 그마저 없으면 기본값(간단 모드, 벽지 미선택)으로 시작한다.
+  // 2026-09-27 검사관 지적 11번: 읽은 값의 모양을 검사하고(isValidWallpaperSession), 복원
+  // 도중 무엇이 터지더라도(try/catch) 계산기 화면 자체는 반드시 뜨게 한다 — 둘 다 걸리면
+  // 그냥 null(기본 상태)로 시작한다.
   const restored = useMemo<WallpaperSession | null>(() => {
     if (hasSharedLink) return null;
-    return loadSessionState<WallpaperSession>(SESSION_KEY, SESSION_VERSION);
+    try {
+      const loaded = loadSessionState<unknown>(SESSION_KEY, SESSION_VERSION);
+      return isValidWallpaperSession(loaded) ? loaded : null;
+    } catch {
+      return null;
+    }
   }, [hasSharedLink]);
 
   const initial = useMemo<WallpaperFormState>(() => {
@@ -133,10 +163,18 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
    * 벽지 종류가 바뀌는 유일한 통로. 종류만 바꾸고 이전에 고른 제품(productCode·product)을
    * 안 지우면 화면엔 새 종류가 선택된 것처럼 보여도 계산은 옛 제품 규격·가격으로 되는
    * 치명 버그였다(검사관 지적 1번). 벽지 카드(PaperPicker)는 이 함수 하나만 쓴다.
+   *
+   * 2026-09-27 배포 전 검사관 지적 5번 수리: 종류가 "실제로" 바뀔 때만 제품(1단계)을
+   * 지우고 그 단계 손댐 표시도 되돌린다(resetTouched — useFlowSteps의 "매인 관계" 기능,
+   * 지시서 4-2절). 예전엔 손댐 표시를 안 지워서, 종류를 바꾸면 제품 단계가 "제품 미정"인
+   * 채로 저절로 완료돼 버렸다. 같은 종류를 다시 누른 경우(값이 안 바뀜)는 아무것도 안
+   * 건드린다(제품을 이미 골라 둔 채로 있어야 한다).
    */
   function setPaperType(v: '합지' | '실크' | undefined) {
+    if (v === form.paperType) return;
     patch({ paperType: v, productCode: undefined, product: undefined });
     touch(0);
+    resetTouched([1]);
   }
 
   const view = form.view ?? 'simple';
@@ -153,7 +191,7 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
         : !!form.pyeong
       : describePreciseInput(form) !== null;
 
-  const { activeIndex, allDone, completeFlags, touchedFlags, reopen, touch } = useFlowSteps({
+  const { activeIndex, allDone, completeFlags, touchedFlags, reopen, touch, resetTouched } = useFlowSteps({
     dataComplete: [step0Valid, step1Valid, step2Valid],
     version: formVersion,
     allTouched: hasSharedLink,
@@ -162,12 +200,17 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
   const [step0Complete, step1Complete] = completeFlags;
 
   // 뒤로 가기 배선 — 모드를 고르거나 단계가 넘어갈 때마다 방문 기록에 쌓고, 브라우저 뒤로
-  // 가기를 누르면 직전 상태로 돌아간다(주소 문자열은 그대로, 4-3절)
+  // 가기를 누르면 직전 상태로 돌아간다(주소 문자열은 그대로, 4-3절). calcId는 언마운트 때
+  // 이 계산기 몫 스택만 걷어가는 데 쓰고(검사관 지적 3번), isKeepOpen은 면적 단계(2번,
+  // 계속 펼침)로 처음 들어가는 게 아니라 "그 단계 안에서 완료되는" 전이는 뒤로 가기에
+  // 안 쌓게 걸러 준다(그 전이는 되돌려도 화면이 똑같아 보여 무반응이 되기 때문).
   useFlowBackNav({
+    calcId: CALC_ID,
     modeChosen,
     onExitToModePicker: () => setUserPickedMode(false),
     activeIndex,
     reopen,
+    isKeepOpen: (i) => i === KEEP_OPEN_STEP_INDEX,
   });
 
   // 새로 고침 복원 — 공유 링크로 들어온 게 아니면 값이 바뀔 때마다 세션에 저장해 둔다.
@@ -273,7 +316,10 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
             pyeong={form.pyeong ?? ''}
             onPyeongChange={(v) => patchAreaStep({ pyeong: v === '' ? undefined : v })}
             areaUnit={form.areaUnit ?? '평'}
-            onAreaUnitChange={(v) => patchAreaStep({ areaUnit: v })}
+            // 2026-09-27 검사관 지적 9번: 단위(평/㎡)만 바꾸는 건 "면적을 골랐다"는 뜻이
+            // 아니다 — patchAreaStep(=touch(2) 포함) 대신 그냥 patch만 써서 단계 완료
+            // 처리를 안 하게 한다(칩을 누르거나 숫자를 직접 넣어야만 손댄 것으로 친다).
+            onAreaUnitChange={(v) => patch({ areaUnit: v })}
             exclusiveSqm={form.exclusiveSqm ?? ''}
             onExclusiveSqmChange={(v) => patchAreaStep({ exclusiveSqm: v === '' ? undefined : v })}
             onEnterComplete={() => touch(2)}

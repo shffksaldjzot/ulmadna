@@ -133,25 +133,37 @@ export default function PaperPicker({
 
   /**
    * 직접 입력 칸이 바뀔 때마다 부른다.
-   * 가격·폭·길이 세 칸이 다 차야 계산에 쓸 수 있으므로, 하나라도 비면 undefined로 지운다.
+   *
+   * 2026-09-27 배포 전 검사관 지적 1번(치명) 수리: 예전엔 세 칸이 다 차는 "그 순간"
+   * onProductChange(폼 반영)를 바로 불러서, 2단계가 곧장 완료 처리 → 접힘 → (시트가
+   * 그 안에 있었을 때는) 시트까지 같이 사라지는 사고로 이어졌다. 이제 타이핑 중에는
+   * 화면 전용 임시 상태(custom)만 바꾸고, 폼에 반영하지도 계산을 다시 부르지도 않는다
+   * — 오직 "적용" 버튼을 눌러야만(commitCustom) 실제로 반영된다.
    */
   function updateCustom(p: Partial<CustomFields>) {
-    const next = { ...custom, ...p };
-    setCustom(next);
-    if (!onProductChange) return;
-    if (next.rollPrice !== '' && next.widthCm !== '' && next.lengthM !== '') {
-      const made: CustomProduct = {
-        rollPrice: next.rollPrice,
-        widthCm: next.widthCm,
-        lengthM: next.lengthM,
-        repeatCm: next.repeatCm === '' ? undefined : next.repeatCm,
-      };
-      setLastProduct(made);
-      onProductChange(made);
-    } else {
-      setLastProduct(undefined);
-      onProductChange(undefined);
-    }
+    setCustom((prev) => ({ ...prev, ...p }));
+  }
+
+  /** 지금 임시 입력값(custom)이 실제로 쓸 수 있는 값인지 — "적용" 버튼 활성화 판정 */
+  const customValid = custom.rollPrice !== '' && custom.rollPrice > 0 && custom.widthCm !== '' && custom.widthCm > 0 && custom.lengthM !== '' && custom.lengthM > 0;
+
+  /**
+   * "적용" 버튼을 눌렀을 때만 부른다 — 이 순간에만 폼에 실제로 반영되고(onProductChange),
+   * 그 결과로 2단계가 완료 처리되며(부르는 쪽 WallpaperCalculator가 touch(1)을 건다),
+   * 시트도 닫힌다. 세 칸이 안 갖춰졌으면(customValid=false) 이 함수 자체가 안 불린다
+   * (버튼이 disabled 상태이므로).
+   */
+  function commitCustom() {
+    if (!customValid || !onProductChange) return;
+    const made: CustomProduct = {
+      rollPrice: custom.rollPrice as number,
+      widthCm: custom.widthCm as number,
+      lengthM: custom.lengthM as number,
+      repeatCm: custom.repeatCm === '' ? undefined : custom.repeatCm,
+    };
+    setLastProduct(made);
+    onProductChange(made);
+    setSheetOpen(false);
   }
 
   /**
@@ -270,6 +282,7 @@ export default function PaperPicker({
         selectedCode={selectedCode}
         onSelect={onSheetSelect}
         undecidedPriceLabel={undecidedPriceLabel}
+        calcId="wallpaper"
         customForm={
           <>
             <span className="t-sub text-ink-2">롤당 가격</span>
@@ -310,13 +323,16 @@ export default function PaperPicker({
               value={custom.repeatCm}
               onChange={(v) => updateCustom({ repeatCm: v })}
             />
-            {/* 셋 다 채워지면 자동으로 계산에 반영된다 — 직접 입력을 마쳤으면 시트를 닫는다 */}
+            {/* 2026-09-27 검사관 지적 1번(치명) 수리: 타이핑 도중에는 아무 일도 안 일어나고,
+                이 버튼을 눌러야만(commitCustom) 폼에 반영되고 단계가 완료되며 시트가 닫힌다.
+                세 칸이 다 안 갖춰졌으면(customValid=false) 눌리지 않는다. */}
             <button
               type="button"
-              onClick={() => setSheetOpen(false)}
-              className="h-11 mt-1 rounded-[8px] bg-accent text-white t-body font-semibold"
+              disabled={!customValid}
+              onClick={commitCustom}
+              className="h-11 mt-1 rounded-[8px] bg-accent text-white t-body font-semibold disabled:opacity-40"
             >
-              닫기
+              적용
             </button>
           </>
         }

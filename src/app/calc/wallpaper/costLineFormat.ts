@@ -79,3 +79,19 @@ export function formatCostLineAmount(line: CostLineLike): string {
   }
   return formatWonRange(line.amountMin, line.amountMax);
 }
+
+/**
+ * 수량 줄의 롤 수 표기 — "19~46롤"(제품 미정이라 범위일 때, 최소=최대면 하나만) 또는
+ * "46롤"(제품을 골라서 값이 하나일 때).
+ *
+ * 2026-09-27 배포 전 검사관 지적 7번 — 즉답 화면(ResultPanel.tsx)에 있던 이 판정을
+ * 공유 결과 화면(result/page.tsx)도 그대로 쓰게 여기로 뺐다. 예전엔 공유 결과 화면이
+ * rollsRange 자체를 안 보고 무조건 quantity.rolls(대표 규격 기준 하나) 한 값만 보여줘서,
+ * "19~46롤"을 본 사람이 공유한 링크를 받은 사람은 대표값 하나만 보게 되는 불일치가 있었다.
+ */
+export function formatRollsText(quantity: { rolls: number; rollsRange?: { min: number; max: number } }): string {
+  if (quantity.rollsRange && quantity.rollsRange.min !== quantity.rollsRange.max) {
+    return `${formatNum(quantity.rollsRange.min)}~${formatNum(quantity.rollsRange.max)}롤`;
+  }
+  return `${formatNum(quantity.rollsRange ? quantity.rollsRange.min : quantity.rolls)}롤`;
+}

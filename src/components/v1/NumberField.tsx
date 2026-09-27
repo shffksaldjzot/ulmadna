@@ -13,6 +13,12 @@
 // 2026-09-27 지시서(계산기 단계 흐름 개선) 3-6절: "숫자 칸에서 엔터: 값이 유효하면 그
 // 단계를 완료 처리하고 키보드를 내린다(blur)." onEnterComplete를 새로 받는 선택 prop으로
 // 추가했다 — 안 넘기면 예전과 똑같이 동작한다(다른 화면에 영향 없음).
+//
+// 2026-09-27 배포 전 검사관 지적 10번 수리: "안 넘기면 예전과 똑같이 동작한다"고 써
+// 놓고 실제로는 onEnterComplete가 없어도 엔터를 치면 항상 blur가 실행되고 있었다(바닥재·
+// 미장의 숫자 칸도 전부 이 부품을 쓰므로, 그 화면들에도 원래 없던 "엔터=키보드 내림"
+// 동작이 몰래 생긴 것). 이제 onEnterComplete를 넘긴 화면(도배의 새 단계 흐름)에서만
+// 엔터 처리를 하고, 안 넘긴 화면은 브라우저 기본 동작 그대로 둔다.
 // ──────────────────────────────────────────────
 
 'use client';
@@ -52,9 +58,11 @@ interface NumberFieldProps {
   max?: number;
   'aria-label'?: string;
   /**
-   * 엔터를 쳤을 때 지금 값이 유효한 숫자면 불러 준다(호출한 쪽이 "이 단계를 완료 처리"
-   * 하는 데 쓴다). 값이 아직 "3." 처럼 입력 중이거나 비어 있으면 부르지 않는다.
-   * 이 콜백이 있든 없든 엔터를 치면 입력칸 초점은 항상 뺀다(blur, 폰 키보드를 내린다).
+   * 이 콜백을 넘긴 화면에서만 엔터 키를 특별 취급한다. 엔터를 쳤을 때 지금 값이 유효한
+   * 숫자면 이 함수를 부르고(호출한 쪽이 "이 단계를 완료 처리"하는 데 쓴다) 입력칸
+   * 초점을 뺀다(blur, 폰 키보드를 내린다). 값이 아직 "3." 처럼 입력 중이거나 비어
+   * 있으면 부르지 않는다. **이 prop을 안 넘기면 엔터 키에 아무 것도 안 한다**(브라우저
+   * 기본 동작 그대로 — 바닥재·미장 등 기존 화면은 전혀 안 바뀐다, 검사관 지적 10번).
    */
   onEnterComplete?: () => void;
 }
@@ -114,11 +122,15 @@ export default function NumberField({
           }
         }}
         onKeyDown={(e) => {
-          if (e.key !== 'Enter') return;
+          // onEnterComplete를 안 넘긴 화면(바닥재·미장 등 기존 화면)은 엔터를 특별
+          // 취급하지 않는다 — 검사관 지적 10번: 예전엔 콜백이 없어도 항상 blur가
+          // 실행돼서, 넘겨받지 않은 화면에도 몰래 "엔터=키보드 내림" 동작이 생겼었다.
+          if (e.key !== 'Enter' || !onEnterComplete) return;
           // 지금 화면 글자를 다시 한번 숫자로 확인한다 — 유효한 값일 때만 완료 콜백을 부른다
           const parsed = parseNumberInput(text.replace(/,/g, ''));
-          if (parsed !== null && parsed !== '' && onEnterComplete) onEnterComplete();
-          // 값이 유효하든 아니든 엔터를 쳤으면 키보드는 내려준다(3-6절)
+          if (parsed !== null && parsed !== '') onEnterComplete();
+          // 값이 유효하든 아니든 엔터를 쳤으면 키보드는 내려준다(3-6절, onEnterComplete가
+          // 있는 화면에서만)
           inputRef.current?.blur();
         }}
         className="flex-1 min-w-0 text-[16px] text-foreground placeholder:text-v1-text-disabled outline-none bg-transparent tabular-nums"

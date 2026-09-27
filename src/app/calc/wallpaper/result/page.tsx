@@ -29,14 +29,18 @@ import type { WallpaperCalcInput, WallpaperCalcResult } from '@/server/calc/wall
 import { WALLPAPER_PRODUCTS } from '@/server/calc/data/wallpaper-products';
 import { decodeWallpaperForm, type WallpaperFormState } from '@/lib/v1/wallpaperQuery';
 import { toWallpaperProductOptions } from '@/lib/v1/wallpaperProductOptions';
-import { toEngineInput, describePreciseInput, describeAreaPair } from '@/lib/v1/wallpaperEngineInput';
+import { toEngineInput, describePreciseInput, describeAreaPair, type WallpaperAssumption } from '@/lib/v1/wallpaperEngineInput';
 import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
 // 2026-09-15 디자인 통일 작업: 결과 화면 저장·공유 부품을 계산기 3종 공용 위치로 옮겼다
 import { PostToBoardCheckbox, ResultFab } from '../../_components/ResultActions';
 import CalcContactCta from '../../_components/CalcContactCta';
 // 비용 구성 한 줄 표기 — 즉답 화면(ResultPanel.tsx)과 완전히 같은 규칙을 쓰려고 공용 파일로
 // 뺐다(2026-09-27 4차 검수 지적 2번 — 만 원 미만 단가가 "0만"으로 보이던 문제 수리)
-import { formatCostLineAmount } from '../costLineFormat';
+// 2026-09-27 배포 전 검사관 지적 7번: 롤 수 범위·"제품 미정" 표시도 즉답 화면과 같은
+// 함수(formatRollsText·describeWallpaperAreaAssumptionLine)로 맞춘다 — 안 그러면 공유
+// 링크를 받은 사람이 보낸 사람과 다른 정보를 보게 된다.
+import { formatCostLineAmount, formatRollsText } from '../costLineFormat';
+import { describeWallpaperAreaAssumptionLine } from '../assumptionText';
 
 export const metadata = {
   title: '도배 계산기 결과 — 얼마드나',
@@ -51,20 +55,24 @@ export const metadata = {
 const SHOW_UNFINISHED_LINKS = false;
 
 /**
- * 폼 상태 → 서버 계산 결과.
+ * 폼 상태 → 서버 계산 결과 + 가정 목록.
  * 즉답 화면의 훅과 같은 toEngineInput으로 요청을 만들어, 같은 조건이면 같은 금액이 나오게 한다.
  * toEngineInput이 null이면(벽지 종류 미선택 / simple인데 평형 없음 / precise인데 치수 없음)
  * 이 함수도 null을 돌려주고, 페이지가 "조건이 비어 있어요" 빈 상태를 보여준다.
+ *
+ * 2026-09-27 배포 전 검사관 지적 7번: engineInput.assumed(무엇을 가정해서 계산했는지)도
+ * 같이 돌려준다 — 예전엔 이 값을 버려서, 공유 링크로 제품을 안 정한 채 받은 사람은
+ * "제품 미정" 표시도 롤 수 범위도 못 보고 대표값 하나만 봤다(보낸 사람과 다른 정보).
  */
 function calcFromState(
   state: WallpaperFormState,
   products: ReturnType<typeof toWallpaperProductOptions>,
-): WallpaperCalcResult | null {
+): { result: WallpaperCalcResult; assumed: WallpaperAssumption[] } | null {
   const engineInput = toEngineInput(state, products);
   if (!engineInput) return null;
-  const { base, paper } = engineInput;
+  const { base, paper, assumed } = engineInput;
   const request: WallpaperCalcInput = { ...base, paperType: paper.paperType, product: paper.product };
-  return calcWallpaper(request);
+  return { result: calcWallpaper(request), assumed };
 }
 
 /** 조건 요약 1줄 (예: "34평 · 3베이 · 전체 · 천장 포함 · 실크") */
@@ -117,7 +125,9 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
   // "조건 바꾸기"에서 그대로 이어 쓸 수 있게 같은 d 쿼리를 되돌려 준다
   const backHref = d ? `/calc/wallpaper?d=${d}` : '/calc/wallpaper';
 
-  const result = state ? calcFromState(state, products) : null;
+  const calc = state ? calcFromState(state, products) : null;
+  const result = calc?.result ?? null;
+  const assumed = calc?.assumed ?? [];
 
   // 공유 링크가 없거나·깨졌거나·디코드는 됐지만 입력이 완전히 비어 있으면(벽지 미선택 /
   // simple인데 평형 없음 / precise인데 치수 없음) 조용히 기본값으로 바꿔치기하지 않고
@@ -153,6 +163,12 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
         ? `면적 기준 로스 ${quantity.lossPct}%`
         : `추정 로스 ${quantity.lossPct}%`;
 
+  // 2026-09-27 배포 전 검사관 지적 7번 — 즉답 화면(ResultPanel.tsx)과 같은 함수로
+  // "34평 · 84㎡ · 제품 미정" 같은 가정 줄을 만든다. 간단 모드(평형)일 때만 면적 병기가
+  // 뜻이 있다.
+  const areaPairText = quantity.inputMode === '평형' ? describeAreaPair(state) : null;
+  const areaAssumptionLine = describeWallpaperAreaAssumptionLine(areaPairText, assumed);
+
   return (
     <>
       <TopNav
@@ -172,13 +188,17 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
         {/* 결과 카드 — 2026-09-15 디자인 통일 지시: 카드 속 카드 금지, 테두리 카드는 이거
             하나뿐이다. 물량 → 부자재 → 비용을 얇은 구분선(구획 제목 17/700)으로만 나눈다. */}
         <Card>
-          {/* 물량 */}
+          {/* 물량 — 제품 미정이면 롤 수도 범위로("19~46롤", 검사관 지적 7번: 즉답 화면과
+              같은 함수 formatRollsText를 써서 보낸 사람이 본 값과 반드시 같게 한다) */}
           <div className="text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em]">
-            {formatNum(quantity.rolls)}롤
+            {formatRollsText(quantity)}
           </div>
           <p className="text-[15px] text-foreground leading-[1.6] tabular-nums">
             벽 {quantity.wallSqm}㎡ · 천장 {quantity.ceilingSqm}㎡ · {lossLabel}
           </p>
+          {/* 면적·가정 한 줄 — "제품 미정" 등(검사관 지적 7번). 즉답 화면 ResultPanel.tsx와
+              같은 자리·같은 함수를 쓴다 */}
+          {areaAssumptionLine && <p className="text-[13px] text-v1-text-secondary tabular-nums">{areaAssumptionLine}</p>}
           {/* 면적(벽 길이) 모드는 방별 물량이 없어 "실별 보기"가 뜻이 없다 — 숨긴다(검사관 지적 17번) */}
           {quantity.inputMode !== '면적' && (
             <Collapsible title="실별 보기">

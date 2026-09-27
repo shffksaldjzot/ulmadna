@@ -15,23 +15,6 @@
 
 import type { WallpaperAssumption } from '@/lib/v1/wallpaperEngineInput';
 
-/** 가정 줄에 실제로 글자로 나오는 값만 담은 문구표 — bay·scope는 여기 자체가 없다(위 설명 참고) */
-const ASSUMPTION_LABEL: Partial<Record<WallpaperAssumption, string>> = {
-  area: '34평 가정',
-  product: '제품 미정',
-};
-
-/**
- * 가정 목록 → 결과 카드 "가정 줄"에 쓸 한 줄 문구. 가정이 하나도 없으면(또는 area·product·
- * measuring이 하나도 없으면) null(가정 줄 자체를 안 그린다).
- * 'measuring'(실측 입력 중)이 섞여 있으면 다른 가정은 다 무시하고 이 문구만 단독으로 보여준다.
- */
-export function describeWallpaperAssumptions(assumed: WallpaperAssumption[]): string | null {
-  if (assumed.includes('measuring')) return '실측 입력 중';
-  const parts = assumed.map((a) => ASSUMPTION_LABEL[a]).filter((s): s is string => !!s);
-  return parts.length > 0 ? parts.join(' · ') : null;
-}
-
 /**
  * 하단 고정 바 전용 — 지시서 3-9절 검수 지적 1번: 하단 바는 자리가 좁으니 'area' 가정이
  * 있을 때 "34평 가정" 하나만 붙이고, 그 외(제품 미정·실측 입력 중 등)는 하단 바에 안 보여준다
