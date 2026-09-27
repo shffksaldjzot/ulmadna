@@ -34,6 +34,12 @@ export interface QuickAnswerProps {
    * 쓴다(지시서 3-6절, 2026-09-27 검수 지적 8번). 안 주면 그냥 안 부른다.
    */
   onEnterComplete?: () => void;
+  /**
+   * true면 사용자가 아직 이 면적 단계를 안 눌렀다는 뜻 — AreaInput에 그대로 넘겨서 칩
+   * 선택 표시·숫자 칸 값·환산 캡션을 전부 숨긴다(2026-09-27 지휘관 3차 검수 지적 1번).
+   * 계산 자체는 기본값(34평)으로 계속 되고, 이건 화면 표시만 바꾼다.
+   */
+  untouched?: boolean;
 }
 
 export default function QuickAnswer({
@@ -44,6 +50,7 @@ export default function QuickAnswer({
   exclusiveSqm,
   onExclusiveSqmChange,
   onEnterComplete,
+  untouched = false,
 }: QuickAnswerProps) {
   // 직접 입력한 값이 서버가 거부하는 범위면 미리 알려준다(결과 카드의 가정 줄과는
   // 다른, 이 입력칸 고유의 안내라 중복이 아니다)
@@ -60,9 +67,10 @@ export default function QuickAnswer({
         onUnitChange={onAreaUnitChange}
         value={areaUnit === '㎡' ? exclusiveSqm : pyeong}
         onValueChange={(v) => (areaUnit === '㎡' ? onExclusiveSqmChange(v) : onPyeongChange(v))}
-        // 도배 계산기 전용 격자 배치 + 엔터 완료(바닥재·미장은 이 두 prop을 안 넘겨서 그대로다)
+        // 도배 계산기 전용 격자 배치 + 엔터 완료(바닥재·미장은 이 prop들을 안 넘겨서 그대로다)
         chipGrid
         onEnterComplete={onEnterComplete}
+        untouched={untouched}
       />
       {(pyeongTooSmall || sqmTooSmall) && (
         <p className="t-sub text-ink-2">{pyeongTooSmall ? '5평부터 계산해요' : `${MIN_EXCLUSIVE_SQM}㎡부터 계산해요`}</p>

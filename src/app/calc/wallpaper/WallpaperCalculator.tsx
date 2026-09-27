@@ -277,6 +277,7 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
             exclusiveSqm={form.exclusiveSqm ?? ''}
             onExclusiveSqmChange={(v) => patchAreaStep({ exclusiveSqm: v === '' ? undefined : v })}
             onEnterComplete={() => touch(2)}
+            untouched={!touchedFlags[2]}
           />
         ) : (
           <PreciseSection

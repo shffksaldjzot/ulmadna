@@ -142,7 +142,16 @@ export default function ProductSheet({
   );
 }
 
-/** 시트 안 한 줄 — 최소 높이 56px, 굵은 이름 + 보조 줄 + 오른쪽 가격 */
+/**
+ * 시트 안 한 줄 — 최소 높이 56px, 굵은 이름 + 보조 줄 + 오른쪽 가격.
+ *
+ * 2026-09-27 지휘관 3차 검수 지적 2번: 구분선이 양 끝에서 아래로 휘어 보였다 — 원인은
+ * border-top과 rounded-[8px]를 같은 <button>에 같이 줘서, 모서리가 둥글어지는 자리에서
+ * 위 테두리 선이 둥근 모서리를 따라 휘어졌기 때문이다. 구분선(테두리)과 눌림 배경(둥근
+ * 모서리)을 서로 다른 요소로 나눴다 — 바깥 div가 곧은 1px 구분선만 담당하고(모서리 둥글기
+ * 0), 안쪽 button은 예전처럼 rounded-[8px] + active:bg-bg만 담당한다. 구분선의 좌우는
+ * mx-1로 줄 안쪽 여백(글자가 시작·끝나는 자리)에 맞춘다.
+ */
 function SheetRow({
   selected,
   onClick,
@@ -160,24 +169,28 @@ function SheetRow({
   topDivider?: boolean;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={
-        'w-full min-h-[56px] flex items-center gap-3 px-1 py-2 text-left rounded-[8px] active:bg-bg ' +
-        (topDivider ? 'border-t border-line' : '')
-      }
-    >
-      <span className="flex-1 min-w-0 flex flex-col">
-        <span className="t-body font-semibold text-ink truncate">{title}</span>
-        {subtitle && <span className="t-sub text-ink-2 truncate">{subtitle}</span>}
-      </span>
-      {priceLabel && <span className="t-sub text-ink-2 flex-none">{priceLabel}</span>}
-      {selected && (
-        <span className="flex-none w-5 h-5 rounded-full bg-accent text-white flex items-center justify-center">
-          <IconCheck />
+    // 구분선 전용 바깥 칸 — mx-1(margin)로 상자 자체를 좁혀서 테두리(border)가 그 좁아진
+    // 자리에서 시작·끝나게 한다(border는 padding을 무시하고 상자 전체 폭에 그려지므로,
+    // 안쪽 padding이 아니라 바깥 margin으로 인세트를 줘야 실제로 짧아진다). 안쪽 button은
+    // 자기 padding을 안 두고 이 div 폭 그대로 써서, 글자 시작·끝 위치가 구분선 양 끝과
+    // 정확히 같아진다(검수 지적 2번).
+    <div className={topDivider ? 'border-t border-line mx-1' : ''}>
+      <button
+        type="button"
+        onClick={onClick}
+        className="w-full min-h-[56px] flex items-center gap-3 py-2 text-left rounded-[8px] active:bg-bg"
+      >
+        <span className="flex-1 min-w-0 flex flex-col">
+          <span className="t-body font-semibold text-ink truncate">{title}</span>
+          {subtitle && <span className="t-sub text-ink-2 truncate">{subtitle}</span>}
         </span>
-      )}
-    </button>
+        {priceLabel && <span className="t-sub text-ink-2 flex-none">{priceLabel}</span>}
+        {selected && (
+          <span className="flex-none w-5 h-5 rounded-full bg-accent text-white flex items-center justify-center">
+            <IconCheck />
+          </span>
+        )}
+      </button>
+    </div>
   );
 }

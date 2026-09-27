@@ -74,7 +74,9 @@ export default function BottomBar({
                 {stepNumber}/{stepCount} ·
               </span>
             )}
-            <span className="t-body font-semibold text-accent truncate">{amountText}</span>
+            {/* 2026-09-27 지휘관 3차 검수 지적 3번: 강조색(accent)은 누르는 것(버튼·활성 칩)
+                전용이라 금액에는 안 쓴다. 결과 카드 금액과 같은 색(text-brown, 진한 글자색)으로 */}
+            <span className="t-body font-semibold text-brown truncate">{amountText}</span>
             {/* "34평 가정" 한 마디로 줄인 뒤로는 360·390px 둘 다 자리가 충분해 보통은 보인다.
                 아주 좁은 화면(320px 미만, 폴더폰 등)에서만 통째로 숨긴다(말줄임 아님) —
                 지시서 "폭이 모자라면 아예 그리지 않는다"를 안전망으로 남겨 둔 것이다. */}

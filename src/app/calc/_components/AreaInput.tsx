@@ -78,6 +78,19 @@ export interface AreaInputProps {
    * NumberField의 onEnterComplete를 그대로 통과시킨다. 안 넘기면 기존과 동일하다.
    */
   onEnterComplete?: () => void;
+  /**
+   * 2026-09-27 지휘관 3차 검수 지적 1번 — 도배 계산기 전용. true면 "아직 사용자가 이
+   * 단계를 안 눌렀다"는 뜻으로, 폼 속 값(value)은 그대로 두되(계산은 그 값으로 계속 하고
+   * 있다 — 34평 가정) **화면 표시만** 숨긴다:
+   *   - 칩은 하나도 선택 표시하지 않는다
+   *   - 숫자 칸은 비우고, 그 값을 자리 글자(placeholder)로 흐리게 보여준다
+   *   - 환산 캡션 줄("≈ 112.4㎡ · 84㎡")은 안 그린다
+   * 기본 false(바닥재·미장은 이 prop을 안 넘기므로 예전 그대로 값이 그대로 보인다).
+   * 사용자가 칩을 누르거나 숫자를 입력하면(그 순간 손댄 걸로 처리돼) 다음 렌더부터
+   * untouched가 false로 내려오면서 정상적으로 값이 보인다 — 이 부품 자신은 그 전환을
+   * 몰라도 된다(부르는 쪽이 touched 여부를 보고 이 prop을 넘겨준다).
+   */
+  untouched?: boolean;
 }
 
 export default function AreaInput({
@@ -93,6 +106,7 @@ export default function AreaInput({
   hideUnitToggle = false,
   chipGrid = false,
   onEnterComplete,
+  untouched = false,
 }: AreaInputProps) {
   // 칩 목록 — supply 모드는 평/㎡ 기본 칩이 있고, work·exclusive는 호출한 쪽이 넘겨준다
   const defaultChips = mode === 'supply' ? (unit === '평' ? SUPPLY_PYEONG_CHIPS : EXCLUSIVE_SQM_CHIPS) : undefined;
@@ -107,6 +121,8 @@ export default function AreaInput({
 
   // 입력칸 옆 반대 단위 환산 캡션 — 항상 순수 단위 환산(×3.3058)만. supply+평일 때만 전용 ㎡ 덧붙임
   // (2026-09-16 형아 피드백: "전용" 단어 삭제)
+  // untouched(검수 지적 1번)일 때는 "아직 안 골랐다"는 화면이라 이 줄 자체를 안 그린다 —
+  // 밑에서 convCaption을 null로 덮어써서 처리한다.
   function conversionCaption(): string | null {
     if (value === '' || typeof value !== 'number' || value <= 0) return null;
     if (unit === '평') {
@@ -115,7 +131,7 @@ export default function AreaInput({
     }
     return `≈ ${sqmToPyeong(value)}평`;
   }
-  const convCaption = conversionCaption();
+  const convCaption = untouched ? null : conversionCaption();
 
   const unitToggle = (
     // 평/㎡ 단위 토글 — 값 선택이 아니라 "보기 방식"을 바꾸는 소형 토글이라 size="sm"(32px)
@@ -155,7 +171,9 @@ export default function AreaInput({
           {chipList.map((n) => (
             <Chip
               key={n}
-              selected={value === n}
+              // untouched면 실제 값이 34여도 칩은 하나도 선택 표시 안 한다(검수 지적 1번 —
+              // 화면이 "아직 안 골랐다"고 말해야 하는데 칩이 선택돼 보이면 앞뒤가 안 맞는다)
+              selected={!untouched && value === n}
               onClick={() => onValueChange(n)}
               className={chipGrid ? 'w-full justify-center' : undefined}
               style={chipGrid ? { fontSize: '13px' } : undefined}
@@ -166,12 +184,14 @@ export default function AreaInput({
         </div>
       )}
 
-      {/* 직접 입력 */}
+      {/* 직접 입력 — untouched면 칸은 비우고 실제 값(34 등)을 자리 글자로 흐리게 보여준다.
+          폼 속 값(value)은 안 건드린다 — NumberField에 실제 넘기는 값만 ''로 바꾼 것뿐이라,
+          계산은 여전히 부르는 쪽이 들고 있는 진짜 value(34)로 그대로 된다. */}
       <NumberField
-        value={value}
+        value={untouched ? '' : value}
         onChange={onValueChange}
         suffix={unit}
-        placeholder={placeholder ?? `면적을 입력하세요(${unit})`}
+        placeholder={untouched && typeof value === 'number' ? String(value) : (placeholder ?? `면적을 입력하세요(${unit})`)}
         aria-label="면적 직접 입력"
         className="w-full"
         onEnterComplete={onEnterComplete}

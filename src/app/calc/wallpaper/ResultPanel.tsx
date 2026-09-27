@@ -5,7 +5,8 @@
 // 내용·항목 자체는 그대로다).
 //   1. 금액 범위(가장 큰 숫자) + "추정" 표시 + 중간값 한 줄
 //   2. 수량 한 줄 — 제품 미정(assumed에 'product')이면 롤 수도 범위로 보여준다(rollsRange)
-//   3. 가정 줄(가정이 있을 때만) — "34평 가정 · 제품 미정" 등, ink-2 보조색
+//   3. 면적·가정 한 줄(있을 때만) — "34평 · 84㎡ · 제품 미정" 또는 "34평 가정 · 제품 미정" 등,
+//      ink-2 보조색(2026-09-27 3차 검수 지적 4번으로 면적 병기 줄과 가정 줄을 하나로 합침)
 //   4. 기준 줄(cost.basisLine)
 //   5. 구성 보기(접힘) · 부자재 · 실별 보기(접힘)
 //   6. 공유·문의
@@ -39,7 +40,7 @@ import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
 import { type WallpaperFormState, encodeWallpaperForm } from '@/lib/v1/wallpaperQuery';
 import { trimFormForShare, describeAreaPair, type WallpaperAssumption } from '@/lib/v1/wallpaperEngineInput';
 import type { WallpaperCalcResultDTO, WallpaperCostLine, WallpaperRange } from '@/lib/v1/useWallpaperCalc';
-import { describeWallpaperAssumptions } from './assumptionText';
+import { describeWallpaperAreaAssumptionLine } from './assumptionText';
 // GA4 — 결과 노출/구성 보기 펼침/공유 버튼 클릭 이벤트
 import { track } from '@/lib/analytics';
 
@@ -111,8 +112,11 @@ export default function ResultPanel({
   // 중이면 카드 전체를 옅게 한다(깜빡임 방지 규칙 + 검사관 지적 12번)
   const dim = loading || stale || !!error;
 
-  // 가정 줄 문구 — 없으면(전부 사용자가 직접 골랐으면) 아예 안 그린다
-  const assumedText = describeWallpaperAssumptions(assumed);
+  // 2026-09-27 지휘관 3차 검수 지적 4번: "34평 · 84㎡"(면적 병기)와 "가정 줄"을 한 줄로
+  // 합친다. 간단 모드(평형)일 때만 areaPairText가 의미 있고, 그 외(정확 모드 등)엔 null을
+  // 넘겨서 area 가정 여부·product 가정 여부만으로 문구를 만든다.
+  const areaPairText = quantity.inputMode === '평형' ? describeAreaPair(form) : null;
+  const areaAssumptionLine = describeWallpaperAreaAssumptionLine(areaPairText, assumed);
 
   // 지휘관 확정 규칙(2026-09-27, 3-13절 수정): 공유는 3단계가 전부 끝났고, 'area'·'measuring'
   // 가정이 안 남아 있을 때만 보인다. 베이·범위 조정 칩과 "제품 미정"은 공유를 막지 않는다.
@@ -178,14 +182,10 @@ export default function ResultPanel({
             </span>
           ))}
         </p>
-        {/* 간단(평형/㎡) 모드일 때만 "34평 · 84㎡" 병기 — 단 'area'가 가정이면 바로 아래 가정
-            줄의 "34평 가정"과 겹치는 정보라 이 줄은 그릴 필요가 없다(검수 지적 3번) */}
-        {quantity.inputMode === '평형' && !assumed.includes('area') && describeAreaPair(form) && (
-          <p className="t-sub text-v1-text-disabled tabular-nums">{describeAreaPair(form)}</p>
-        )}
-
-        {/* 3. 가정 줄 — 가정이 있을 때만("34평 가정 · 제품 미정" 등, assumptionText.ts가 문구를 만든다) */}
-        {assumedText && <p className="t-sub text-ink-2">{assumedText}</p>}
+        {/* 3. 면적·가정 한 줄 — 2026-09-27 검수 지적 4번으로 합쳤다. 예:
+            "34평 · 84㎡"(면적을 직접 골랐고 가정 없음) / "34평 · 84㎡ · 제품 미정"(면적은
+            골랐는데 제품만 미정) / "34평 가정 · 제품 미정"(면적도 가정) / "실측 입력 중" */}
+        {areaAssumptionLine && <p className="t-sub text-ink-2 tabular-nums">{areaAssumptionLine}</p>}
 
         {/* 4. 기준 줄 */}
         <p className="t-body text-ink tabular-nums">{cost.basisLine}</p>
