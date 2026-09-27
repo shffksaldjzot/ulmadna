@@ -33,8 +33,15 @@
 // 접근성: 끝낸 단계는 inert를 걸지 않는다(조작 가능해야 하므로) — 아직 안 온 단계만
 // 조작 불가로 막는다. 탭 순서는 화면에 보이는 순서(DOM 순서) 그대로다.
 //
+// 2026-09-27 지휘관 지적(구분선 "웃는 입" 모양) 수리 — 끝낸 단계의 아래 테두리만 색을
+// 넣었더니, 카드의 둥근 모서리(16px)를 따라 그 색이 곡선으로 휘어 올라갔다(제품 시트
+// 구분선에서 이미 고쳤던 것과 같은 문제). 고침: 끝낸 단계도 테두리는 네 변 모두 완전히
+// 투명으로 두고, 구분선은 카드 밖에 절대 위치로 따로 그리는 곧은 1px 줄로 바꿨다 —
+// 단계 사이 간격(8px)의 한가운데(-4px 자리)에 놓아서 카드 자리·간격에 전혀 영향이 없다.
+//
 // 작성일: 2026년 09월 27일
 // 끝낸 단계를 접지 않는 새 규칙으로 전면 재작성: 2026년 09월 27일
+// 구분선을 절대 위치 곧은 줄로 교체(둥근 모서리 곡선 문제 수리): 2026년 09월 27일
 // ──────────────────────────────────────────────
 
 'use client';
@@ -115,8 +122,9 @@ const StepRow = forwardRef<HTMLDivElement, StepRowProps>(function StepRow(
       ref={rootRef}
       // scroll-mt: FlowShell이 scrollIntoView 할 때 고정 헤더에 안 가리도록 여유를 둔다.
       // transition은 테두리·배경 색만 160ms로 건다(형아 지시 — 높이·위치는 안 바뀐다).
+      // relative: 아래 구분선(절대 위치 요소)의 기준점이 된다.
       className={
-        'flex flex-col scroll-mt-[112px] transition-[background-color,border-color] duration-[160ms] ease-out motion-reduce:transition-none ' +
+        'relative flex flex-col scroll-mt-[112px] transition-[background-color,border-color] duration-[160ms] ease-out motion-reduce:transition-none ' +
         (isCardLike
           ? `gap-3 rounded-[16px] border p-4 ${justOpened ? 'flow-step-enter' : ''}`
           : 'min-h-[48px] opacity-45')
@@ -126,17 +134,24 @@ const StepRow = forwardRef<HTMLDivElement, StepRowProps>(function StepRow(
           ? {
               // 테두리·배경은 인라인 스타일로 직접 색만 바꾼다(Tailwind 유틸 조합의 우선순위
               // 문제를 피하려고). 카드(지금 할 단계)와 끝낸 단계는 굵기·모서리가 완전히
-              // 같고 색만 다르다 — 그래서 내용이 1px도 안 움직인다.
+              // 같고 색만 다르다 — 그래서 내용이 1px도 안 움직인다. 끝낸 단계는 네 변 모두
+              // 투명(2026-09-27 지휘관 지적 — 예전엔 테두리 하나만 색을 넣었는데, 둥근
+              // 모서리(16px)와 만나면 그 색이 모서리 곡선을 따라 휘어 올라가 "웃는 입"
+              // 모양이 됐다. 구분선은 이제 아래 별도의 곧은 선 요소로 그린다).
               borderColor: state === 'current' ? 'var(--accent)' : 'transparent',
               backgroundColor: state === 'current' ? 'var(--surface)' : 'transparent',
-              // 끝낸 단계 사이에는 구분선을, 지금 할 단계 바로 위에는 구분선을 안 그린다.
-              // (지금 할 단계 자신은 사방 테두리가 이미 있으므로 이 속성은 done일 때만 의미 있다)
-              borderBottomColor:
-                state === 'done' && !hideDivider ? 'var(--line)' : state === 'current' ? 'var(--accent)' : 'transparent',
             }
           : undefined
       }
     >
+      {/* 끝낸 단계 사이 구분선 — 카드(둥근 모서리) 테두리가 아니라 곧은 1px 줄을 절대 위치로
+          따로 그린다(위 borderColor 설명 참고). 카드 자신의 높이·자리에는 전혀 영향을 안
+          준다(간격 8px의 한가운데인 -4px 자리에 놓아서, 구분선이 있든 없든 단계 사이
+          간격·각 단계 위치가 완전히 같다). 좌우는 카드 안쪽 여백(16px)에 맞춘다. 지금 할
+          단계 바로 위·아래, 마지막 단계 아래는 hideDivider로 걸러 준다(FlowShell 계산). */}
+      {state === 'done' && !hideDivider && (
+        <div aria-hidden className="absolute -bottom-1 left-4 right-4 h-px" style={{ backgroundColor: 'var(--line)' }} />
+      )}
       {/* 첫 줄 — 번호 배지(또는 체크) + 제목. 세 모습 다 이 한 줄 구조를 쓴다 */}
       <div className={'flex items-center gap-3 ' + (state === 'upcoming' ? 'min-h-[48px]' : '')}>
         <span

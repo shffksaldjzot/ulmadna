@@ -17,8 +17,14 @@
 // 다음 계산기(줄눈·탄성코트 등)를 새로 붙일 때도 이 파일은 그대로 두고 steps 배열만
 // 새로 만들면 된다.
 //
+// 2026-09-27 지휘관 지적(구분선 "웃는 입" 모양) 수리 — StepRow.tsx가 이제 구분선을
+// 카드 테두리가 아니라 절대 위치의 곧은 줄로 따로 그린다. isLast(i)를 추가해서 마지막
+// 단계 아래(조정 칩 위)에는 그 줄도 안 그리게 걸렀다(예전엔 다음 단계가 없어
+// isCardLikeAt(i+1)이 그냥 false가 되어 구분선이 그려져 버렸다).
+//
 // 작성일: 2026년 09월 27일
 // 끝낸 단계를 접지 않는 새 규칙으로 단순화: 2026년 09월 27일
+// 마지막 단계 아래 구분선 억제 추가(구분선 모양 수리에 맞춰): 2026년 09월 27일
 // ──────────────────────────────────────────────
 
 'use client';
@@ -79,6 +85,16 @@ export default function FlowShell({ steps, activeIndex, completeFlags }: FlowShe
     return index === activeIndex;
   }
 
+  /**
+   * i번째 단계가 "마지막 단계"인지 — 마지막 단계 아래(조정 칩 위)에는 구분선을 안 그린다
+   * (2026-09-27 지휘관 지적). i+1이 steps.length를 넘어가면(다음 단계 자체가 없으면)
+   * isCardLikeAt(i+1)이 범위 밖이라 그냥 false를 주는데, 그러면 hideDivider도 false가
+   * 되어 마지막 단계 밑에 구분선이 그려져 버렸다 — 여기서 따로 걸러 준다.
+   */
+  function isLast(index: number): boolean {
+    return index === steps.length - 1;
+  }
+
   return (
     // gap-2(8px): 단계 사이 세로 간격을 지시서 3-2절대로 8px로 통일한다.
     // flowFocusScope: 이 안(칩·세그먼트·버튼)에서만 새 초점 테두리 규칙(globals.css)이 적용된다
@@ -91,7 +107,7 @@ export default function FlowShell({ steps, activeIndex, completeFlags }: FlowShe
           activeIndex={activeIndex}
           title={step.title}
           complete={completeFlags[i] ?? false}
-          hideDivider={isCardLikeAt(i + 1)}
+          hideDivider={isCardLikeAt(i + 1) || isLast(i)}
         >
           {step.content}
         </StepRow>
