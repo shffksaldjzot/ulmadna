@@ -8,12 +8,21 @@
 //   이 단계는 완료된다(그 종류 노출 제품 전체 범위로 계산 — 계산 담당이 서버에서 처리).
 //   마지막 줄 "직접 입력"은 목록에 없는 벽지를 직접 적는 자리(기존 기능 그대로 연결).
 //
-//   상태는 이 컴포넌트가 갖지 않는다(시트 열림 여부·직접 입력 칸의 글자만 화면 전용으로
-//   들고 있고, 바깥 productCode·product 값이 바뀌면 그 값에 맞춰 다시 채운다).
+//   상태는 이 컴포넌트가 갖지 않는다(직접 입력 칸의 글자만 화면 전용으로 들고 있고,
+//   바깥 productCode·product 값이 바뀌면 그 값에 맞춰 다시 채운다).
+//
+// 2026-09-27 검사관 7차 지적(치명) 수리 — "모드 카드에 다녀오면 시트 칸이 죽는다":
+//   시트 열림 여부(sheetOpen)를 이 부품이 더 이상 안 갖는다. 모드 카드로 돌아가면 이
+//   부품 자체가 통째로 사라지는데(리액트 언마운트), 그 안에 있던 시트 열림 상태와
+//   뒤로 가기 감시 로직이 같이 사라지면서 "앞으로 가기로 시트 칸에 다시 왔는데 안
+//   열림" 사고가 났었다. 이제 sheetOpen과 onSheetOpenChange를 부르는 쪽(계산기
+//   최상위, 절대 언마운트되지 않는 WallpaperCalculator)에서 내려받는다 — 자세한 내용은
+//   useSheetBackNav.ts 주석 참고.
 //
 // 작성일: 2026년 09월 09일
 // 재배치: 2026년 09월 09일 (벽지 최우선 A안)
 // 목록 시트로 교체: 2026년 09월 27일 (지시서 3-11절 — 단계 흐름 개선)
+// 시트 열림 상태를 계산기 최상위로 올림(7차 검사 치명 수리): 2026년 09월 27일
 // ──────────────────────────────────────────────
 
 'use client';
@@ -70,6 +79,14 @@ export interface PaperPickerProps {
    *   'product' — 종류를 고른 뒤 나오는 "제품 고르기" 버튼 + 목록 시트만.
    */
   part: 'type' | 'product';
+
+  /**
+   * 제품 목록 시트가 열려 있는지 — 이제 계산기 최상위(WallpaperCalculator)가 갖고
+   * 내려준다(7차 검사 치명 수리, 위 파일 머리말 참고). part==='product'일 때만 쓴다.
+   */
+  sheetOpen: boolean;
+  /** 시트 열림 상태를 바꿔 달라고 계산기 최상위에 요청한다(보통 setSheetOpen 그대로) */
+  onSheetOpenChange: (open: boolean) => void;
 
   /** 벽지 종류. undefined면 아직 안 고른 상태 */
   paperType: '합지' | '실크' | undefined;
@@ -128,6 +145,8 @@ function toFields(product: CustomProduct | undefined): CustomFields {
 
 export default function PaperPicker({
   part,
+  sheetOpen,
+  onSheetOpenChange,
   paperType,
   onPaperTypeChange,
   productCode,
@@ -137,8 +156,6 @@ export default function PaperPicker({
   onProductChange,
   touched = false,
 }: PaperPickerProps) {
-  // 목록 시트 열림 여부 — 이 카드가 직접 들고 있는 유일한 상태
-  const [sheetOpen, setSheetOpen] = useState(false);
   // "직접 입력" 줄을 눌러서 그 아래 입력 폼을 펼쳐 둔 상태인지 — 이미 직접 입력한 값이
   // 있으면 처음부터 펼친 채로 시작한다. 이 상태만으로는 아직 단계를 완료 처리하지 않는다
   // (세 칸을 다 채워야 진짜 "손댔다"고 본다 — 그래야 값도 없이 다음 단계로 훌쩍 넘어가지 않는다)
@@ -208,7 +225,7 @@ export default function PaperPicker({
     };
     setLastProduct(made);
     onProductChange(made);
-    setSheetOpen(false);
+    onSheetOpenChange(false);
   }
 
   /**
@@ -229,7 +246,7 @@ export default function PaperPicker({
       onProductChange?.(undefined);
       setCustom(toFields(undefined));
       onProductCodeChange(undefined);
-      setSheetOpen(false);
+      onSheetOpenChange(false);
       return;
     }
     // 목록에서 실제 제품 하나를 골랐다 — 직접 입력은 지운다
@@ -238,7 +255,7 @@ export default function PaperPicker({
     onProductChange?.(undefined);
     setCustom(toFields(undefined));
     onProductCodeChange(code);
-    setSheetOpen(false);
+    onSheetOpenChange(false);
   }
 
   if (part === 'type') {
@@ -312,7 +329,7 @@ export default function PaperPicker({
     <div className="flex flex-col gap-2">
       <button
         type="button"
-        onClick={() => setSheetOpen(true)}
+        onClick={() => onSheetOpenChange(true)}
         className="w-full h-12 flex items-center justify-between rounded-[8px] border border-line bg-surface px-4 text-left"
       >
         <span className="t-body text-ink truncate">{triggerLabel}</span>
@@ -321,14 +338,12 @@ export default function PaperPicker({
 
       <ProductSheet
         open={sheetOpen}
-        onClose={() => setSheetOpen(false)}
-        onReopen={() => setSheetOpen(true)}
+        onClose={() => onSheetOpenChange(false)}
         title="벽지 제품"
         items={items}
         selectedCode={selectedCode}
         onSelect={onSheetSelect}
         undecidedPriceLabel={undecidedPriceLabel}
-        calcId="wallpaper"
         customForm={
           <>
             <span className="t-sub text-ink-2">롤당 가격</span>

@@ -52,6 +52,7 @@ import AdjustChips from '../_components/flow/AdjustChips';
 import BottomBar from '../_components/flow/BottomBar';
 import { useFlowSteps } from '../_components/flow/useFlowSteps';
 import { useFlowBackNav } from '../_components/flow/useFlowBackNav';
+import { useSheetBackNav } from '../_components/flow/useSheetBackNav';
 import { loadSessionState, saveSessionState } from '../_components/flow/sessionPersist';
 import type { FlowStepDef } from '../_components/flow/types';
 import ModePicker, { type CalcViewMode } from '../_components/ModePicker';
@@ -224,6 +225,14 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
   const [bayTouched, setBayTouched] = useState(hasSharedLink || !!restored?.bayTouched);
   const [scopeTouched, setScopeTouched] = useState(hasSharedLink || !!restored?.scopeTouched);
 
+  // 제품 목록 시트 열림 여부 — 2026-09-27 검사관 7차 지적(치명) 수리로 이 최상위(절대
+  // 언마운트 안 되는) 계산기 부품이 직접 갖는다. 예전엔 PaperPicker(시트를 담은 부품)
+  // 안에 있었는데, 모드 카드로 돌아가면 PaperPicker가 통째로 사라져(리액트 언마운트)
+  // 뒤로 가기 스택에 쌓아 둔 "앞으로=다시 열기" 클로저가 죽은 인스턴스를 가리키게 되는
+  // 사고가 있었다. 여기서 관리하면 모드 카드를 오가도 이 값과 그걸 바꾸는 함수 둘 다
+  // 살아남는다.
+  const [sheetOpen, setSheetOpen] = useState(false);
+
   // GA4 — 도배 계산기 화면에 들어왔다는 이벤트를 딱 1번만 보낸다(마운트 시점)
   useEffect(() => {
     track('calc_view', { process: 'wallpaper' });
@@ -284,8 +293,23 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
   useFlowBackNav({
     calcId: CALC_ID,
     modeChosen,
-    onExitToModePicker: () => setUserPickedMode(false),
+    onExitToModePicker: () => {
+      setUserPickedMode(false);
+      // 모드 카드로 돌아가면 시트도 방어적으로 닫아 둔다(화면상 안 보이는 상태로 맞춤 —
+      // 모드 카드 화면일 때는 어차피 시트를 안 그리지만, 값 자체도 false로 되돌려 둬야
+      // 다음에 모드를 다시 골랐을 때 "시트가 열린 채로 시작"하는 일이 없다)
+      setSheetOpen(false);
+    },
     onReenterMode: () => setUserPickedMode(true),
+  });
+
+  // 제품 시트의 뒤로·앞으로 가기 감시 — 반드시 이 최상위(절대 언마운트 안 되는) 계산기가
+  // 직접 부른다(useSheetBackNav.ts 주석 참고, 7차 검사 치명 수리의 핵심).
+  useSheetBackNav({
+    calcId: CALC_ID,
+    open: sheetOpen,
+    onClose: () => setSheetOpen(false),
+    onReopen: () => setSheetOpen(true),
   });
 
   // 새로 고침 복원 — 공유 링크로 들어온 게 아니면 값이 바뀔 때마다 세션에 저장해 둔다.
@@ -333,6 +357,8 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
       content: (
         <PaperPicker
           part="type"
+          sheetOpen={sheetOpen}
+          onSheetOpenChange={setSheetOpen}
           paperType={form.paperType}
           onPaperTypeChange={setPaperType}
           productCode={form.productCode}
@@ -350,6 +376,8 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
       content: (
         <PaperPicker
           part="product"
+          sheetOpen={sheetOpen}
+          onSheetOpenChange={setSheetOpen}
           paperType={form.paperType}
           onPaperTypeChange={setPaperType}
           productCode={form.productCode}

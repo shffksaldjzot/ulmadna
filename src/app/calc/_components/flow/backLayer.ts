@@ -22,86 +22,78 @@
 //   5) (배포 후 치명 회귀 수리) 주소 비교 방식을 폐기하고, 표식에 "문서 수명"(epoch)을
 //      추가 + popstate 처리기를 계산기가 마운트돼 있을 때만(activateCalc) 붙인다.
 //
-// 6) (2026-09-27 검사관 4차 지적 — 이번 수리) **앞으로 가기가 뒤로 가기와 구분이 안 됐다.**
-//    옛 처리기는 popstate가 오면 무조건 "스택 맨 위를 꺼내 되돌리기"만 했다 — 방향(뒤로인지
-//    앞으로인지)을 아예 안 봤다. 그래서 3단계 완료 → 뒤로 2번(1단계가 열림) → 앞으로 하면
-//    스택엔 이미 아무것도 없어서(뒤로 갈 때 이미 다 꺼내 썼으므로) 짝 없는 칸으로 오판해
-//    모드 카드로 끌려가는 사고가 났다.
+// 6) **앞으로 가기가 뒤로 가기와 구분이 안 됐다** — 표식의 순번(seq)으로 방향을 스스로
+//    판단하도록 전면 재설계했다. 계산기마다 "지금 서 있는 칸의 순번"(currentSeq)을
+//    기억하고, popstate가 오면 도착한 칸의 순번(target — 표식 있으면 그 순번, 없으면
+//    0)과 비교해 뒤로/앞으로를 정한다. 각 칸(층)은 되돌리기(onBack)·다시 하기(onForward)
+//    둘 다 갖는다.
 //
-//    고친 방법 — **표식의 순번(seq)으로 방향을 스스로 판단한다:**
-//      - 계산기마다 "지금 서 있는 칸의 순번"(currentSeq)을 따로 기억한다. 계산기가 붙을 때
-//        (activateCalc) 그 순간의 history.state에 우리 표식이 있으면 그 순번으로 시작하고
-//        (baseSeq에도 같이 저장 — "이 계산기가 시작한 자리"), 없으면 0부터 시작한다.
-//      - 새 칸을 쌓을 때 순번은 언제나 "지금 순번 + 1"이다(새로 고침 뒤에도 그 시점 순번에
-//        이어서 늘어난다 — 옛 순번과 절대 안 겹친다).
-//      - popstate가 오면 도착한 칸의 순번(target — 표식 있으면 그 순번, 없으면 0)과
-//        currentSeq를 비교해서 "뒤로"(target < currentSeq)인지 "앞으로"(target > currentSeq)
-//        인지를 스스로 정한다. 브라우저가 알려주는 방향 정보는 없으므로(popstate 이벤트
-//        자체엔 방향이 없다) 오직 순번 비교로만 판단한다.
-//      - 각 칸(층)은 이제 되돌리기(onBack)와 다시 하기(onForward) 둘 다 갖는다. 단계 칸의
-//        onForward = 그 전이가 도달했던 자리로 다시 돌아감. 모드 칸의 onForward = 골랐던
-//        모드 화면으로. 제품 시트 칸의 onForward = 시트를 다시 연다(뒤로=닫힘과 대칭,
-//        7번 설명 참고 — "다시 안 연다"였던 지시가 실기기 검증 뒤 바뀌었다).
-//      - **같은 문서 수명, 메모리에 짝이 있는 칸**(그 순번이 이 계산기가 이번 세션에 실제로
-//        쌓은 층에 있거나, 계산기가 시작한 자리(baseSeq) 그 자체) — 건너뛴 칸들의
-//        onBack/onForward를 순번 순서대로 전부 불러 주고 currentSeq = target. 이땐
-//        history.back()·forward()를 우리가 따로 부르지 않는다(브라우저가 이미 그 자리로
-//        옮겨 놓은 뒤 오는 popstate이므로).
-//      - **짝 없는 칸**(다른 문서 수명의 표식, 또는 이번 세션에 쌓은 적 없는 순번):
-//          · 뒤로(target < currentSeq) — 예전처럼 표식 없는 칸까지 history.back()으로
-//            건너뛴다. 닿으면 "첫 화면으로"(onReturnToStart) 콜백. currentSeq = 0.
-//          · 앞으로(target > currentSeq) — **건너뛰지 않는다.** history.back()도
-//            forward()도 안 부른다. 그 칸에 그냥 머물고, "복원된 진행 화면으로"
-//            (onForwardPastStart) 콜백을 불러 화면을 바꾼다. currentSeq = target.
-//            이 구역에서 앞으로를 더 눌러도 화면이 안 바뀔 수 있다(짝 없는 칸이 여러 개
-//            이어질 때) — 새로 고침 + 여러 번 앞으로라는 드문 조합이라 허용한다. 단,
-//            칸이 거꾸로 끌려가거나 사이트 밖으로 나가는 일은 없다.
-//      - 짝 없는 칸을 건너뛰는 "연쇄"(같은 사용자 조작 한 번에 여러 popstate가 연달아
-//        옴)는 뒤로 방향에만 있다(우리가 adapter.back()을 반복 호출하니까). 그 연쇄
-//        도중에 오는 popstate는 방향을 다시 재지 않고 연쇄 규칙만 그대로 따른다.
+// 7) 시트 칸의 onForward가 "다시 안 연다"였던 지시가 "다시 연다"(뒤로=닫힘과 대칭)로
+//    바뀌었다.
 //
-// 7) (2026-09-27 검사관 5차 지적 — 이번 수리, 6번 배포 뒤 실기기 재검증에서 새로 발견)
-//    두 가지 문제:
-//    (가) 새로 고침 → 뒤로(모드 카드 도달, 6번의 orphanSkip 연쇄가 끝나는 지점) → 모드를
-//        다시 고름(새 칸 쌓임, seq1부터) → 뒤로 하면 모드 카드를 건너뛰고 곧장 블로그로
-//        나가 버렸다. 원인: 연쇄가 끝나 "첫 화면으로" 콜백을 부를 때 currentSeq만 0으로
-//        되돌리고 baseSeq는 새로 고침 시점에 이어받은 옛 값(예: 3)을 그대로 뒀다. 그래서
-//        나중에 새로 쌓은 seq1에서 뒤로 가 target=0에 닿아도 isInMemory가 "0===baseSeq(3)"
-//        으로 틀리게 판정해 시작 칸을 "짝 없는 칸"으로 오판, 한 번 더 건너뛰었다. 고침:
-//        시작 칸에 닿으면 baseSeq도 0으로 같이 되돌리고 layers도 비운다(activateCalc()가
-//        처음 붙을 때와 완전히 같은 "새로 시작" 상태로 리셋). 문서 수명(epoch)은 layers
-//        맵 자체가 이번 세션에 쌓은 것만 담고 있어(다른 문서의 옛 칸은 애초에 이 맵에
-//        없다) 순번이 같은 옛 칸과 새 칸이 섞일 위험이 없다 — Map이 곧 "이번 문서 수명"의
-//        경계 역할을 한다.
-//    (나) 제품 시트 칸의 onForward가 빈 함수였다("다시 안 연다"는 지시가 있었다 — 이제
-//        바뀌었다). 시트를 열고 뒤로(닫힘) → 앞으로(빈 함수라 화면 그대로, 칸만 이동)
-//        → 뒤로 하면, 이 칸의 onBack(닫기)이 다시 실행되지만 시트는 이미 닫혀 있어
-//        "닫기"를 또 해도 눈에 보이는 변화가 없다("죽은 칸"). 이 죽은 칸에서 시트를 다시
-//        열면 pushBackLayer가 새 칸을 또 쌓아 기록이 계속 늘어난다. 고침: 시트 칸의
-//        onForward가 이제 실제로 시트를 다시 연다(ProductSheet.tsx의 onReopen prop).
-//        이미 그 기록 칸에 서 있는 것이므로 다시 열릴 때 새 칸을 쌓지 않는다
-//        (reopenedByForwardRef로 표시해 막는다). 뒤로=닫힘/앞으로=열림이 대칭이 되어
-//        "죽은 칸"이 생기지 않는다.
+// 8) (2026-09-27 검사관 7차 지적 — 이번 수리로 전면 재설계) 6~7번까지의 판을 "baseSeq"
+//    (계산기가 붙은 순간의 순번을 따로 기억)와 "가상 층"(짝 없는 칸으로 앞으로 가서
+//    멈출 때 그 순번에 onReturnToStart/onForwardPastStart를 그대로 등록)으로 고쳐
+//    왔는데, 이 둘이 새로운 사고 두 가지를 냈다:
 //
-// 8) (2026-09-27 검사관 6차 지적 — 이번 수리) 새로 고침 → 뒤로(모드 카드, 7번 수리로
-//    baseSeq도 0으로 리셋됨) → 앞으로(짝 없는 칸으로, onForwardPastStart만 부르고 아무
-//    층도 안 남김) → 뒤로 하면, 칸(currentSeq)은 시작 칸으로 정확히 돌아가는데 화면은
-//    "모든 단계 완료" 그대로 남았다. 원인: 마지막 "뒤로"가 target(0)===baseSeq(0)라서
-//    "매칭"으로 오판(우연히 참이 됨)해 layers.get(현재 순번)의 onBack을 부르려 했는데,
-//    그 순번엔 진짜 층이 없어서(앞으로 갈 때 층을 안 남겼으므로) 아무 일도 안 일어났다.
-//    고침: 짝 없는 칸으로 앞으로 가서 멈출 때, 그 순번에 "가상 층"을 만들어 둔다(되돌리기
-//    = onReturnToStart, 다시 하기 = onForwardPastStart). 그러면 나중에 그 칸에서 뒤로
-//    갈 때 이 가상 층이 실제로 불려서 화면이 모드 카드로 바뀐다. 옛 칸 구역 안에서 앞으로를
-//    더 눌러 다른 옛 칸으로 가도 그때마다 같은 방식으로 가상 층이 쌓이므로, 그 구역
-//    어디서 뒤로 가든 곧장 시작 칸 + 모드 카드로 이어진다(중간에 무반응 칸이 안 생긴다).
+//    (가) 모드 카드에 다녀오면 시트 칸이 죽는다. 모드 카드로 가면 단계 화면 전체가
+//        사라지며 시트를 가진 부품(PaperPicker)도 같이 사라진다. 그 부품 인스턴스
+//        안에서 만든 onReopen 클로저(그 인스턴스의 useState 설정 함수를 가리킴)는
+//        부품이 새로 열려도(모드를 다시 골라 화면이 다시 생겨도) 이미 죽은 옛 인스턴스를
+//        가리킨 채로 backLayer.ts의 층에 남아 있어서, 불러도 아무 일이 안 났다.
+//        → 이 파일 자체의 문제가 아니라 부르는 쪽(WallpaperCalculator)의 문제였다.
+//        시트 열림 상태를 계산기(최상위, 모드가 바뀌어도 안 사라지는 부품)로 올리고,
+//        push/collapse도 최상위에서 안정적으로 호출하게 고쳤다(아래 "공용 규칙" 참고,
+//        backLayer.ts 자체는 안 바뀐다 — 부르는 쪽의 책임이었다).
+//
+//    (나) 짝 없는 칸 구역에서 앞으로 가기로 여러 칸을 지난 뒤 뒤로 가면, 시작 칸까지
+//        한 번에 안 가고 "가상 층"이 있던 중간 옛 칸에서 멈춰 버렸다. 원인: 가상 층을
+//        layers 맵에 "진짜 층과 똑같이" 넣어 뒀더니, 그 순번으로 뒤로 갈 때
+//        isInMemory가 "짝 있음(매칭)"으로 오판해 "그 자리까지만" 걷는 걸어가기를
+//        멈췄다 — 원래는 표식 없는 진짜 시작 칸까지 계속 건너뛰어야 하는데.
+//
+//    고침(baseSeq·가상 층을 걷어내고 훨씬 단순한 규칙으로 교체):
+//      - **표식이 없는 칸(target은 정의상 늘 0)에 닿으면, 지금 순번이 얼마든 무조건
+//        "진짜 시작 칸"이다.** 그 사이(currentSeq부터 1까지) 실제로 쌓아 둔 층이
+//        있으면(같은 문서 수명에서 정상적으로 눌러 온 경우) 그 되돌리기를 순번 순서대로
+//        먼저 불러 값이 단계별로 풀리는 것처럼 보이게 하고, 마지막엔 항상
+//        onReturnToStart를 직접 불러 마무리한다 — 중간에 진짜 층이 없는 구간(짝 없는
+//        칸 구역)이 있어도 화면이 반드시 모드 카드로 바뀐다.
+//      - **표식은 있는데 짝(층)이 없으면** — 다른 문서 수명의 orphan이다. 기존처럼
+//        history.back()으로 건너뛰는 연쇄를 시작한다(표식 없는 칸을 만날 때까지, 위
+//        규칙으로 이어진다).
+//      - 앞으로 가서 짝 없는 칸(표식은 있는데 이번 세션에 안 쌓은 순번)에 멈출 때는
+//        이제 "가상 층"을 안 만든다 — 그냥 currentSeq만 옮기고 onForwardPastStart만
+//        부른다. 나중에 뒤로 갈 때는 위 두 규칙(표식 있고 짝 있음=매칭, 표식 있고 짝
+//        없음=orphan 연쇄, 표식 없음=시작 칸 직행)만으로 항상 올바르게 처리된다 —
+//        가상 층이 없어도 표식 있는 자리는 그 자체로 "짝 없음"이 정확히 판정되어
+//        orphan 연쇄를 타고, 그 연쇄는 표식 없는 진짜 시작 칸에 닿을 때까지 멈추지
+//        않는다(중간에 안 멈춘다 — 이게 이번 수리의 핵심).
+//      - 이제 "baseSeq"라는 값 자체가 필요 없다(표식 없음=시작 칸 규칙이 순번 값과
+//        무관하게 항상 적용되므로) — CalcTrack에서 완전히 뺐다.
+//      - **표식 없는 칸까지 걸어가며 실제 층을 하나라도 만나 되돌렸다면, onReturnToStart를
+//        또 부르지 않는다.** 모드 층의 되돌리기 자체가 이미 onExitToModePicker와 똑같은
+//        일을 하므로(같은 함수), 그 위에 onReturnToStart까지 부르면 같은 화면 전환이
+//        중복 신호된다 — 시험으로 이 정확한 횟수까지 확인한다(표식이 전혀 없는 칸 시험).
+//        실제 층을 하나도 못 만났을 때만(전부 짝 없는 구간이었거나 애초에 0이었을 때)
+//        onReturnToStart를 직접 불러 화면 전환을 신호한다(reachStart 함수 주석 참고).
+//      - **시작 칸에 닿아도 layers 맵 자체는 안 비운다(중요).** 처음엔 시작 칸 도달 때
+//        마다 layers.clear()로 통째로 비웠는데, 그러면 (가)를 고치려고 최상위로 올린
+//        "진짜" 시트 층까지 같이 지워져서, 그 뒤 다시 앞으로 가면 그 자리가 "짝 없는
+//        칸"으로 오판되어 시트의 onForward(다시 열기) 대신 뭉뚱그린 onForwardPastStart만
+//        불리는 새 사고가 났다(재현 가 시나리오). layers는 "진짜 브라우저의 앞으로
+//        스택"을 흉내 낸 것이므로, 진짜 브라우저도 뒤로 갔다가 다시 앞으로 가면 그 칸이
+//        그대로 복원되듯 우리도 그래야 한다 — pushBackLayer가 "진짜 새 칸을 쌓을 때"
+//        하는 자연스러운 앞으로 스택 truncation(그 함수 주석 참고)만으로 충분히
+//        정리된다.
 //
 // 시험하기 쉽게 만들려고 "진짜 브라우저 history"에 직접 의존하지 않고, createBackStack()이
 // history 흉내 객체(HistoryAdapter)를 주입받는 구조로 뺐다.
 //
 // 작성일: 2026년 09월 27일
 // 앞으로 가기 지원(순번 기반 방향 판단으로 전면 재설계): 2026년 09월 27일
-// baseSeq 리셋 + 시트 다시 열기 대칭(5차 검증 수리): 2026년 09월 27일
-// 짝 없는 앞으로 칸에 가상 층 등록(6차 검증 수리): 2026년 09월 27일
+// baseSeq·가상 층을 걷어내고 "표식 없음=항상 시작 칸"으로 단순화 + 시작 칸에서도 layers를
+// 안 비우게(진짜 층 보존) 수정(7차 검증 수리): 2026년 09월 27일
 // ──────────────────────────────────────────────
 
 /** 되돌리기·다시 하기 둘 다 인자 없는 함수 한 개 */
@@ -170,11 +162,9 @@ function createEpoch(): string {
 interface CalcTrack {
   /** 지금 서 있는 칸의 순번(표식 없으면 0) */
   currentSeq: number;
-  /** 이 계산기가 마운트된 "그 순간"의 순번 — 여기로 돌아오면 아무 콜백도 안 부른다(제자리) */
-  baseSeq: number;
   /** 이번 세션(마운트~언마운트)에 실제로 쌓은 층들 — seq를 키로 바로 찾는다 */
   layers: Map<number, Layer>;
-  /** 짝 없는 칸을 뒤로 건너뛴 끝에 표식 없는 칸(첫 진입 칸)에 닿으면 부른다 — "모드 카드로" */
+  /** 짝 없는 칸을 뒤로 건너뛴 끝에(또는 곧장) 표식 없는 칸(첫 진입 칸)에 닿으면 부른다 — "모드 카드로" */
   onReturnToStart: BackHandler;
   /** 짝 없는 칸으로 앞으로 가서 멈출 때 부른다 — "복원된 진행 화면으로"(모드 선택을 되돌림) */
   onForwardPastStart: BackHandler;
@@ -200,9 +190,49 @@ export function createBackStack(adapter: HistoryAdapter | null) {
   // 이 스택 인스턴스(=이 문서 실행)를 구분하는 값 — 새로 고침하면 새로 뽑힌다
   const epoch = createEpoch();
 
-  /** 이 순번이 "지금 이 계산기 세션에서 실제로 오갈 수 있는 자리"인지 — 짝이 있는지 판정 */
+  /** 이 순번이 "이번 세션에 실제로 쌓은 층"으로 있는지 — 짝이 있는지 판정(0은 여기서 안 씀) */
   function isInMemory(calc: CalcTrack, seq: number): boolean {
-    return seq === calc.baseSeq || calc.layers.has(seq);
+    return calc.layers.has(seq);
+  }
+
+  /**
+   * 표식 없는 칸(target=0)에 닿았을 때 부른다 — 순번이 얼마였든 무조건 "진짜 시작 칸"
+   * 이다(7차 재설계 핵심). 중간에 실제로 쌓아 둔 층이 있으면(예: history.go(-3)처럼
+   * 여러 칸을 한 번에 건너와도) 그 되돌리기를 순번 순서대로 먼저 불러 값이 단계별로
+   * 풀리는 것처럼 보이게 하고, 마지막엔 항상 onReturnToStart를 직접 불러 마무리한다 —
+   * 짝 없는 칸 구역을 지나왔어도(그 구간엔 진짜 층이 없으니 그냥 건너뛴다) 화면이
+   * 반드시 모드 카드로 바뀐다.
+   *
+   * **layers는 여기서 비우지 않는다.** 처음엔(설계 초안) 시작 칸에 닿으면 이 세션이
+   * 쌓아 둔 층을 통째로 지웠는데, 그러면 모드 제품 시트처럼 "진짜로 쌓아 둔 층"까지
+   * 같이 지워져서, 그 뒤 다시 앞으로 가면 그 자리들이 전부 "짝 없는 칸"(orphan)으로
+   * 오판되어 시트 칸의 onForward(다시 열기)가 아니라 매번 똑같은 뭉뚱그린
+   * onForwardPastStart만 불리는 새 사고로 이어졌다(재현 가 시나리오 실패). layers는
+   * 실제 브라우저의 "앞으로 스택"을 그대로 흉내 낸 것이라, 진짜 브라우저도 뒤로 갔다가
+   * 다시 앞으로 가면 그 칸들이 그대로 복원된다 — 우리도 똑같이 둬야 한다. 이 층들은
+   * pushBackLayer가 "진짜 새 칸을 쌓을 때"(currentSeq보다 큰 옛 층을 지우는 자연스러운
+   * 앞으로 스택 truncation, 위 pushBackLayer 주석 참고)만 지워지면 충분하다 — 그게 실제
+   * 브라우저 pushState 동작과 정확히 같다.
+   */
+  function reachStart(calc: CalcTrack): void {
+    // 실제로 쌓아 둔 층을 하나라도 만나 되돌리기를 불렀는지 — 하나라도 불렀으면 그
+    // 되돌리기 자체가 이미 "모드 카드로"와 똑같은 일을 하므로(모드 층의 onBack은
+    // onExitToModePicker 그 자체다), onReturnToStart를 또 부르면 같은 화면 전환이
+    // 중복으로 신호되는 것이다 — 아래에서 "하나도 없을 때만" 부르도록 가린다.
+    let calledRealLayer = false;
+    for (let s = calc.currentSeq; s > 0; s--) {
+      const layer = calc.layers.get(s);
+      if (layer) {
+        calledRealLayer = true;
+        layer.onBack();
+      }
+    }
+    if (!calledRealLayer) {
+      // 실제로 쌓인 층이 하나도 없었다(전부 짝 없는 칸을 건너뛰어 왔거나, 애초에 순번이
+      // 0이었다) — 아무도 "모드 카드로" 전환을 신호하지 않았으므로 여기서 직접 부른다.
+      calc.onReturnToStart();
+    }
+    calc.currentSeq = 0;
   }
 
   function ensureListener() {
@@ -225,23 +255,8 @@ export function createBackStack(adapter: HistoryAdapter | null) {
         }
         // 멈춘다 — 표식 없는 칸에 닿았을 때만 "첫 화면으로"를 부른다(남의 계산기 표식이면
         // 아무 것도 안 부르고 조용히 멈춘다 — 8번 규칙 그대로)
-        //
-        // 2026-09-27 검사관 5차 지적(치명) 수리: currentSeq만 0으로 되돌리고 baseSeq는
-        // 옛 값(새로 고침 시점에 이어받은 순번, 예: 3)을 그대로 두면, 그 뒤 새로 쌓은 칸
-        // (seq1부터 다시 시작)에서 뒤로 가 이 "시작 칸"(순번 0)에 닿았을 때 isInMemory가
-        // "0 === baseSeq(3)"으로 틀리게 판정해 짝 없는 칸으로 오판, 한 칸 더 건너뛰어
-        // 버렸다(모드 카드를 지나쳐 블로그까지 나가버림). 지금이 "진짜 시작 칸"이므로
-        // baseSeq도 0으로 같이 되돌리고, 옛 문서 수명에서 남은 층(있어 봤자 이번 세션엔
-        // 없지만 방어적으로) 전부 비워서 완전히 새로 시작한 것처럼 만든다. 브라우저 기록에
-        // 남은 옛 표식 칸(순번 1~4)은 여기서 지우지 않아도 된다 — 새 칸을 쌓는 순간
-        // history.pushState가 실제로 앞쪽(더 forward) 엔트리를 잘라내 버리고, 설령 그
-        // 전에 사용자가 앞으로 가서 옛 칸에 닿아도 문서 수명(epoch)이 달라 이번 세션의
-        // layers 맵에는 애초에 없으니(비어 있으므로) 옛 칸끼리 순번이 같아도 안 섞인다.
         if (!marked && calc) {
-          calc.onReturnToStart();
-          calc.currentSeq = 0;
-          calc.baseSeq = 0;
-          calc.layers.clear();
+          reachStart(calc);
         }
         orphanSkipCount = 0;
         orphanCalcId = null;
@@ -258,35 +273,27 @@ export function createBackStack(adapter: HistoryAdapter | null) {
 
         if (target < calc.currentSeq) {
           // ── 뒤로 ──
-          if (isInMemory(calc, target)) {
-            // 같은 문서 수명, 짝 있음 — currentSeq부터 target+1까지 차례로 되돌린다
+          if (!marked) {
+            // 표식이 없다(target은 항상 0) — 순번이 얼마였든 무조건 "진짜 시작 칸"이다
+            // (7차 재설계 핵심 — baseSeq 같은 값과 비교하지 않는다. 짝 없는 칸 구역을
+            // 여러 칸 지나왔어도 여기서 반드시 멈추고 모드 카드로 바뀐다).
+            reachStart(calc);
+          } else if (isInMemory(calc, target)) {
+            // 표식 있고 짝(층)도 있음 — 같은 문서 수명. currentSeq부터 target+1까지
+            // 차례로 되돌린다.
             for (let s = calc.currentSeq; s > target; s--) {
               calc.layers.get(s)?.onBack();
             }
             calc.currentSeq = target;
-          } else if (marked) {
-            // 표식은 있는데 짝이 없다 — 진짜 짝 없는 칸(다른 문서 수명 등). 표식 없는
-            // 칸까지 건너뛰는 연쇄를 시작한다(4번 설명과 동일한 방식)
+          } else {
+            // 표식은 있는데 짝이 없다 — 다른 문서 수명의 orphan. 표식 없는 칸까지
+            // 건너뛰는 연쇄를 시작한다(reachStart가 그 도착점에서 마무리한다).
             orphanSkipCount = 1;
             orphanCalcId = calcId;
             adapter.back();
-          } else {
-            // 표식이 없다(target은 항상 0) — 이 칸 자체가 "계산기의 진짜 시작 칸"이다.
-            // 2026-09-27 검사관 6차 재검증에서 발견: 이제 모드 표식 하나만 쌓이므로(단계
-            // 층이 사라졌다), 새로 고침 뒤 바로 이 모드 표식 위에서 부팅되면 baseSeq가
-            // 0이 아니라 그 모드 순번(예: 1)이 된다 — 그러면 여기서 isInMemory(0)이
-            // "0===baseSeq(1)"로 거짓이 되어 짝 없는 칸으로 오판, 진짜 시작 칸(표식 없는
-            // 칸)인데도 더 건너뛰어 블로그까지 나가 버렸다. 표식이 없으면 순번(target)이
-            // baseSeq와 같든 다르든 무조건 "여기가 시작"이라고 보고 곧장 멈춘다 — 연쇄를
-            // 아예 태우지 않는다(건너뛸 표식 있는 칸이 하나도 없었으므로 건너뛴 게 없다는
-            // 뜻이지만, 도착한 곳 자체가 시작 칸이므로 표시를 완전히 초기화한다).
-            calc.onReturnToStart();
-            calc.currentSeq = 0;
-            calc.baseSeq = 0;
-            calc.layers.clear();
           }
         } else {
-          // ── 앞으로 ──
+          // ── 앞으로 ── (target은 표식이 있을 때만 currentSeq보다 커질 수 있다)
           if (isInMemory(calc, target)) {
             // 같은 문서 수명, 짝 있음 — currentSeq+1부터 target까지 차례로 다시 한다
             for (let s = calc.currentSeq + 1; s <= target; s++) {
@@ -294,23 +301,12 @@ export function createBackStack(adapter: HistoryAdapter | null) {
             }
             calc.currentSeq = target;
           } else {
-            // 짝 없음 — 건너뛰지 않는다. back()·forward() 둘 다 안 부른다. 그 칸에 머문다.
-            //
-            // 2026-09-27 검사관 6차 지적(치명) 수리: 여기서 currentSeq만 옮기고 아무 층도
-            // 안 남기면, 나중에 이 칸에서 뒤로 갈 때 "0===baseSeq"처럼 우연히 매칭 판정을
-            // 받아도 layers.get(target)이 없어 되돌리기가 아예 안 불린다 — 칸(currentSeq)은
-            // 움직이는데 화면은 그대로인 사고가 났다. 고침: 이 순번에 "가상 층"을 만들어
-            // 둔다. 되돌리기는 onReturnToStart(모드 카드로), 다시 하기는 onForwardPastStart
-            // (복원된 진행 화면으로) — 둘 다 이미 계산기에 등록된 진짜 콜백이라 가상 층이
-            // 몇 번이고 다시 불려도(옛 칸 구역을 여러 번 오가도) 항상 옳은 화면을 보여준다.
-            // 이러면 옛 칸 구역 어디서 뒤로 가든(그 구역의 다른 순번에도 앞으로 갈 때마다
-            // 같은 방식으로 가상 층이 쌓인다) 곧장 시작 칸 + 모드 카드로 정확히 이어진다.
-            calc.layers.set(target, {
-              calcId,
-              seq: target,
-              onBack: () => calc.onReturnToStart(),
-              onForward: () => calc.onForwardPastStart(),
-            });
+            // 짝 없음 — 건너뛰지 않는다. back()·forward() 둘 다 안 부른다. 그 칸에 머물고
+            // "복원된 진행 화면으로"만 부른다. 가상 층은 이제 안 만든다(7차 재설계 —
+            // 가상 층이 있으면 나중에 뒤로 갈 때 그 자리를 "짝 있음"으로 오판해 시작 칸
+            // 전에 멈춰 버렸다). 다음에 뒤로 가면 이 자리는 여전히 "표식 있고 짝 없음"
+            // 이라 정상적으로 orphan 연쇄를 타고, 그 연쇄는 표식 없는 진짜 시작 칸에
+            // 닿을 때까지 멈추지 않는다 — 중간에 서지 않는다.
             calc.currentSeq = target;
             calc.onForwardPastStart();
           }
@@ -399,9 +395,9 @@ export function createBackStack(adapter: HistoryAdapter | null) {
     /**
      * 이 계산기가 "지금 화면에 떠 있다"고 등록한다 — 이때부터만 popstate 처리기가 이
      * calcId의 짝 없는 칸을 건너뛰거나 방향을 판단한다. 지금 서 있는 칸의 순번을 읽어
-     * currentSeq·baseSeq로 삼는다(표식이 있고 이 calcId 것이면 그 순번, 아니면 0).
+     * currentSeq로 삼는다(표식이 있고 이 calcId 것이면 그 순번, 아니면 0).
      *
-     * onReturnToStart: 짝 없는 칸을 뒤로 건너뛴 끝에 표식 없는 칸(첫 진입 칸)에 닿으면
+     * onReturnToStart: 짝 없는 칸을 뒤로 건너뛴 끝에(또는 표식 없는 칸에 곧장) 닿으면
      * 부른다 — 모드 카드로.
      * onForwardPastStart: 짝 없는 칸으로 앞으로 가서 멈출 때 부른다 — 복원된 진행 화면으로
      * (모드를 다시 고른 것처럼). 보통 onReturnToStart의 정반대 동작(같은 토글을 되돌림).
@@ -411,7 +407,6 @@ export function createBackStack(adapter: HistoryAdapter | null) {
       const startSeq = isOurMarker(state) && state.calcId === calcId ? state.seq : 0;
       calcs.set(calcId, {
         currentSeq: startSeq,
-        baseSeq: startSeq,
         layers: new Map(),
         onReturnToStart,
         onForwardPastStart,
@@ -424,10 +419,10 @@ export function createBackStack(adapter: HistoryAdapter | null) {
     },
 
     /** 시험 전용 — 이 계산기의 지금 상태를 들여다본다 */
-    __debugCalc(calcId: string): { currentSeq: number; baseSeq: number; seqs: number[] } | null {
+    __debugCalc(calcId: string): { currentSeq: number; seqs: number[] } | null {
       const calc = calcs.get(calcId);
       if (!calc) return null;
-      return { currentSeq: calc.currentSeq, baseSeq: calc.baseSeq, seqs: [...calc.layers.keys()].sort((a, b) => a - b) };
+      return { currentSeq: calc.currentSeq, seqs: [...calc.layers.keys()].sort((a, b) => a - b) };
     },
 
     /** 시험 전용 — 지금 리스너가 붙어 있는지(activateCalc/해지 동작 확인용) */

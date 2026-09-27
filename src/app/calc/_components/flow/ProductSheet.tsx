@@ -27,8 +27,18 @@
 //   - 열릴 때 시트 안 첫 항목으로 초점, 닫힐 때 시트를 열었던 버튼으로 되돌린다.
 //   - Tab 키가 시트 밖으로 안 나가게 가둔다(포커스 트랩). Esc로 닫힌다.
 //
+// 2026-09-27 검사관 7차 지적(치명) 수리 — "모드 카드에 다녀오면 시트 칸이 죽는다":
+//   이 부품이 스스로 backLayer.ts를 불러 push/collapse하던 로직을 통째로 뺐다. 이
+//   부품(과 이 부품을 담은 PaperPicker 등)은 모드 카드로 돌아가면 리액트가 통째로
+//   언마운트하기 때문에, 그 안에 있던 push/collapse 감시 로직의 클로저(onReopen 등)가
+//   다음에 되살아난 새 인스턴스와 안 이어져 "시트 칸이 죽는" 사고가 났었다. 이제 이
+//   부품은 순수 표시 전용이다 — open/onClose만 받아 그리기만 하고, 뒤로·앞으로 가기
+//   감시는 절대 언마운트되지 않는 최상위 계산기 부품이 useSheetBackNav 훅으로 직접
+//   맡는다(useSheetBackNav.ts 참고, 공용 규칙 — 다른 계산기도 이 훅을 그대로 쓴다).
+//
 // 작성일: 2026년 09월 27일
 // 포털·접근성·뒤로 가기 재설계: 2026년 09월 27일
+// 뒤로 가기 감시를 계산기 최상위로 옮김(순수 표시 전용으로 축소): 2026년 09월 27일
 // ──────────────────────────────────────────────
 
 'use client';
@@ -36,7 +46,6 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { IconCheck } from '@/components/v1/icons';
-import { pushBackLayer, collapseBackLayer } from './backLayer';
 import type { PickerItem } from './types';
 
 /** "직접 입력" 줄을 고르면 selectedCode 자리에 이 값이 온다(다른 코드와 안 겹치게) */
@@ -46,13 +55,9 @@ export const PRODUCT_SHEET_UNDECIDED = '__undecided__';
 
 export interface ProductSheetProps {
   open: boolean;
+  /** 시트를 닫을 때 부른다(선택·바깥 누름·닫기·Esc 전부 이걸 부른다) — 뒤로 가기 감시는
+   *  더 이상 이 부품 몫이 아니다(계산기 최상위의 useSheetBackNav가 담당). */
   onClose: () => void;
-  /**
-   * 앞으로 가기로 이 시트 칸에 다시 도착했을 때 부른다 — 시트를 다시 연다(뒤로=닫힘과
-   * 대칭, 2026-09-27 검사관 5차 지적으로 지시 변경: 예전엔 "다시 안 연다"였다).
-   * 부르는 쪽이 open을 true로 만드는 상태 갱신 함수를 넘기면 된다(예: () => setSheetOpen(true)).
-   */
-  onReopen: () => void;
   title: string;
   items: PickerItem[];
   /** 지금 골라져 있는 코드 — 목록 코드 / PRODUCT_SHEET_CUSTOM / PRODUCT_SHEET_UNDECIDED 중 하나 */
@@ -66,21 +71,17 @@ export interface ProductSheetProps {
    * 2026-09-27 검수 지적 11번 — 없으면(계산 못 했거나 목록이 비었으면) 그 자리를 비워 둔다.
    */
   undecidedPriceLabel?: string;
-  /** 이 시트가 어느 계산기 소속인지(뒤로 가기 스택 정리용, 예: 'wallpaper') */
-  calcId: string;
 }
 
 export default function ProductSheet({
   open,
   onClose,
-  onReopen,
   title,
   items,
   selectedCode,
   onSelect,
   customForm,
   undecidedPriceLabel,
-  calcId,
 }: ProductSheetProps) {
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -97,59 +98,15 @@ export default function ProductSheet({
     };
   }, [open]);
 
-  // 뒤로 가기 = 시트만 닫힘(4-3절). open이 true로 바뀔 때 한 칸 쌓고, false로 바뀌면
-  // (버튼 클릭 등으로 화면이 스스로 닫은 경우) collapseBackLayer로 그 칸을 실제로 거둔다.
-  // closedByBackRef: 방금 "뒤로 가기 자체"가 닫은 거면 스택이 이미 알아서 정리했으니
-  // collapseBackLayer를 또 부르면 안 된다 — 이 표시로 구분한다.
-  //
-  // 2026-09-27 검사관 5차 지적(치명) — 지시 변경: "다시 하기 = 아무 것도 안 함"이었던
-  // 걸 "다시 하기 = 시트를 다시 연다"로 바꾼다(뒤로=닫힘과 대칭). 이 다시 하기가
-  // onReopen()을 불러 open을 true로 만들면 이 효과가 다시 실행되는데, 이미 그 기록
-  // 칸에 서 있는 것이므로(앞으로 가기가 데려다 놓은 것) 새 칸을 또 쌓으면 안 된다 —
-  // reopenedByForwardRef로 "이번 open=true는 앞으로 가기가 만든 것"을 표시해 둔다.
-  const wasOpenRef = useRef(false);
-  const closedByBackRef = useRef(false);
-  const reopenedByForwardRef = useRef(false);
+  // 열릴 때 초점이 있던 요소(트리거 버튼)를 기억해 뒀다가, 닫히면 그리로 되돌린다
+  // (검사관 지적 8번). 의존 배열이 [open]뿐이라 값이 실제로 바뀔 때만(전환 시점만) 돈다.
   useEffect(() => {
-    if (open && !wasOpenRef.current) {
-      // 열리는 순간 — 지금 초점이 있던 요소(트리거 버튼)를 기억해 둔다
+    if (open) {
       openerRef.current = document.activeElement;
-      if (reopenedByForwardRef.current) {
-        // 앞으로 가기가 다시 연 것 — 이미 이 기록 칸에 서 있으므로 새로 안 쌓는다
-        reopenedByForwardRef.current = false;
-      } else {
-        // 되돌리기 = 시트 닫기. 다시 하기(앞으로 가기) = 시트를 다시 연다
-        pushBackLayer(
-          calcId,
-          () => {
-            closedByBackRef.current = true;
-            onClose();
-          },
-          () => {
-            reopenedByForwardRef.current = true;
-            onReopen();
-          },
-        );
-      }
-    } else if (!open && wasOpenRef.current) {
-      if (closedByBackRef.current) {
-        // 뒤로 가기가 이미 스택 정리까지 끝냈다 — 여기서 또 손대지 않는다
-        closedByBackRef.current = false;
-      } else {
-        // 선택·바깥 누름·닫기·Esc 등 다른 방법으로 닫힘 — 쌓아 둔 기록 칸을 거둔다(제품
-        // 선택처럼 같은 순간 다음 단계가 완료돼 새 칸이 쌓이면 backLayer.ts가 알아서
-        // "교체"로 처리해 history를 두 번 안 건드린다 — 위 backLayer.ts 3번 설명 참고)
-        collapseBackLayer(calcId);
-      }
-      // 초점을 시트를 열었던 곳으로 되돌린다(검사관 지적 8번)
-      if (openerRef.current instanceof HTMLElement) {
-        openerRef.current.focus({ preventScroll: true });
-      }
+    } else if (openerRef.current instanceof HTMLElement) {
+      openerRef.current.focus({ preventScroll: true });
     }
-    wasOpenRef.current = open;
-    // onClose는 상위에서 안정적으로 넘겨준다고 가정(useState setter 등)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, calcId]);
+  }, [open]);
 
   // 열리면 시트 안 첫 항목(첫 버튼)으로 초점을 옮긴다(검사관 지적 8번, 3-6절과 같은 원칙 —
   // 숫자 입력칸이 아니라 버튼으로 먼저 보낸다)
