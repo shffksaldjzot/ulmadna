@@ -288,15 +288,21 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
   });
   const [step0Complete, step1Complete] = completeFlags;
 
-  // 뒤로 가기 배선 — 모드를 고르거나 단계가 넘어갈 때마다 방문 기록에 쌓고, 브라우저 뒤로
-  // 가기를 누르면 직전 상태로 돌아간다(주소 문자열은 그대로, 4-3절). calcId는 언마운트 때
-  // 이 계산기 몫 스택만 걷어가는 데 쓰고(검사관 지적 3번), isKeepOpen은 면적 단계(2번,
-  // 계속 펼침)로 처음 들어가는 게 아니라 "그 단계 안에서 완료되는" 전이는 뒤로 가기에
-  // 안 쌓게 걸러 준다(그 전이는 되돌려도 화면이 똑같아 보여 무반응이 되기 때문).
+  // 뒤로·앞으로 가기 배선 — 모드를 고르거나 단계가 넘어갈 때마다 방문 기록에 쌓고, 브라우저
+  // 뒤로 가기를 누르면 직전 상태로, 앞으로 가기를 누르면 다시 그 상태로 돌아간다(주소
+  // 문자열은 그대로, 4-3절). calcId는 언마운트 때 이 계산기 몫 스택만 걷어가는 데 쓰고
+  // (검사관 지적 3번), isKeepOpen은 면적 단계(2번, 계속 펼침)로 처음 들어가는 게 아니라
+  // "그 단계 안에서 완료되는" 전이는 뒤로 가기에 안 쌓게 걸러 준다(그 전이는 되돌려도
+  // 화면이 똑같아 보여 무반응이 되기 때문). 2026-09-27 검사관 4차 지적(앞으로 가기 지원):
+  // onReenterMode는 onExitToModePicker의 정반대(모드를 다시 고른 것처럼)로, 모드 선택
+  // 칸의 "다시 하기"와 "짝 없는 칸으로 앞으로 가서 멈출 때"에 똑같이 쓰인다. 단계 칸의
+  // "다시 하기"는 useFlowBackNav 안에서 reopen(그 전이가 도달했던 activeIndex)으로 처리한다
+  // (advance로 강제 열림을 통째로 풀면 중간 단계를 건너뛰는 사고가 나서, 이제 안 쓴다).
   useFlowBackNav({
     calcId: CALC_ID,
     modeChosen,
     onExitToModePicker: () => setUserPickedMode(false),
+    onReenterMode: () => setUserPickedMode(true),
     activeIndex,
     reopen,
     isKeepOpen: (i) => i === KEEP_OPEN_STEP_INDEX,

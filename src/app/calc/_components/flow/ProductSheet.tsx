@@ -100,10 +100,16 @@ export default function ProductSheet({
     if (open && !wasOpenRef.current) {
       // 열리는 순간 — 지금 초점이 있던 요소(트리거 버튼)를 기억해 둔다
       openerRef.current = document.activeElement;
-      pushBackLayer(calcId, () => {
-        closedByBackRef.current = true;
-        onClose();
-      });
+      // 되돌리기 = 시트 닫기. 다시 하기(앞으로 가기) = 아무 것도 안 함(2026-09-27 지시서
+      // — 시트는 앞으로 가기로 다시 열리지 않는다. 화면은 그대로 두고 칸만 이동한다)
+      pushBackLayer(
+        calcId,
+        () => {
+          closedByBackRef.current = true;
+          onClose();
+        },
+        () => {},
+      );
     } else if (!open && wasOpenRef.current) {
       if (closedByBackRef.current) {
         // 뒤로 가기가 이미 스택 정리까지 끝냈다 — 여기서 또 손대지 않는다
