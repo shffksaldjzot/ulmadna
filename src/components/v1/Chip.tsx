@@ -11,6 +11,12 @@
 //
 // 2026-09-16 형아 피드백: 모바일에서 알약 칩이 너무 커 보인다는 지적으로 기본 높이를
 // 44 → 36으로, 글자를 16 → 14로 줄였다(칩 간격은 원래도 gap-2=8px라 그대로 둔다).
+//
+// 2026-09-27 지시서(계산기 단계 흐름 개선) 3-7절: "보이는 크기는 그대로 두고, 눌리는
+// 범위만 44px 이상으로 넓힌다." 보이는 높이(md=36 · sm=32)는 손대지 않고, ::before
+// 가상 요소로 위아래에 투명한 영역을 덧붙여서 실제 누를 수 있는 높이만 44px로 만든다
+// (가상 요소는 레이아웃 크기에 영향을 안 주는 절대 위치라, 옆 칩과의 간격·줄바꿈은
+// 그대로다 — 칩 사이 세로 간격이 8px 이상이면 위아래 4~6px씩 넓혀도 서로 안 겹친다).
 // ──────────────────────────────────────────────
 
 'use client';
@@ -30,11 +36,15 @@ export default function Chip({ selected, shape = 'pill', size = 'md', className 
   const shapeClass = shape === 'square' ? 'rounded-[4px]' : 'rounded-full';
   // 크기별 높이·좌우 패딩·글자 크기 — md(기본 선택 칩) / sm(소형 단위 토글)
   const sizeClass = size === 'sm' ? 'h-8 px-[10px] text-[13px]' : 'h-9 px-[14px] text-[14px]';
+  // 눌리는 범위 확장값 — md(36→44)는 위아래 4px씩, sm(32→44)는 위아래 6px씩
+  const hitExpand = size === 'sm' ? 'before:-top-[6px] before:-bottom-[6px]' : 'before:-top-[4px] before:-bottom-[4px]';
   return (
     <button
       type="button"
       className={
-        `inline-flex items-center ${sizeClass} ${shapeClass} whitespace-nowrap transition-colors duration-150 ` +
+        // relative + ::before: 보이는 크기는 그대로 두고 누를 수 있는 영역만 위아래로 넓힌다(3-7절)
+        `relative inline-flex items-center ${sizeClass} ${shapeClass} whitespace-nowrap transition-colors duration-150 ` +
+        `before:absolute before:content-[''] before:inset-x-0 ${hitExpand} ` +
         // 선택 칩 채움은 강조색(accent), 눌림은 약간 어둡게 — 갈색(brown)은 글자·제목 전용이라 채움에는 쓰지 않는다
         (selected
           ? 'bg-accent active:bg-accent-press text-white font-semibold'

@@ -9,11 +9,15 @@
 //   "지금은 숫자로 볼 수 없는 상태"(예: "3.", "1.2.3")면 화면 글자만 유지한 채
 //   바깥으로는 마지막 성한 값을 그대로 둔다. 쉼표(1,000)도 그냥 받아 준다.
 //   ※ 다른 화면(옛 견적 폼·홈)도 이 부품을 쓰므로 props 모양(value: number|'' / onChange)은 그대로다.
+//
+// 2026-09-27 지시서(계산기 단계 흐름 개선) 3-6절: "숫자 칸에서 엔터: 값이 유효하면 그
+// 단계를 완료 처리하고 키보드를 내린다(blur)." onEnterComplete를 새로 받는 선택 prop으로
+// 추가했다 — 안 넘기면 예전과 똑같이 동작한다(다른 화면에 영향 없음).
 // ──────────────────────────────────────────────
 
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 /**
  * 입력칸에 적힌 글자를 숫자로 해석한다(순수 함수 — 화면 없이 테스트할 수 있게 따로 뺐다).
@@ -47,6 +51,12 @@ interface NumberFieldProps {
   min?: number;
   max?: number;
   'aria-label'?: string;
+  /**
+   * 엔터를 쳤을 때 지금 값이 유효한 숫자면 불러 준다(호출한 쪽이 "이 단계를 완료 처리"
+   * 하는 데 쓴다). 값이 아직 "3." 처럼 입력 중이거나 비어 있으면 부르지 않는다.
+   * 이 콜백이 있든 없든 엔터를 치면 입력칸 초점은 항상 뺀다(blur, 폰 키보드를 내린다).
+   */
+  onEnterComplete?: () => void;
 }
 
 export default function NumberField({
@@ -57,12 +67,15 @@ export default function NumberField({
   className = '',
   min,
   max,
+  onEnterComplete,
   ...rest
 }: NumberFieldProps) {
   // 입력칸에 실제로 보이는 글자. 사용자가 치는 그대로 들고 있는다("3." 같은 중간 상태 포함)
   const [text, setText] = useState<string>(valueToText(value));
   // 바깥 값이 바뀐 걸 알아채려고 직전 값을 같이 기억해 둔다
   const [lastValue, setLastValue] = useState<number | ''>(value);
+  // 엔터 쳤을 때 blur(키보드 내리기)시키려고 input 자체를 참조해 둔다
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // 바깥에서 값이 바뀌었으면(단위 토글, 칩 선택, 폼 초기화 등) 화면 글자도 그 값으로 맞춘다.
   // 단, 화면 글자가 이미 그 값과 같은 뜻이면 그대로 둔다("1,000"을 "1000"으로 바꿔치기하지 않기)
@@ -82,6 +95,7 @@ export default function NumberField({
       }
     >
       <input
+        ref={inputRef}
         type="text"
         inputMode="decimal"
         value={text}
@@ -98,6 +112,14 @@ export default function NumberField({
             setLastValue(parsed);
             onChange(parsed);
           }
+        }}
+        onKeyDown={(e) => {
+          if (e.key !== 'Enter') return;
+          // 지금 화면 글자를 다시 한번 숫자로 확인한다 — 유효한 값일 때만 완료 콜백을 부른다
+          const parsed = parseNumberInput(text.replace(/,/g, ''));
+          if (parsed !== null && parsed !== '' && onEnterComplete) onEnterComplete();
+          // 값이 유효하든 아니든 엔터를 쳤으면 키보드는 내려준다(3-6절)
+          inputRef.current?.blur();
         }}
         className="flex-1 min-w-0 text-[16px] text-foreground placeholder:text-v1-text-disabled outline-none bg-transparent tabular-nums"
         {...rest}
