@@ -19,23 +19,13 @@
 //   같이 가져다 쓴다 — 즉답 화면과 공유 결과 화면이 같은 규칙으로 계산되게 하기 위해서다.
 //
 // 작성일: 2026년 09월 10일
-// 2026년 09월 27일: 좁혀가기(도배와 같은 약속) — 자재만 골라도 계산, 돌려주는 값에 assumed 추가,
-//   세 번째 인자 options.touched(area·bay·scope), 실측 입력 중엔 치수만 바뀌는 동안 직전 결과 유지.
-//   기존 돌려주는 값(result·range·loading·error·stale)은 이름·뜻 그대로다.
 // ──────────────────────────────────────────────
 
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
 import type { FlooringFormState, FlooringProductOption } from './flooringQuery';
-import {
-  toEngineInputWithAssumed,
-  nonDimensionKey,
-  canHoldWhileMeasuring,
-  type FlooringCalcRequest,
-  type FlooringAssumption,
-  type FlooringEngineOptions,
-} from './flooringEngineInput';
+import { toEngineInput, type FlooringCalcRequest } from './flooringEngineInput';
 // GA4에 "계산이 실제로 실행됐다"는 이벤트를 보낸다(개인정보 없이 모드·평형대만)
 import { track, pyeongBucket } from '@/lib/analytics';
 
@@ -87,12 +77,6 @@ export interface FlooringCalcResultDTO {
     lossMode: '실제' | '추정';
     inputMode: '평형' | '실측';
     byRoom: FlooringRoomQuantity[];
-    /**
-     * (2026-09-27 추가) 제품 미정으로 "자재 전체 범위"를 계산했을 때만 온다.
-     * 제품 규격(박스당 ㎡·롤 폭)에 따라 수량이 달라서 최소~최대 수량(단위는 unit과 같음)을 따로 준다.
-     * 이때 위 units는 그 자재의 대표 규격 기준 수량이다.
-     */
-    unitsRange?: { min: number; max: number };
   };
   submaterials: FlooringSubmaterialLine[];
   cost: {
@@ -122,11 +106,6 @@ export interface UseFlooringCalcResult {
   error: string | null;
   /** 다음 결과가 오기 전까지 화면에 남겨 둔 "이전" 값이라는 표시(깜빡임 방지용) */
   stale: boolean;
-  /**
-   * (2026-09-27 추가) 지금 보이는 result가 어떤 가정값으로 계산됐는지(도배와 같은 약속).
-   * result와 같은 순간에 바뀐다. 'measuring'(실측 입력 중)만 입력 즉시 반영. result가 null이면 빈 배열.
-   */
-  assumed: FlooringAssumption[];
 }
 
 /** POST /api/calc/flooring 호출 한 번 */
@@ -154,36 +133,23 @@ interface CacheEntry {
  * 바닥재 계산기 메인 훅.
  * MaterialPicker·QuickAnswer·PreciseSection이 만든 폼 상태를 받아 결과를 돌려준다.
  */
-export function useFlooringCalc(
-  state: FlooringFormState,
-  products: FlooringProductOption[],
-  options?: FlooringEngineOptions,
-): UseFlooringCalcResult {
+export function useFlooringCalc(state: FlooringFormState, products: FlooringProductOption[]): UseFlooringCalcResult {
   const [result, setResult] = useState<FlooringCalcResultDTO | null>(null);
   const [range, setRange] = useState<FlooringRange | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [stale, setStale] = useState(false);
-  // 지금 보이는 result를 계산할 때 쓴 가정 목록 — result와 반드시 함께 바꾼다
-  const [shownAssumed, setShownAssumed] = useState<FlooringAssumption[]>([]);
-  // 지금 입력이 "실측 입력 중"(방 카드 치수가 덜 참)인지 — 입력 즉시 반영
-  const [measuring, setMeasuring] = useState(false);
 
   // 리렌더와 무관하게 값을 들고 있어야 하는 것들 — 전부 ref
   const cacheRef = useRef<Map<string, CacheEntry>>(new Map());
   const abortRef = useRef<AbortController | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // 지금 화면에 결과가 있는지(실측 입력 중 "직전 결과 유지" 판단용)
-  const resultRef = useRef<FlooringCalcResultDTO | null>(null);
-  // 지금 보이는 결과를 계산할 때 쓴 "치수 뺀 나머지" 열쇠 — 실측 입력 중에 자재·제품 등이 바뀌었는지 알아본다
-  const shownRestKeyRef = useRef<string | null>(null);
 
-  // 폼 상태 + 건드림 표시를 JSON 문자열로 비교해야 얕은 비교로 잡히지 않는 변화(방 배열 내용 등)도 감지한다.
-  // options는 화면이 매번 새 객체로 넘길 수 있으니 참조가 아니라 내용(touched)으로 비교한다.
-  const stateKey = JSON.stringify({ state, touched: options?.touched ?? null });
+  // 폼 상태를 JSON 문자열로 비교해야 얕은 비교로 잡히지 않는 변화(방 배열 내용 등)도 감지한다
+  const stateKey = JSON.stringify(state);
 
   useEffect(() => {
-    const built = toEngineInputWithAssumed(state, products, options);
+    const engineInput = toEngineInput(state, products);
 
     // 대기 중인 디바운스 타이머는 항상 정리
     if (timerRef.current) {
@@ -191,49 +157,24 @@ export function useFlooringCalc(
       timerRef.current = null;
     }
 
-    if (!built) {
-      // 자재를 아직 안 골랐다 — 호출하지 않고 결과를 비운다(빈 상태 착시 방지 원칙)
+    if (!engineInput) {
+      // 입력이 비어 있다 — 호출하지 않고 결과를 비운다(빈 상태 착시 방지 원칙)
       abortRef.current?.abort();
-      resultRef.current = null;
-      shownRestKeyRef.current = null;
       setResult(null);
       setRange(null);
       setLoading(false);
       setError(null);
       setStale(false);
-      setShownAssumed([]);
-      setMeasuring(false);
       return;
     }
 
-    const engineInput = built.request;
-    // 이번 입력의 가정 목록('measuring'은 따로 떼어 즉시 반영하고, 나머지는 결과와 함께 바꾼다)
-    const nextAssumed = built.assumed.filter((a) => a !== 'measuring');
-    setMeasuring(built.assumed.includes('measuring'));
-    // 이번 요청의 "치수 뺀 나머지" 열쇠 — 결과를 화면에 올릴 때 같이 기억해 둔다
-    const restKey = nonDimensionKey(built);
-
-    // 실측 입력 중(덜 찬 방 카드)이고 치수만 바뀌는 중이면 새로 계산하지 않고 직전 결과를 둔다.
-    // 자재·제품·철거·걸레받이 등 나머지가 바뀌었으면 아래로 내려가 유효한 방만으로(없으면 34평 가정) 다시 계산한다.
-    if (canHoldWhileMeasuring(built, resultRef.current ? shownRestKeyRef.current : null)) {
-      abortRef.current?.abort();
-      setLoading(false);
-      setStale(false);
-      setError(null);
-      return;
-    }
-
-    // 캐시 열쇠 = 서버에 실제로 보내는 요청 그대로(제품이 없으면 product 칸이 빠져 다른 열쇠가 된다)
     const cacheKey = JSON.stringify(engineInput);
 
     const cached = cacheRef.current.get(cacheKey);
     if (cached) {
       abortRef.current?.abort();
-      resultRef.current = cached.result;
-      shownRestKeyRef.current = restKey;
       setResult(cached.result);
       setRange(cached.range);
-      setShownAssumed(nextAssumed);
       setLoading(false);
       setError(null);
       setStale(false);
@@ -260,12 +201,8 @@ export function useFlooringCalc(
         .then((r) => {
           const rg: FlooringRange = { min: r.cost.min, max: r.cost.max };
           cacheRef.current.set(cacheKey, { result: r, range: rg });
-          resultRef.current = r;
-          shownRestKeyRef.current = restKey; // 화면에 올린 결과의 나머지 열쇠
           setResult(r);
           setRange(rg);
-          // 이 결과를 계산할 때 쓴 가정 목록 — 결과와 같은 순간에 바꾼다
-          setShownAssumed(nextAssumed);
           setStale(false);
           // GA4: 서버 계산이 실제로 성공했을 때 1번 기록(입력 원문 없이 모드·평형대만)
           track('calc_run', {
@@ -305,8 +242,5 @@ export function useFlooringCalc(
     };
   }, []);
 
-  // 돌려줄 가정 목록: 보이는 결과의 가정 + (지금 실측 입력 중이면) 'measuring'. 결과가 없으면 빈 배열
-  const assumed: FlooringAssumption[] = result ? (measuring ? [...shownAssumed, 'measuring'] : shownAssumed) : [];
-
-  return { result, range, loading, error, stale, assumed };
+  return { result, range, loading, error, stale };
 }

@@ -16,19 +16,6 @@
 
 import type { FlooringProduct } from '@/server/calc/data/flooring-products';
 import type { FlooringProductOption } from './flooringQuery';
-import { productOptionToRequest } from './flooringEngineInput';
-
-/**
- * 손님에게 보여도 되는(= 제품 고르기 목록에 뜨는) 제품인지 판정한다. (2026-09-27 좁혀가기로 신설)
- * 기준은 "계산에 쓸 수 있는 요청을 만들 수 있는가" 하나다 — 박스형은 박스 가격·박스당 ㎡,
- * 롤형(장판)은 m당 가격·롤 폭이 다 있어야 한다(productOptionToRequest가 그 판정을 한다).
- * 서버가 "제품 미정"일 때 자재 전체 범위를 만들 때도 이 함수를 쓴다 — 화면 목록과 서버 범위가
- * 같은 규칙으로 제품을 걸러야 "골랐더니 범위 밖"이 구조적으로 안 생긴다.
- * (화면 MaterialPicker.tsx의 isShowable과 실제 데이터에서는 같은 결과다. 화면도 이 함수를 쓰길 권한다)
- */
-export function isShowableFlooringProduct(p: FlooringProductOption): boolean {
-  return productOptionToRequest(p) !== undefined;
-}
 
 /**
  * 같은 브랜드+라인 안에서 제품을 구분하는 표시를 만든다.

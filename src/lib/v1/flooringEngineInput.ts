@@ -13,9 +13,6 @@
 //    타입(src/server/calc/flooring.ts, E 에이전트 작업)이 다르게 나오면 이쪽도 확인할 것.
 //
 // 작성일: 2026년 09월 10일
-// 2026년 09월 27일: 좁혀가기(도배와 같은 원칙) — 자재만 골라도 계산한다. 안 고른 값은 가정값
-//   (면적 34평·제품 전체 범위·베이/범위 기본값)으로 채우고 assumed 목록으로 알려 준다
-//   (toEngineInputWithAssumed). 이 파일에는 여전히 단가·계수가 없다.
 // ──────────────────────────────────────────────
 
 import type { FlooringDirectProduct, FlooringFormState, FlooringKind, FlooringProductOption, FlooringScope } from './flooringQuery';
@@ -136,13 +133,9 @@ export function trimFormForShare(state: FlooringFormState): FlooringFormState {
 /**
  * 제품 마스터에서 고른 제품(FlooringProductOption)을 서버 요청 모양(FlooringProductRequest)으로
  * 바꾼다. 판매 단위(saleUnit)로 박스형/롤형을 가르고, 그 형태가 실제로 쓸 수 있는 칸을
- * 다 갖췄을 때만 규격을 실어 보낸다(하나라도 없으면 규격 없이 undefined 반환 → 자재 전체 범위로 계산).
- *
- * 2026-09-27 좁혀가기로 밖에 내보냈다(export) — 서버가 "제품 미정"일 때 그 자재의 노출 제품 전체로
- * 범위를 만들 때도 **이 함수 하나로** 제품 칸을 만든다. 화면이 보내는 값과 서버가 범위 계산에 쓰는
- * 값이 같아야 "제품을 골랐더니 범위 밖"이 구조적으로 안 생긴다(도배 productOptionToRequest와 같은 이유).
+ * 다 갖췄을 때만 규격을 실어 보낸다(하나라도 없으면 규격 없이 undefined 반환 → 종류 평균가 폴백).
  */
-export function productOptionToRequest(p: FlooringProductOption): FlooringProductRequest | undefined {
+function productOptionToRequest(p: FlooringProductOption): FlooringProductRequest | undefined {
   const sourceLabel = `${p.brand} ${p.name}`;
   if (p.saleUnit === '박스') {
     if (!isPositive(p.price ?? undefined) || !isPositive(p.sqmPerBox ?? undefined)) return undefined;
@@ -210,195 +203,76 @@ export function resolveProductSelection(
   return undefined;
 }
 
-// ── 좁혀가기(2026-09-27 형아 결정, 도배와 같은 원칙) — 가정값과 가정 목록 ──────────
-
 /**
- * 아직 사용자가 정하지 않아서 **가정값으로 채워 계산한** 항목 이름(도배와 같은 이름·같은 순서).
- *   'area'      면적을 안 골랐다(또는 값이 무효하다) → 34평으로 계산
- *   'product'   제품을 안 골랐다("아직 안 정했어요" 포함) → 그 자재의 노출 제품 전체 범위
- *   'bay'       (간단 모드) 베이 조정 칩을 아직 안 건드렸다 → 기본 3베이
- *   'scope'     (간단 모드) 범위 조정 칩(전체·방만·거실 주방 복도)을 아직 안 건드렸다 → 기본 전체
- *   'measuring' (정확 모드) 방 카드는 있는데 가로·세로가 덜 채워졌다 → "실측 입력 중" 표시용
- * 철거·걸레받이 토글은 결과 카드 안 기존 자리 그대로라 가정 목록에 넣지 않는다(지휘관 지시).
- */
-export type FlooringAssumption = 'area' | 'product' | 'bay' | 'scope' | 'measuring';
-
-/** 가정 목록을 늘 같은 순서로 돌려주기 위한 순서표 */
-const ASSUMPTION_ORDER: FlooringAssumption[] = ['area', 'product', 'bay', 'scope', 'measuring'];
-
-/** 면적을 안 골랐을 때 가정하는 평형(지시서 5-2: 도배·바닥재 = 34평) */
-export const ASSUMED_PYEONG = 34;
-
-/** 베이를 안 골랐을 때 쓰는 기본 베이(기존 기본값 그대로) */
-const DEFAULT_BAY: 2 | 3 | 4 = 3;
-
-/**
- * 화면이 "사용자가 이 값을 직접 건드렸는지"를 알려 주는 표시(도배 WallpaperTouched와 같은 뜻).
- *   area   면적 단계를 사용자가 완료했는가
- *   bay    베이 조정 칩을 한 번이라도 눌렀는가
- *   scope  범위 조정 칩을 한 번이라도 눌렀는가
- * true가 아니면(false 또는 빠짐) "아직 안 건드림 = 가정"으로 본다.
- */
-export interface FlooringTouched {
-  area?: boolean;
-  bay?: boolean;
-  scope?: boolean;
-}
-
-/** toEngineInput·toEngineInputWithAssumed의 선택 인자 */
-export interface FlooringEngineOptions {
-  /** 넘기지 않으면(옛 화면·공유 결과 화면) 값이 폼에 들어 있는지만 보고 판정한다 */
-  touched?: FlooringTouched;
-}
-
-/** toEngineInputWithAssumed가 돌려주는 값 */
-export interface FlooringEngineInput {
-  /** 서버에 보낼 요청 그대로 */
-  request: FlooringCalcRequest;
-  /** 가정값으로 채운 항목 목록(없으면 빈 배열). 순서는 ASSUMPTION_ORDER 고정 */
-  assumed: FlooringAssumption[];
-}
-
-/**
- * 폼 상태 → 엔진 요청 + 가정 목록.
+ * 폼 상태 → 엔진 요청. 도배와 같은 규칙:
+ *   1) 종류를 안 골랐으면 null(계산 안 함).
+ *   2) view === 'precise'(정확하게 계산하기): 방별 실측 중 유효한 값이 있을 때만 계산한다.
+ *      **평형으로 폴백하지 않는다.** 제품은 없어도 된다(종류 평균가로 계산).
+ *   3) view === 'simple'(간단하게 계산하기, 기본값): 평형 + 제품이 둘 다 있어야 계산한다
+ *      (형아 지시: 간단 모드는 제품을 골라야 금액이 나온다).
  *
- * 2026-09-27 좁혀가기 규칙(도배와 같은 원칙):
- *   1) 자재(kind)를 안 골랐으면 null(계산 안 함). → 자재를 고른 뒤부터는 항상 결과가 나온다.
- *   2) 제품이 없으면 product 칸을 비워 보낸다 → 서버가 그 자재의 노출 제품 전체 범위로 계산.
- *      (예전엔 간단 모드에서 제품이 없으면 null이었다 — 폐기)
- *   3) view === 'simple': 평형(또는 ㎡)이 없거나 무효하면(5평 미만 등) 34평으로 가정.
- *      화면이 touched.area !== true 로 알려 주면 폼에 값이 있어도 34평 가정으로 계산한다.
- *   4) view === 'precise': 유효한 방이 있으면 그 방들로, 없으면 34평 가정(예전엔 null — 폐기).
- *      가로·세로가 덜 찬 방 카드가 있으면 'measuring'을 넣는다(계산 훅이 직전 결과를 유지).
+ * useFlooringCalc(클라이언트 훅)와 result/page.tsx(공유 링크 결과, 서버 컴포넌트) 둘 다
+ * 이 함수 하나로 계산 규칙을 맞춘다.
  */
-export function toEngineInputWithAssumed(
-  state: FlooringFormState,
-  products: FlooringProductOption[],
-  options?: FlooringEngineOptions,
-): FlooringEngineInput | null {
-  // 자재를 안 골랐으면 다른 값이 다 차 있어도 계산하지 않는다(좁혀가기의 출발점 — 첫 단계)
+export function toEngineInput(state: FlooringFormState, products: FlooringProductOption[]): FlooringCalcRequest | null {
+  // 종류를 안 골랐으면 다른 값이 다 차 있어도 계산하지 않는다
   if (!state.kind) return null;
   const kind = state.kind;
 
   const removeOld = state.removeOld ?? true;
   const baseboard = state.baseboard ?? true;
   const product = resolveProductSelection(state, products);
-  const touched = options?.touched;
-
-  // ── 가정 목록 모으기 ──
-  const assumedSet = new Set<FlooringAssumption>();
-  if (!product) assumedSet.add('product');
-  /** 모은 가정 목록을 고정 순서 배열로 바꾼다 */
-  const done = (request: FlooringCalcRequest): FlooringEngineInput => ({
-    request,
-    assumed: ASSUMPTION_ORDER.filter((a) => assumedSet.has(a)),
-  });
 
   const view = resolveView(state);
 
   if (view === 'precise') {
-    // 방 카드 중 가로·세로가 덜 채워진 카드가 하나라도 있으면 "실측 입력 중"
-    if ((state.preciseRooms ?? []).some((r) => !(isPositive(r.w) && isPositive(r.d)))) assumedSet.add('measuring');
-
     const rooms = validPreciseRooms(state);
-    if (rooms.length > 0) {
-      return done({
-        mode: '실측',
-        rooms: rooms.map((r, i) => ({ name: `방${i + 1}`, widthM: r.w, depthM: r.d })),
-        // 검사관 1라운드 지적 1번: 실측 모드는 사용자가 계산할 방을 직접 골라 넣은 것이라
-        // 범위 칩(전체/방만/거실주방)이 뜻이 없다 — 화면에서도 이 칩을 안 보여주고, 요청도
-        // 항상 '전체'로 고정한다(폼에 남은 옛 scope 값이 있어도 무시).
-        scope: '전체',
-        kind,
-        product, // 없으면 undefined — 서버가 자재 전체 범위로 계산
-        removeOld,
-        baseboard,
-      });
-    }
-
-    // 실측이 비었다 — 2026-09-27부터 null 대신 34평으로 가정한다. 정확 모드엔 조정 칩(범위·베이)이
-    // 없으니 전체·3베이로 계산하고 'bay'·'scope'는 넣지 않는다("34평 가정" 한 줄이 둘을 포함).
-    assumedSet.add('area');
-    return done({
-      mode: '평형',
-      pyeong: ASSUMED_PYEONG,
-      bay: DEFAULT_BAY,
+    if (rooms.length === 0) return null; // 정밀 입력이 없으면 평형으로 폴백하지 않는다
+    return {
+      mode: '실측',
+      rooms: rooms.map((r, i) => ({ name: `방${i + 1}`, widthM: r.w, depthM: r.d })),
+      // 검사관 1라운드 지적 1번: 실측 모드는 사용자가 계산할 방을 직접 골라 넣은 것이라
+      // 범위 칩(전체/방만/거실주방)이 뜻이 없다 — 화면에서도 이 칩을 안 보여주고, 요청도
+      // 항상 '전체'로 고정한다(폼에 남은 옛 scope 값이 있어도 무시).
       scope: '전체',
       kind,
-      product,
+      product, // 없으면 undefined — 서버가 종류 평균가로 계산
       removeOld,
       baseboard,
-    });
+    };
   }
 
-  // ── view === 'simple' ──
-
-  // 조정 칩(베이·범위): 화면이 touched를 넘겼으면 그 표시로, 안 넘겼으면 값이 비었는지로 판정
-  if (touched ? touched.bay !== true : state.bay === undefined) assumedSet.add('bay');
-  if (touched ? touched.scope !== true : state.scope === undefined) assumedSet.add('scope');
-  const bay = state.bay ?? DEFAULT_BAY;
-  const scope = state.scope ?? '전체';
-
-  /** 34평 가정 요청(면적 미정·무효일 때) */
-  const assumedArea = (): FlooringEngineInput => {
-    assumedSet.add('area');
-    return done({ mode: '평형', pyeong: ASSUMED_PYEONG, bay, scope, kind, product, removeOld, baseboard });
-  };
-
-  // 화면이 "면적 단계 미완료"라고 알려 주면 폼 기본값이 있어도 34평 가정(가정 줄과 계산이 어긋나지 않게)
-  if (touched && touched.area !== true) return assumedArea();
+  // view === 'simple' — 평형(또는 전용 ㎡ 직접 입력) + 제품이 둘 다 있어야 계산한다
+  if (!product) return null;
 
   // 2026-09-15 형아 지시(㎡ 모드): areaUnit이 '㎡'면 pyeong 대신 exclusiveSqm을 그대로 보낸다
   if (state.areaUnit === '㎡') {
     if (!isPositive(state.exclusiveSqm) || state.exclusiveSqm < MIN_EXCLUSIVE_SQM || state.exclusiveSqm > MAX_EXCLUSIVE_SQM) {
-      return assumedArea(); // 없거나 범위 밖 — 예전엔 null, 이제 34평 가정
+      return null;
     }
-    return done({ mode: '평형', exclusiveSqm: state.exclusiveSqm, bay, scope, kind, product, removeOld, baseboard });
+    return {
+      mode: '평형',
+      exclusiveSqm: state.exclusiveSqm,
+      bay: state.bay ?? 3,
+      scope: state.scope ?? '전체',
+      kind,
+      product,
+      removeOld,
+      baseboard,
+    };
   }
 
-  // 평형이 없거나 5평 미만이면(서버가 거부) 34평 가정 — 예전엔 null
-  if (!isPositive(state.pyeong) || state.pyeong < MIN_PYEONG) return assumedArea();
-  return done({ mode: '평형', pyeong: state.pyeong, bay, scope, kind, product, removeOld, baseboard });
-}
-
-/**
- * 폼 상태 → 엔진 요청(가정 목록 없이 요청만). 공유 링크 결과 화면(result/page.tsx) 등 예전부터
- * 이 함수를 쓰던 곳이 그대로 돌아가도록 이름·돌려주는 모양을 유지한다.
- * 규칙은 toEngineInputWithAssumed와 같다(2026-09-27부터 자재만 골라도 요청이 만들어진다).
- */
-export function toEngineInput(
-  state: FlooringFormState,
-  products: FlooringProductOption[],
-  options?: FlooringEngineOptions,
-): FlooringCalcRequest | null {
-  return toEngineInputWithAssumed(state, products, options)?.request ?? null;
-}
-
-// ──────────────────────────────────────────────
-// 실측 입력 중 "직전 결과 유지"를 언제까지 해도 되는지 (도배에서 검사관이 잡은 결함을 되풀이하지 않게)
-// 직전 결과 유지는 **치수만 바뀌는 동안**에만 한다. 요청을 치수 부분과 나머지로 나눠, 나머지의
-// 열쇠가 지금 보이는 결과를 계산할 때와 다르면(자재·제품·철거·걸레받이 등) 다시 계산한다.
-// ──────────────────────────────────────────────
-
-/**
- * 요청에서 치수 칸(입력 방식·방 목록·평형·㎡·베이·범위)을 뺀 나머지로 열쇠를 만든다.
- * 정확 모드의 범위·베이는 34평 가정의 고정값이라 치수 쪽에 둔다(정확 모드엔 조정 칩이 없다).
- * 새 칸이 요청에 생기면 자동으로 "나머지"에 들어가 다시 계산 쪽으로 간다(안전한 쪽).
- */
-export function nonDimensionKey(input: FlooringEngineInput): string {
-  const { mode: _mode, rooms: _rooms, pyeong: _pyeong, exclusiveSqm: _sqm, bay: _bay, scope: _scope, ...rest } = input.request;
-  return JSON.stringify({ ...rest, product: rest.product ?? null });
-}
-
-/**
- * 실측 입력 중일 때 새 계산 없이 지금 보이는 결과를 그대로 둬도 되는가.
- * 실측 입력 중이고, 보이는 결과가 있고, 그 결과의 나머지 열쇠가 지금과 같을 때만 true.
- * @param shownKey 지금 화면에 보이는 결과를 계산할 때의 nonDimensionKey. 결과가 없으면 null
- */
-export function canHoldWhileMeasuring(input: FlooringEngineInput, shownKey: string | null): boolean {
-  if (!input.assumed.includes('measuring')) return false;
-  if (shownKey === null) return false;
-  return nonDimensionKey(input) === shownKey;
+  if (!isPositive(state.pyeong) || state.pyeong < MIN_PYEONG) return null;
+  return {
+    mode: '평형',
+    pyeong: state.pyeong,
+    bay: state.bay ?? 3,
+    scope: state.scope ?? '전체',
+    kind,
+    product,
+    removeOld,
+    baseboard,
+  };
 }
 
 /**
