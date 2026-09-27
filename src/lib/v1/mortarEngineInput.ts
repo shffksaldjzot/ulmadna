@@ -374,7 +374,7 @@ function resolveUsageLabel(state: MortarFormState, mode: MortarMode): string | u
 /**
  * 아직 사용자가 정하지 않아서 **가정값으로 채워 계산한** 항목 이름.
  * 미장은 제품 단계가 없고, 첫 단계(용도)는 가정하지 않는다(용도를 고르기 전엔 아예 계산 안 함).
- *   'area'      면적을 안 넣었다(또는 값이 무효하다) → 방통 34평 가정(ASSUMED_SUPPLY_AREA_PYEONG) · 셀프레벨링 33㎡ 가정(ASSUMED_WORK_AREA_PYEONG 10평 환산).
+ *   'area'      면적을 안 넣었다(또는 값이 무효하다) → ASSUMED_MORTAR_AREA_PYEONG(10평)으로 계산.
  *               평→㎡ 변환은 기존 규칙 그대로(방통=공급→전용 표, 셀프레벨링=순수 단위 환산)
  *   'thickness' 두께를 안 골랐다 → 용도별 기본 두께(방통 45mm · 셀프레벨링 마루·장판 전 5mm 등)
  *   'method'    (레미탈만) 공법 조정 칩을 아직 안 건드렸다 → 기본 손미장
@@ -387,16 +387,10 @@ export type MortarAssumption = 'area' | 'thickness' | 'method' | 'measuring';
 const ASSUMPTION_ORDER: MortarAssumption[] = ['area', 'thickness', 'method', 'measuring'];
 
 /**
- * 면적을 안 넣었을 때 가정하는 값 — 용도에 따라 둘로 나뉜다(2026-09-27 지휘관 결정).
- * 폼 초기값(DEFAULT_MORTAR_FORM.area = 10평)은 옛 화면이 아직 쓰므로 건드리지 않고, 가정값만 따로 둔다.
+ * 면적을 안 넣었을 때 가정하는 값(평). 지휘관 지시 "기존 기본값을 쓰되 없으면 20평"에 따라
+ * 새 화면 초기값(DEFAULT_MORTAR_FORM.area, 지금 10평)을 그대로 쓴다. 이 값이 지워지면 20평.
  */
-/** 방통(공급 평형 → 전용 ㎡ 규칙을 쓰는 용도): 도배·바닥재와 같은 "34평 가정" → 전용 약 84㎡로 계산 */
-export const ASSUMED_SUPPLY_AREA_PYEONG = 34;
-/**
- * 셀프레벨링 등(바를 면적 그 자체를 넣는 용도): 기존 기본값 10평을 순수 단위 환산해 약 33㎡.
- * 화면 글은 "33㎡ 가정". (형아 확인 예정 — 바뀌면 이 값만 고친다)
- */
-export const ASSUMED_WORK_AREA_PYEONG: number = DEFAULT_MORTAR_FORM.area ?? 20;
+export const ASSUMED_MORTAR_AREA_PYEONG: number = DEFAULT_MORTAR_FORM.area ?? 20;
 
 /**
  * 화면이 "사용자가 이 값을 직접 건드렸는지"를 알려 주는 표시.
@@ -437,13 +431,11 @@ export function presetThicknessMm(state: MortarFormState): number {
 }
 
 /**
- * 면적 가정값을 이 용도의 규칙으로 ㎡로 바꾼다(기존 resolveSimpleAreaSqm 규칙 그대로).
- *   방통: 34평 → 공급 평형→전용 ㎡ 표(×0.75 계열) → 약 84㎡
- *   셀프레벨링 등: 10평 → 순수 단위 환산(평×3.3058) → 약 33㎡
+ * 면적 가정값(10평)을 이 용도의 규칙으로 ㎡로 바꾼다 — 방통은 공급 평형→전용 ㎡ 표,
+ * 셀프레벨링 등은 순수 단위 환산(기존 resolveSimpleAreaSqm 규칙 그대로).
  */
 export function assumedAreaSqm(state: MortarFormState): number {
-  const pyeong = usesSupplyAreaConvention(state) ? ASSUMED_SUPPLY_AREA_PYEONG : ASSUMED_WORK_AREA_PYEONG;
-  return resolveSimpleAreaSqm({ ...state, areaInputMode: 'area', area: pyeong, areaUnit: '평' }) as number;
+  return resolveSimpleAreaSqm({ ...state, areaInputMode: 'area', area: ASSUMED_MORTAR_AREA_PYEONG, areaUnit: '평' }) as number;
 }
 
 /**
@@ -453,8 +445,8 @@ export function assumedAreaSqm(state: MortarFormState): number {
  *   1) 화면이 touched를 넘겼는데 touched.usage가 true가 아니면 null(계산 안 함) — 첫 단계 전.
  *      touched를 안 넘기면(옛 화면·공유 결과 화면) 예전처럼 용도 기본값으로 계산한다.
  *   2) 두께가 없거나(예전엔 null) 화면이 "두께 미완료"라고 알려 주면 용도별 기본 두께로 가정.
- *   3) view === 'simple': 면적이 없거나 무효하거나 "면적 미완료"면 면적 가정(방통 34평 · 셀프레벨링 33㎡, 예전엔 null).
- *   4) view === 'precise': 면적을 채운 구역이 있으면 그 합계, 없으면 면적 가정(방통 34평 · 셀프레벨링 33㎡, 예전엔 null).
+ *   3) view === 'simple': 면적이 없거나 무효하거나 "면적 미완료"면 10평 가정(예전엔 null).
+ *   4) view === 'precise': 면적을 채운 구역이 있으면 그 합계, 없으면 10평 가정(예전엔 null).
  *      면적이 빈 구역 카드가 있으면 'measuring'을 넣는다(계산 훅이 직전 결과를 유지).
  *   5) 공법(레미탈): 조정 칩을 안 건드렸으면 'method' — 공법 칸을 비워 보내 서버가 기본 손미장으로 계산.
  *
@@ -537,7 +529,7 @@ export function toEngineInputWithAssumed(
 
     const rooms = validPreciseRooms(state);
     if (rooms.length === 0) {
-      // 실측이 비었다 — 2026-09-27부터 null 대신 면적 가정값(방통 34평 · 셀프레벨링 33㎡)으로 계산한다
+      // 실측이 비었다 — 2026-09-27부터 null 대신 면적 가정값(10평)으로 계산한다
       assumedSet.add('area');
       // 정확 모드에서 직접 넣은 운송·양중 금액은 면적 가정과 상관없이 그대로 싣는다
       return done({ ...simpleRequest(assumedAreaSqm(state)), deliveryFeeWon, forkliftFeeWon, liftingFeeWon });
@@ -563,7 +555,7 @@ export function toEngineInputWithAssumed(
     });
   }
 
-  // view === 'simple' — 면적(직접 입력 또는 가로×세로). 없거나 "면적 미완료"면 면적 가정(방통 34평 · 셀프레벨링 33㎡, 예전엔 null)
+  // view === 'simple' — 면적(직접 입력 또는 가로×세로). 없거나 "면적 미완료"면 10평 가정(예전엔 null)
   const areaSqm = touched && touched.area !== true ? null : resolveSimpleAreaSqm(state);
   if (areaSqm === null) {
     assumedSet.add('area');
