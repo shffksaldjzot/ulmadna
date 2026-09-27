@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300" width="800" height="300" font-family="'Noto Sans KR','Malgun Gothic',sans-serif">
+  <rect width="800" height="300" fill="#fbf8f4"/>
+  <text x="400" y="34" text-anchor="middle" font-size="20" font-weight="700" fill="#3a2e28">공정과 연결한 인테리어 대금 지급 흐름 (예시)</text>
+  <line x1="70" y1="150" x2="730" y2="150" stroke="#c9b8aa" stroke-width="4"/>
+
+  <g>
+    <circle cx="90" cy="150" r="30" fill="#c1633f"/>
+    <text x="90" y="156" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">10%</text>
+    <text x="90" y="205" text-anchor="middle" font-size="14" font-weight="700" fill="#3a2e28">계약금</text>
+    <text x="90" y="226" text-anchor="middle" font-size="12" fill="#6b5a50">계약서 서명·</text>
+    <text x="90" y="243" text-anchor="middle" font-size="12" fill="#6b5a50">범위·사양 확정</text>
+    <text x="90" y="110" text-anchor="middle" font-size="12" fill="#8a7568">누계 10%</text>
+  </g>
+  <g>
+    <circle cx="255" cy="150" r="30" fill="#c1633f"/>
+    <text x="255" y="156" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">20%</text>
+    <text x="255" y="205" text-anchor="middle" font-size="14" font-weight="700" fill="#3a2e28">착수금</text>
+    <text x="255" y="226" text-anchor="middle" font-size="12" fill="#6b5a50">착공 확인·</text>
+    <text x="255" y="243" text-anchor="middle" font-size="12" fill="#6b5a50">선발주 품목 확인</text>
+    <text x="255" y="110" text-anchor="middle" font-size="12" fill="#8a7568">누계 30%</text>
+  </g>
+  <g>
+    <circle cx="420" cy="150" r="30" fill="#c1633f"/>
+    <text x="420" y="156" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">30%</text>
+    <text x="420" y="205" text-anchor="middle" font-size="14" font-weight="700" fill="#3a2e28">1차 중도금</text>
+    <text x="420" y="226" text-anchor="middle" font-size="12" fill="#6b5a50">철거·설비·전기</text>
+    <text x="420" y="243" text-anchor="middle" font-size="12" fill="#6b5a50">완료 현장 확인 후</text>
+    <text x="420" y="110" text-anchor="middle" font-size="12" fill="#8a7568">누계 60%</text>
+  </g>
+  <g>
+    <circle cx="585" cy="150" r="30" fill="#c1633f"/>
+    <text x="585" y="156" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">30%</text>
+    <text x="585" y="205" text-anchor="middle" font-size="14" font-weight="700" fill="#3a2e28">2차 중도금</text>
+    <text x="585" y="226" text-anchor="middle" font-size="12" fill="#6b5a50">목공·타일·도장</text>
+    <text x="585" y="243" text-anchor="middle" font-size="12" fill="#6b5a50">완료 확인 후</text>
+    <text x="585" y="110" text-anchor="middle" font-size="12" fill="#8a7568">누계 90%</text>
+  </g>
+  <g>
+    <circle cx="710" cy="150" r="30" fill="#3a2e28"/>
+    <text x="710" y="156" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">10%</text>
+    <text x="710" y="205" text-anchor="middle" font-size="14" font-weight="700" fill="#3a2e28">잔금</text>
+    <text x="710" y="226" text-anchor="middle" font-size="12" fill="#6b5a50">준공 검수·</text>
+    <text x="710" y="243" text-anchor="middle" font-size="12" fill="#6b5a50">하자 목록 정리 후</text>
+    <text x="710" y="110" text-anchor="middle" font-size="12" fill="#8a7568">누계 100%</text>
+  </g>
+  <text x="400" y="284" text-anchor="middle" font-size="12" fill="#8a7568">비율은 협의 예시이며 법정 기준이 아닙니다. 핵심은 '날짜'가 아니라 '확인 가능한 공정'에 연결하는 것.</text>
+</svg>
