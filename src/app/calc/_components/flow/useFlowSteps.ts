@@ -57,14 +57,10 @@ export interface FlowStepsState {
   completeFlags: boolean[];
   /** 각 단계를 사용자가 실제로 손댔는지 — 세션 저장용으로 그대로 내보낸다 */
   touchedFlags: boolean[];
-  /** 완료된 단계를 다시 열고 싶을 때("바꾸기") 부르는 함수 */
+  /** 완료된 단계를 다시 열고 싶을 때("바꾸기") 부르는 함수. 앞으로 가기로 그 자리에 다시
+   * 돌아갈 때도 이 함수를 그대로 쓴다(useFlowBackNav.ts가 reopen(그 전이가 도달했던
+   * activeIndex)로 부른다 — 2026-09-27 검사관 5차 지적으로 advance()는 삭제했다). */
   reopen: (index: number) => void;
-  /**
-   * 2026-09-27 앞으로 가기 지원 추가 — reopen()으로 강제로 열어 둔 단계를 "다시 하기"
-   * (앞으로 가기)로 원래 진행 위치로 되돌릴 때 부른다. version이 바뀔 때 자동으로 풀리는
-   * 것과 똑같이 강제 열림만 풀고(overrideIndex=null), 값 자체는 안 건드린다.
-   */
-  advance: () => void;
   /** 이 단계에서 실제로 뭔가 손댔다는 표시. 각 입력 핸들러 안에서 불러 준다 */
   touch: (index: number) => void;
   /**
@@ -154,7 +150,6 @@ export function useFlowSteps({ dataComplete, version, allTouched, initialTouched
     completeFlags,
     touchedFlags,
     reopen: (index: number) => setOverrideIndex(index),
-    advance: () => setOverrideIndex(null),
     touch,
     resetTouched,
   };

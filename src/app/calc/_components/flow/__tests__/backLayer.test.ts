@@ -8,8 +8,16 @@
 // 스택 비움·짝 없는 칸 앞으로에서 back()·forward() 0회·새로 고침 뒤 순번 이어짐" 새 시험을
 // 추가했다.
 //
+// 2026-09-27 검사관 5차 지적 반영 — 두 개 추가:
+//   (가) 짝 없는 칸을 건너뛰어 시작 칸(baseSeq)에 닿으면 baseSeq도 0으로 되돌려지는지
+//       (안 그러면 그 뒤 새로 쌓은 칸에서 뒤로 갈 때 시작 칸을 짝 없는 칸으로 오판해
+//       한 칸 더 건너뛰는 치명 버그가 있었다).
+//   (나) 시트 칸으로 앞으로 가면 다시 열기(onForward)가 1번만 불리고 새 기록 칸을 안
+//       쌓는지, 뒤로·앞으로를 반복해도 층 수가 안 느는지.
+//
 // 작성일: 2026년 09월 27일
 // 앞으로 가기 지원(전면 재작성): 2026년 09월 27일
+// baseSeq 리셋 + 시트 다시 열기 대칭 시험 추가: 2026년 09월 27일
 // ──────────────────────────────────────────────
 
 import { describe, expect, it } from 'vitest';
@@ -447,5 +455,89 @@ describe('backLayer — 뒤로·앞으로 가기 순수 로직', () => {
 
     expect(history.index).toBeGreaterThan(0);
     expect(history.index).toBe(40 - 1 - 30);
+  });
+
+  it(
+    '[치명 5차 재현] 짝 없는 칸을 건너뛰어 시작 칸(표식 없음)에 닿으면 baseSeq도 0으로 ' +
+      '같이 되돌려진다 — 그 뒤 새로 쌓은 칸에서 뒤로 가면 시작 칸에서 정확히 멈춘다(한 칸 ' +
+      '더 안 건너뛰고 블로그까지 안 밀려남)',
+    () => {
+      const history = new FakeHistory();
+      history.simulateNavigateTo(); // index1: 계산기 첫 진입 칸(표식 없음)
+      history.pushState({ calcId: 'wallpaper', seq: 1, epoch: '옛문서' }); // index2
+      history.pushState({ calcId: 'wallpaper', seq: 2, epoch: '옛문서' }); // index3
+      history.pushState({ calcId: 'wallpaper', seq: 3, epoch: '옛문서' }); // index4
+      expect(history.index).toBe(4);
+
+      // 새로 고침 흉내 — baseSeq가 3으로 이어받아진다
+      const stack = createBackStack(history);
+      let returnedToStart = 0;
+      stack.activateCalc('wallpaper', () => returnedToStart++, () => {});
+      expect(stack.__debugCalc('wallpaper')).toEqual({ currentSeq: 3, baseSeq: 3, seqs: [] });
+
+      // 뒤로 한 번 — 짝 없는 칸(seq2·1)을 건너뛰어 표식 없는 시작 칸(index1)에 닿는다
+      history.back();
+      expect(history.index).toBe(1);
+      expect(returnedToStart).toBe(1);
+      // 고침 확인 — baseSeq도 0으로 같이 되돌려져야 한다(옛 버그는 3에 그대로 남았다)
+      expect(stack.__debugCalc('wallpaper')).toEqual({ currentSeq: 0, baseSeq: 0, seqs: [] });
+
+      // 모드를 다시 고름 — 새 칸(seq1)이 이번 문서 수명으로 쌓인다. 브라우저는 앞쪽에
+      // 남아 있던 옛 칸들(index2~4)을 pushState가 실제로 잘라낸다.
+      const calls: string[] = [];
+      stack.pushBackLayer('wallpaper', () => calls.push('모드 카드로'), () => {});
+      expect(history.index).toBe(2);
+
+      // 뒤로 한 번 — 시작 칸(index1, target=0)에 정확히 멈춰야 한다. 옛 버그는 baseSeq가
+      // 여전히 3이라 "0===baseSeq(3)"이 거짓이 되어 짝 없는 칸으로 오판, 블로그(index0)
+      // 까지 한 칸 더 건너뛰어 버렸다.
+      history.back();
+      expect(calls).toEqual(['모드 카드로']);
+      expect(history.index).toBe(1); // index0(블로그)까지 안 밀려남
+      expect(returnedToStart).toBe(1); // 추가로 안 불림(정상 매칭 처리였으므로)
+    },
+  );
+
+  it('[시트 다시 열기] 시트 층으로 앞으로 가면 다시 열기(onForward)가 정확히 1번 불리고, 그 자체로는 새 기록 칸을 쌓지 않는다', () => {
+    const history = new FakeHistory();
+    const stack = createBackStack(history);
+    stack.activateCalc('wallpaper', () => {}, () => {});
+    let reopenCalls = 0;
+
+    // 시트 칸: 되돌리기=닫기, 다시 하기=다시 열기(2026-09-27 지시 변경 — 뒤로=닫힘과 대칭)
+    stack.pushBackLayer(
+      'wallpaper',
+      () => {},
+      () => {
+        reopenCalls++;
+      },
+    );
+    expect(stack.__debugCalc('wallpaper')?.seqs).toEqual([1]);
+
+    history.back();
+    expect(stack.__debugCalc('wallpaper')?.currentSeq).toBe(0);
+
+    history.go(1);
+    expect(reopenCalls).toBe(1);
+    // 다시 열기 자체는 backLayer.ts가 새 칸을 쌓는 동작이 아니다 — 층은 그대로 하나
+    expect(stack.__debugCalc('wallpaper')?.seqs).toEqual([1]);
+    expect(stack.__debugCalc('wallpaper')?.currentSeq).toBe(1);
+  });
+
+  it('[시트 다시 열기] 뒤로·앞으로를 5번 반복해도 기록 칸 수가 늘지 않는다', () => {
+    const history = new FakeHistory();
+    const stack = createBackStack(history);
+    stack.activateCalc('wallpaper', () => {}, () => {});
+    stack.pushBackLayer('wallpaper', () => {}, () => {});
+    const initialLength = history.entries.length;
+
+    for (let i = 0; i < 5; i++) {
+      history.back();
+      history.go(1);
+    }
+
+    expect(history.entries.length).toBe(initialLength);
+    expect(stack.__debugCalc('wallpaper')?.seqs).toEqual([1]);
+    expect(stack.__debugCalc('wallpaper')?.currentSeq).toBe(1);
   });
 });

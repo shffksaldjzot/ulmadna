@@ -47,6 +47,12 @@ export const PRODUCT_SHEET_UNDECIDED = '__undecided__';
 export interface ProductSheetProps {
   open: boolean;
   onClose: () => void;
+  /**
+   * 앞으로 가기로 이 시트 칸에 다시 도착했을 때 부른다 — 시트를 다시 연다(뒤로=닫힘과
+   * 대칭, 2026-09-27 검사관 5차 지적으로 지시 변경: 예전엔 "다시 안 연다"였다).
+   * 부르는 쪽이 open을 true로 만드는 상태 갱신 함수를 넘기면 된다(예: () => setSheetOpen(true)).
+   */
+  onReopen: () => void;
   title: string;
   items: PickerItem[];
   /** 지금 골라져 있는 코드 — 목록 코드 / PRODUCT_SHEET_CUSTOM / PRODUCT_SHEET_UNDECIDED 중 하나 */
@@ -67,6 +73,7 @@ export interface ProductSheetProps {
 export default function ProductSheet({
   open,
   onClose,
+  onReopen,
   title,
   items,
   selectedCode,
@@ -94,22 +101,36 @@ export default function ProductSheet({
   // (버튼 클릭 등으로 화면이 스스로 닫은 경우) collapseBackLayer로 그 칸을 실제로 거둔다.
   // closedByBackRef: 방금 "뒤로 가기 자체"가 닫은 거면 스택이 이미 알아서 정리했으니
   // collapseBackLayer를 또 부르면 안 된다 — 이 표시로 구분한다.
+  //
+  // 2026-09-27 검사관 5차 지적(치명) — 지시 변경: "다시 하기 = 아무 것도 안 함"이었던
+  // 걸 "다시 하기 = 시트를 다시 연다"로 바꾼다(뒤로=닫힘과 대칭). 이 다시 하기가
+  // onReopen()을 불러 open을 true로 만들면 이 효과가 다시 실행되는데, 이미 그 기록
+  // 칸에 서 있는 것이므로(앞으로 가기가 데려다 놓은 것) 새 칸을 또 쌓으면 안 된다 —
+  // reopenedByForwardRef로 "이번 open=true는 앞으로 가기가 만든 것"을 표시해 둔다.
   const wasOpenRef = useRef(false);
   const closedByBackRef = useRef(false);
+  const reopenedByForwardRef = useRef(false);
   useEffect(() => {
     if (open && !wasOpenRef.current) {
       // 열리는 순간 — 지금 초점이 있던 요소(트리거 버튼)를 기억해 둔다
       openerRef.current = document.activeElement;
-      // 되돌리기 = 시트 닫기. 다시 하기(앞으로 가기) = 아무 것도 안 함(2026-09-27 지시서
-      // — 시트는 앞으로 가기로 다시 열리지 않는다. 화면은 그대로 두고 칸만 이동한다)
-      pushBackLayer(
-        calcId,
-        () => {
-          closedByBackRef.current = true;
-          onClose();
-        },
-        () => {},
-      );
+      if (reopenedByForwardRef.current) {
+        // 앞으로 가기가 다시 연 것 — 이미 이 기록 칸에 서 있으므로 새로 안 쌓는다
+        reopenedByForwardRef.current = false;
+      } else {
+        // 되돌리기 = 시트 닫기. 다시 하기(앞으로 가기) = 시트를 다시 연다
+        pushBackLayer(
+          calcId,
+          () => {
+            closedByBackRef.current = true;
+            onClose();
+          },
+          () => {
+            reopenedByForwardRef.current = true;
+            onReopen();
+          },
+        );
+      }
     } else if (!open && wasOpenRef.current) {
       if (closedByBackRef.current) {
         // 뒤로 가기가 이미 스택 정리까지 끝냈다 — 여기서 또 손대지 않는다

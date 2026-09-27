@@ -322,6 +322,7 @@ export default function PaperPicker({
       <ProductSheet
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
+        onReopen={() => setSheetOpen(true)}
         title="벽지 제품"
         items={items}
         selectedCode={selectedCode}
