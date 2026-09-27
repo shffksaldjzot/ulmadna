@@ -3,13 +3,22 @@
 //
 // 지시서 4-5절: "단계 정의는 목록 하나로" — 계산기 화면(WallpaperCalculator 등)은
 // StepRow를 손으로 하나씩 늘어놓지 않고, 단계 정의 배열(FlowStepDef[]) 하나만 만들어
-// 이 부품에 넘긴다. 이 부품이 배열을 돌며 StepRow를 그리고, "현재 단계 번호가 바뀔 때만"
-// 화면을 스크롤해 준다(지시서 3-5절) + 화면 낭독기 알림(3-6절)까지 한 곳에서 처리한다.
+// 이 부품에 넘긴다. 이 부품이 배열을 돌며 StepRow를 그리고, "새 단계가 처음 나타날
+// 때만" 화면을 스크롤해 준다(지시서 3-5절) + 화면 낭독기 알림(3-6절)까지 한 곳에서 처리한다.
+//
+// 2026-09-27 형아 결정(끝낸 단계를 접지 않기) 반영 — "바꾸기"(reopen) 개념이 없어져서
+// props에서 뺐고, keepOpen 구분도 없어졌다(모든 단계가 완료되면 똑같이 "끝낸 단계"
+// 모습이라 마지막 단계만 다르게 볼 이유가 없다) — isCardLikeAt이 훨씬 단순해졌다.
+// 스크롤 판정도 "activeIndex가 조금이라도 바뀌면"이 아니라 "이번까지 도달한 가장 큰
+// activeIndex보다 더 커질 때만"으로 바꿨다 — 매인 관계로 activeIndex가 뒤로 돌아가는
+// 것(예: 종류를 바꿔 제품이 미완료로 돌아감)은 "새로 나타난 단계"가 아니므로 스크롤하면
+// 안 된다(3-5절 "같은 단계 안 조작·끝낸 단계 수정으로는 움직이지 않음").
 //
 // 다음 계산기(줄눈·탄성코트 등)를 새로 붙일 때도 이 파일은 그대로 두고 steps 배열만
 // 새로 만들면 된다.
 //
 // 작성일: 2026년 09월 27일
+// 끝낸 단계를 접지 않는 새 규칙으로 단순화: 2026년 09월 27일
 // ──────────────────────────────────────────────
 
 'use client';
@@ -23,15 +32,15 @@ export interface FlowShellProps {
   steps: FlowStepDef[];
   activeIndex: number;
   completeFlags: boolean[];
-  reopen: (index: number) => void;
 }
 
-export default function FlowShell({ steps, activeIndex, completeFlags, reopen }: FlowShellProps) {
-  // 각 단계 카드의 실제 DOM을 기억해 뒀다가, activeIndex가 바뀔 때만 스크롤 대상으로 쓴다
+export default function FlowShell({ steps, activeIndex, completeFlags }: FlowShellProps) {
+  // 각 단계 카드의 실제 DOM을 기억해 뒀다가, "새 단계가 처음 나타날 때"만 스크롤 대상으로 쓴다
   const stepEls = useRef<(HTMLDivElement | null)[]>([]);
-  // "지난번" activeIndex를 기억해서, 칩·숫자만 바뀌고 단계 번호는 그대로인 경우엔
-  // 스크롤을 절대 시키지 않는다(지시서 3-5절 핵심 규칙)
-  const prevActiveIndexRef = useRef(activeIndex);
+  // "지금까지 도달했던 가장 큰 activeIndex" — 이 값보다 activeIndex가 더 커질 때만
+  // "새 단계가 처음 나타났다"고 보고 스크롤한다. 매인 관계로 activeIndex가 뒤로 돌아가는
+  // 건(이미 본 적 있는 단계로) 여기 포함 안 시킨다 — 절대 그 값을 줄이지 않는다.
+  const maxReachedIndexRef = useRef(activeIndex);
 
   // 2026-09-27 재검수 추가 지적 5번: 새 틀 전용 초점 테두리 규칙이 쓸 "마지막 입력 방식"
   // 추적을 여기서 한 번 켠다(중복 호출은 안에서 알아서 막는다).
@@ -40,8 +49,11 @@ export default function FlowShell({ steps, activeIndex, completeFlags, reopen }:
   }, []);
 
   useEffect(() => {
-    if (activeIndex === prevActiveIndexRef.current) return;
-    prevActiveIndexRef.current = activeIndex;
+    if (activeIndex <= maxReachedIndexRef.current) {
+      // 뒤로 돌아가거나 제자리 — "새로 나타난 단계"가 아니므로 스크롤하지 않는다
+      return;
+    }
+    maxReachedIndexRef.current = activeIndex;
 
     const node = stepEls.current[activeIndex];
     if (!node) return;
@@ -58,21 +70,17 @@ export default function FlowShell({ steps, activeIndex, completeFlags, reopen }:
   }, [activeIndex]);
 
   /**
-   * i+1번째 단계가 지금 "카드처럼"(테두리 있는 상자) 보이는지 — StepRow 안의 isCardLike
-   * 판정과 같은 규칙을 여기서도 계산한다(2026-09-27 검수 지적 7번: 바로 아래가 카드면 그
-   * 위 완료 줄의 구분선을 그리지 않으려고). keepOpen 단계는 "차례가 왔거나(현재) 이미
-   * 끝났으면" 계속 카드로 보인다 — StepRow.tsx의 state 계산과 반드시 같은 조건이어야 한다.
+   * i번째 단계가 지금 "카드처럼"(테두리 있는 상자) 보이는지 — StepRow 안의 isCardLike
+   * 판정과 같은 규칙을 여기서도 계산한다(구분선 판정용). 이제 "지금 할 단계"만 카드다
+   * (끝낸 단계도 같은 자리를 쓰지만 색만 달라서, 구분선 숨김 판정에서는 카드로 안 친다).
    */
   function isCardLikeAt(index: number): boolean {
     if (index < 0 || index >= steps.length) return false;
-    const step = steps[index];
-    if (step.keepOpen) return index === activeIndex || (completeFlags[index] ?? false);
     return index === activeIndex;
   }
 
   return (
-    // gap-2(8px): 단계 사이 세로 간격을 지시서 3-2절대로 8px로 통일한다(예전엔 간격이 0이라
-    // 완료 줄 밑줄이 바로 아래 카드 윗선과 거의 붙어 보였다 — 검수 지적 7번)
+    // gap-2(8px): 단계 사이 세로 간격을 지시서 3-2절대로 8px로 통일한다.
     // flowFocusScope: 이 안(칩·세그먼트·버튼)에서만 새 초점 테두리 규칙(globals.css)이 적용된다
     <div className="flex flex-col gap-2 flowFocusScope">
       {steps.map((step, i) => (
@@ -82,10 +90,7 @@ export default function FlowShell({ steps, activeIndex, completeFlags, reopen }:
           index={i}
           activeIndex={activeIndex}
           title={step.title}
-          summary={step.summary}
           complete={completeFlags[i] ?? false}
-          keepOpen={step.keepOpen}
-          onReopen={() => reopen(i)}
           hideDivider={isCardLikeAt(i + 1)}
         >
           {step.content}

@@ -67,8 +67,6 @@ const SESSION_VERSION = 1;
 
 /** 뒤로 가기 스택에서 "이 계산기가 쌓은 몫"을 구분하는 값 */
 const CALC_ID = 'wallpaper';
-/** 계속 펼쳐 두는 마지막 단계(면적/실측) 인덱스 — keepOpen 전이는 뒤로 가기에 안 쌓는다(검사관 지적 3번) */
-const KEEP_OPEN_STEP_INDEX = 2;
 
 /** 세션에 저장하는 값의 모양 */
 interface WallpaperSession {
@@ -226,9 +224,6 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
   const [bayTouched, setBayTouched] = useState(hasSharedLink || !!restored?.bayTouched);
   const [scopeTouched, setScopeTouched] = useState(hasSharedLink || !!restored?.scopeTouched);
 
-  // 폼이 바뀔 때마다 하나씩 올라가는 숫자 — useFlowSteps가 "방금 사용자가 뭔가 골랐다"를 알아채는 데 쓴다
-  const [formVersion, setFormVersion] = useState(0);
-
   // GA4 — 도배 계산기 화면에 들어왔다는 이벤트를 딱 1번만 보낸다(마운트 시점)
   useEffect(() => {
     track('calc_view', { process: 'wallpaper' });
@@ -237,7 +232,6 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
   /** 폼 상태 부분 갱신 도우미 — 자식 컴포넌트는 항상 이 함수로만 상태를 바꾼다 */
   function patch(p: Partial<WallpaperFormState>) {
     setForm((prev) => ({ ...prev, ...p }));
-    setFormVersion((v) => v + 1);
   }
 
   /**
@@ -250,17 +244,13 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
    * 지시서 4-2절). 예전엔 손댐 표시를 안 지워서, 종류를 바꾸면 제품 단계가 "제품 미정"인
    * 채로 저절로 완료돼 버렸다. 같은 종류를 다시 누른 경우(값이 안 바뀜)는 아무것도 안
    * 건드린다(제품을 이미 골라 둔 채로 있어야 한다).
+   *
+   * 2026-09-27 형아 결정(끝낸 단계를 접지 않기) 반영 — "바꾸기로 강제로 열어 둔 단계"
+   * 개념이 없어져서, 같은 값을 다시 눌러도 이제 아무 일도 안 한다(예전엔 강제 열림을
+   * 풀려고 formVersion을 올려 patch({})를 불렀는데, 그 메커니즘 자체가 사라졌다).
    */
   function setPaperType(v: '합지' | '실크' | undefined) {
-    if (v === form.paperType) {
-      // 2026-09-27 배포 전 재검수 지적 2번: 값이 안 바뀌었어도(같은 종류를 다시 누름)
-      // "바꾸기"로 강제로 열어 둔 단계는 지시서 4-2절대로 원래 모습으로 접혀야 한다.
-      // 폼 값·제품 손댐 표시는 절대 안 건드리고, formVersion만 올려서 useFlowSteps의
-      // "강제 열림 해제" 효과(버전이 바뀌면 overrideIndex를 null로 되돌리는 로직)만
-      // 그대로 재사용한다 — patch({})는 값은 그대로 두고 새 객체 참조만 만든다.
-      patch({});
-      return;
-    }
+    if (v === form.paperType) return; // 값이 안 바뀌었으면 할 일이 없다
     patch({ paperType: v, productCode: undefined, product: undefined });
     touch(0);
     resetTouched([1]);
@@ -280,32 +270,22 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
         : !!form.pyeong
       : describePreciseInput(form) !== null;
 
-  const { activeIndex, allDone, completeFlags, touchedFlags, reopen, touch, resetTouched } = useFlowSteps({
+  const { activeIndex, allDone, completeFlags, touchedFlags, touch, resetTouched } = useFlowSteps({
     dataComplete: [step0Valid, step1Valid, step2Valid],
-    version: formVersion,
     allTouched: hasSharedLink,
     initialTouched: restored?.touched,
   });
-  const [step0Complete, step1Complete] = completeFlags;
 
-  // 뒤로·앞으로 가기 배선 — 모드를 고르거나 단계가 넘어갈 때마다 방문 기록에 쌓고, 브라우저
-  // 뒤로 가기를 누르면 직전 상태로, 앞으로 가기를 누르면 다시 그 상태로 돌아간다(주소
-  // 문자열은 그대로, 4-3절). calcId는 언마운트 때 이 계산기 몫 스택만 걷어가는 데 쓰고
-  // (검사관 지적 3번), isKeepOpen은 면적 단계(2번, 계속 펼침)로 처음 들어가는 게 아니라
-  // "그 단계 안에서 완료되는" 전이는 뒤로 가기에 안 쌓게 걸러 준다(그 전이는 되돌려도
-  // 화면이 똑같아 보여 무반응이 되기 때문). 2026-09-27 검사관 4차 지적(앞으로 가기 지원):
-  // onReenterMode는 onExitToModePicker의 정반대(모드를 다시 고른 것처럼)로, 모드 선택
-  // 칸의 "다시 하기"와 "짝 없는 칸으로 앞으로 가서 멈출 때"에 똑같이 쓰인다. 단계 칸의
-  // "다시 하기"는 useFlowBackNav 안에서 reopen(그 전이가 도달했던 activeIndex)으로 처리한다
-  // (advance로 강제 열림을 통째로 풀면 중간 단계를 건너뛰는 사고가 나서, 이제 안 쓴다).
+  // 뒤로·앞으로 가기 배선 — 모드를 고를 때만 방문 기록에 쌓는다(4-3절). 2026-09-27 형아
+  // 결정(끝낸 단계를 접지 않기)으로 단계 진행은 더 이상 여기 안 쌓는다 — 끝낸 단계도
+  // 화면에서 안 접히므로 "뒤로 = 직전 단계 다시 열기"가 눈에 보이는 변화가 없어졌기
+  // 때문이다(useFlowBackNav.ts 주석 참고). onReenterMode는 onExitToModePicker의
+  // 정반대(모드를 다시 고른 것처럼)다.
   useFlowBackNav({
     calcId: CALC_ID,
     modeChosen,
     onExitToModePicker: () => setUserPickedMode(false),
     onReenterMode: () => setUserPickedMode(true),
-    activeIndex,
-    reopen,
-    isKeepOpen: (i) => i === KEEP_OPEN_STEP_INDEX,
   });
 
   // 새로 고침 복원 — 공유 링크로 들어온 게 아니면 값이 바뀔 때마다 세션에 저장해 둔다.
@@ -326,16 +306,6 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
   const { result, range, loading, error, stale, assumed } = useWallpaperCalc(form, products, {
     touched: { area: touchedFlags[2], bay: bayTouched, scope: scopeTouched },
   });
-
-  // 2단계(제품) 완료 요약 한 줄 — 2026-09-27 검수 지적 6번: 바로 위 줄(1단계)에 이미 종류가
-  // 나와 있어서 "합지 · " 접두어는 빼고 제품 값만 쓴다. 안 골랐으면 시트 안 문구("아직 안
-  // 정했어요")보다 더 짧고 값스러운 "제품 미정"으로 바꿨다(시트 안 그 줄 문구는 안 바꿈).
-  const selectedProductOption = form.productCode ? products.find((p) => p.code === form.productCode) : undefined;
-  const step1Summary = selectedProductOption
-    ? `${selectedProductOption.brand} ${selectedProductOption.name}`
-    : form.product
-      ? '직접 입력'
-      : '제품 미정';
 
   /** 폼 상태를 바꾸면서 동시에 "면적/실측 단계를 손댔다"고 표시하는 도우미(3단계 전용) */
   function patchAreaStep(p: Partial<WallpaperFormState>) {
@@ -360,7 +330,6 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
       key: 'paperType',
       title: '벽지 종류',
       valid: step0Valid,
-      summary: form.paperType,
       content: (
         <PaperPicker
           part="type"
@@ -378,7 +347,6 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
       key: 'product',
       title: '벽지 제품',
       valid: step1Valid,
-      summary: step0Complete ? step1Summary : undefined,
       content: (
         <PaperPicker
           part="product"
@@ -404,7 +372,6 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
       key: 'area',
       title: view === 'simple' ? '면적' : '실측',
       valid: step2Valid,
-      keepOpen: true,
       content:
         view === 'simple' ? (
           <QuickAnswer
@@ -520,7 +487,7 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
             onChange={(v) => patch({ view: v })}
             className="hidden lg:flex w-[160px]"
           />
-          <FlowShell steps={steps} activeIndex={activeIndex} completeFlags={completeFlags} reopen={reopen} />
+          <FlowShell steps={steps} activeIndex={activeIndex} completeFlags={completeFlags} />
         </div>
 
         {/* 오른쪽 — 조정 칩 + 결과. 모바일에선 flex-col이라 왼쪽 아래에 그대로 이어 보인다(3-1절

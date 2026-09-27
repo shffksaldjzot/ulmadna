@@ -1,26 +1,40 @@
 // ──────────────────────────────────────────────
 // v1 허브 — 계산기 "단계 흐름 2판" 단계 한 칸 부품
 //
-// 지시서 3-2절 그대로 세 가지 모습만 그린다(옛 StepFlow.tsx의 새 버전 — 옛 것은 바닥재·
-// 미장이 아직 쓰고 있어 그대로 두고, 이건 완전히 새 파일이다):
+// 2026-09-27 형아 결정(라이브 써 보고 확정) — "단계는 순서대로 나타나되, 한 번 나타난
+// 단계는 접지 않고 계속 펼쳐 둔다. '바꾸기'를 누르지 않고 바로 고칠 수 있게." 지시서
+// 3-2·4-2·4-3의 "완료 = 한 줄로 접힘"을 이 결정으로 완전히 바꾼다.
 //
-//   현재  — 흰 카드(--surface), 테두리 1px --accent, 모서리 16px, 안쪽 여백 16px.
-//           첫 줄 = 번호 배지(24px 원) + 제목, 세로 가운데 정렬. 12px 띄우고 입력.
-//           입력은 카드 안쪽 전체 폭(번호 자리만큼 들여쓰지 않는다).
-//   완료  — 카드 아님. 한 줄, 최소 높이 48px. 체크 배지 · 제목(흐리게) · 값(굵게) ·
-//           "바꾸기". 줄 전체가 눌린다. 아래 1px 선.
-//   아직 안 옴 — 카드 아님. 한 줄, 최소 높이 48px. 번호 배지(테두리만) + 제목.
-//           전체 투명도 45%. 눌리지 않는다.
+// 이제 단계는 딱 세 가지 모습만 있다(옛 "완료 = 한 줄 접힘" 모습은 없다):
 //
-// 움직임(3-4): 열릴 때 4px 아래에서 떠오름+투명도 220ms, 접힐 때 grid-template-rows로
-// 높이가 부드럽게 줄고 내용은 120ms 만에 투명해짐, 완료 줄이 나타날 때 투명도 0→1 160ms.
-// 흔들림·테두리 깜빡임은 이 판에는 아예 없다(옛 StepFlow의 shake·ring 애니메이션은 손대지 않고
-// 그대로 남겨 둔다 — 바닥재·미장 전용).
+//   지금 할 단계(맨 앞의 미완료 단계) — 흰 카드(--surface), 테두리 1px --accent,
+//     모서리 16px, 안쪽 여백 16px. 첫 줄 = 번호 배지(24px 원, 테두리만) + 제목.
+//   끝낸 단계 — 지금 할 단계와 "완전히 같은 자리·여백·크기"(테두리 굵기까지 똑같이
+//     1px을 유지)로 펼친 채 유지한다. 다른 건 테두리색·배경색뿐 — 둘 다 투명으로 바꿔서
+//     카드처럼 안 보이게 한다. 배지는 체크(accent 채움). 입력 내용은 그대로 보이고
+//     바로 고칠 수 있다(inert 없음). 상태가 바뀔 때 내용이 1px도 안 움직인다.
+//   아직 안 온 단계 — 카드 아님. 한 줄, 최소 높이 48px. 번호 배지(테두리만) + 제목.
+//     전체 투명도 45%. 조작 불가(inert).
 //
-// 초점(3-6): 현재 단계로 막 열리면 그 안의 첫 버튼/칩으로 초점을 옮긴다(숫자·글자 입력칸은
-// 제외 — 폰 키보드가 멋대로 뜨는 걸 막기 위해서다).
+// "바꾸기" 글자와 완료 요약 한 줄(옛 "체크배지·흐린제목·굵은값·바꾸기" 한 줄)은 삭제했다.
+//
+// 움직임:
+//   - 단계가 처음 나타날 때(아직 안 옴 → 지금 할 단계로 딱 한 번): 4px 아래에서 떠오름 +
+//     투명도 + 높이 펼침 220ms(flow-step-enter, 옛 그대로).
+//   - 지금 할 단계 → 끝낸 단계: 테두리·배경 색만 160ms로 바뀐다. 높이·위치는 안 바뀐다
+//     (자리·여백·테두리 굵기가 두 상태에서 완전히 같으므로 색 전환 CSS transition만
+//     걸면 된다 — 옛날처럼 접히는 높이 애니메이션(flow-done-enter)은 이제 없다).
+//   - prefers-reduced-motion이면 전부 즉시(모션 없음).
+//
+// 초점(3-6): 단계가 처음 "지금 할 단계"로 나타나면 그 안의 첫 버튼/칩으로 초점을 옮긴다
+// (숫자·글자 입력칸은 제외 — 폰 키보드가 멋대로 뜨는 걸 막기 위해서다). 끝낸 단계로
+// 바뀔 때는 초점을 옮기지 않는다(사용자가 지금 만지고 있던 곳 그대로 둔다).
+//
+// 접근성: 끝낸 단계는 inert를 걸지 않는다(조작 가능해야 하므로) — 아직 안 온 단계만
+// 조작 불가로 막는다. 탭 순서는 화면에 보이는 순서(DOM 순서) 그대로다.
 //
 // 작성일: 2026년 09월 27일
+// 끝낸 단계를 접지 않는 새 규칙으로 전면 재작성: 2026년 09월 27일
 // ──────────────────────────────────────────────
 
 'use client';
@@ -31,21 +45,15 @@ import { IconCheck } from '@/components/v1/icons';
 export interface StepRowProps {
   /** 이 단계의 0-based 순번 */
   index: number;
-  /** useFlowSteps가 계산해 준 "지금 열어야 하는" 단계 인덱스 */
+  /** useFlowSteps가 계산해 준 "지금 할 단계" 인덱스 */
   activeIndex: number;
   title: string;
-  /** 완료 줄에 보여줄 값 (없으면 값 없이 제목만) */
-  summary?: string;
-  /** 이 단계가 끝났는지(touched && valid) */
+  /** 이 단계가 끝났는지(touched && valid) — true면 activeIndex 위치와 상관없이 "끝낸 단계"로 펼쳐 보여준다 */
   complete: boolean;
-  /** true면(마지막 단계) 완료돼도 접지 않고 계속 펼쳐 둔다 */
-  keepOpen?: boolean;
-  /** 완료 줄("바꾸기")을 눌렀을 때 — keepOpen 단계에는 안 쓴다 */
-  onReopen?: () => void;
   /**
-   * 바로 다음 단계가 지금 "카드"(테두리 있는 상자)로 보이고 있으면 true — 이때는 이 완료
-   * 줄 밑에 구분선을 안 그린다(카드 자기 테두리가 이미 있어서 선이 두 개로 겹쳐 보인다,
-   * 2026-09-27 검수 지적 7번). FlowShell이 이웃 단계 상태를 보고 계산해 넘겨준다.
+   * 바로 다음 단계가 지금 "지금 할 단계"(카드)로 보이고 있으면 true — 이때는 이 단계
+   * 바로 아래에 구분선을 안 그린다(카드 자기 테두리가 이미 있어서 선이 겹쳐 보인다).
+   * FlowShell이 이웃 단계 상태를 보고 계산해 넘겨준다.
    */
   hideDivider?: boolean;
   children: ReactNode;
@@ -54,39 +62,28 @@ export interface StepRowProps {
 // forwardRef: FlowShell이 "이 단계가 지금 화면에 다 보이는지"를 확인해 딱 필요할 때만
 // 스크롤시켜야 해서(3-5절), 부르는 쪽이 이 부품의 맨 바깥 div를 직접 참조할 수 있게 한다.
 const StepRow = forwardRef<HTMLDivElement, StepRowProps>(function StepRow(
-  { index, activeIndex, title, summary, complete, keepOpen = false, onReopen, hideDivider = false, children },
+  { index, activeIndex, title, complete, hideDivider = false, children },
   forwardedRef,
 ) {
-  // 2026-09-27 지시서 4-2절 수리: "바꾸기로 다른 단계를 다시 열어도 이미 끝난 다른 단계는
-  // 흐려지지 않는다." 예전엔 index와 activeIndex의 위치만 비교했는데("바꾸기"로 activeIndex가
-  // 앞 단계로 강제로 되돌아가면, 그보다 뒤에 있는 이미 끝난 단계까지 전부 "아직 안 옴"으로
-  // 보여 버그였다) — 이제 실제 완료 여부(complete = touched && valid)를 그대로 써서 판단한다.
-  // keepOpen 단계는 차례가 온 뒤로는(지금 current이거나 이미 끝났으면) 계속 "카드처럼" 펼쳐 둔다.
-  const state: 'current' | 'done' | 'upcoming' = keepOpen
-    ? index === activeIndex || complete
-      ? 'current'
-      : 'upcoming'
-    : index === activeIndex
-      ? 'current'
-      : complete
-        ? 'done'
-        : 'upcoming';
+  // 세 가지 모습 중 하나 — activeIndex와의 "위치" 비교보다 "완료 여부"를 먼저 본다.
+  // 완료된 단계는(뒤에 있어도, 앞선 단계가 되돌아가 activeIndex가 이 단계보다 작아져도)
+  // 계속 "끝낸 단계"로 펼쳐 보인다(형아 결정 — 매인 관계로 앞 단계가 미완료가 돼도
+  // 이 단계 자신이 완료 상태면 그대로 보인다).
+  const state: 'current' | 'done' | 'upcoming' = complete ? 'done' : index === activeIndex ? 'current' : 'upcoming';
 
-  // 카드처럼(테두리+여백 있는 상자) 그릴지 — 보통 current만, keepOpen 단계는 완료돼도 카드 유지
-  const isCardLike = state === 'current';
-  // 안쪽 내용을 펼쳐서 보여줄지 — 카드 상태와 동일(완료돼 한 줄로 접힌 done/upcoming은 내용을 숨긴다)
+  // "지금 할 단계"와 "끝낸 단계"는 같은 카드 자리(테두리 굵기·둥근 모서리·안쪽 여백)를 쓴다
+  // — 색만 다르다(테두리·배경 전부 투명 vs accent/surface). 이래야 상태가 바뀔 때 내용이
+  // 1px도 안 움직인다(형아 지시 그대로).
+  const isCardLike = state === 'current' || state === 'done';
   const isExpanded = isCardLike;
-  // keepOpen 단계가 끝난 뒤엔 테두리를 강조색 대신 은은한 선 색으로 바꾼다(지시서 3-2 마지막 문단)
-  const borderIsMuted = keepOpen && complete;
 
   const badgeNum = index + 1;
-  // 배지를 체크로 채울지 — 접히는 단계는 done일 때, keepOpen 단계는 complete 값 자체로
-  const badgeFilled = keepOpen ? complete : state === 'done';
+  const badgeFilled = state === 'done';
 
-  // ── 애니메이션: "방금 current로 바뀐 순간"과 "방금 done이 된 순간"만 잡아서 1회만 재생 ──
+  // ── 애니메이션: "방금 current로 처음 나타난 순간"만 잡아서 1회만 재생한다 ──
+  // (끝낸 단계로 바뀌는 건 색만 CSS transition으로 바뀌므로 별도 JS 애니메이션 상태가 필요 없다)
   const prevStateRef = useRef(state);
   const [justOpened, setJustOpened] = useState(false);
-  const [justDone, setJustDone] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   // 바깥(FlowShell)에서 넘겨준 ref에도 같은 DOM 노드를 그대로 연결해 준다
@@ -94,23 +91,19 @@ const StepRow = forwardRef<HTMLDivElement, StepRowProps>(function StepRow(
 
   useEffect(() => {
     const prev = prevStateRef.current;
-    if (state === 'current' && prev !== 'current') {
+    // upcoming(아직 안 옴)이었다가 처음으로 펼쳐지는 순간(current 또는 done)에만 떠오름 애니메이션
+    if (prev === 'upcoming' && state !== 'upcoming') {
       setJustOpened(true);
       const t = setTimeout(() => setJustOpened(false), 240);
-      prevStateRef.current = state;
-      return () => clearTimeout(t);
-    }
-    if (state === 'done' && prev !== 'done') {
-      setJustDone(true);
-      const t = setTimeout(() => setJustDone(false), 180);
       prevStateRef.current = state;
       return () => clearTimeout(t);
     }
     prevStateRef.current = state;
   }, [state]);
 
-  // 현재 단계로 열리면 그 안의 첫 버튼으로 초점을 옮긴다(입력칸 제외 — 3-6절).
-  // 스크롤은 여기서 시키지 않는다(부르는 쪽 FlowShell이 activeIndex 변화만 보고 딱 한 번 처리한다).
+  // 지금 할 단계로 막 바뀌면 그 안의 첫 버튼으로 초점을 옮긴다(입력칸 제외 — 3-6절).
+  // 끝낸 단계로 바뀔 때는 초점을 안 옮긴다(사용자가 지금 만지던 곳 그대로 둔다).
+  // 스크롤은 여기서 시키지 않는다(부르는 쪽 FlowShell이 처리한다).
   useEffect(() => {
     if (state !== 'current') return;
     const first = contentRef.current?.querySelector<HTMLElement>('button:not([disabled])');
@@ -120,50 +113,49 @@ const StepRow = forwardRef<HTMLDivElement, StepRowProps>(function StepRow(
   return (
     <div
       ref={rootRef}
-      // scroll-mt: FlowShell이 scrollIntoView 할 때 고정 헤더에 안 가리도록 여유를 둔다
+      // scroll-mt: FlowShell이 scrollIntoView 할 때 고정 헤더에 안 가리도록 여유를 둔다.
+      // transition은 테두리·배경 색만 160ms로 건다(형아 지시 — 높이·위치는 안 바뀐다).
       className={
-        'flex flex-col scroll-mt-[112px] transition-[padding,margin,background-color,border-color] duration-200 ease-out ' +
+        'flex flex-col scroll-mt-[112px] transition-[background-color,border-color] duration-[160ms] ease-out motion-reduce:transition-none ' +
         (isCardLike
-          ? `gap-3 rounded-[16px] border bg-surface p-4 ${justOpened ? 'flow-step-enter' : ''} ` +
-            (borderIsMuted ? 'border-line' : 'border-accent')
-          : state === 'done'
-            ? `min-h-[48px] ${hideDivider ? '' : 'border-b border-line'} ${justDone ? 'flow-done-enter' : ''}`
-            : 'min-h-[48px] opacity-45')
+          ? `gap-3 rounded-[16px] border p-4 ${justOpened ? 'flow-step-enter' : ''}`
+          : 'min-h-[48px] opacity-45')
+      }
+      style={
+        isCardLike
+          ? {
+              // 테두리·배경은 인라인 스타일로 직접 색만 바꾼다(Tailwind 유틸 조합의 우선순위
+              // 문제를 피하려고). 카드(지금 할 단계)와 끝낸 단계는 굵기·모서리가 완전히
+              // 같고 색만 다르다 — 그래서 내용이 1px도 안 움직인다.
+              borderColor: state === 'current' ? 'var(--accent)' : 'transparent',
+              backgroundColor: state === 'current' ? 'var(--surface)' : 'transparent',
+              // 끝낸 단계 사이에는 구분선을, 지금 할 단계 바로 위에는 구분선을 안 그린다.
+              // (지금 할 단계 자신은 사방 테두리가 이미 있으므로 이 속성은 done일 때만 의미 있다)
+              borderBottomColor:
+                state === 'done' && !hideDivider ? 'var(--line)' : state === 'current' ? 'var(--accent)' : 'transparent',
+            }
+          : undefined
       }
     >
-      {/* 완료 줄은 줄 전체가 눌린다(바꾸기) — 아직 안 온 단계는 button이 아니라 그냥 div(안 눌림) */}
-      {state === 'done' ? (
-        <button
-          type="button"
-          onClick={onReopen}
-          className="flex w-full min-h-[48px] items-center gap-3 text-left"
+      {/* 첫 줄 — 번호 배지(또는 체크) + 제목. 세 모습 다 이 한 줄 구조를 쓴다 */}
+      <div className={'flex items-center gap-3 ' + (state === 'upcoming' ? 'min-h-[48px]' : '')}>
+        <span
+          className={
+            'flex-none w-6 h-6 rounded-full border flex items-center justify-center text-[13px] font-semibold ' +
+            (badgeFilled
+              ? 'bg-accent border-accent text-white'
+              : state === 'current'
+                ? 'border-accent text-accent'
+                : 'border-line text-ink-2')
+          }
         >
-          <span className="flex-none w-6 h-6 rounded-full bg-accent text-white flex items-center justify-center">
-            <IconCheck />
-          </span>
-          <span className="t-sub text-ink-2 flex-none">{title}</span>
-          {summary && <span className="t-body font-semibold text-ink truncate min-w-0 flex-1">{summary}</span>}
-          <span className="t-sub text-accent flex-none ml-auto">바꾸기</span>
-        </button>
-      ) : (
-        <div className={'flex items-center gap-3 ' + (state === 'upcoming' ? 'min-h-[48px]' : '')}>
-          <span
-            className={
-              'flex-none w-6 h-6 rounded-full border flex items-center justify-center text-[13px] font-semibold ' +
-              (badgeFilled
-                ? 'bg-accent border-accent text-white'
-                : state === 'current'
-                  ? 'border-accent text-accent'
-                  : 'border-line text-ink-2')
-            }
-          >
-            {badgeFilled ? <IconCheck /> : badgeNum}
-          </span>
-          <span className="t-section text-ink">{title}</span>
-        </div>
-      )}
+          {badgeFilled ? <IconCheck /> : badgeNum}
+        </span>
+        <span className="t-section text-ink">{title}</span>
+      </div>
 
-      {/* 입력 내용 — grid-template-rows로 높이를 부드럽게 접었다 편다(Collapsible.tsx와 같은 기법).
+      {/* 입력 내용 — "아직 안 온 단계"만 grid-template-rows로 접어서(0fr) 숨긴다. 지금 할
+          단계·끝낸 단계는 둘 다 항상 펼쳐진 채(1fr)다(형아 결정 — 끝낸 단계도 안 접는다).
           카드 안쪽 여백(16px)에 그대로 맞춰야 하므로 번호 자리만큼 들여쓰지 않는다(전체 폭 사용) */}
       <div
         className="grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none"
@@ -171,10 +163,8 @@ const StepRow = forwardRef<HTMLDivElement, StepRowProps>(function StepRow(
       >
         <div
           ref={contentRef}
-          // 접혀 있을 때(0fr)도 안의 버튼·칩은 DOM에 그대로 남아 있다(다시 펼 때 값을 그대로
-          // 보여주려고 마운트 해제를 안 한다) — 그래서 눈에는 안 보여도 Tab 키나 화면 낭독기가
-          // 그 안으로 들어갈 수 있는 문제가 있었다. inert 속성으로 접힌 동안은 클릭·포커스·
-          // 낭독 전부 막는다(2026-09-27 검사 중 발견해 같이 수리).
+          // "아직 안 온 단계"만 DOM에 남아 있되 조작·포커스·낭독을 막는다(inert). 끝낸
+          // 단계는 조작 가능해야 하므로 inert를 걸지 않는다(형아 지시 — 접근성 절).
           {...(!isExpanded ? { inert: true } : {})}
           aria-hidden={!isExpanded}
           className={

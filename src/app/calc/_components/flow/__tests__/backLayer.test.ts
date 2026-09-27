@@ -540,4 +540,107 @@ describe('backLayer — 뒤로·앞으로 가기 순수 로직', () => {
     expect(stack.__debugCalc('wallpaper')?.seqs).toEqual([1]);
     expect(stack.__debugCalc('wallpaper')?.currentSeq).toBe(1);
   });
+
+  it(
+    '[치명 6차 재현] 새로 고침 → 뒤로(모드 카드) → 앞으로(짝 없는 옛 칸) → 뒤로 하면 ' +
+      '칸만 움직이고 화면이 그대로였다 — 짝 없는 앞으로 칸에 가상 층을 남겨 두어, 그 칸에서 ' +
+      '다시 뒤로 갈 때 "모드 카드로" 콜백이 실제로 다시 불려야 한다',
+    () => {
+      const history = new FakeHistory();
+      history.simulateNavigateTo(); // index1: 계산기 첫 진입 칸(표식 없음)
+      history.pushState({ calcId: 'wallpaper', seq: 1, epoch: '옛문서' }); // index2
+      history.pushState({ calcId: 'wallpaper', seq: 2, epoch: '옛문서' }); // index3
+      history.pushState({ calcId: 'wallpaper', seq: 3, epoch: '옛문서' }); // index4
+      expect(history.index).toBe(4);
+
+      const stack = createBackStack(history);
+      let returnedToStartCount = 0;
+      let forwardPastStartCount = 0;
+      stack.activateCalc(
+        'wallpaper',
+        () => returnedToStartCount++,
+        () => forwardPastStartCount++,
+      );
+
+      // 새로 고침 → 뒤로(모드 카드) — 짝 없는 옛 칸(seq3·2·1)을 건너뛰어 시작 칸(index1)에 닿는다
+      history.back();
+      expect(history.index).toBe(1);
+      expect(returnedToStartCount).toBe(1);
+      expect(stack.__debugCalc('wallpaper')).toEqual({ currentSeq: 0, baseSeq: 0, seqs: [] });
+
+      // 앞으로(짝 없는 옛 칸으로) — index1 -> index2(seq1, 이번 세션엔 없던 순번)
+      history.go(1);
+      expect(history.index).toBe(2);
+      expect(forwardPastStartCount).toBe(1);
+      // 고침 확인 — 가상 층이 seq1 자리에 남아 있어야 한다(옛 버그는 여기 아무것도 안 남겼다)
+      expect(stack.__debugCalc('wallpaper')?.seqs).toEqual([1]);
+      expect(stack.__debugCalc('wallpaper')?.currentSeq).toBe(1);
+
+      // 뒤로(문제의 그 뒤로) — index2 -> index1(표식 없음, target=0=baseSeq이므로 "매칭"
+      // 판정을 받는다). 옛 버그는 layers.get(1)이 없어 아무 일도 안 일어났다.
+      history.back();
+      expect(history.index).toBe(1);
+      expect(stack.__debugCalc('wallpaper')?.currentSeq).toBe(0);
+      // 고침 확인 — 화면이 실제로 "모드 카드로" 바뀌어야 한다(콜백이 한 번 더 불림)
+      expect(returnedToStartCount).toBe(2);
+    },
+  );
+
+  it('짝 없는 칸 구역 안에서 앞으로를 여러 번 눌러 여러 옛 칸에 가상 층이 쌓여도, 그 구역 어디서 뒤로 가든 모드 카드로 이어진다', () => {
+    const history = new FakeHistory();
+    history.simulateNavigateTo(); // index1: 계산기 첫 진입 칸(표식 없음)
+    history.pushState({ calcId: 'wallpaper', seq: 1, epoch: '옛문서' }); // index2
+    history.pushState({ calcId: 'wallpaper', seq: 2, epoch: '옛문서' }); // index3
+    history.index = 1; // 새로 고침 뒤 시작 칸에 서 있다고 흉내
+
+    const stack = createBackStack(history);
+    let returnedToStartCount = 0;
+    stack.activateCalc(
+      'wallpaper',
+      () => returnedToStartCount++,
+      () => {},
+    );
+    expect(stack.__debugCalc('wallpaper')).toEqual({ currentSeq: 0, baseSeq: 0, seqs: [] });
+
+    // 앞으로 두 번 — 옛 칸 두 개(seq1·seq2)를 차례로 지나며 가상 층이 각각 쌓인다
+    history.go(1); // index2(seq1)
+    history.go(1); // index3(seq2)
+    expect(stack.__debugCalc('wallpaper')?.seqs).toEqual([1, 2]);
+    expect(stack.__debugCalc('wallpaper')?.currentSeq).toBe(2);
+
+    // 뒤로 한 번 — index3(seq2)에서 index2(seq1)로. seq2의 가상 층 onBack이 불려 모드 카드로
+    history.back();
+    expect(returnedToStartCount).toBe(1);
+    expect(history.index).toBe(2);
+  });
+
+  it(
+    '[치명 6차 재현 — 표식이 딱 하나뿐일 때] 새로 고침 직후 그 유일한 표식(모드 선택) 칸 ' +
+      '위에서 곧장 부팅되면 baseSeq가 그 순번이 된다(0이 아니다) — 뒤로 한 번에 표식 없는 ' +
+      '진짜 시작 칸을 만나면, 중간에 건너뛸 표식이 하나도 없었어도 그 자리에서 정확히 멈추고 ' +
+      '"모드 카드로"가 불려야 한다(더 건너뛰어 블로그까지 나가면 안 된다)',
+    () => {
+      // 2026-09-27 형아 결정(끝낸 단계를 접지 않기)으로 단계 층이 사라져, 이제 계산기가
+      // 쌓는 표식은 보통 "모드 선택" 하나뿐이다(제품 시트를 열지 않았다면). 이 상황을 그대로 흉내.
+      const history = new FakeHistory();
+      history.simulateNavigateTo(); // index1: 계산기 첫 진입 칸(표식 없음)
+      history.pushState({ calcId: 'wallpaper', seq: 1, epoch: '옛문서' }); // index2: 모드 선택(유일한 표식)
+      expect(history.index).toBe(2);
+
+      // 새로 고침 흉내 — 이 유일한 표식 바로 위에서 부팅된다. baseSeq는 1이 된다(0이 아니다!)
+      const stack = createBackStack(history);
+      let returnedToStartCount = 0;
+      stack.activateCalc('wallpaper', () => returnedToStartCount++, () => {});
+      expect(stack.__debugCalc('wallpaper')).toEqual({ currentSeq: 1, baseSeq: 1, seqs: [] });
+
+      // 뒤로 한 번 — index2(seq1)에서 index1(표식 없음, 계산기 첫 진입 칸)로 곧장 간다.
+      // 건너뛸 표식 있는 칸이 중간에 하나도 없었다(바로 다음 칸이 표식 없음) — 그래도
+      // 여기서 정확히 멈추고 "모드 카드로"가 불려야 한다. 옛 버그는 "0===baseSeq(1)"이
+      // 거짓이라 이 칸을 짝 없는 칸으로 오판해 한 번 더 건너뛰어 블로그(index0)까지 나갔다.
+      history.back();
+      expect(history.index).toBe(1); // index0(블로그)까지 안 밀려남
+      expect(returnedToStartCount).toBe(1);
+      expect(stack.__debugCalc('wallpaper')).toEqual({ currentSeq: 0, baseSeq: 0, seqs: [] });
+    },
+  );
 });

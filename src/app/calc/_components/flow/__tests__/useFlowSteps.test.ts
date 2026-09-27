@@ -8,7 +8,17 @@
 //   resetTouched가 없던 옛 구현이라면, 종류를 바꿔도 touchedFlags[1]이 그대로 true로
 //   남아 제품 단계가 계속 "완료"로 보였을 것이다.
 //
+// 2026-09-27 형아 결정(끝낸 단계를 접지 않기) 반영 — overrideIndex·reopen()·version은
+// 순수 함수가 아니라 훅 안의 React 상태였으므로 여기 시험할 게 원래 없었다(그래서
+// 삭제할 "접힘·다시 열기" 시험은 없다). 대신 새 규칙 두 개를 시험으로 추가한다:
+//   (가) "한 번 나타난 단계는 계속 보임" — completeFlags[i]가 true면 activeIndex가 그
+//       단계보다 앞이어도(매인 관계로 앞 단계가 미완료로 돌아가도) i번째는 여전히
+//       "끝낸 단계"로 판정돼야 한다(StepRow.tsx가 complete만 보고 그리므로).
+//   (나) "매인 관계로 앞 단계가 미완료가 돼도 뒤 단계는 그대로 완료로 보인다" — (가)를
+//       resetTouched 흐름 전체로 재현한 시험(3단계 완료 → 종류 바꿔 제품만 되돌림).
+//
 // 작성일: 2026년 09월 27일
+// 끝낸 단계를 접지 않는 결정 반영 — 새 시험 추가: 2026년 09월 27일
 // ──────────────────────────────────────────────
 
 import { describe, expect, it } from 'vitest';
@@ -92,4 +102,50 @@ describe('applyResetTouched — 매인 관계 되돌리기', () => {
     const next = sameValueChanged ? applyResetTouched(touched, [1]) : touched;
     expect(next).toBe(touched);
   });
+});
+
+describe('[형아 결정] 한 번 나타난(완료된) 단계는 activeIndex 위치와 상관없이 계속 "끝낸 단계"로 보인다', () => {
+  it(
+    '[가] 뒤 단계(2번, 면적)가 완료된 채로 앞 단계(1번, 제품)가 매인 관계로 미완료가 돼도, ' +
+      '2번의 completeFlags는 그대로 true다 — StepRow.tsx는 이 값만 보고 "끝낸 단계"로 그린다',
+    () => {
+      // 종류·제품·면적 세 단계를 전부 끝낸 상태에서 시작한다
+      const dataComplete = [true, true, true];
+      let touched = [true, true, true];
+      let r = deriveFlowState(dataComplete, touched);
+      expect(r.completeFlags).toEqual([true, true, true]);
+      expect(r.activeIndex).toBe(3); // 전부 끝(강조 카드가 없다)
+
+      // 종류(0번)를 실제로 바꿔서 매인 관계로 제품(1번)만 미완료로 되돌린다 — 면적(2번)은
+      // 손 안 댐(untouched)이 아니라 "이미 손댔고 값도 그대로 유효"하므로 안 건드린다
+      touched = applyResetTouched(touched, [1]);
+      r = deriveFlowState(dataComplete, touched);
+
+      // 제품(1번)이 "지금 할 단계"(activeIndex)가 되고, 그 뒤에 있는 면적(2번)은 activeIndex
+      // 보다 뒤에 있지만(2 > 1) completeFlags[2]는 여전히 true — "끝낸 단계"로 계속 펼쳐 보여야 한다
+      expect(r.activeIndex).toBe(1);
+      expect(r.completeFlags[0]).toBe(true); // 종류는 새로 골라서 여전히 완료
+      expect(r.completeFlags[1]).toBe(false); // 제품이 지금 할 단계
+      expect(r.completeFlags[2]).toBe(true); // 면적은 그대로 "끝낸 단계"(숨겨지지 않는다)
+    },
+  );
+
+  it(
+    '[나] 3단계까지 끝낸 뒤 종류를 바꿔 제품이 지워지는 전체 흐름 — 면적 값은 유지된 채 ' +
+      '"끝낸 단계"로 남고, 제품만 강조 카드로 돌아온다(형아가 요구한 실제 시나리오 그대로)',
+    () => {
+      const dataComplete = [true, true, true]; // 종류 있음 · 제품 항상 유효 · 면적 값 그대로 유효
+      const touchedAfter3Steps = [true, true, true];
+      const beforeChange = deriveFlowState(dataComplete, touchedAfter3Steps);
+      expect(beforeChange.allDone).toBe(true);
+
+      // "1단계에서 종류를 바로 바꿈" — 제품(1)의 손댐만 되돌리고, 면적(2)의 손댐은 그대로
+      const touchedAfterPaperTypeChange = applyResetTouched(touchedAfter3Steps, [1]);
+      const afterChange = deriveFlowState(dataComplete, touchedAfterPaperTypeChange);
+
+      expect(afterChange.activeIndex).toBe(1); // "제품이 지워지고 2단계가 강조 카드로"
+      expect(afterChange.completeFlags).toEqual([true, false, true]); // "3단계는 그대로"(면적값 유지)
+      expect(afterChange.allDone).toBe(false);
+    },
+  );
 });

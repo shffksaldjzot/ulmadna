@@ -20,17 +20,16 @@ import type { ReactNode } from 'react';
  * - valid: 지금 폼 값이 "이 단계 기준으로 유효한지". touched와 별개로 순수 값 검증만 한다
  *   (사용자가 손을 안 대도 true일 수 있다 — 기본값이 이미 유효한 경우. 그래서 실제 "완료"
  *   판정은 valid && touched 둘 다 있어야 하고, 그건 useFlowSteps가 계산해 준다)
- * - summary: 완료 줄(한 줄로 접혔을 때)에 보여줄 값 텍스트. 없으면 완료 줄에 값을 안 보여준다
- * - content: 현재 단계로 펼쳐졌을 때 그릴 입력 내용 (기존 카드 컴포넌트를 그대로 넣는다)
- * - keepOpen: true면(각 흐름의 마지막 단계) 완료돼도 접지 않고 계속 펼쳐 둔다
+ * - content: 단계 안에 그릴 입력 내용(기존 카드 컴포넌트를 그대로 넣는다). 2026-09-27
+ *   형아 결정(끝낸 단계를 접지 않기)으로 이 내용은 "지금 할 단계"뿐 아니라 "끝낸 단계"로
+ *   바뀐 뒤에도 계속 펼쳐진 채 보인다 — summary(완료 줄 요약 글)·keepOpen(마지막 단계만
+ *   안 접기) 개념은 이제 모든 단계가 똑같이 "안 접힌다"라서 필요 없어져 삭제했다.
  */
 export interface FlowStepDef {
   key: string;
   title: string;
   valid: boolean;
-  summary?: string;
   content: ReactNode;
-  keepOpen?: boolean;
 }
 
 /** 조정 칩 한 묶음 (예: "범위" 라벨 + 벽/천장 칩 2개) */
