@@ -65,6 +65,19 @@ export interface AreaInputProps {
   /** 라벨 아래 캡션 1줄(설명글 최소화 원칙 — 이 부품이 스스로 설명문을 더 만들지 않는다) */
   caption?: string;
   placeholder?: string;
+  /**
+   * 2026-09-27 지시서(계산기 단계 흐름 개선) 3-8절 + 검수 지적 8번 — 도배 계산기의 면적
+   * 칩만 격자로 가지런히 놓는다. 기본 false(기존 flex-wrap 그대로) — 바닥재·미장은 이 prop을
+   * 안 넘기므로 모습이 하나도 안 바뀐다. true면 모바일 3열(칩 폭을 칸에 맞춰 같게), 화면이
+   * 380px보다 좁으면(360px 등) 2열로 줄어든다. 칩 글자가 넘치지 않게 글자 크기를 t-sub(13px)로
+   * 줄인다(두 줄로 감싸는 대신).
+   */
+  chipGrid?: boolean;
+  /**
+   * 엔터를 치면(값이 유효할 때) 불러 준다 — 단계 완료 처리용(지시서 3-6절, 검수 지적 8번).
+   * NumberField의 onEnterComplete를 그대로 통과시킨다. 안 넘기면 기존과 동일하다.
+   */
+  onEnterComplete?: () => void;
 }
 
 export default function AreaInput({
@@ -78,6 +91,8 @@ export default function AreaInput({
   caption,
   placeholder,
   hideUnitToggle = false,
+  chipGrid = false,
+  onEnterComplete,
 }: AreaInputProps) {
   // 칩 목록 — supply 모드는 평/㎡ 기본 칩이 있고, work·exclusive는 호출한 쪽이 넘겨준다
   const defaultChips = mode === 'supply' ? (unit === '평' ? SUPPLY_PYEONG_CHIPS : EXCLUSIVE_SQM_CHIPS) : undefined;
@@ -130,11 +145,21 @@ export default function AreaInput({
       )}
       {caption && <p className="text-[13px] text-v1-text-secondary">{caption}</p>}
 
-      {/* 칩 — 눌러서 바로 값 채우기 */}
+      {/* 칩 — 눌러서 바로 값 채우기.
+          chipGrid=true(도배 전용): 모바일 3열 격자, 360px처럼 좁으면 2열로. 칩이 칸을 꽉
+          채우도록 w-full, 글자는 두 줄로 안 넘어가게 t-sub 크기(13px, 인라인 스타일로 강제
+          — Chip 자체의 md 글자 크기 클래스보다 인라인 스타일이 항상 우선한다).
+          chipGrid=false(기본, 바닥재·미장): 예전 그대로 flex-wrap. */}
       {chipList.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className={chipGrid ? 'grid grid-cols-2 min-[380px]:grid-cols-3 gap-2' : 'flex flex-wrap gap-2'}>
           {chipList.map((n) => (
-            <Chip key={n} selected={value === n} onClick={() => onValueChange(n)}>
+            <Chip
+              key={n}
+              selected={value === n}
+              onClick={() => onValueChange(n)}
+              className={chipGrid ? 'w-full justify-center' : undefined}
+              style={chipGrid ? { fontSize: '13px' } : undefined}
+            >
               {chipLabel(n)}
             </Chip>
           ))}
@@ -149,6 +174,7 @@ export default function AreaInput({
         placeholder={placeholder ?? `면적을 입력하세요(${unit})`}
         aria-label="면적 직접 입력"
         className="w-full"
+        onEnterComplete={onEnterComplete}
       />
       {convCaption && <p className="text-[13px] text-v1-text-disabled tabular-nums">{convCaption}</p>}
     </>

@@ -29,6 +29,11 @@ export interface QuickAnswerProps {
   /** 전용면적 직접 입력값(areaUnit === '㎡'일 때) */
   exclusiveSqm: number | '';
   onExclusiveSqmChange: (v: number | '') => void;
+  /**
+   * 숫자 칸에서 엔터를 쳤을 때(값이 유효할 때만) 불러 준다 — 면적 단계를 완료 처리하는 데
+   * 쓴다(지시서 3-6절, 2026-09-27 검수 지적 8번). 안 주면 그냥 안 부른다.
+   */
+  onEnterComplete?: () => void;
 }
 
 export default function QuickAnswer({
@@ -38,6 +43,7 @@ export default function QuickAnswer({
   onAreaUnitChange,
   exclusiveSqm,
   onExclusiveSqmChange,
+  onEnterComplete,
 }: QuickAnswerProps) {
   // 직접 입력한 값이 서버가 거부하는 범위면 미리 알려준다(결과 카드의 가정 줄과는
   // 다른, 이 입력칸 고유의 안내라 중복이 아니다)
@@ -54,6 +60,9 @@ export default function QuickAnswer({
         onUnitChange={onAreaUnitChange}
         value={areaUnit === '㎡' ? exclusiveSqm : pyeong}
         onValueChange={(v) => (areaUnit === '㎡' ? onExclusiveSqmChange(v) : onPyeongChange(v))}
+        // 도배 계산기 전용 격자 배치 + 엔터 완료(바닥재·미장은 이 두 prop을 안 넘겨서 그대로다)
+        chipGrid
+        onEnterComplete={onEnterComplete}
       />
       {(pyeongTooSmall || sqmTooSmall) && (
         <p className="t-sub text-ink-2">{pyeongTooSmall ? '5평부터 계산해요' : `${MIN_EXCLUSIVE_SQM}㎡부터 계산해요`}</p>

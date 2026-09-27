@@ -46,7 +46,7 @@ import PreciseSection from './PreciseSection';
 import PaperPicker from './PaperPicker';
 import ConditionChips from './ConditionChips';
 import ResultPanel from './ResultPanel';
-import { describeWallpaperAssumptions } from './assumptionText';
+import { describeWallpaperBottomBarAssumption } from './assumptionText';
 import FlowShell from '../_components/flow/FlowShell';
 import AdjustChips from '../_components/flow/AdjustChips';
 import BottomBar from '../_components/flow/BottomBar';
@@ -189,14 +189,15 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
     touched: { area: touchedFlags[2], bay: bayTouched, scope: scopeTouched },
   });
 
-  // 2단계(제품) 완료 요약 한 줄 — "합지 · GNI 개나리 스토리" / "합지 · 아직 안 정했어요" 등
+  // 2단계(제품) 완료 요약 한 줄 — 2026-09-27 검수 지적 6번: 바로 위 줄(1단계)에 이미 종류가
+  // 나와 있어서 "합지 · " 접두어는 빼고 제품 값만 쓴다. 안 골랐으면 시트 안 문구("아직 안
+  // 정했어요")보다 더 짧고 값스러운 "제품 미정"으로 바꿨다(시트 안 그 줄 문구는 안 바꿈).
   const selectedProductOption = form.productCode ? products.find((p) => p.code === form.productCode) : undefined;
-  const productLabel = selectedProductOption
+  const step1Summary = selectedProductOption
     ? `${selectedProductOption.brand} ${selectedProductOption.name}`
     : form.product
       ? '직접 입력'
-      : '아직 안 정했어요';
-  const step1Summary = `${form.paperType} · ${productLabel}`;
+      : '제품 미정';
 
   /** 폼 상태를 바꾸면서 동시에 "면적/실측 단계를 손댔다"고 표시하는 도우미(3단계 전용) */
   function patchAreaStep(p: Partial<WallpaperFormState>) {
@@ -275,6 +276,7 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
             onAreaUnitChange={(v) => patchAreaStep({ areaUnit: v })}
             exclusiveSqm={form.exclusiveSqm ?? ''}
             onExclusiveSqmChange={(v) => patchAreaStep({ exclusiveSqm: v === '' ? undefined : v })}
+            onEnterComplete={() => touch(2)}
           />
         ) : (
           <PreciseSection
@@ -408,7 +410,7 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
         stepCount={steps.length}
         stepTitle={currentStepTitle}
         amountText={range ? formatManRange(range.min, range.max) : undefined}
-        assumedNote={describeWallpaperAssumptions(assumed) ?? undefined}
+        assumedNote={describeWallpaperBottomBarAssumption(assumed) ?? undefined}
         allDone={allDone}
         calculating={loading || stale}
         failed={bottomFailed}

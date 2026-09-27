@@ -75,6 +75,22 @@ function formatRollPrice(won: number): string {
   return `${text}만/롤`;
 }
 
+/** 만 단위 숫자 하나를 문자열로("2.6" 또는 "3") — formatRollPriceRange 전용 도우미 */
+function manText(won: number): string {
+  const man = Math.round((won / 10000) * 10) / 10;
+  return Number.isInteger(man) ? String(man) : man.toFixed(1);
+}
+
+/**
+ * "아직 안 정했어요" 줄에 붙일 가격대 — "0.4만~2.6만/롤"(최저=최고면 "2.6만/롤" 하나만).
+ * 이미 화면에 내려온 제품 목록의 값만 쓰고, 서버는 새로 안 부른다(2026-09-27 검수 지적 11번).
+ */
+function formatRollPriceRange(minWon: number, maxWon: number): string {
+  const min = manText(minWon);
+  const max = manText(maxWon);
+  return min === max ? `${min}만/롤` : `${min}만~${max}만/롤`;
+}
+
 /** 바깥에서 받은 직접 입력 값 → 화면 칸 네 개 */
 function toFields(product: CustomProduct | undefined): CustomFields {
   return {
@@ -187,16 +203,33 @@ export default function PaperPicker({
 
   // 고른 종류 중 손님에게 보여도 되는 제품만 남긴다(계산 담당의 isShowableWallpaperProduct와
   // 같은 규칙 — 목록과 서버 "종류 전체 범위" 계산이 같은 제품 집합을 봐야 한다)
-  // 정렬은 브랜드순(영문 브랜드 GNI·LX 먼저, 그다음 가나다) → 같은 브랜드 안에서는 싼 것부터
+  // 2026-09-27 검수 지적 10번: 방 전용 소폭(53cm) 제품이 광폭 제품 사이에 브랜드순으로
+  // 섞여 있어서 헷갈렸다 — 광폭(거실·일반용)을 먼저, 소폭(방 전용)은 뒤로 묶는다. 각 묶음
+  // 안에서는 원래 정렬(브랜드순 → 같은 브랜드면 싼 것부터)을 그대로 유지한다.
   const list = products
     .filter((p) => p.kind === paperType && isShowableWallpaperProduct(p))
-    .sort((a, b) => a.brand.localeCompare(b.brand, 'en') || (a.price as number) - (b.price as number));
+    .sort((a, b) => {
+      const aNarrow = (a.widthCm ?? 0) > 0 && (a.widthCm as number) <= 60 ? 1 : 0;
+      const bNarrow = (b.widthCm ?? 0) > 0 && (b.widthCm as number) <= 60 ? 1 : 0;
+      if (aNarrow !== bNarrow) return aNarrow - bNarrow;
+      return a.brand.localeCompare(b.brand, 'en') || (a.price as number) - (b.price as number);
+    });
 
   const items: PickerItem[] = list.map((p) => ({
     code: p.code,
     title: `${p.brand} ${p.name}`,
     priceLabel: formatRollPrice(p.price as number),
   }));
+
+  // "아직 안 정했어요" 줄 오른쪽에 붙일 그 종류 전체 가격대 — 이미 화면에 내려온 제품
+  // 목록(list)의 최저~최고가만 쓴다(서버를 새로 부르지 않는다, 검수 지적 11번)
+  const undecidedPriceLabel =
+    list.length > 0
+      ? formatRollPriceRange(
+          Math.min(...list.map((p) => p.price as number)),
+          Math.max(...list.map((p) => p.price as number)),
+        )
+      : undefined;
 
   // 시트 안에서 강조 표시할 줄 — 직접 입력 폼이 펼쳐져 있으면(아직 값을 다 안 채웠어도) 그 줄을 강조한다
   const selectedCode = customFormOpen
@@ -236,6 +269,7 @@ export default function PaperPicker({
         items={items}
         selectedCode={selectedCode}
         onSelect={onSheetSelect}
+        undecidedPriceLabel={undecidedPriceLabel}
         customForm={
           <>
             <span className="t-sub text-ink-2">롤당 가격</span>

@@ -103,13 +103,6 @@ export default function ResultPanel({
   }
 
   const { quantity, submaterials, cost } = result;
-  // 로스 근거 라벨: 실제/추정/면적 기준으로 문구가 달라진다(설계 정본 카드1 규칙)
-  const lossLabel =
-    quantity.lossMode === '실제'
-      ? `실제 로스 ${quantity.lossPct}%`
-      : quantity.lossMode === '면적'
-        ? `면적 기준 로스 ${quantity.lossPct}%`
-        : `추정 로스 ${quantity.lossPct}%`;
 
   // 큰 숫자는 훅이 계산해 준 범위(범위가 없으면 이 결과 자체의 min~max)를 쓴다.
   const bigRange = range ?? { min: cost.min, max: cost.max };
@@ -150,30 +143,48 @@ export default function ResultPanel({
     <>
       {error && <p className="text-[13px] text-danger mb-2">마지막 계산에 실패해 이전 값이에요</p>}
       <Card className={`transition-opacity duration-150 ${dim ? 'opacity-60' : ''}`}>
-        {/* 1. 금액 범위(가장 큰 숫자) + 추정 표시 + 중간값 한 줄 — 지시서 3-13절 순서 1번 */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em] whitespace-nowrap">
-            {formatManRange(bigRange.min, bigRange.max)}
-          </div>
+        {/* 1. 금액 범위(가장 큰 숫자) + 중간값 + "추정" 표시 한 줄 — 지시서 3-13절 순서 1번.
+            2026-09-27 검수 지적 9번: "추정" 배지가 360px에서 금액 아래로 밀려 떨어지던 문제 —
+            배지를 금액 줄이 아니라 "중간값" 줄 오른쪽 끝에 고정해 폭에 상관없이 자리를 통일했다. */}
+        <div className="text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em] whitespace-nowrap">
+          {formatManRange(bigRange.min, bigRange.max)}
+        </div>
+        <p className="t-body font-semibold text-ink-2 tabular-nums flex items-center gap-2">
+          중간 {toMan(cost.mid).toLocaleString('ko-KR')}만원
           {cost.mode === '산식' && (
             <span className="text-[13px] font-semibold text-brown bg-v1-badge-gold-bg border border-gold rounded-[4px] px-[10px] py-[2px] whitespace-nowrap">
               추정
             </span>
           )}
-        </div>
-        <p className="t-body font-semibold text-ink-2 tabular-nums">중간 {toMan(cost.mid).toLocaleString('ko-KR')}만원</p>
-
-        {/* 2. 수량 한 줄 — 제품 미정이면 롤 수도 범위로("19~46롤") */}
-        <p className="t-body text-ink leading-[1.6] tabular-nums pt-2 border-t border-v1-line-2">
-          {quantity.rollsRange ? `${formatNum(quantity.rollsRange.min)}~${formatNum(quantity.rollsRange.max)}롤` : `${formatNum(quantity.rolls)}롤`}
-          {' · '}벽 {quantity.wallSqm}㎡ · 천장 {quantity.ceilingSqm}㎡ · {lossLabel}
         </p>
-        {/* 간단(평형/㎡) 모드일 때만 "34평 · 84㎡" 병기 */}
-        {quantity.inputMode === '평형' && describeAreaPair(form) && (
+
+        {/* 2. 수량 한 줄 — 제품 미정이면 롤 수도 범위로("19~46롤"), 최소=최대면 하나만("19롤").
+            2026-09-27 검수 지적 4·5번: 로스 문구는 뺐다(구성 보기에 따로 없어 그냥 삭제 —
+            서버 응답에 이미 있었다면 거기로 옮겼겠지만 지금은 없다). ㎡는 정수 반올림.
+            세 조각(롤 수·벽·천장)을 각각 span으로 나눠 flex-wrap 해서, 390px에서는 한 줄에
+            다 들어가고 360px처럼 좁아 줄바꿈될 때도 다음 줄이 가운뎃점으로 시작하지 않는다
+            (가운뎃점을 항상 "앞 조각 끝"에 붙여 뒀기 때문). */}
+        <p className="t-body text-ink tabular-nums pt-2 border-t border-v1-line-2 flex flex-wrap gap-x-1">
+          {[
+            quantity.rollsRange && quantity.rollsRange.min !== quantity.rollsRange.max
+              ? `${formatNum(quantity.rollsRange.min)}~${formatNum(quantity.rollsRange.max)}롤`
+              : `${formatNum(quantity.rollsRange ? quantity.rollsRange.min : quantity.rolls)}롤`,
+            `벽 ${Math.round(quantity.wallSqm)}㎡`,
+            `천장 ${Math.round(quantity.ceilingSqm)}㎡`,
+          ].map((chunk, i, arr) => (
+            <span key={i} className="whitespace-nowrap">
+              {chunk}
+              {i < arr.length - 1 ? ' ·' : ''}
+            </span>
+          ))}
+        </p>
+        {/* 간단(평형/㎡) 모드일 때만 "34평 · 84㎡" 병기 — 단 'area'가 가정이면 바로 아래 가정
+            줄의 "34평 가정"과 겹치는 정보라 이 줄은 그릴 필요가 없다(검수 지적 3번) */}
+        {quantity.inputMode === '평형' && !assumed.includes('area') && describeAreaPair(form) && (
           <p className="t-sub text-v1-text-disabled tabular-nums">{describeAreaPair(form)}</p>
         )}
 
-        {/* 3. 가정 줄 — 가정이 있을 때만("34평 가정 · 제품 미정" 등) */}
+        {/* 3. 가정 줄 — 가정이 있을 때만("34평 가정 · 제품 미정" 등, assumptionText.ts가 문구를 만든다) */}
         {assumedText && <p className="t-sub text-ink-2">{assumedText}</p>}
 
         {/* 4. 기준 줄 */}

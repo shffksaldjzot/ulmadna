@@ -25,7 +25,12 @@ export interface BottomBarProps {
   stepTitle: string;
   /** 화면에 보여줄 금액 범위 문자열(예: "246만~308만원"). 없으면 아직 결과가 없다는 뜻 */
   amountText?: string;
-  /** 가정이 남아 있을 때 금액 뒤에 붙이는 짧은 문구(예: "34평 가정"). 없으면 안 붙인다 */
+  /**
+   * 'area'가 가정일 때만 넘어오는 "34평 가정" 한 마디(assumptionText.ts의
+   * describeWallpaperBottomBarAssumption). 그 외 가정(제품 미정·실측 입력 중 등)은 결과
+   * 카드에서만 보여주고 하단 바에는 안 띄운다(2026-09-27 검수 지적 1번 — 자리가 좁다).
+   * 폭이 모자라면(360px 등) 아예 안 그린다(말줄임 아님) — CSS로 최소폭 기준을 둔다.
+   */
   assumedNote?: string;
   /** 전부 완료됐는지 — true면 왼쪽에서 "N/M ·" 접두어를 뗀다 */
   allDone: boolean;
@@ -70,7 +75,10 @@ export default function BottomBar({
               </span>
             )}
             <span className="t-body font-semibold text-accent truncate">{amountText}</span>
-            {assumedNote && <span className="t-sub text-ink-2 truncate flex-none">{assumedNote}</span>}
+            {/* "34평 가정" 한 마디로 줄인 뒤로는 360·390px 둘 다 자리가 충분해 보통은 보인다.
+                아주 좁은 화면(320px 미만, 폴더폰 등)에서만 통째로 숨긴다(말줄임 아님) —
+                지시서 "폭이 모자라면 아예 그리지 않는다"를 안전망으로 남겨 둔 것이다. */}
+            {assumedNote && <span className="hidden min-[320px]:inline t-sub text-ink-2 flex-none">{assumedNote}</span>}
           </span>
           <Button variant="primary" className="!h-11 !px-4 !text-[14px] flex-none" onClick={onDetail}>
             자세히

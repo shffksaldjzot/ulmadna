@@ -40,9 +40,23 @@ export interface ProductSheetProps {
   onSelect: (code: string) => void;
   /** "직접 입력"을 골랐을 때만 그 아래에 펼쳐 보여줄 입력 폼 */
   customForm?: ReactNode;
+  /**
+   * "아직 안 정했어요" 줄 오른쪽에 다른 줄과 같은 모양으로 붙일 가격대(예: "0.4만~2.6만/롤").
+   * 2026-09-27 검수 지적 11번 — 없으면(계산 못 했거나 목록이 비었으면) 그 자리를 비워 둔다.
+   */
+  undecidedPriceLabel?: string;
 }
 
-export default function ProductSheet({ open, onClose, title, items, selectedCode, onSelect, customForm }: ProductSheetProps) {
+export default function ProductSheet({
+  open,
+  onClose,
+  title,
+  items,
+  selectedCode,
+  onSelect,
+  customForm,
+  undecidedPriceLabel,
+}: ProductSheetProps) {
   // 시트가 열려 있는 동안 뒤 배경 스크롤 막기
   useEffect(() => {
     if (!open) return;
@@ -87,30 +101,39 @@ export default function ProductSheet({ open, onClose, title, items, selectedCode
         <span className="w-10 h-1 rounded-full bg-line self-center md:hidden" />
         <h3 className="t-section text-ink px-1 pt-2 pb-1">{title}</h3>
 
-        {/* 맨 위 줄 — "아직 안 정했어요": 골라도 단계는 완료된다(3-11절) */}
-        <SheetRow
-          selected={selectedCode === PRODUCT_SHEET_UNDECIDED}
-          onClick={() => onSelect(PRODUCT_SHEET_UNDECIDED)}
-          title="아직 안 정했어요"
-        />
-
-        {items.map((item) => (
+        {/* 줄 사이에 1px --line 구분선 — 2026-09-27 검수 지적 10번.
+            처음엔 Tailwind의 divide-y를 썼는데 버튼 기본 스타일(테두리 0 리셋)에 눌려
+            선이 실제로는 안 그려지는 걸 실측(getComputedStyle)으로 발견해, 각 줄에
+            직접 border-t를 주는 방식으로 바꿨다(맨 첫 줄만 위 선을 안 그린다). */}
+        <div className="flex flex-col">
+          {/* 맨 위 줄 — "아직 안 정했어요": 골라도 단계는 완료된다(3-11절). 오른쪽에 그 종류
+              전체 가격대를 다른 줄과 같은 모양으로 붙인다(검수 지적 11번) */}
           <SheetRow
-            key={item.code}
-            selected={selectedCode === item.code}
-            onClick={() => onSelect(item.code)}
-            title={item.title}
-            subtitle={item.subtitle}
-            priceLabel={item.priceLabel}
+            selected={selectedCode === PRODUCT_SHEET_UNDECIDED}
+            onClick={() => onSelect(PRODUCT_SHEET_UNDECIDED)}
+            title="아직 안 정했어요"
+            priceLabel={undecidedPriceLabel}
+            topDivider={false}
           />
-        ))}
 
-        {/* 맨 아래 줄 — 직접 입력. 고르면 그 아래 입력 폼(customForm)이 펼쳐진다 */}
-        <SheetRow
-          selected={selectedCode === PRODUCT_SHEET_CUSTOM}
-          onClick={() => onSelect(PRODUCT_SHEET_CUSTOM)}
-          title="직접 입력"
-        />
+          {items.map((item) => (
+            <SheetRow
+              key={item.code}
+              selected={selectedCode === item.code}
+              onClick={() => onSelect(item.code)}
+              title={item.title}
+              subtitle={item.subtitle}
+              priceLabel={item.priceLabel}
+            />
+          ))}
+
+          {/* 맨 아래 줄 — 직접 입력. 고르면 그 아래 입력 폼(customForm)이 펼쳐진다 */}
+          <SheetRow
+            selected={selectedCode === PRODUCT_SHEET_CUSTOM}
+            onClick={() => onSelect(PRODUCT_SHEET_CUSTOM)}
+            title="직접 입력"
+          />
+        </div>
         {selectedCode === PRODUCT_SHEET_CUSTOM && customForm && (
           <div className="px-1 pt-2 flex flex-col gap-2">{customForm}</div>
         )}
@@ -126,18 +149,24 @@ function SheetRow({
   title,
   subtitle,
   priceLabel,
+  topDivider = true,
 }: {
   selected: boolean;
   onClick: () => void;
   title: string;
   subtitle?: string;
   priceLabel?: string;
+  /** 위쪽에 1px --line 구분선을 그릴지 — 맨 첫 줄만 false로 넘긴다 */
+  topDivider?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="w-full min-h-[56px] flex items-center gap-3 px-1 py-2 text-left rounded-[8px] active:bg-bg"
+      className={
+        'w-full min-h-[56px] flex items-center gap-3 px-1 py-2 text-left rounded-[8px] active:bg-bg ' +
+        (topDivider ? 'border-t border-line' : '')
+      }
     >
       <span className="flex-1 min-w-0 flex flex-col">
         <span className="t-body font-semibold text-ink truncate">{title}</span>

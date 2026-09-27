@@ -42,13 +42,19 @@ export interface StepRowProps {
   keepOpen?: boolean;
   /** 완료 줄("바꾸기")을 눌렀을 때 — keepOpen 단계에는 안 쓴다 */
   onReopen?: () => void;
+  /**
+   * 바로 다음 단계가 지금 "카드"(테두리 있는 상자)로 보이고 있으면 true — 이때는 이 완료
+   * 줄 밑에 구분선을 안 그린다(카드 자기 테두리가 이미 있어서 선이 두 개로 겹쳐 보인다,
+   * 2026-09-27 검수 지적 7번). FlowShell이 이웃 단계 상태를 보고 계산해 넘겨준다.
+   */
+  hideDivider?: boolean;
   children: ReactNode;
 }
 
 // forwardRef: FlowShell이 "이 단계가 지금 화면에 다 보이는지"를 확인해 딱 필요할 때만
 // 스크롤시켜야 해서(3-5절), 부르는 쪽이 이 부품의 맨 바깥 div를 직접 참조할 수 있게 한다.
 const StepRow = forwardRef<HTMLDivElement, StepRowProps>(function StepRow(
-  { index, activeIndex, title, summary, complete, keepOpen = false, onReopen, children },
+  { index, activeIndex, title, summary, complete, keepOpen = false, onReopen, hideDivider = false, children },
   forwardedRef,
 ) {
   // 2026-09-27 지시서 4-2절 수리: "바꾸기로 다른 단계를 다시 열어도 이미 끝난 다른 단계는
@@ -121,7 +127,7 @@ const StepRow = forwardRef<HTMLDivElement, StepRowProps>(function StepRow(
           ? `gap-3 rounded-[16px] border bg-surface p-4 ${justOpened ? 'flow-step-enter' : ''} ` +
             (borderIsMuted ? 'border-line' : 'border-accent')
           : state === 'done'
-            ? `border-b border-line min-h-[48px] ${justDone ? 'flow-done-enter' : ''}`
+            ? `min-h-[48px] ${hideDivider ? '' : 'border-b border-line'} ${justDone ? 'flow-done-enter' : ''}`
             : 'min-h-[48px] opacity-45')
       }
     >

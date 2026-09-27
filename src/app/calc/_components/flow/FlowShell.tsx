@@ -50,8 +50,23 @@ export default function FlowShell({ steps, activeIndex, completeFlags, reopen }:
     node.scrollIntoView({ block: 'nearest', behavior: reduceMotion ? 'auto' : 'smooth' });
   }, [activeIndex]);
 
+  /**
+   * i+1번째 단계가 지금 "카드처럼"(테두리 있는 상자) 보이는지 — StepRow 안의 isCardLike
+   * 판정과 같은 규칙을 여기서도 계산한다(2026-09-27 검수 지적 7번: 바로 아래가 카드면 그
+   * 위 완료 줄의 구분선을 그리지 않으려고). keepOpen 단계는 "차례가 왔거나(현재) 이미
+   * 끝났으면" 계속 카드로 보인다 — StepRow.tsx의 state 계산과 반드시 같은 조건이어야 한다.
+   */
+  function isCardLikeAt(index: number): boolean {
+    if (index < 0 || index >= steps.length) return false;
+    const step = steps[index];
+    if (step.keepOpen) return index === activeIndex || (completeFlags[index] ?? false);
+    return index === activeIndex;
+  }
+
   return (
-    <div className="flex flex-col">
+    // gap-2(8px): 단계 사이 세로 간격을 지시서 3-2절대로 8px로 통일한다(예전엔 간격이 0이라
+    // 완료 줄 밑줄이 바로 아래 카드 윗선과 거의 붙어 보였다 — 검수 지적 7번)
+    <div className="flex flex-col gap-2">
       {steps.map((step, i) => (
         <StepRow
           key={step.key}
@@ -63,6 +78,7 @@ export default function FlowShell({ steps, activeIndex, completeFlags, reopen }:
           complete={completeFlags[i] ?? false}
           keepOpen={step.keepOpen}
           onReopen={() => reopen(i)}
+          hideDivider={isCardLikeAt(i + 1)}
         >
           {step.content}
         </StepRow>
