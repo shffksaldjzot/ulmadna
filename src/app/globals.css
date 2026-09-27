@@ -119,3 +119,43 @@ body {
   .step-flow-enter { animation: none; border-color: var(--accent); }
   .step-flow-enter .step-flow-content > :first-child { animation: none; }
 }
+
+/* ── 계산기 "단계 흐름 2판"(flow/*) 전용 움직임 (2026-09-27 지시서) ──
+   위의 옛 step-flow-* 애니메이션(흔들림·테두리 깜빡임 포함)은 바닥재·미장이 아직 쓰는
+   옛 부품(StepFlow.tsx) 전용이라 손대지 않는다. 새 부품(flow/StepRow.tsx)은 아래 두 개만
+   쓴다 — 흔들림도 테두리 깜빡임도 없다(지시서 3-4절: 둘 다 삭제 대상).
+   1) flow-step-enter — 단계가 "현재"로 막 열렸을 때 4px 아래에서 떠오르며 나타난다(220ms)
+   2) flow-done-enter — 단계가 방금 "완료 줄"로 바뀌었을 때 투명도만 0→1(160ms) */
+@keyframes flow-step-rise {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes flow-done-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.flow-step-enter { animation: flow-step-rise 220ms ease-out both; }
+.flow-done-enter { animation: flow-done-fade 160ms ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .flow-step-enter { animation: none; }
+  .flow-done-enter { animation: none; }
+}
+
+/* ── 제품 목록 시트(flow/ProductSheet.tsx) 등장 애니메이션 ──
+   모바일은 아래에서 살짝 올라오며 나타나고, 데스크톱(가운데 창)은 살짝 커지며 나타난다. */
+@keyframes flow-sheet-up {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes flow-sheet-fade {
+  from { transform: scale(0.98); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.flow-sheet-in { animation: flow-sheet-up 220ms ease-out both; }
+@media (min-width: 768px) {
+  /* 데스크톱(가운데 창)에서는 아래에서 올라오는 대신 살짝 커지며 나타난다 */
+  .flow-sheet-in { animation: flow-sheet-fade 180ms ease-out both; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flow-sheet-in { animation: none; }
+}
