@@ -1,21 +1,23 @@
 // ──────────────────────────────────────────────
 // v1 허브 — 바닥재 계산기 오케스트레이터 (클라이언트)
-// 도배 WallpaperCalculator.tsx를 그대로 본떠 만들었다.
 //
-//   맨 위에 [간단하게 계산하기 | 정확하게 계산하기] 세그먼트(form.view) + 캡션 1줄.
-//   카드 1(항상 첫 번째, 두 모드 공통) — 바닥재(MaterialPicker): 종류부터 고른다.
-//   카드 2(모드에 따라 QuickAnswer 또는 PreciseSection 중 하나만) — 평형 즉답 / 실측.
-//   오른쪽(PC)·아래(모바일)에 결과 패널, 모바일엔 하단 고정 요약 바.
+// 2026-09-27 지시서(계산기 단계 흐름 개선) 9장 적용 — 도배 WallpaperCalculator.tsx(1차
+// 작업)가 이미 새 공용 틀(flow/*)로 짠 방식을 그대로 옮겨 왔다. 새로 발명하지 않았다.
+//   · 좁혀가기: 자재 하나만 골라도 바로 결과가 뜬다. 안 고른 값은 계산 담당
+//     (useFlooringCalc)이 가정값(34평·자재 전체 범위·3베이 등)으로 채워 계산하고,
+//     "무엇을 가정했는지"를 assumed 목록으로 돌려준다.
+//   · 범위(전체·방만·거실주방)·베이는 단계에서 빼서 "조정 칩"(결과 위)으로 옮겼다 —
+//     단, 지시서 9-2절: 정확 모드는 조정 칩이 아예 없다(실측 방 목록이라 범위·베이가
+//     뜻이 없다).
+//   · 제품은 목록 드롭다운 대신 시트(ProductSheet)로 고른다.
+//   · 뒤로 가기·새로 고침 복원(flow/useFlowBackNav·flow/sessionPersist)을 새로 붙였다.
 //
-// 2026-09-16 튜토리얼식 단계 안내 도입 — 도배와 같은 방식(WallpaperCalculator 참고):
-//   처음 들어오면 ModePicker로 모드부터 고르게 하고, 고른 뒤엔 자재 → 제품 → 면적/범위
-//   3단계를 StepFlow로 순서대로 연다. 공유 링크(?d=)면 모드 선택을 건너뛴다.
-//
-// 이 파일이 폼 상태를 한 곳에서만 들고 있고, 자식은 전부 "값 + 바꾸는 함수"만 받는다
-// (자식이 직접 상태를 갖지 않는다).
+// 옛 부품(StepFlow.tsx·useStepFlow.ts)은 이 작업으로 미장이 아직 쓰고 있을 수 있어 손대지
+// 않는다 — 둘 다 쓰는 곳이 0이 되면 마지막에 지운다(지시서 9-5절).
 //
 // 작성일: 2026년 09월 10일
 // 튜토리얼식 단계 안내: 2026년 09월 16일
+// 단계 흐름 2판(좁혀가기·조정 칩·제품 시트·뒤로 가기·새로 고침 복원): 2026년 09월 27일 (지시서 9장)
 // ──────────────────────────────────────────────
 
 'use client';
@@ -23,8 +25,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import TopNav from '@/components/v1/TopNav';
-import Button from '@/components/v1/Button';
 import Segment from '@/components/v1/Segment';
+import Chip from '@/components/v1/Chip';
 import {
   DEFAULT_FLOORING_FORM,
   decodeFlooringForm,
@@ -33,7 +35,7 @@ import {
   type FlooringProductOption,
 } from '@/lib/v1/flooringQuery';
 import { useFlooringCalc } from '@/lib/v1/useFlooringCalc';
-import { formatManRange, formatNum } from '@/lib/v1/money';
+import { formatManRange } from '@/lib/v1/money';
 // GA4 — 계산기 화면 진입 이벤트(마운트 1번만)
 import { track } from '@/lib/analytics';
 import QuickAnswer from './QuickAnswer';
@@ -41,8 +43,14 @@ import PreciseSection from './PreciseSection';
 import MaterialPicker from './MaterialPicker';
 import ScopeChips from './ScopeChips';
 import ResultPanel from './ResultPanel';
-import StepFlow from '../_components/StepFlow';
-import { useStepFlow } from '../_components/useStepFlow';
+import { describeFlooringBottomBarAssumption } from '../_components/assumptionText';
+import FlowShell from '../_components/flow/FlowShell';
+import AdjustChips from '../_components/flow/AdjustChips';
+import BottomBar from '../_components/flow/BottomBar';
+import { useFlowSteps } from '../_components/flow/useFlowSteps';
+import { useFlowBackNav } from '../_components/flow/useFlowBackNav';
+import { loadSessionState, saveSessionState } from '../_components/flow/sessionPersist';
+import type { FlowStepDef } from '../_components/flow/types';
 import ModePicker, { type CalcViewMode } from '../_components/ModePicker';
 
 interface FlooringCalculatorProps {
@@ -50,33 +58,132 @@ interface FlooringCalculatorProps {
   products: FlooringProductOption[];
 }
 
-/** 화면 모드 세그먼트 옵션 — 값은 폼 상태 view와 그대로 맞춘다 */
+/** 새로 고침 복원(sessionStorage) 열쇠·판 번호 — 모양이 바뀌면 SESSION_VERSION을 올려서 옛 값을 버린다 */
+const SESSION_KEY = 'calc:flooring:v1';
+const SESSION_VERSION = 1;
+
+/** 뒤로 가기 스택에서 "이 계산기가 쌓은 몫"을 구분하는 값 */
+const CALC_ID = 'flooring';
+
+/** 세션에 저장하는 값의 모양 */
+interface FlooringSession {
+  form: FlooringFormState;
+  touched: boolean[];
+  userPickedMode: boolean;
+  bayTouched: boolean;
+  scopeTouched: boolean;
+}
+
+/** 정확 모드 방 하나(FlooringPreciseRoom)의 모양 검사 — w·d 둘 다 숫자여야 한다 */
+function isValidFlooringPreciseRoom(v: unknown): boolean {
+  if (!v || typeof v !== 'object') return false;
+  const r = v as Record<string, unknown>;
+  return typeof r.w === 'number' && typeof r.d === 'number';
+}
+
+/**
+ * 세션에 저장된 폼 상태(FlooringFormState) 자체의 모양을 검사한다(도배 검사관 지적 3번과
+ * 같은 이유 — 폼 안쪽 칸 하나 때문에 화면이 통째로 멈추는 사고를 막는다). 하나라도
+ * 어긋나면 세션 전체를 버리고 기본 상태로 시작한다.
+ */
+function isValidFlooringFormState(v: unknown): v is FlooringFormState {
+  if (!v || typeof v !== 'object') return false;
+  const f = v as Record<string, unknown>;
+
+  if (f.view !== undefined && f.view !== 'simple' && f.view !== 'precise') return false;
+  if (f.kind !== undefined && f.kind !== '마루' && f.kind !== '장판' && f.kind !== '데코타일') return false;
+  if (f.productCode !== undefined && typeof f.productCode !== 'string') return false;
+  if (f.product !== undefined) {
+    if (!f.product || typeof f.product !== 'object') return false;
+    const p = f.product as Record<string, unknown>;
+    const nums: (keyof typeof p)[] = ['pricePerBox', 'sqmPerBox', 'widthMm', 'lengthMm', 'pricePerM', 'rollWidthM'];
+    for (const key of nums) {
+      if (p[key] !== undefined && typeof p[key] !== 'number') return false;
+    }
+  }
+  if (f.pyeong !== undefined && typeof f.pyeong !== 'number') return false;
+  if (f.bay !== undefined && f.bay !== 2 && f.bay !== 3 && f.bay !== 4) return false;
+  if (f.areaUnit !== undefined && f.areaUnit !== '평' && f.areaUnit !== '㎡') return false;
+  if (f.exclusiveSqm !== undefined && typeof f.exclusiveSqm !== 'number') return false;
+  if (f.scope !== undefined && f.scope !== '전체' && f.scope !== '방만' && f.scope !== '거실주방') return false;
+  if (f.unit !== undefined && f.unit !== 'mm' && f.unit !== 'm') return false;
+  if (f.preciseRooms !== undefined && (!Array.isArray(f.preciseRooms) || !f.preciseRooms.every(isValidFlooringPreciseRoom))) {
+    return false;
+  }
+  if (f.removeOld !== undefined && typeof f.removeOld !== 'boolean') return false;
+  if (f.baseboard !== undefined && typeof f.baseboard !== 'boolean') return false;
+  return true;
+}
+
+function isValidFlooringSession(v: unknown): v is FlooringSession {
+  if (!v || typeof v !== 'object') return false;
+  const s = v as Record<string, unknown>;
+  if (!isValidFlooringFormState(s.form)) return false;
+  if (!Array.isArray(s.touched) || !s.touched.every((t) => typeof t === 'boolean')) return false;
+  if (typeof s.userPickedMode !== 'boolean') return false;
+  if (typeof s.bayTouched !== 'boolean') return false;
+  if (typeof s.scopeTouched !== 'boolean') return false;
+  return true;
+}
+
+/** 제목 줄 모드 전환 옵션 — 값은 폼 상태 view와 그대로 맞춘다 */
 const VIEW_OPTIONS = [
-  { value: 'simple' as const, label: '간단하게 계산하기' },
-  { value: 'precise' as const, label: '정확하게 계산하기' },
+  { value: 'simple' as const, label: '간단하게' },
+  { value: 'precise' as const, label: '정확하게' },
 ];
 
 export default function FlooringCalculator({ products }: FlooringCalculatorProps) {
   const searchParams = useSearchParams();
+  const hasSharedLink = !!searchParams.get('d');
 
-  // 공유 링크(?d=...)로 들어온 경우 이전 조건을 복원하고, 없으면 즉답 기본값
-  const initial = useMemo<FlooringFormState>(
-    () => decodeFlooringForm(searchParams.get('d')) ?? DEFAULT_FLOORING_FORM,
-    [searchParams],
-  );
+  // 공유 링크(?d=)가 있으면 그 값이 최우선. 없으면 세션에 남은 값을 복원하고, 그마저
+  // 없으면 기본값(간단 모드, 자재 미선택)으로 시작한다. 복원 도중 무엇이 터지더라도
+  // (try/catch) 계산기 화면 자체는 반드시 뜨게 한다.
+  const restored = useMemo<FlooringSession | null>(() => {
+    if (hasSharedLink) return null;
+    try {
+      const loaded = loadSessionState<unknown>(SESSION_KEY, SESSION_VERSION);
+      return isValidFlooringSession(loaded) ? loaded : null;
+    } catch {
+      return null;
+    }
+  }, [hasSharedLink]);
+
+  const initial = useMemo<FlooringFormState>(() => {
+    const shared = decodeFlooringForm(searchParams.get('d'));
+    return shared ?? restored?.form ?? DEFAULT_FLOORING_FORM;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   // 폼 상태는 이 컴포넌트 한 곳에서만 들고 있는다. 자식은 값과 onChange만 받는다.
   const [form, setForm] = useState<FlooringFormState>(initial);
-  // 모바일 하단 고정 요약 바의 "결과 보기"가 스크롤해서 이동할 대상
+  // 모바일 하단 고정 요약 바의 "자세히"가 스크롤해서 이동할 대상
   const resultRef = useRef<HTMLDivElement>(null);
 
-  // 튜토리얼식 단계 안내 — 공유 링크면 모드 선택 화면을 건너뛴다(도배와 같은 규칙)
-  const hasSharedLink = !!searchParams.get('d');
-  const [userPickedMode, setUserPickedMode] = useState(false);
+  // 모드(간단/정확)를 이미 골랐는지 — 공유 링크나 세션 복원 값이 있으면 처음부터 true
+  const [userPickedMode, setUserPickedMode] = useState(hasSharedLink || !!restored?.userPickedMode);
   const modeChosen = hasSharedLink || userPickedMode;
 
-  // 폼이 바뀔 때마다 하나씩 올라가는 숫자 — useStepFlow가 "방금 뭔가 골랐다"를 알아채는 용도
-  const [formVersion, setFormVersion] = useState(0);
+  // 조정 칩(베이·범위)을 사용자가 직접 건드렸는지 — 계산 담당의 touched.bay·touched.scope로 넘긴다.
+  const [bayTouched, setBayTouched] = useState(hasSharedLink || !!restored?.bayTouched);
+  const [scopeTouched, setScopeTouched] = useState(hasSharedLink || !!restored?.scopeTouched);
+
+  // 제품 목록 시트 열림 여부 — 지휘관 지시(2026-09-27): 이 상태는 시트를 그리는 부품
+  // (MaterialPicker)이 아니라 여기(맨 위 계산기)가 들고 있다. 모드 카드 화면으로 돌아가면
+  // MaterialPicker는 화면에서 사라지지만 이 컴포넌트(FlooringCalculator) 자체는 계속
+  // 마운트된 채라, 뒤로 가기 스택이 쥔 "시트 다시 열기" 콜백이 죽은 컴포넌트 인스턴스를
+  // 가리키는 사고(도배에서 실제로 난 결함)가 안 생긴다.
+  //
+  // ⚠️ 임시 연결(2026-09-27 지휘관 2차 전달): 도배 쪽 공용 틀에 이 상태의 뒤로 가기
+  // 등록을 전담하는 새 훅 useSheetBackNav(flow/useSheetBackNav.ts)가 생겼는데, 이
+  // 작업 폴더에는 아직 없다(다른 브랜치 커밋 36cfcf3). 지금은 옛 방식대로 MaterialPicker
+  // 안의 ProductSheet가 calcId="flooring"·onReopen prop을 받아 직접 뒤로 가기 스택에
+  // 등록한다(아래 MaterialPicker 호출부 참고). 지휘관이 도배 쪽 커밋을 이 브랜치로
+  // 가져온 뒤에는 여기서 바로
+  //   useSheetBackNav({ calcId: CALC_ID, open: sheetOpen, onClose: () => setSheetOpen(false), onReopen: () => setSheetOpen(true) })
+  // 를 부르고, MaterialPicker에 넘기던 calcId·onReopen 관련 배선은 걷어낼 것.
+  const [sheetOpen, setSheetOpen] = useState(false);
+
 
   // GA4 — 바닥재 계산기 화면에 들어왔다는 이벤트를 딱 1번만 보낸다(마운트 시점)
   useEffect(() => {
@@ -86,77 +193,199 @@ export default function FlooringCalculator({ products }: FlooringCalculatorProps
   /** 폼 상태 부분 갱신 도우미 — 자식 컴포넌트는 항상 이 함수로만 상태를 바꾼다 */
   function patch(p: Partial<FlooringFormState>) {
     setForm((prev) => ({ ...prev, ...p }));
-    setFormVersion((v) => v + 1);
   }
 
   /**
    * 바닥재 종류가 바뀌는 유일한 통로. 종류만 바꾸고 이전에 고른 제품(productCode·product)을
-   * 안 지우면 화면엔 새 종류가 선택된 것처럼 보여도 계산은 옛 제품 규격·가격으로 되는 버그가
-   * 된다(도배 setPaperType과 같은 이유). 바닥재 카드(MaterialPicker)는 이 함수 하나만 쓴다.
+   * 안 지우면 화면엔 새 종류가 선택된 것처럼 보여도 계산은 옛 제품 규격·가격으로 되는
+   * 치명 버그였다(도배 setPaperType과 같은 이유). 종류가 "실제로" 바뀔 때만 제품(1단계)을
+   * 지우고 그 단계 손댐 표시도 되돌린다(resetTouched).
    */
   function setKind(v: FlooringKind | undefined) {
+    if (v === form.kind) return; // 값이 안 바뀌었으면 할 일이 없다
     patch({ kind: v, productCode: undefined, product: undefined });
     touch(0);
+    resetTouched([1]);
   }
 
   const view = form.view ?? 'simple';
-  const { result, range, loading, error, stale } = useFlooringCalc(form, products);
 
-  // 결과가 없을 때(!result) 즉답 자리·결과 패널·모바일 하단 바가 다 같이 쓰는 한 줄.
-  // 원인 우선순위: 종류 미선택 > (간단 모드) 제품 미선택 > (모드별) 평형 없음 / 치수 없음.
-  const hasProduct = !!form.productCode || !!form.product;
-  const emptyMessage = !form.kind
-    ? '바닥재를 고르면 바로 나와요'
-    : view === 'precise'
-      ? '치수를 넣으면 나와요'
-      : !hasProduct
-        ? '제품을 고르면 바로 나와요'
-        : '평형을 고르면 바로 나와요';
+  // ── 1단계(자재)·2단계(제품)·3단계(면적/실측) 값 유효 여부(dataComplete) ──
+  // 2단계(제품)는 무엇을 골랐든 항상 유효하다("아직 안 정했어요"도 정당한 선택) — 실제
+  // "완료" 여부는 touched로만 갈린다(도배와 같은 규칙).
+  const step0Valid = !!form.kind;
+  const step1Valid = true;
+  const step2Valid =
+    view === 'simple'
+      ? form.areaUnit === '㎡'
+        ? !!form.exclusiveSqm
+        : !!form.pyeong
+      : (form.preciseRooms ?? []).some((r) => r.w > 0 && r.d > 0);
 
-  // ── 튜토리얼식 단계 안내: 3단계(자재 → 제품 → 면적/범위) 값 유효 여부(dataComplete) ──
-  // 도배와 같은 규칙 — 제품 단계는 "간단하게"만 필수(정확하게는 종류만 고르면 값은 유효한 것으로 본다).
-  // 2026-09-16 보완: 기본값 때문에 저절로 완료되지 않도록 useStepFlow가 touched와 함께 가린다.
-  const step0DataComplete = !!form.kind;
-  const step1DataComplete = step0DataComplete && (view === 'precise' || hasProduct);
-  const step2DataComplete = !!result;
-  const { activeIndex, allDone, completeFlags, reopen, touch } = useStepFlow(
-    [step0DataComplete, step1DataComplete, step2DataComplete],
-    formVersion,
-    hasSharedLink,
-  );
-  const [step0Complete, step1Complete, step2Complete] = completeFlags;
+  const { activeIndex, allDone, completeFlags, touchedFlags, touch, resetTouched } = useFlowSteps({
+    dataComplete: [step0Valid, step1Valid, step2Valid],
+    allTouched: hasSharedLink,
+    initialTouched: restored?.touched,
+  });
 
-  // 2단계(제품) 완료 요약 한 줄
-  const selectedProductOption = form.productCode ? products.find((p) => p.code === form.productCode) : undefined;
-  const productLabel = selectedProductOption
-    ? `${selectedProductOption.brand} ${selectedProductOption.name}`
-    : form.product
-      ? '직접 입력'
-      : '제품 선택 안 함';
-  const step1Summary = `${form.kind} · ${productLabel}`;
+  // 뒤로·앞으로 가기 배선 — 모드를 고를 때만 방문 기록에 쌓는다(도배와 같은 규칙).
+  // 모드 카드로 돌아갈 때는 열려 있던 제품 시트도 같이 닫는다(지휘관 지시).
+  useFlowBackNav({
+    calcId: CALC_ID,
+    modeChosen,
+    onExitToModePicker: () => {
+      setUserPickedMode(false);
+      setSheetOpen(false);
+    },
+    onReenterMode: () => setUserPickedMode(true),
+  });
 
-  // 단계별 안내 한 줄 — StepFlow caption과 하단 고정 바("N/3 · 안내")가 같은 문구를 쓴다
-  const stepCaptions = [
-    '바닥재를 고르세요',
-    '바닥재 제품을 고르세요',
-    view === 'simple' ? '면적을 넣으면 나와요' : '치수를 넣으면 나와요',
-  ];
+  // 새로 고침 복원 — 공유 링크로 들어온 게 아니면 값이 바뀔 때마다 세션에 저장해 둔다.
+  useEffect(() => {
+    if (hasSharedLink) return;
+    saveSessionState<FlooringSession>(SESSION_KEY, SESSION_VERSION, {
+      form,
+      touched: touchedFlags,
+      userPickedMode,
+      bayTouched,
+      scopeTouched,
+    });
+  }, [form, touchedFlags, userPickedMode, bayTouched, scopeTouched, hasSharedLink]);
+
+  // ── 계산 담당 훅: touched를 넘겨야 가정 목록(assumed)이 화면 손댐 여부를 정확히 반영한다 ──
+  const { result, range, loading, error, stale, assumed } = useFlooringCalc(form, products, {
+    touched: { area: touchedFlags[2], bay: bayTouched, scope: scopeTouched },
+  });
+
   /** 폼 상태를 바꾸면서 동시에 "면적/실측 단계를 손댔다"고 표시하는 도우미(3단계 전용) */
   function patchAreaStep(p: Partial<FlooringFormState>) {
     patch(p);
     touch(2);
   }
 
-  // "N/3 · 안내" — 하단 고정 바와 (완료 전) 결과 패널 자리가 같이 쓰는 문구
-  const progressText = `${Math.min(activeIndex + 1, stepCaptions.length)}/${stepCaptions.length} · ${
-    stepCaptions[Math.min(activeIndex, stepCaptions.length - 1)]
-  }`;
+  /** 조정 칩 — 베이. 손댔다는 표시를 같이 남긴다(안 건드리면 계산 담당이 가정으로 본다) */
+  function onBayChange(v: 2 | 3 | 4) {
+    patch({ bay: v });
+    setBayTouched(true);
+  }
+  /** 조정 칩 — 범위(전체·방만·거실주방) */
+  function onScopeChange(v: FlooringFormState['scope']) {
+    patch({ scope: v });
+    setScopeTouched(true);
+  }
 
-  /** 모바일 하단 요약 바 "결과 보기" — 결과 패널로 부드럽게 스크롤 */
+  // ── 단계 정의 배열 하나로 — FlowShell이 이 배열만 보고 화면을 그린다 ──
+  const steps: FlowStepDef[] = [
+    {
+      key: 'kind',
+      title: '자재',
+      valid: step0Valid,
+      content: (
+        <MaterialPicker
+          part="kind"
+          kind={form.kind}
+          onKindChange={setKind}
+          productCode={form.productCode}
+          onProductCodeChange={(v) => patch({ productCode: v })}
+          products={products}
+          product={form.product}
+          onProductChange={(v) => patch({ product: v })}
+          sheetOpen={sheetOpen}
+          onSheetOpenChange={setSheetOpen}
+        />
+      ),
+    },
+    {
+      key: 'product',
+      title: '제품',
+      valid: step1Valid,
+      content: (
+        <MaterialPicker
+          part="product"
+          kind={form.kind}
+          onKindChange={setKind}
+          productCode={form.productCode}
+          onProductCodeChange={(v) => {
+            patch({ productCode: v });
+            touch(1);
+          }}
+          products={products}
+          product={form.product}
+          onProductChange={(v) => {
+            patch({ product: v });
+            // 직접 입력 칸이 다 차서 진짜 값이 생겼을 때만 손댔다고 본다(입력 도중엔 건너뛴다)
+            if (v !== undefined) touch(1);
+          }}
+          touched={touchedFlags[1]}
+          sheetOpen={sheetOpen}
+          onSheetOpenChange={setSheetOpen}
+        />
+      ),
+    },
+    {
+      key: 'area',
+      title: view === 'simple' ? '면적' : '실측',
+      valid: step2Valid,
+      content:
+        view === 'simple' ? (
+          <QuickAnswer
+            pyeong={form.pyeong ?? ''}
+            onPyeongChange={(v) => patchAreaStep({ pyeong: v === '' ? undefined : v })}
+            areaUnit={form.areaUnit ?? '평'}
+            // 단위(평/㎡)만 바꾸는 건 "면적을 골랐다"는 뜻이 아니다 — patch만 써서 단계
+            // 완료 처리를 안 하게 한다(도배와 같은 규칙)
+            onAreaUnitChange={(v) => patch({ areaUnit: v })}
+            exclusiveSqm={form.exclusiveSqm ?? ''}
+            onExclusiveSqmChange={(v) => patchAreaStep({ exclusiveSqm: v === '' ? undefined : v })}
+            onEnterComplete={() => touch(2)}
+            untouched={!touchedFlags[2]}
+          />
+        ) : (
+          <PreciseSection
+            unit={form.unit ?? 'm'}
+            onUnitChange={(v) => patchAreaStep({ unit: v })}
+            rooms={form.preciseRooms ?? []}
+            onRoomsChange={(v) => patchAreaStep({ preciseRooms: v })}
+          />
+        ),
+    },
+  ];
+
+  // ── 조정 칩 — 결과가 있을 때만 보인다. 간단 모드에만 있다(정확 모드는 없음, 지시서
+  //     9-2절 — 실측 방 목록이라 범위·베이가 뜻이 없다) ──
+  const adjustGroups =
+    view === 'simple'
+      ? [
+          {
+            key: 'scope',
+            label: '범위',
+            children: <ScopeChips scope={form.scope ?? '전체'} onScopeChange={onScopeChange} />,
+          },
+          {
+            key: 'bay',
+            label: '베이',
+            children: (
+              <>
+                {[2, 3, 4].map((b) => (
+                  <Chip key={b} selected={form.bay === b} onClick={() => onBayChange(b as 2 | 3 | 4)}>
+                    {b}베이
+                  </Chip>
+                ))}
+              </>
+            ),
+          },
+        ]
+      : [];
+
+  /** 하단 고정 바 "자세히" — 결과 카드로 부드럽게 스크롤 */
   function scrollToResult() {
     track('calc_cta_click', { process: 'flooring', target: 'result_view' });
     resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
+
+  // 계산이 완전히 실패해(결과가 아예 없음) 보여줄 값이 없을 때만 하단 바가 "실패" 모습이 된다.
+  const bottomFailed = !!error && !result;
+  const currentStepTitle = steps[Math.min(activeIndex, steps.length - 1)]?.title ?? '';
 
   // 첫 화면 — 아직 모드를 안 골랐으면 질문 하나만 보여준다(결과 패널·하단 바 전부 숨김)
   if (!modeChosen) {
@@ -177,162 +406,65 @@ export default function FlooringCalculator({ products }: FlooringCalculatorProps
 
   return (
     <>
-      {/* as="p": 검색엔진용 진짜 h1은 page.tsx(서버)에 sr-only로 따로 있어서, 여긴 h1 중복 방지로 p 태그 */}
-      <TopNav title="바닥재 계산기" backHref="/calc" as="p" />
+      {/* 제목 줄(모바일 전용) 오른쪽에 작은 [간단|정확] 전환. as="p": 검색엔진용 진짜 h1은
+          page.tsx(서버)에 따로 있다 */}
+      <TopNav
+        title="바닥재 계산기"
+        backHref="/calc"
+        as="p"
+        rightSlot={
+          <Segment size="sm" options={VIEW_OPTIONS} value={view} onChange={(v) => patch({ view: v })} className="w-[136px]" />
+        }
+      />
 
-      {/* 모바일: 세로 1열(모드 세그먼트→바닥재→평형/실측→결과), 하단 고정 요약 바만큼 pb-20으로 여백.
-          PC(lg): 왼쪽 입력 480~560px 고정 + 오른쪽 결과 sticky */}
-      {/* 좌우 여백을 공용 Container(px-5/lg:px-8)와 동일하게 맞춰 헤더 로고와 x축을 일치시킨다 */}
       <div className="px-5 lg:px-8 py-4 pb-20 lg:pb-8 max-w-[1120px] mx-auto flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(480px,560px)_1fr] lg:gap-8 lg:items-start">
-        {/* 왼쪽 — 입력 */}
-        <div className="flex flex-col gap-6">
-          {/* 모드 세그먼트 — 카드 바깥, 화면 맨 위. 캡션 1줄만(설명글 최소화 원칙) */}
-          <div className="flex flex-col gap-2">
-            <Segment options={VIEW_OPTIONS} value={view} onChange={(v) => patch({ view: v })} />
-            <p className="text-[14px] text-v1-text-secondary">
-              {view === 'simple' ? '제품과 평형만으로 바로 나와요' : '실측과 제품까지 반영해요'}
-            </p>
-          </div>
-
-          {/* 1단계 — 자재 */}
-          <StepFlow
-            index={0}
-            activeIndex={activeIndex}
-            title="자재"
-            caption={stepCaptions[0]}
-            summary={form.kind}
-            complete={step0Complete}
-            onReopen={() => reopen(0)}
-          >
-            <MaterialPicker
-              part="kind"
-              kind={form.kind}
-              onKindChange={setKind}
-              productCode={form.productCode}
-              onProductCodeChange={(v) => patch({ productCode: v })}
-              products={products}
-              product={form.product}
-              onProductChange={(v) => patch({ product: v })}
-            />
-          </StepFlow>
-
-          {/* 2단계 — 제품 */}
-          <StepFlow
-            index={1}
-            activeIndex={activeIndex}
-            title="제품"
-            caption={stepCaptions[1]}
-            summary={step1Summary}
-            complete={step1Complete}
-            onReopen={() => reopen(1)}
-          >
-            <MaterialPicker
-              part="product"
-              kind={form.kind}
-              onKindChange={setKind}
-              productCode={form.productCode}
-              onProductCodeChange={(v) => {
-                patch({ productCode: v });
-                touch(1);
-              }}
-              products={products}
-              product={form.product}
-              onProductChange={(v) => {
-                patch({ product: v });
-                touch(1);
-              }}
-            />
-            {/* 정확하게 모드는 제품을 안 골라도 종류 평균가로 계산되므로 건너뛸 수 있게 둔다
-                (간단 모드는 제품이 필수라 없음) */}
-            {view === 'precise' && (
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-[13px] text-v1-text-secondary">제품은 안 골라도 돼요</span>
-                <button
-                  type="button"
-                  onClick={() => touch(1)}
-                  className="text-[13px] font-semibold text-brown underline underline-offset-4"
-                >
-                  건너뛰기
-                </button>
-              </div>
-            )}
-          </StepFlow>
-
-          {/* 3단계 — 면적/범위(간단) 또는 실측(정확). keepOpen — 값을 계속 조정하는 단계라
-              끝나도 접지 않는다. 범위 칩(전체/방만/거실주방)은 간단 모드일 때만, 면적 옆에 둔다
-              (검사관 1라운드 지적 1번: 실측 모드는 범위 칩이 뜻이 없다). */}
-          <StepFlow
-            index={2}
-            activeIndex={activeIndex}
-            title={view === 'simple' ? '면적' : '실측'}
-            caption={stepCaptions[2]}
-            complete={step2Complete}
-            keepOpen
-          >
-            {view === 'simple' ? (
-              <>
-                <QuickAnswer
-                  pyeong={form.pyeong ?? ''}
-                  onPyeongChange={(v) => patchAreaStep({ pyeong: v === '' ? undefined : v })}
-                  areaUnit={form.areaUnit ?? '평'}
-                  onAreaUnitChange={(v) => patchAreaStep({ areaUnit: v })}
-                  exclusiveSqm={form.exclusiveSqm ?? ''}
-                  onExclusiveSqmChange={(v) => patchAreaStep({ exclusiveSqm: v === '' ? undefined : v })}
-                  bay={form.bay ?? 3}
-                  onBayChange={(v) => patchAreaStep({ bay: v })}
-                />
-                <ScopeChips scope={form.scope ?? '전체'} onScopeChange={(v) => patchAreaStep({ scope: v })} />
-              </>
-            ) : (
-              <PreciseSection
-                unit={form.unit ?? 'm'}
-                onUnitChange={(v) => patchAreaStep({ unit: v })}
-                rooms={form.preciseRooms ?? []}
-                onRoomsChange={(v) => patchAreaStep({ preciseRooms: v })}
-              />
-            )}
-          </StepFlow>
+        {/* 왼쪽 — 입력. 데스크톱은 제목 줄이 없으니(TopNav가 lg:hidden) 모드 전환을 여기 작게 둔다 */}
+        <div className="flex flex-col gap-4">
+          <Segment
+            size="sm"
+            options={VIEW_OPTIONS}
+            value={view}
+            onChange={(v) => patch({ view: v })}
+            className="hidden lg:flex w-[160px]"
+          />
+          <FlowShell steps={steps} activeIndex={activeIndex} completeFlags={completeFlags} />
         </div>
 
-        {/* 오른쪽 — 결과. PC는 스크롤해도 따라오게 sticky, 화면보다 길면 패널 안에서만 스크롤 */}
+        {/* 오른쪽 — 조정 칩 + 결과 */}
         <div
           ref={resultRef}
-          className="scroll-mt-16 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto"
+          className="scroll-mt-16 flex flex-col gap-4 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto"
         >
-          {/* 2026-09-16 보완: 3단계를 다 "손대서" 끝내기 전엔(allDone) 기본값으로 이미 계산된
-              결과가 있어도 보여주지 않는다 — PC 결과 패널 자리엔 "N/3 · 안내"만 나온다. */}
+          <AdjustChips visible={!!result} groups={adjustGroups} />
+          {/* 첫 단계(자재)를 고르기 전에는 결과 카드를 그리지 않는다 */}
           <ResultPanel
-            result={allDone ? result : null}
-            range={allDone ? range : null}
+            result={result}
+            range={range}
             loading={loading}
-            error={allDone ? error : null}
+            error={error}
             stale={stale}
+            assumed={assumed}
+            allDone={allDone}
             form={form}
-            emptyMessage={allDone ? emptyMessage : progressText}
             onRemoveOldChange={(v) => patch({ removeOld: v })}
             onBaseboardChange={(v) => patch({ baseboard: v })}
           />
         </div>
       </div>
 
-      {/* 모바일 하단 고정 요약 바 — PC(lg)에서는 숨긴다.
-          2026-09-16 보완: 3단계를 다 "손대서" 끝내기 전엔(allDone) 숫자 대신 "N/3 · 안내"로
-          지금 할 일을 짚어준다(기본값 때문에 결과부터 보이는 걸 막는다). */}
-      <div className="fixed bottom-0 left-0 right-0 h-14 bg-white border-t border-v1-line flex items-center justify-between px-4 lg:hidden z-40">
-        {allDone && result && range ? (
-          <span className="text-[16px] font-semibold text-brown tabular-nums">
-            {formatNum(result.quantity.units)}
-            {result.quantity.unit === '박스' ? '박스' : 'm'} · {formatManRange(range.min, range.max)}
-          </span>
-        ) : (
-          <span className="text-[14px] text-v1-text-secondary">{progressText}</span>
-        )}
-        {/* 2026-09-16 형아 피드백: 칩·세그먼트는 다 줄였지만 이 버튼만은 44px를 유지한다(누르는
-            자리라 너무 작아지면 안 됨) */}
-        <Button variant="primary" className="!h-11 !px-4 !text-[14px]" onClick={scrollToResult}>
-          결과 보기
-        </Button>
-      </div>
+      {/* 모바일 하단 고정 바 — 진행 표시와 금액만 */}
+      <BottomBar
+        stepNumber={Math.min(activeIndex + 1, steps.length)}
+        stepCount={steps.length}
+        stepTitle={currentStepTitle}
+        amountText={range ? formatManRange(range.min, range.max) : undefined}
+        assumedNote={describeFlooringBottomBarAssumption(assumed) ?? undefined}
+        allDone={allDone}
+        calculating={loading || stale}
+        failed={bottomFailed}
+        onDetail={scrollToResult}
+        onRetry={() => window.location.reload()}
+      />
     </>
   );
 }

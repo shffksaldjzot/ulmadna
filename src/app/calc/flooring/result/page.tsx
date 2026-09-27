@@ -4,10 +4,16 @@
 // URL의 d 쿼리(입력 폼이 인코딩해서 넘긴 값)를 풀어서 계산 입력으로 바꾼다.
 //
 // 계산 규칙(폼 상태 → 엔진 요청 변환)은 즉답 화면의 훅(useFlooringCalc)과 완전히 같은
-// 순수 함수(toEngineInput, src/lib/v1/flooringEngineInput.ts)를 쓴다. 그래야 즉답 화면에서
-// 본 금액과 "결과 공유"로 열어 본 이 페이지의 금액이 어긋나지 않는다.
+// 순수 함수(toEngineInputWithAssumed, src/lib/v1/flooringEngineInput.ts)를 쓴다. 그래야
+// 즉답 화면에서 본 금액과 "결과 공유"로 열어 본 이 페이지의 금액이 어긋나지 않는다.
+//
+// 2026-09-27 지시서 9-4절: 결과 공유 화면에 도배처럼 수량 범위·"제품 미정" 표시를
+// 넣는다 — toEngineInput 대신 toEngineInputWithAssumed로 바꿔서 assumed 목록도 같이
+// 받고, 즉답 화면과 똑같은 함수(formatUnitsRangeText·describeFlooringAreaAssumptionLine·
+// formatCostLineAmount)로 표시한다.
 //
 // 작성일: 2026년 09월 10일
+// 수량 범위·제품 미정 표시 추가(도배 방식 이식): 2026년 09월 27일 (지시서 9장)
 // ──────────────────────────────────────────────
 
 import Link from 'next/link';
@@ -20,11 +26,20 @@ import type { FlooringCalcInput, FlooringCalcResult } from '@/server/calc/floori
 import { FLOORING_PRODUCTS } from '@/server/calc/data/flooring-products';
 import { decodeFlooringForm, type FlooringFormState } from '@/lib/v1/flooringQuery';
 import { toFlooringProductOptions } from '@/lib/v1/flooringProductOptions';
-import { toEngineInput, describePreciseInput, describeAreaPair } from '@/lib/v1/flooringEngineInput';
+import {
+  toEngineInputWithAssumed,
+  describePreciseInput,
+  describeAreaPair,
+  type FlooringAssumption,
+} from '@/lib/v1/flooringEngineInput';
 import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
 // 2026-09-15 디자인 통일 작업: 도배 결과 화면에만 있던 저장·공유 기능을 바닥재에도 그대로 붙인다
 import { PostToBoardCheckbox, ResultFab } from '../../_components/ResultActions';
 import CalcContactCta from '../../_components/CalcContactCta';
+// 만 원 미만 원 단위 표기 + 수량 범위 표기 — 즉답 화면(ResultPanel.tsx)과 완전히 같은
+// 규칙을 쓰려고 공용 파일(원래 도배 전용이었으나 9장 작업으로 _components/로 옮김)에서 가져온다
+import { formatCostLineAmount, formatUnitsRangeText } from '../../_components/costLineFormat';
+import { describeFlooringAreaAssumptionLine } from '../../_components/assumptionText';
 
 export const metadata = {
   title: '바닥재 계산기 결과 — 얼마드나',
@@ -35,21 +50,20 @@ export const metadata = {
 };
 
 /**
- * 폼 상태 → 서버 계산 결과.
- * 즉답 화면의 훅과 같은 toEngineInput으로 요청을 만들어, 같은 조건이면 같은 금액이 나오게 한다.
- * toEngineInput이 null이면(종류 미선택 / simple인데 평형·제품 없음 / precise인데 치수 없음)
- * 이 함수도 null을 돌려주고, 페이지가 "조건이 비어 있어요" 빈 상태를 보여준다.
+ * 폼 상태 → 서버 계산 결과 + 가정 목록.
+ * 즉답 화면의 훅과 같은 toEngineInputWithAssumed로 요청을 만들어, 같은 조건이면 같은
+ * 금액이 나오게 한다. null이면(종류 미선택) 이 함수도 null을 돌려주고, 페이지가 "조건이
+ * 비어 있어요" 빈 상태를 보여준다.
  */
 function calcFromState(
   state: FlooringFormState,
   products: ReturnType<typeof toFlooringProductOptions>,
-): FlooringCalcResult | null {
-  const engineInput = toEngineInput(state, products);
+): { result: FlooringCalcResult; assumed: FlooringAssumption[] } | null {
+  const engineInput = toEngineInputWithAssumed(state, products);
   if (!engineInput) return null;
-  // toEngineInput(U 쪽 순수 함수)이 만드는 요청 모양은 공통 규칙 문서 API 계약을 그대로
-  // 따랐고, calcFlooring(E 쪽 실제 엔진)의 FlooringCalcInput도 같은 계약이라 필드가 그대로
-  // 맞는다(mode·pyeong·bay·rooms·scope·kind·product·removeOld·baseboard).
-  return calcFlooring(engineInput as FlooringCalcInput);
+  // toEngineInput(순수 함수)이 만드는 요청 모양은 공통 규칙 문서 API 계약을 그대로
+  // 따랐고, calcFlooring(실제 엔진)의 FlooringCalcInput도 같은 계약이라 필드가 그대로 맞는다.
+  return { result: calcFlooring(engineInput.request as FlooringCalcInput), assumed: engineInput.assumed };
 }
 
 /** 조건 요약 1줄 (예: "34평 · 3베이 · 전체 · 마루 · 구축 기준 · 철거 제외") */
@@ -60,15 +74,12 @@ function buildSummary(state: FlooringFormState): string {
     parts.push(`실측 ${precise.count}개 실`);
   } else {
     // 간단 모드 — 평형(공급) 또는 ㎡(전용) 중 지금 쓰는 값을 "34평 · 84㎡"로 병기한다
-    // (2026-09-15 ㎡ 모드 추가, 도배와 같은 규칙)
     parts.push(describeAreaPair(state) ?? `${state.pyeong}평`, `${state.bay ?? 3}베이`);
-    // 검사관 1라운드 지적 1번: 범위(전체/방만/거실·주방·복도)는 실측 모드에선 뜻이 없다
-    // (엔진도 실측이면 항상 전체로 계산한다) — 평형 모드일 때만 요약줄에 넣는다
+    // 범위(전체/방만/거실·주방·복도)는 실측 모드에선 뜻이 없다 — 평형 모드일 때만 요약줄에 넣는다
     parts.push(state.scope === '방만' ? '방만' : state.scope === '거실주방' ? '거실·주방·복도' : '전체');
   }
 
-  // 이 함수가 불리는 시점엔 이미 계산이 성공한 뒤라 kind는 항상 있다(종류를 안 고르면
-  // calcFromState가 null을 돌려주고 이 화면 자체가 안 그려진다).
+  // 이 함수가 불리는 시점엔 이미 계산이 성공한 뒤라 kind는 항상 있다.
   parts.push(state.kind as string);
 
   // 견적은 전부 구축 기준. 철거·걸레받이를 껐을 때만 그 사실을 적는다
@@ -76,48 +87,6 @@ function buildSummary(state: FlooringFormState): string {
   if (state.removeOld === false) parts.push('철거 제외');
   if (state.baseboard === false) parts.push('걸레받이 제외');
   return parts.join(' · ');
-}
-
-/**
- * 원 단위("2개 × 2,500원 = 5,000원")로 보여줘도 되는 단위 — 정수로 세는 부자재만.
- * ㎡·m처럼 연속량 단위는 여기 넣지 않는다(검사관 2라운드 지적 N-1, ResultPanel과 동일).
- */
-const COUNT_UNITS = new Set(['개', '통', '병', '세트', '롤']);
-
-/**
- * 비용 구성 한 줄을 "28박스 × 3.2만 = 90만" 또는 범위 문자열로 만든다.
- *
- * 검사관 2라운드 지적 N-1: 1라운드에서 고친 "단가 1만원 미만이면 원 단위" 규칙이 장판
- * 철거 줄(68.1㎡ × 6,050원 = 412,005원)까지 걸려 ㎡당 철거 단가가 그대로 노출됐다.
- * 원 단위 표기는 정수 개수 단위(개·통·병·세트·롤)이면서 금액이 10만원 미만일 때만 쓰고,
- * 그 외는 만 단위로 뭉뚱그린다(단가가 "0만"이 되면 수식 없이 금액만 "N만"/"1만 미만").
- */
-function formatCostLineAmount(line: {
-  key: string;
-  qty: number;
-  unit: string;
-  unitPriceMin: number;
-  unitPriceMax: number;
-  amountMin: number;
-  amountMax: number;
-}): string {
-  if (line.key === 'overhead') {
-    return line.unitPriceMin === line.unitPriceMax
-      ? `${line.unitPriceMin}%`
-      : `${line.unitPriceMin}~${line.unitPriceMax}%`;
-  }
-  if (line.unitPriceMin === line.unitPriceMax) {
-    if (COUNT_UNITS.has(line.unit) && line.amountMin < 100000) {
-      return `${formatNum(line.qty)}${line.unit} × ${formatNum(line.unitPriceMin)}원 = ${formatNum(line.amountMin)}원`;
-    }
-    const manPrice = toMan(line.unitPriceMin);
-    const manAmount = toMan(line.amountMin);
-    if (manPrice === 0) {
-      return manAmount === 0 ? '1만 미만' : `${manAmount}만`;
-    }
-    return `${formatNum(line.qty)}${line.unit} × ${manPrice}만 = ${manAmount}만`;
-  }
-  return formatManRange(line.amountMin, line.amountMax);
 }
 
 interface PageProps {
@@ -132,7 +101,9 @@ export default async function FlooringResultPage({ searchParams }: PageProps) {
   // "조건 바꾸기"에서 그대로 이어 쓸 수 있게 같은 d 쿼리를 되돌려 준다
   const backHref = d ? `/calc/flooring?d=${d}` : '/calc/flooring';
 
-  const result = state ? calcFromState(state, products) : null;
+  const calc = state ? calcFromState(state, products) : null;
+  const result = calc?.result ?? null;
+  const assumed = calc?.assumed ?? [];
 
   if (!state || !result) {
     return (
@@ -160,6 +131,10 @@ export default async function FlooringResultPage({ searchParams }: PageProps) {
   const unitLabel = quantity.unit === '박스' ? '박스' : 'm';
   const lossLabel = quantity.lossMode === '실제' ? `실제 로스 ${quantity.lossPct}%` : `추정 로스 ${quantity.lossPct}%`;
 
+  // 즉답 화면(ResultPanel.tsx)과 같은 함수로 "34평 · 84㎡ · 제품 미정" 같은 가정 줄을 만든다.
+  const areaPairText = quantity.inputMode === '평형' ? describeAreaPair(state) : null;
+  const areaAssumptionLine = describeFlooringAreaAssumptionLine(areaPairText, assumed);
+
   return (
     <>
       <TopNav
@@ -180,15 +155,16 @@ export default async function FlooringResultPage({ searchParams }: PageProps) {
         {/* 결과 카드 — 2026-09-15 디자인 통일 지시: 카드 속 카드 금지, 테두리 카드는 이거
             하나뿐이다. 물량 → 부자재 → 비용을 얇은 구분선(구획 제목 17/700)으로만 나눈다. */}
         <Card>
-          {/* 물량 */}
+          {/* 물량 — 제품 미정이면 수량도 범위로("19~46박스") */}
           <div className="text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em]">
-            {formatNum(quantity.units)}
-            {unitLabel}
+            {formatUnitsRangeText(quantity.units, quantity.unitsRange, unitLabel)}
           </div>
           <p className="text-[15px] text-foreground leading-[1.6] tabular-nums">
             바닥 {formatNum(quantity.floorSqm)}㎡ · {lossLabel}
             {quantity.pieces != null ? ` · 총 ${formatNum(quantity.pieces)}장` : ''}
           </p>
+          {/* 면적·가정 한 줄 — "제품 미정" 등. 즉답 화면 ResultPanel.tsx와 같은 자리·같은 함수를 쓴다 */}
+          {areaAssumptionLine && <p className="text-[13px] text-v1-text-secondary tabular-nums">{areaAssumptionLine}</p>}
           <Collapsible title="실별 보기">
             <div className="flex flex-col">
               {quantity.byRoom.map((r, i) => (
@@ -221,8 +197,6 @@ export default async function FlooringResultPage({ searchParams }: PageProps) {
                     {s.unit}
                   </span>
                 </div>
-                {/* 검사관 1라운드 지적 9번: 근거 등급이 C(추정)면 근거줄 끝에 "· 추정"을
-                    덧붙인다 — 즉답 화면 ResultPanel과 같은 규칙이라 두 화면 문구가 어긋나지 않는다 */}
                 <p className="text-[13px] text-v1-text-disabled tabular-nums">
                   {s.basis}
                   {s.grade === 'C' && !s.basis.includes('추정') ? ' · 추정' : ''}
@@ -251,8 +225,6 @@ export default async function FlooringResultPage({ searchParams }: PageProps) {
             <div className="flex flex-col">
               {cost.breakdown.map((line, i) => (
                 <div key={line.key} className={`py-[10px] ${i === cost.breakdown.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
-                  {/* 검사관 2라운드 지적 N-2: 이름·금액이 둘 다 긴 줄이 좁은 화면에서 겹치지
-                      않게 gap을 주고, 이름은 줄이며 금액은 안 접히게 한다(ResultPanel과 동일) */}
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-[15px] text-foreground min-w-0 truncate">{line.name}</span>
                     <span className="text-[15px] text-foreground tabular-nums whitespace-nowrap flex-none">
