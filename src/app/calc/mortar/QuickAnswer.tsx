@@ -8,11 +8,23 @@
 //
 // 용도(방통·셀프레벨링) 칩은 MortarCalculator(오케스트레이터)가 1단계로 그린다.
 //
+// 2026-09-27 저녁 지휘관 3차 검수 반영:
+//   - '두께' 부분을 간단·정확 모드가 완전히 같은 모습(칩+숫자칸)으로 쓴다 — 정확 모드는
+//     onThicknessChangeOverride로 셀프레벨링 자동 제품 전환 로직만 끼워 넣는다
+//     (MortarCalculator.tsx의 handlePreciseThicknessChange).
+//   - 두께 칩을 4열 격자로(개수가 8·6개라 3~4줄로 들쭉날쭉하던 것을 가지런히).
+//   - 두께 입력이 서버 허용 범위를 벗어나면 칸 아래 한 줄로 알려준다("150mm 이하" 등).
+//   - '면적' 부분: 안쪽 라벨("시공 면적")과 캡션("평형 기준 · ㎡로 계산해요" 등)을
+//     지웠다(제목 "면적"과 같은 말이라 중복). [면적|가로×세로]·[평|㎡] 토글을 한 줄
+//     왼쪽·오른쪽으로 나눴다. 손대기 전 자리 글자(placeholder)를 실제 가정값(방통
+//     34·셀프레벨링 33㎡)과 맞췄다(예전엔 폼 기본값 10이 그대로 보여 가정과 어긋났다).
+//
 // 작성일: 2026년 09월 14일
 // 개정: 2026년 09월 15일(운영자 현장 기준 피드백 2라운드 — 두께 칩·공법 칩 추가)
 // 화면 재배치 + 34평 의미 통일 + 결과 중복 제거: 2026년 09월 15일 (디자인 통일 작업 B)
 // 용도 칩 2개로 축소 + 칩 크기 축소 + "전용" 문구 삭제: 2026년 09월 16일
 // 새 틀(공법을 조정 칩으로 이동, 두께 미터치 표시, chipGrid·untouched·onEnterComplete): 2026년 09월 27일 (지시서 9장)
+// 두께 단계 간단·정확 통합 + 면적 단계 글 정리 + 자리 글자 가정값 통일: 2026년 09월 27일 저녁(지휘관 3차 검수)
 // ──────────────────────────────────────────────
 
 'use client';
@@ -21,8 +33,18 @@ import Chip from '@/components/v1/Chip';
 import NumberField from '@/components/v1/NumberField';
 import AreaInput from '../_components/AreaInput';
 import type { MortarFormState } from '@/lib/v1/mortarQuery';
-import { usesSupplyAreaConvention, presetThicknessMm } from '@/lib/v1/mortarEngineInput';
-import { REMICON_THICKNESS_CHIPS, SELF_LEVEL_THICKNESS_CHIPS } from '@/lib/v1/mortarPresets';
+import {
+  usesSupplyAreaConvention,
+  presetThicknessMm,
+  ASSUMED_SUPPLY_AREA_PYEONG,
+  assumedAreaSqm,
+} from '@/lib/v1/mortarEngineInput';
+import {
+  REMICON_THICKNESS_CHIPS,
+  SELF_LEVEL_THICKNESS_CHIPS,
+  THICKNESS_MM_MIN,
+  thicknessMmMax,
+} from '@/lib/v1/mortarPresets';
 
 export interface QuickAnswerProps {
   /** 이 카드에서 어느 부분만 그릴지 — 'area'(시공 면적) / 'thickness'(두께) */
@@ -37,10 +59,25 @@ export interface QuickAnswerProps {
   onAreaEnterComplete?: () => void;
   /** 두께를 손댔다는 표시 — 칩·직접 입력 둘 다 이 함수를 통해서만 값을 바꾼다(part==='thickness' 전용) */
   onThicknessTouch?: () => void;
+  /**
+   * 두께 값이 바뀔 때 기본 동작(patch+touch) 대신 이 함수를 부른다(part==='thickness' 전용).
+   * 정확 모드에서만 넘긴다 — 셀프레벨링일 때 지금 고른 제품이 새 두께를 못 다루면 제품을
+   * 자동으로 바꿔 주는 로직(MortarCalculator.handlePreciseThicknessChange)이 patch·touch를
+   * 전부 대신 처리한다. 간단 모드는 이 prop을 안 넘겨서 기본 동작 그대로다.
+   */
+  onThicknessChangeOverride?: (mm: number | undefined) => void;
 }
 
 /** 작업 면적 그 자체(공급/전용 개념 없음)로 쓰는 용도 — 셀프레벨링의 작은 직접 면적 칩(㎡) */
 const WORK_AREA_CHIPS_SQM: readonly number[] = [3, 5, 10, 20];
+
+/** 두께 입력이 허용 범위를 벗어났을 때 칸 아래에 보여줄 짧은 문구(마침표 없이) */
+function thicknessRangeNote(value: number | '' | undefined, min: number, max: number): string | undefined {
+  if (value === undefined || value === '') return undefined;
+  if (value < min) return `${min}mm 이상`;
+  if (value > max) return `${max}mm 이하`;
+  return undefined;
+}
 
 export default function QuickAnswer({
   part,
@@ -50,6 +87,7 @@ export default function QuickAnswer({
   thicknessUntouched = false,
   onAreaEnterComplete,
   onThicknessTouch,
+  onThicknessChangeOverride,
 }: QuickAnswerProps) {
   const mode = form.mode ?? '레미탈';
   const areaInputMode = form.areaInputMode ?? 'area';
@@ -61,18 +99,40 @@ export default function QuickAnswer({
   const thicknessChips = mode === '레미탈' ? REMICON_THICKNESS_CHIPS : SELF_LEVEL_THICKNESS_CHIPS;
   // 용도별 기본 두께 — 손대기 전 자리 글자(placeholder)로 보여줄 값
   const presetThickness = presetThicknessMm(form);
+  // 두께 입력 허용 범위 — 서버 검증과 같은 값(mortarPresets.ts)
+  const thicknessMin = mode === '레미탈' ? 10 : THICKNESS_MM_MIN;
+  const thicknessMax = thicknessMmMax(mode);
 
-  /** 두께 칩·직접 입력 공통 — 값을 바꾸면서 "손댔다"는 표시를 같이 남긴다 */
+  /**
+   * 손대기 전 면적 칸의 자리 글자(placeholder) — 실제로 계산에 쓰는 가정값과 같게 맞춘다
+   * (방통 "34", 셀프레벨링 등 "33㎡"). 예전엔 폼 기본값(10)이 그대로 보여서 계산이 가정하는
+   * 34평과 화면 자리 글자가 서로 다른 사고가 있었다.
+   */
+  const assumedAreaDisplay =
+    supplyArea && areaUnit !== '㎡' ? ASSUMED_SUPPLY_AREA_PYEONG : Math.round(assumedAreaSqm(form));
+
+  /**
+   * 두께 칩·직접 입력 공통 진입점. onThicknessChangeOverride를 받았으면(정확 모드) 그
+   * 함수에게 전부 맡기고, 안 받았으면(간단 모드) 기본 동작(patch+손댔다는 표시)을 한다.
+   */
   function patchThickness(mm: number | undefined) {
+    if (onThicknessChangeOverride) {
+      onThicknessChangeOverride(mm);
+      return;
+    }
     patch({ thicknessMm: mm });
     onThicknessTouch?.();
   }
 
-  // part === 'thickness' — 두께만 그린다(공법은 조정 칩 구역으로 옮겼다, 지시서 9-2절)
+  // part === 'thickness' — 두께만 그린다(공법은 조정 칩 구역으로 옮겼다, 지시서 9-2절).
+  // 간단·정확 모드가 완전히 같은 모습을 쓴다(2026-09-27 저녁 검수 지적 6번).
   if (part === 'thickness') {
+    // 범위를 벗어난 값을 쳤을 때만 짧게 알려준다(정적 "10~150mm" 캡션은 삭제)
+    const rangeNote = !thicknessUntouched ? thicknessRangeNote(form.thicknessMm, thicknessMin, thicknessMax) : undefined;
     return (
       <div className="flex flex-col gap-2">
-        <div className="flex flex-wrap gap-2">
+        {/* 두께 칩 — 8개(레미탈)·6개(셀프레벨링)라 들쭉날쭉해 보이지 않게 4열 격자로 고정한다 */}
+        <div className="grid grid-cols-4 gap-2">
           {thicknessChips.map((mm) => (
             <Chip
               key={mm}
@@ -80,6 +140,8 @@ export default function QuickAnswer({
               // "칩 미선택"으로 시작해야 한다)
               selected={!thicknessUntouched && form.thicknessMm === mm}
               onClick={() => patchThickness(mm)}
+              className="w-full justify-center"
+              style={{ fontSize: '13px' }}
             >
               {mm}mm
             </Chip>
@@ -92,8 +154,11 @@ export default function QuickAnswer({
           suffix="mm"
           placeholder={thicknessUntouched ? String(presetThickness) : '두께 직접 입력'}
           aria-label="두께 직접 입력"
+          min={thicknessMin}
+          max={thicknessMax}
           className="w-full"
         />
+        {rangeNote && <p className="t-sub text-danger">{rangeNote}</p>}
       </div>
     );
   }
@@ -101,11 +166,10 @@ export default function QuickAnswer({
   // part === 'area' — 시공 면적만 그린다
   return (
     <div className="flex flex-col gap-4">
-      {/* 1) 시공 면적 — "면적 | 가로×세로" 입력 방식과 (공급 평형 규칙일 때만) "평 | ㎡"
-          단위 토글을 한 줄에 합쳤다. */}
+      {/* 입력 방식 토글 두 묶음을 한 줄 왼쪽·오른쪽으로 나눈다(2026-09-27 저녁 검수 지적
+          3번) — 안쪽 라벨("시공 면적")은 뺐다(제목 "면적"과 같은 말이라 중복). */}
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <span className="text-[15px] font-semibold text-foreground">시공 면적</span>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2">
           <Chip
             shape="square"
             size="sm"
@@ -122,6 +186,8 @@ export default function QuickAnswer({
           >
             가로×세로
           </Chip>
+        </div>
+        <div className="flex gap-2">
           {supplyArea && areaInputMode === 'area' && (
             <>
               <Chip shape="square" size="sm" selected={areaUnit === '평'} onClick={() => patch({ areaUnit: '평' })}>
@@ -137,15 +203,16 @@ export default function QuickAnswer({
 
       {areaInputMode === 'area' ? (
         supplyArea ? (
-          // 방통 — 도배·바닥재와 같은 공용 부품(AreaInput mode="supply")
+          // 방통 — 도배·바닥재와 같은 공용 부품(AreaInput mode="supply"). 캡션은 지웠다
+          // (2026-09-27 저녁 검수 지적 3번 — "평형 기준 · ㎡로 계산해요"도 중복 설명글).
+          // untouched일 때 value를 실제 가정값으로 바꿔치기해 자리 글자를 맞춘다(지적 4번).
           <AreaInput
             mode="supply"
             unit={areaUnit}
             onUnitChange={(u) => patch({ areaUnit: u })}
-            value={form.area ?? ''}
+            value={areaUntouched ? assumedAreaDisplay : (form.area ?? '')}
             onValueChange={(v) => patch({ area: v === '' ? undefined : v })}
             hideUnitToggle
-            caption={areaUnit === '㎡' ? '면적 ㎡ 그대로 계산해요' : '평형 기준 · ㎡로 계산해요'}
             chipGrid
             onEnterComplete={onAreaEnterComplete}
             untouched={areaUntouched}
@@ -156,11 +223,10 @@ export default function QuickAnswer({
             mode="work"
             unit="㎡"
             onUnitChange={() => {}}
-            value={form.area ?? ''}
+            value={areaUntouched ? assumedAreaDisplay : (form.area ?? '')}
             onValueChange={(v) => patch({ area: v === '' ? undefined : v, areaUnit: '㎡' })}
             chips={WORK_AREA_CHIPS_SQM}
             hideUnitToggle
-            caption="바를 바닥 면적"
             placeholder="면적을 입력하세요(㎡)"
             chipGrid
             onEnterComplete={onAreaEnterComplete}

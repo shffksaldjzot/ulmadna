@@ -159,9 +159,11 @@ export default async function FlooringResultPage({ searchParams }: PageProps) {
           <div className="text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em]">
             {formatUnitsRangeText(quantity.units, quantity.unitsRange, unitLabel)}
           </div>
+          {/* 2026-09-27 저녁 지휘관 3차 검수 지적 8번: 면적 정수·"총" 삭제 — 즉답 화면
+              (ResultPanel.tsx)과 같은 표기로 맞춘다 */}
           <p className="text-[15px] text-foreground leading-[1.6] tabular-nums">
-            바닥 {formatNum(quantity.floorSqm)}㎡ · {lossLabel}
-            {quantity.pieces != null ? ` · 총 ${formatNum(quantity.pieces)}장` : ''}
+            바닥 {Math.round(quantity.floorSqm)}㎡ · {lossLabel}
+            {quantity.pieces != null ? ` · ${formatNum(quantity.pieces)}장` : ''}
           </p>
           {/* 면적·가정 한 줄 — "제품 미정" 등. 즉답 화면 ResultPanel.tsx와 같은 자리·같은 함수를 쓴다 */}
           {areaAssumptionLine && <p className="text-[13px] text-v1-text-secondary tabular-nums">{areaAssumptionLine}</p>}

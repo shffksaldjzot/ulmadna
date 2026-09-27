@@ -2,24 +2,32 @@
 // v1 허브 — 미장 계산기: 결과 패널
 //
 // 2026-09-27 지시서(계산기 단계 흐름 개선) 9장 — 도배·바닥재가 이미 적용한 좁혀가기·
-// 가정 표시·공유 버튼 규칙을 그대로 옮겨 왔다. 도배·바닥재와 다른 점: 큰 숫자가
-// "레미탈 40kg × N포"이고, 레미탈 모드에서는 그 아래 현장 배합(시멘트+모래) 대안이
-// 참고용으로 붙는다. 인건은 품수만 보여주고 산식은 안 보여준다.
+// 가정 표시·공유 버튼 규칙을 그대로 옮겨 왔다.
 //
-// 물량(quick)은 서버 응답을 기다리지 않고 항상 즉시 계산된 값을 그린다 — 수량 자체가
-// "새 값"이라 dim 처리를 안 한다. 부자재·비용(result, 서버 응답)만 stale일 때
-// 흐리게 한다 — "새 수량 옆에 옛 금액이 또렷이 보이는 순간"을 없애는 핵심은 옛 금액
-// 쪽을 흐리게 하는 것이지, 이미 최신인 수량을 같이 흐리게 할 필요는 없다(계산 담당의
-// mortarCostOutOfSync가 이 어긋남을 stale=true로 정확히 잡아 준다).
+// 2026-09-27 저녁 지휘관 3차 검수 지적 1번: 카드 맨 위가 금액이 아니었다("레미탈
+// 40kg × 146포"가 먼저, "비용 152만~229만원"이 한참 아래) — 도배·바닥재와 같은
+// 순서로 다시 짰다:
+//   ① 금액 범위(가장 큰 숫자) + 중간값 + "추정" 배지
+//   ② 수량 한 줄: "레미탈 40kg × 146포 · 40mm · 84㎡"(㎡는 정수)
+//   ③ 보조 한 줄(.t-sub): "로스 5% 포함 · 몰탈 3.5㎥ · 기공 2 · 조공 2 · 1일" —
+//      "레미탈 40kg 포대"·"주문 수량: 146포(로스 5% 포함)"·"손미장(추정) · 기공
+//      2인 · 조공 2인, 1일 완료"처럼 같은 내용을 여러 줄로 풀어 쓴 것을 한 줄로 합쳤다.
+//   ④ 가정 줄(있을 때만)
+//   ⑤ 기준 줄 + "현장 확인 필요: …"를 이어 한 줄로
+//   ⑥ 현장 배합 대안(접힘) · 구역별 보기 · 부자재 · 구성 보기
+//
+// 물량(quick)은 서버 응답을 기다리지 않고 항상 즉시 계산된 값을 그린다 — 그래서 ②③④는
+// dim 처리를 안 한다. ①⑤와 부자재·구성 보기(서버 응답, result)만 stale일 때 흐리게
+// 한다 — "새 수량 옆에 옛 금액이 또렷이 보이는 순간"을 없애는 핵심은 옛 금액 쪽을
+// 흐리게 하는 것이지, 이미 최신인 수량을 같이 흐리게 할 필요는 없다.
 //
 // 구성 보기의 만 원 미만 금액은 공용 costLineFormat.ts(원래 도배 전용이었으나 9장
-// 작업으로 _components/로 옮김)의 formatWonPiece로 원 단위 그대로 보여준다 — 예전엔
-// 단가가 1만 원 미만이면 "1만 미만"이라는 뭉뚱그린 문구를 썼는데(9-1절이 금지하는
-// 문제), 이제 도배와 똑같이 실제 원 금액("4,500원")을 보여준다.
+// 작업으로 _components/로 옮김)의 formatWonPiece로 원 단위 그대로 보여준다.
 //
 // 작성일: 2026년 09월 14일 · 개정: 2026년 09월 15일(운영자 현장 기준 피드백 2라운드)
 // 카드 통합 + 빈 상태 중복 제거: 2026년 09월 15일 (디자인 통일 작업 B)
 // 좁혀가기·가정 표시·공유 규칙 이식 + 만 원 미만 표기 통일: 2026년 09월 27일 (지시서 9장)
+// 결과 카드 순서 재배치(금액 우선): 2026년 09월 27일 저녁(지휘관 3차 검수)
 // ──────────────────────────────────────────────
 
 'use client';
@@ -40,7 +48,7 @@ import { describeMortarAreaAssumptionLine } from '../_components/assumptionText'
 import { formatWonPiece } from '../_components/costLineFormat';
 
 export interface ResultPanelProps {
-  /** 즉시 계산 결과(서버 응답 없이도 항상 있음) — 물량 카드는 전부 여기서 가져온다 */
+  /** 즉시 계산 결과(서버 응답 없이도 항상 있음) — 수량 줄은 전부 여기서 가져온다 */
   quick: MortarQuickResult | null;
   /** 서버 계산 결과(부자재·비용·인건). 늦게 오거나 없을 수 있다 */
   result: MortarCalcResultDTO | null;
@@ -60,6 +68,11 @@ export interface ResultPanelProps {
   /** 결과가 없을 때(!quick) 보여줄 한 줄. 모바일은 하단 고정 바가 이미 보여주고 있어서
    *  이 패널은 PC(lg 이상)에서만 그린다(2026-09-15 중복 제거) */
   emptyMessage: string;
+}
+
+/** 소수 1자리 반올림 — 몰탈 체적 표시용("3.528" → "3.5") */
+function r1(n: number): number {
+  return Math.round(n * 10) / 10;
 }
 
 /**
@@ -144,6 +157,8 @@ export default function ResultPanel({
     );
   }
 
+  // 비용(서버 응답)이 아직 없으면(로딩 중이거나 실패) 금액·기준 줄 자리에 안내만 보인다.
+  const hasCost = !!(result && range);
   const dim = loading || stale;
 
   async function handleShare() {
@@ -174,45 +189,96 @@ export default function ResultPanel({
   // 'thickness'·'measuring' 가정이 안 남아 있을 때만 보인다. 공법 조정 칩은 공유를 안 막는다.
   const canShare = allDone && !assumed.includes('area') && !assumed.includes('thickness') && !assumed.includes('measuring');
 
+  // ② 수량 한 줄 — "레미탈 40kg × 146포 · 40mm · 84㎡"(㎡는 정수). 가운뎃점으로 줄이
+  // 갈리더라도 다음 줄이 가운뎃점으로 시작하지 않게 조각마다 span으로 나눈다.
+  const quantityChunks = [
+    `${quick.mode} ${quick.bagKg}kg × ${formatNum(quick.bags)}포`,
+    `${quick.thicknessMm}mm`,
+    `${Math.round(quick.areaSqm)}㎡`,
+  ];
+
+  // ③ 보조 한 줄 — "레미탈 40kg 포대"·"주문 수량: N포(로스 …)"·인건 줄을 여기 하나로 합친다.
+  // 실제로 제품을 골라서 이름이 붙었을 때만(모드 기본 표기와 다를 때만) 맨 앞에 그 이름을 보여준다.
+  const isGenericProductLabel = quick.productLabel === `${quick.mode} ${quick.bagKg}kg 포대`;
+  const subChunks: string[] = [];
+  if (!isGenericProductLabel) subChunks.push(quick.productLabel);
+  subChunks.push(`로스 ${quick.lossPct}% 포함`);
+  subChunks.push(`몰탈 ${r1(quick.volumeWithLossM3)}㎥`);
+  if (labor) {
+    subChunks.push(`기공 ${labor.crewPlasterer}`);
+    subChunks.push(`조공 ${labor.crewHelper}`);
+    if (labor.crewMechanic > 0) subChunks.push(`기계운전 ${labor.crewMechanic}`);
+    subChunks.push(`${labor.days}일`);
+  } else if (quick.laborAdvisoryNote) {
+    subChunks.push(quick.laborAdvisoryNote);
+  }
+
+  // ⑤ 기준 줄 — "현장 확인 필요: …"를 기준 줄 뒤에 이어 한 줄로 붙인다(따로 줄 안 나눈다)
+  const basisLineWithSiteConfirm = result
+    ? `${result.cost.basisLine}${
+        result.siteConfirmItems.length > 0 ? ` · 현장 확인 필요: ${result.siteConfirmItems.join('·')}` : ''
+      }`
+    : '';
+
   return (
     <>
-      {error && <p className="text-[13px] text-danger mb-2">비용 계산에 실패했어요 — 포수·체적은 그대로예요</p>}
-      {/* 결과 카드 — 이 화면에서 테두리 카드는 이거 하나뿐이다(카드 속 카드 금지 원칙).
-          물량 → 부자재 → 비용 순서를 얇은 구분선(구획 제목 17/700)으로만 나눈다. */}
+      {error && <p className="text-[13px] text-danger mb-2">비용 계산에 실패했어요 — 수량·체적은 그대로예요</p>}
+      {/* 결과 카드 — 이 화면에서 테두리 카드는 이거 하나뿐이다(카드 속 카드 금지 원칙) */}
       <Card>
-        {/* 물량 — quick(즉시 계산)로 항상 그린다 — 서버 응답을 기다리지 않는다 */}
-        <div className="flex items-baseline gap-1 flex-wrap">
-          <span className="text-[20px] font-semibold text-foreground whitespace-nowrap">
-            {quick.mode} {quick.bagKg}kg ×
-          </span>
-          <span className="text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em]">
-            {formatNum(quick.bags)}
-          </span>
-          <span className="text-[20px] font-semibold text-foreground">포</span>
-        </div>
-        <p className="text-[15px] text-foreground">{quick.productLabel}</p>
-        <p className="text-[13px] text-v1-text-disabled tabular-nums">
-          주문 수량: {formatNum(quick.bags)}포(로스 {quick.lossPct}% 포함)
-        </p>
-        <p className="text-[15px] text-foreground leading-[1.6] tabular-nums">
-          {quick.thicknessMm}mm · 면적 {formatNum(quick.areaSqm)}㎡ · 몰탈 {quick.volumeWithLossM3}㎥
-        </p>
-        {/* 면적·두께 가정 한 줄 — "실측 입력 중"이 있으면 그것만, 아니면 area·thickness
-            가정을 순서대로 이어 붙인다(9-3절: 화면 가정 줄에는 area·thickness·measuring만) */}
-        {areaAssumptionLine && <p className="text-[13px] text-v1-text-disabled tabular-nums">{areaAssumptionLine}</p>}
-        {quick.standardRangeNote && <p className="text-[13px] text-v1-text-secondary">{quick.standardRangeNote}</p>}
-
-        {/* 인원 한 줄 — 서버 응답(labor)이 와야 나온다. "기공 N·조공 N, 1일 완료"(운영자 현장 기준 지시).
-            안내 문구(장비대·시공비 별도)는 quick에서 바로 나온다 — 서버가 늦어도 먼저 보여준다 */}
-        {labor ? (
-          <p className="text-[13px] text-v1-text-disabled tabular-nums">
-            {labor.method === '장비타설' ? '장비 타설' : '손미장(추정)'} · 기공 {labor.crewPlasterer}인 · 조공 {labor.crewHelper}인
-            {labor.crewMechanic > 0 ? ` · 기계운전 ${labor.crewMechanic}인` : ''}, {labor.days}일 완료
-          </p>
+        {/* ① 금액 범위 + 중간값 + "추정" 배지. 비용(서버 응답)이 아직 없으면 안내 한 줄만.
+            result && range로 직접 검사해야 타입스크립트가 아래에서 null이 아님을 알아준다
+            (hasCost는 별도 boolean이라 타입 좁히기가 안 된다) */}
+        {result && range ? (
+          <div className={`transition-opacity duration-150 ${dim ? 'opacity-60' : ''}`}>
+            <div className="text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em] whitespace-nowrap">
+              {formatManRange(range.min, range.max)}
+            </div>
+            <p className="t-body font-semibold text-ink-2 tabular-nums flex items-center gap-2">
+              중간 {toMan(result.cost.mid).toLocaleString('ko-KR')}만원
+              {result.cost.mode === '산식' && (
+                <span className="text-[13px] font-semibold text-brown bg-v1-badge-gold-bg border border-gold rounded-[4px] px-[10px] py-[2px] whitespace-nowrap">
+                  추정
+                </span>
+              )}
+            </p>
+          </div>
         ) : (
-          quick.laborAdvisoryNote && <p className="text-[13px] text-v1-text-disabled">{quick.laborAdvisoryNote}</p>
+          <p className="t-body text-ink-2">{error ? '비용은 잠시 후 다시' : '비용 계산 중'}</p>
         )}
-        {quick.equipmentNote && <p className="text-[13px] text-v1-text-disabled">{quick.equipmentNote}</p>}
+
+        {/* ② 수량 한 줄 — 수량은 quick(즉시 계산)에서 바로 나온다. dim 처리 안 함(항상 최신) */}
+        <p className="t-body text-ink tabular-nums pt-2 border-t border-v1-line-2 flex flex-wrap gap-x-1">
+          {quantityChunks.map((chunk, i, arr) => (
+            <span key={i} className="whitespace-nowrap">
+              {chunk}
+              {i < arr.length - 1 ? ' ·' : ''}
+            </span>
+          ))}
+        </p>
+
+        {/* ③ 보조 한 줄 */}
+        <p className="t-sub text-ink-2 tabular-nums flex flex-wrap gap-x-1">
+          {subChunks.map((chunk, i, arr) => (
+            <span key={i} className="whitespace-nowrap">
+              {chunk}
+              {i < arr.length - 1 ? ' ·' : ''}
+            </span>
+          ))}
+        </p>
+        {/* 표준 범위·장비대 관련 경고성 캡션 — "같은 내용을 다르게 쓴 것"이 아니라 별도
+            주의 문구라 ③과 합치지 않고 그대로 둔다 */}
+        {quick.standardRangeNote && <p className="t-sub text-ink-2">{quick.standardRangeNote}</p>}
+        {quick.equipmentNote && <p className="t-sub text-ink-2">{quick.equipmentNote}</p>}
+
+        {/* ④ 면적·두께 가정 한 줄 */}
+        {areaAssumptionLine && <p className="t-sub text-ink-2 tabular-nums">{areaAssumptionLine}</p>}
+
+        {/* ⑤ 기준 줄 + 현장 확인 필요를 이어서 */}
+        {hasCost && (
+          <div className={`transition-opacity duration-150 ${dim ? 'opacity-60' : ''}`}>
+            <p className="t-body text-ink tabular-nums">{basisLineWithSiteConfirm}</p>
+          </div>
+        )}
 
         {quick.altMix && (
           <Collapsible title="현장 배합 대안">
@@ -269,67 +335,43 @@ export default function ResultPanel({
           </div>
         )}
 
-        {/* 비용. 서버 응답이 없으면(실패 포함) 산식은 안 보이고 안내 캡션만 뜬다 */}
-        <div className={`transition-opacity duration-150 ${dim ? 'opacity-60' : ''}`}>
-          <h2 className="text-[17px] font-bold text-foreground border-t border-v1-line-2 pt-3 mt-1">비용</h2>
-          {result && range ? (
-            <>
-              <div className="flex items-center gap-2 flex-wrap">
-                <div className="text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em] whitespace-nowrap">
-                  {formatManRange(range.min, range.max)}
-                </div>
-                <span className="text-[13px] font-semibold text-brown bg-v1-badge-gold-bg border border-gold rounded-[4px] px-[10px] py-[2px] whitespace-nowrap">
-                  추정
-                </span>
-              </div>
-              <p className="text-[15px] font-semibold text-v1-text-secondary tabular-nums">
-                중간 {toMan(result.cost.mid).toLocaleString('ko-KR')}만원
-              </p>
-              <p className="text-[15px] text-foreground tabular-nums">{result.cost.basisLine}</p>
-              {/* 현장 확인 필요 — 운송·양중·(장비타설시)장비대는 값을 안 넣으면 계산에서 빠진다.
-                  캡션 1줄로 빠진 항목을 알려준다(운영자 현장 기준 지시 — "현장 확인 필요" 표시) */}
-              {result.siteConfirmItems.length > 0 && (
-                <p className="text-[13px] text-v1-text-secondary">
-                  현장 확인 필요: {result.siteConfirmItems.join('·')}
-                </p>
-              )}
-              {/* 5층 비용 구성표 — 자재/부자재/운송·하차/양중/인건 층별 소계(운영자 현장 기준 지시) */}
-              <Collapsible title="구성 보기" defaultOpen>
-                <div className="flex flex-col">
-                  {groupByLayer(result.cost.breakdown).map((group) => (
-                    <div key={group.layer} className="py-[10px] border-b border-v1-line-2">
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-[13px] font-semibold text-v1-text-label">{group.layer}</span>
-                        <span className="text-[13px] font-semibold text-v1-text-label tabular-nums whitespace-nowrap">
-                          {formatLayerSubtotal(group.subMin, group.subMax)}
-                        </span>
-                      </div>
-                      <div className="flex flex-col pt-1">
-                        {group.lines.map((line) => (
-                          <div key={line.key} className="py-[6px]">
-                            <div className="flex items-center justify-between gap-3">
-                              <span className="text-[15px] text-foreground min-w-0 truncate">{line.name}</span>
-                              <span className="text-[15px] text-foreground tabular-nums whitespace-nowrap flex-none">
-                                {formatCostLineAmount(line)}
-                              </span>
-                            </div>
-                            <p className="text-[13px] text-v1-text-disabled tabular-nums">
-                              {line.note}
-                              {line.grade === 'C' && !line.note.includes('추정') ? ' · 추정' : ''}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
+        {/* ⑥ 비용 구성 — 서버 응답이 없으면 아예 안 그린다(위에서 이미 안내를 보여줬다).
+            여기도 result를 직접 검사해 타입을 좁힌다 */}
+        {result && (
+          <div className={`transition-opacity duration-150 ${dim ? 'opacity-60' : ''}`}>
+            <Collapsible title="구성 보기" defaultOpen>
+              <div className="flex flex-col">
+                {groupByLayer(result.cost.breakdown).map((group) => (
+                  <div key={group.layer} className="py-[10px] border-b border-v1-line-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-[13px] font-semibold text-v1-text-label">{group.layer}</span>
+                      <span className="text-[13px] font-semibold text-v1-text-label tabular-nums whitespace-nowrap">
+                        {formatLayerSubtotal(group.subMin, group.subMax)}
+                      </span>
                     </div>
-                  ))}
-                  <p className="text-[13px] text-v1-text-disabled pt-[10px]">소비자가 기준 · 부가세 포함</p>
-                </div>
-              </Collapsible>
-            </>
-          ) : (
-            <p className="text-[15px] text-v1-text-secondary">{error ? '비용은 잠시 후 다시' : '비용 계산 중'}</p>
-          )}
-        </div>
+                    <div className="flex flex-col pt-1">
+                      {group.lines.map((line) => (
+                        <div key={line.key} className="py-[6px]">
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="text-[15px] text-foreground min-w-0 truncate">{line.name}</span>
+                            <span className="text-[15px] text-foreground tabular-nums whitespace-nowrap flex-none">
+                              {formatCostLineAmount(line)}
+                            </span>
+                          </div>
+                          <p className="text-[13px] text-v1-text-disabled tabular-nums">
+                            {line.note}
+                            {line.grade === 'C' && !line.note.includes('추정') ? ' · 추정' : ''}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                <p className="text-[13px] text-v1-text-disabled pt-[10px]">소비자가 기준 · 부가세 포함</p>
+              </div>
+            </Collapsible>
+          </div>
+        )}
       </Card>
 
       <div className="flex flex-col gap-4 mt-4">

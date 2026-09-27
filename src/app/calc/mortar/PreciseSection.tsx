@@ -119,9 +119,10 @@ export default function PreciseSection({ form, patch, products, result }: Precis
             className="w-32"
           />
         </div>
-        <p className="text-[13px] text-v1-text-disabled tabular-nums">
-          팔레트 50포 단위·지역별로 달라요
-          {isPositive(form.deliveryFeeWon) ? ` · ${formatNum(form.deliveryFeeWon)}원` : ''}
+        {/* 2026-09-27 저녁 지휘관 3차 검수 지적 7번: 긴 안내 문장을 줄였다 — 값이 있으면
+            콤마 찍힌 금액만, 없으면 짧은 한마디("지역별로 달라요")만 보여준다 */}
+        <p className="t-sub text-ink-2 tabular-nums">
+          {isPositive(form.deliveryFeeWon) ? `${formatNum(form.deliveryFeeWon)}원` : '지역별로 달라요'}
         </p>
       </div>
       <div className="flex flex-col gap-1 py-2 border-t border-v1-line-2">
@@ -167,19 +168,21 @@ export default function PreciseSection({ form, patch, products, result }: Precis
             className="w-32"
           />
         </div>
-        <div className="flex items-center justify-between">
-          <p className="text-[13px] text-v1-text-disabled tabular-nums">
-            소운반 100m 기준 양중공 2명 · 표준품셈 보통인부 노임 기준
-            {isPositive(form.liftingFeeWon) ? ` · ${formatNum(form.liftingFeeWon)}원` : ''}
+        {/* 2026-09-27 저녁 지휘관 3차 검수 지적 7번: 긴 안내 문장을 줄이고, "참고값
+            채우기"를 글자 링크가 아니라 눌리는 범위 44px가 확실한 칩 모양 버튼으로
+            바꿨다(Chip이 이미 그 하트존 확장을 갖고 있어 그대로 재사용한다) */}
+        <div className="flex items-center justify-between gap-2">
+          <p className="t-sub text-ink-2 tabular-nums">
+            {isPositive(form.liftingFeeWon) ? `${formatNum(form.liftingFeeWon)}원` : '표준품셈 노임 기준'}
           </p>
-          <button
-            type="button"
+          <Chip
+            size="sm"
             disabled={!result}
             onClick={() => result && patch({ liftingFeeWon: result.liftingReferenceWon })}
-            className="text-[13px] font-semibold text-brown disabled:text-v1-text-disabled disabled:cursor-not-allowed"
+            className="flex-none disabled:opacity-40"
           >
             참고값 채우기
-          </button>
+          </Chip>
         </div>
       </div>
 

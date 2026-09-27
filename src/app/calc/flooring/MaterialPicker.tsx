@@ -292,9 +292,15 @@ export default function MaterialPicker({
     .filter((p) => p.kind === kind && isShowableFlooringProduct(p))
     .sort((a, b) => a.brand.localeCompare(b.brand, 'en') || (a.price as number) - (b.price as number));
 
+  // 2026-09-27 저녁 지휘관 3차 검수 지적 9번: 이름+규격을 한 줄에 붙이니 이름이 길 때
+  // 가격표와 겹쳐 보였다("동화자연마루 나투스진 소폭 퓨어/어반 98×815 7.5만/박스").
+  // 이름은 title(한 줄 말줄임, ProductSheet가 이미 truncate 처리한다)로, 규격(98×815
+  // 같은 숫자 꼬리)은 subtitle(아랫줄 t-sub)로 내린다. 정렬 기준(브랜드 가나다 → 같은
+  // 브랜드 안 가격 낮은 순)은 이미 위 list 정렬과 같다.
   const items: PickerItem[] = list.map((p) => ({
     code: p.code,
-    title: `${p.brand} ${p.name}${p.variant ? ` ${p.variant}` : ''}`,
+    title: `${p.brand} ${p.name}`,
+    subtitle: p.variant || undefined,
     priceLabel: formatPrice(p),
   }));
 

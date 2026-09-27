@@ -31,7 +31,6 @@ import { useSearchParams } from 'next/navigation';
 import TopNav from '@/components/v1/TopNav';
 import Segment from '@/components/v1/Segment';
 import Chip from '@/components/v1/Chip';
-import NumberField from '@/components/v1/NumberField';
 import Collapsible from '@/components/v1/Collapsible';
 import { DEFAULT_MORTAR_FORM, decodeMortarForm, type MortarFormState } from '@/lib/v1/mortarQuery';
 import type { MortarProductOption } from '@/lib/v1/mortarProductOptions';
@@ -46,7 +45,7 @@ import {
   presetThicknessMm,
   assumedAreaSqm,
 } from '@/lib/v1/mortarEngineInput';
-import { USAGE_PRESET, SELF_LEVEL_USAGE_PRESET, THICKNESS_MM_MIN, thicknessMmMax } from '@/lib/v1/mortarPresets';
+import { USAGE_PRESET, SELF_LEVEL_USAGE_PRESET } from '@/lib/v1/mortarPresets';
 import QuickAnswer from './QuickAnswer';
 import PreciseRooms from './PreciseRooms';
 import PreciseSection from './PreciseSection';
@@ -327,11 +326,11 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
   // ── 정확 모드 두께 단계 — 셀프레벨링 자동 제품 전환 포함(예전 PreciseSection.tsx 로직 그대로) ──
   const modeProducts = products.filter((p) => p.mode === mode);
   const selectedProduct = form.productCode ? modeProducts.find((p) => p.code === form.productCode) : undefined;
-  const preciseThicknessMax = thicknessMmMax(mode);
-  const preciseThicknessMin = mode === '레미탈' ? 10 : THICKNESS_MM_MIN;
 
-  function handlePreciseThicknessChange(mm: number | '') {
-    if (mm === '') {
+  // QuickAnswer가 넘겨주는 값은 항상 number | undefined다('' 는 QuickAnswer 안에서
+  // 이미 undefined로 바꿔서 넘긴다) — 시그니처를 그 모양에 맞춘다.
+  function handlePreciseThicknessChange(mm: number | undefined) {
+    if (mm === undefined) {
       patch({ thicknessMm: undefined });
       touch(2);
       return;
@@ -396,35 +395,19 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
       key: 'thickness',
       title: '두께',
       valid: step2Valid,
-      content:
-        view === 'simple' ? (
-          <QuickAnswer
-            part="thickness"
-            form={form}
-            patch={patch}
-            thicknessUntouched={!touchedFlags[2]}
-            onThicknessTouch={() => touch(2)}
-          />
-        ) : (
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <span className="t-sub text-ink-2">
-                {preciseThicknessMin}~{preciseThicknessMax}mm
-              </span>
-            </div>
-            <NumberField
-              value={touchedFlags[2] ? (form.thicknessMm ?? '') : ''}
-              onChange={handlePreciseThicknessChange}
-              suffix="mm"
-              placeholder={touchedFlags[2] ? `${preciseThicknessMin}~${preciseThicknessMax}` : String(presetThicknessMm(form))}
-              aria-label="두께(mm)"
-              min={preciseThicknessMin}
-              max={preciseThicknessMax}
-              className="w-full"
-            />
-            {quick?.standardRangeNote && <p className="t-sub text-ink-2">{quick.standardRangeNote}</p>}
-          </div>
-        ),
+      // 2026-09-27 저녁 지휘관 3차 검수 지적 6번: 정확 모드도 간단 모드와 완전히 같은
+      // 모습(칩+숫자칸)을 쓴다. 정확 모드에서만 onThicknessChangeOverride를 넘겨
+      // 셀프레벨링 자동 제품 전환 로직(handlePreciseThicknessChange)을 끼워 넣는다.
+      content: (
+        <QuickAnswer
+          part="thickness"
+          form={form}
+          patch={patch}
+          thicknessUntouched={!touchedFlags[2]}
+          onThicknessTouch={() => touch(2)}
+          onThicknessChangeOverride={view === 'precise' ? handlePreciseThicknessChange : undefined}
+        />
+      ),
     },
   ];
 
@@ -536,11 +519,14 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
         </div>
       </div>
 
+      {/* 2026-09-27 저녁 지휘관 3차 검수 지적 2번: 하단 바에 수량까지 넣으니 금액이
+          잘렸다("40kg × 164포 · 161만~24…") — 도배·바닥재와 같이 진행 표시 + 금액 +
+          (면적 가정일 때만) "34평 가정"만 보여준다. 수량은 결과 카드에서 보여준다. */}
       <BottomBar
         stepNumber={Math.min(activeIndex + 1, steps.length)}
         stepCount={steps.length}
         stepTitle={currentStepTitle}
-        amountText={quick ? `${quick.bagKg}kg × ${quick.bags}포${result && range ? ` · ${formatManRange(range.min, range.max)}` : ''}` : undefined}
+        amountText={range ? formatManRange(range.min, range.max) : undefined}
         assumedNote={describeMortarBottomBarAssumption(assumed, areaAssumedText) ?? undefined}
         allDone={allDone}
         calculating={loading || stale}

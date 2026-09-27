@@ -143,12 +143,14 @@ export default function ResultPanel({
           )}
         </p>
 
-        {/* 2. 수량 한 줄 — 제품 미정이면 범위로("19~46박스"), 최소=최대면 하나만 */}
+        {/* 2. 수량 한 줄 — 제품 미정이면 범위로("19~46박스"), 최소=최대면 하나만.
+            2026-09-27 저녁 지휘관 3차 검수 지적 8번: 면적은 정수로("68.1㎡" → "68㎡"),
+            장 수 앞의 "총"은 뺀다("총 816장" → "816장"). */}
         <p className="t-body text-ink tabular-nums pt-2 border-t border-v1-line-2 flex flex-wrap gap-x-1">
           {[
             formatUnitsRangeText(quantity.units, quantity.unitsRange, unitLabel),
-            `바닥 ${formatNum(quantity.floorSqm)}㎡`,
-            ...(quantity.pieces != null ? [`총 ${formatNum(quantity.pieces)}장`] : []),
+            `바닥 ${Math.round(quantity.floorSqm)}㎡`,
+            ...(quantity.pieces != null ? [`${formatNum(quantity.pieces)}장`] : []),
           ].map((chunk, i, arr) => (
             <span key={i} className="whitespace-nowrap">
               {chunk}
