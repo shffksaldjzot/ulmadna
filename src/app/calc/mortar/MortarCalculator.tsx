@@ -1,66 +1,64 @@
 // ──────────────────────────────────────────────
 // v1 허브 — 미장(레미탈·셀프레벨링) 계산기 오케스트레이터 (클라이언트)
-// 도배·바닥재 Calculator.tsx를 그대로 본떠 만들었다.
 //
-//   맨 위 [간단하게 계산하기 | 정확하게 계산하기] 세그먼트 + 캡션 1줄.
-//   그 아래 용도 칩 한 줄(방통 · 셀프레벨링) — 예전엔 이 위에 [레미탈·몰탈 | 셀프레벨링]
-//   모드 토글이 따로 한 줄 더 있었는데, 셀프레벨링을 용도 칩 하나로 흡수해 화면 맨 위
-//   토글 줄을 4줄→2줄로 줄였다(2026-09-15 디자인 통일 지시). 셀프레벨링 칩을 고르면
-//   예전 모드 토글과 똑같이 mode를 '셀프레벨링'으로 바꾸고 두께·제품·옵션을 그 모드
-//   기본값으로 정리한다.
-//   2026-09-16 형아 피드백: 용도 칩을 5개(방통 전체·확장부 바닥·욕실·현관 구배·
-//   마루 철거 후 보수·셀프레벨링)에서 2개(방통·셀프레벨링)로 더 줄였다. 확장부 바닥·
-//   욕실·현관 구배·마루 철거 후 보수는 화면에서만 뺐다 — 엔진 타입(MortarUsage)과 계산
-//   로직은 그대로 남아 있고, 옛 공유 링크(?d=)에 그 값이 들어오면 sanitizeMortarFormState가
-//   방통으로 바꿔서 보여준다(mortarEngineInput.ts 참고). "방통 전체"라는 칩 라벨도
-//   "방통"으로 줄였다(라벨만 — 계산에 쓰는 값·usageLabel은 그대로 '방통전체'/'방통 전체').
-//   카드(모드에 따라 QuickAnswer 또는 PreciseSection 중 하나만) — 면적·두께·옵션.
-//   오른쪽(PC)·아래(모바일)에 결과 패널, 모바일엔 하단 고정 요약 바.
+// 2026-09-27 지시서(계산기 단계 흐름 개선) 9장 적용 — 도배·바닥재가 이미 새 공용 틀
+// (flow/*)로 짠 방식을 그대로 옮겨 왔다. 지시서 9-2절 단계 구성:
+//   간단 — [용도 → 면적 → 두께], 조정 칩: 공법(레미탈만)
+//   정확 — [용도 → 구역(㎡ 목록) → 두께], 조정 칩: 공법 + 세부 조정(접힘)
 //
-// 이 파일이 폼 상태를 한 곳에서만 들고 있고, 자식은 전부 "값 + 바꾸는 함수"만 받는다.
+// 용도(방통·셀프레벨링) 칩은 두 모드가 공유하는 1단계다. 미장 1단계는 **아무것도
+// 선택되지 않은 채** 시작한다 — 속에 기본값(방통전체)이 있어도 칩에 선택 표시를 하지
+// 않는다(touchedFlags[0]로 표시 여부를 가린다).
 //
-// 2026-09-15 운영자 현장 기준 피드백(포수가 안 보이는 문제) — 훅을 두 개 쓴다:
+// 두 훅을 쓴다(예전과 같음):
 //   useMortarQuickCalc  즉시 계산(서버 응답 없이 포수·체적·현장배합을 바로 계산)
 //   useMortarCalc       서버 계산(비용·인건 — 400ms 디바운스 + API 호출)
-// QuickAnswer·PreciseSection·ResultPanel은 quick(항상 있음)을 먼저 보여주고,
-// result(서버, 늦게 올 수도·실패할 수도)가 오면 비용·인건만 덧붙인다.
+// 둘 다 같은 options({ touched })를 넘겨야 가정값이 어긋나지 않는다(계산 담당 약속).
+//
+// 옛 부품(StepFlow.tsx·useStepFlow.ts)은 이 작업으로 미장도 새 틀로 옮겨졌으니 더 안
+// 쓴다 — 도배·바닥재도 이미 새 틀이라, 이제 쓰는 곳이 0이면 지시서 9-5절대로 지운다.
 //
 // 작성일: 2026년 09월 14일 · 개정: 2026년 09월 15일(운영자 현장 기준 피드백 — 즉답 분리)
 // 화면 재배치(용도 칩으로 모드 흡수): 2026년 09월 15일 (디자인 통일 작업 B)
 // 용도 칩 2개로 축소: 2026년 09월 16일
-//
-// 2026-09-16 튜토리얼식 단계 안내 도입:
-//   처음 들어오면 ModePicker로 모드부터 고른다(도배·바닥재와 같은 규칙). "간단하게"는
-//   용도 → 면적 → 두께(+공법) 3단계를 StepFlow로 순서대로 연다. "정확하게"(PreciseSection)는
-//   필드가 훨씬 많고(실별 면적·배합비·운송비·양중비·옵션·제품…) 이 설계서에 정확 모드의
-//   단계 구조가 따로 없어서, 억지로 3단계에 우겨넣지 않고 예전처럼 한 화면에 그대로 둔다
-//   (판단 갈린 지점 — 보고에 남긴다).
+// 단계 흐름 2판(좁혀가기·조정 칩·세부 조정·뒤로 가기·새로 고침 복원): 2026년 09월 27일 (지시서 9장)
 // ──────────────────────────────────────────────
 
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import TopNav from '@/components/v1/TopNav';
-import Button from '@/components/v1/Button';
 import Segment from '@/components/v1/Segment';
 import Chip from '@/components/v1/Chip';
-import {
-  DEFAULT_MORTAR_FORM,
-  decodeMortarForm,
-  type MortarFormState,
-} from '@/lib/v1/mortarQuery';
+import NumberField from '@/components/v1/NumberField';
+import Collapsible from '@/components/v1/Collapsible';
+import { DEFAULT_MORTAR_FORM, decodeMortarForm, type MortarFormState } from '@/lib/v1/mortarQuery';
 import type { MortarProductOption } from '@/lib/v1/mortarProductOptions';
+import { productCoversThickness, recommendSelfLevelProduct } from '@/lib/v1/mortarProductOptions';
 import { useMortarCalc } from '@/lib/v1/useMortarCalc';
 import { useMortarQuickCalc } from '@/lib/v1/useMortarQuickCalc';
-import { formatManRange, formatNum } from '@/lib/v1/money';
-import { sanitizeMortarFormState, resolveSimpleAreaSqm } from '@/lib/v1/mortarEngineInput';
-import { USAGE_PRESET, SELF_LEVEL_USAGE_PRESET } from '@/lib/v1/mortarPresets';
+import { formatManRange } from '@/lib/v1/money';
+import {
+  sanitizeMortarFormState,
+  resolveSimpleAreaSqm,
+  usesSupplyAreaConvention,
+  presetThicknessMm,
+  assumedAreaSqm,
+} from '@/lib/v1/mortarEngineInput';
+import { USAGE_PRESET, SELF_LEVEL_USAGE_PRESET, THICKNESS_MM_MIN, thicknessMmMax } from '@/lib/v1/mortarPresets';
 import QuickAnswer from './QuickAnswer';
+import PreciseRooms from './PreciseRooms';
 import PreciseSection from './PreciseSection';
 import ResultPanel from './ResultPanel';
-import StepFlow from '../_components/StepFlow';
-import { useStepFlow } from '../_components/useStepFlow';
+import { describeMortarBottomBarAssumption } from '../_components/assumptionText';
+import FlowShell from '../_components/flow/FlowShell';
+import AdjustChips from '../_components/flow/AdjustChips';
+import BottomBar from '../_components/flow/BottomBar';
+import { useFlowSteps } from '../_components/flow/useFlowSteps';
+import { useFlowBackNav } from '../_components/flow/useFlowBackNav';
+import { loadSessionState, saveSessionState } from '../_components/flow/sessionPersist';
+import type { FlowStepDef } from '../_components/flow/types';
 import ModePicker, { type CalcViewMode } from '../_components/ModePicker';
 
 interface MortarCalculatorProps {
@@ -68,71 +66,181 @@ interface MortarCalculatorProps {
   products: MortarProductOption[];
 }
 
+/** 새로 고침 복원(sessionStorage) 열쇠·판 번호 */
+const SESSION_KEY = 'calc:mortar:v1';
+const SESSION_VERSION = 1;
+
+/** 뒤로 가기 스택에서 "이 계산기가 쌓은 몫"을 구분하는 값 */
+const CALC_ID = 'mortar';
+
+/** 세션에 저장하는 값의 모양 */
+interface MortarSession {
+  form: MortarFormState;
+  touched: boolean[];
+  userPickedMode: boolean;
+  /** 조정 칩(공법)을 사용자가 직접 건드렸는지 */
+  methodTouched: boolean;
+}
+
+/** 값이 유한 숫자인지 — 세션 검사용 */
+function isFiniteNumberValue(v: unknown): v is number {
+  return typeof v === 'number' && Number.isFinite(v);
+}
+
+/** 세션에 저장된 폼 상태(MortarFormState) 자체의 모양을 검사한다(도배·바닥재와 같은 이유 —
+ * 폼 안쪽 칸 하나 때문에 화면이 통째로 멈추는 사고를 막는다). */
+function isValidMortarFormState(v: unknown): v is MortarFormState {
+  if (!v || typeof v !== 'object') return false;
+  const f = v as Record<string, unknown>;
+
+  if (f.view !== undefined && f.view !== 'simple' && f.view !== 'precise') return false;
+  if (f.mode !== undefined && f.mode !== '레미탈' && f.mode !== '셀프레벨링') return false;
+  if (f.areaInputMode !== undefined && f.areaInputMode !== 'area' && f.areaInputMode !== 'rect') return false;
+  if (f.area !== undefined && !isFiniteNumberValue(f.area)) return false;
+  if (f.areaUnit !== undefined && f.areaUnit !== '평' && f.areaUnit !== '㎡') return false;
+  if (f.rectWidth !== undefined && !isFiniteNumberValue(f.rectWidth)) return false;
+  if (f.rectDepth !== undefined && !isFiniteNumberValue(f.rectDepth)) return false;
+  if (
+    f.usage !== undefined &&
+    f.usage !== '확장부바닥' &&
+    f.usage !== '욕실현관구배' &&
+    f.usage !== '마루철거보수' &&
+    f.usage !== '방통전체'
+  ) {
+    return false;
+  }
+  if (f.selfLevelUsage !== undefined && f.selfLevelUsage !== '마루장판전' && f.selfLevelUsage !== '타일전' && f.selfLevelUsage !== '방통위마감') {
+    return false;
+  }
+  if (f.thicknessMm !== undefined && !isFiniteNumberValue(f.thicknessMm)) return false;
+  if (f.method !== undefined && f.method !== '장비타설' && f.method !== '손미장') return false;
+  if (f.preciseRooms !== undefined) {
+    if (!Array.isArray(f.preciseRooms)) return false;
+    for (const r of f.preciseRooms) {
+      if (!r || typeof r !== 'object') return false;
+      const room = r as Record<string, unknown>;
+      if (typeof room.name !== 'string' || !isFiniteNumberValue(room.areaSqm)) return false;
+    }
+  }
+  if (f.mixRatio !== undefined && f.mixRatio !== '1:2' && f.mixRatio !== '1:3') return false;
+  if (f.lossRate !== undefined && !isFiniteNumberValue(f.lossRate)) return false;
+  if (f.wireMesh !== undefined && typeof f.wireMesh !== 'boolean') return false;
+  if (f.primer !== undefined && typeof f.primer !== 'boolean') return false;
+  if (f.productCode !== undefined && typeof f.productCode !== 'string') return false;
+  if (f.product !== undefined) {
+    if (!f.product || typeof f.product !== 'object') return false;
+    const p = f.product as Record<string, unknown>;
+    for (const key of ['kgPerMmSqm', 'bagKg', 'pricePerBag'] as const) {
+      if (p[key] !== undefined && !isFiniteNumberValue(p[key])) return false;
+    }
+  }
+  if (f.deliveryFeeWon !== undefined && !isFiniteNumberValue(f.deliveryFeeWon)) return false;
+  if (f.forkliftFeeWon !== undefined && !isFiniteNumberValue(f.forkliftFeeWon)) return false;
+  if (f.liftingFeeWon !== undefined && !isFiniteNumberValue(f.liftingFeeWon)) return false;
+  return true;
+}
+
+function isValidMortarSession(v: unknown): v is MortarSession {
+  if (!v || typeof v !== 'object') return false;
+  const s = v as Record<string, unknown>;
+  if (!isValidMortarFormState(s.form)) return false;
+  if (!Array.isArray(s.touched) || !s.touched.every((t) => typeof t === 'boolean')) return false;
+  if (typeof s.userPickedMode !== 'boolean') return false;
+  if (typeof s.methodTouched !== 'boolean') return false;
+  return true;
+}
+
 /** 화면 모드 세그먼트 옵션 */
 const VIEW_OPTIONS = [
-  { value: 'simple' as const, label: '간단하게 계산하기' },
-  { value: 'precise' as const, label: '정확하게 계산하기' },
+  { value: 'simple' as const, label: '간단하게' },
+  { value: 'precise' as const, label: '정확하게' },
 ];
 
 /**
  * 용도 칩 한 줄에 쓰는 값 — 방통(레미탈 대표 용도) + 셀프레벨링(모드 자체를 대표하는 칩).
- * 2026-09-16 형아 피드백: 예전엔 레미탈 용도 4개(방통 전체·확장부 바닥·욕실·현관 구배·
- * 마루 철거 후 보수) + 셀프레벨링 1개, 총 5개였는데 방통·셀프레벨링 2개만 남기고 나머지
- * 3개는 화면에서 뺐다(엔진 타입 MortarUsage 자체는 그대로 둔다 — mortarPresets.ts 참고).
+ * 예전엔 레미탈 용도 4개 + 셀프레벨링 1개, 총 5개였는데 방통·셀프레벨링 2개만 남기고
+ * 나머지 3개는 화면에서 뺐다(엔진 타입 MortarUsage 자체는 그대로 둔다).
  */
 type TopUsage = '방통전체' | '셀프레벨링';
 const TOP_USAGE_ORDER: TopUsage[] = ['방통전체', '셀프레벨링'];
 
-/** 용도 칩에 보여줄 라벨 — "방통 전체"는 칩에서만 "방통"으로 줄인다(2026-09-16 형아 피드백) */
+/** 용도 칩에 보여줄 라벨 — "방통 전체"는 칩에서만 "방통"으로 줄인다 */
 function topUsageLabel(u: TopUsage): string {
   return u === '셀프레벨링' ? '셀프레벨링' : '방통';
 }
 
 export default function MortarCalculator({ products }: MortarCalculatorProps) {
   const searchParams = useSearchParams();
+  const hasSharedLink = !!searchParams.get('d');
 
-  // 2026-09-15 검사관 지적: 공유 링크(?d=)로 들어온 값을 그대로 초기 상태로 쓰면 화면 입력칸에
-  // 비정상 값(예: 1e22 → "1e+22" 지수 표기)이 그대로 찍힐 수 있다 — sanitizeMortarFormState로
-  // 한 번 걸러서 화면에 보여줄 안전한 값으로 만든 뒤에만 상태로 쓴다.
-  const initial = useMemo<MortarFormState>(
-    () => sanitizeMortarFormState(decodeMortarForm(searchParams.get('d')) ?? DEFAULT_MORTAR_FORM),
-    [searchParams],
-  );
+  // 공유 링크(?d=)로 들어온 값을 그대로 초기 상태로 쓰면 화면 입력칸에 비정상 값(예:
+  // 1e22 → "1e+22" 지수 표기)이 그대로 찍힐 수 있다 — sanitizeMortarFormState로 한 번
+  // 걸러서 화면에 보여줄 안전한 값으로 만든 뒤에만 상태로 쓴다.
+  const restored = useMemo<MortarSession | null>(() => {
+    if (hasSharedLink) return null;
+    try {
+      const loaded = loadSessionState<unknown>(SESSION_KEY, SESSION_VERSION);
+      return isValidMortarSession(loaded) ? loaded : null;
+    } catch {
+      return null;
+    }
+  }, [hasSharedLink]);
+
+  const initial = useMemo<MortarFormState>(() => {
+    const shared = decodeMortarForm(searchParams.get('d'));
+    const base = shared ?? restored?.form ?? DEFAULT_MORTAR_FORM;
+    return sanitizeMortarFormState(base);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const [form, setForm] = useState<MortarFormState>(initial);
   const resultRef = useRef<HTMLDivElement>(null);
 
-  // 튜토리얼식 단계 안내 — 공유 링크면 모드 선택 화면을 건너뛴다(도배·바닥재와 같은 규칙)
-  const hasSharedLink = !!searchParams.get('d');
-  const [userPickedMode, setUserPickedMode] = useState(false);
+  const [userPickedMode, setUserPickedMode] = useState(hasSharedLink || !!restored?.userPickedMode);
   const modeChosen = hasSharedLink || userPickedMode;
 
-  // 폼이 바뀔 때마다 하나씩 올라가는 숫자 — useStepFlow가 "방금 뭔가 골랐다"를 알아채는 용도
-  const [formVersion, setFormVersion] = useState(0);
+  // 조정 칩(공법)을 사용자가 직접 건드렸는지
+  const [methodTouched, setMethodTouched] = useState(hasSharedLink || !!restored?.methodTouched);
 
   /** 폼 상태 부분 갱신 도우미 — 자식 컴포넌트는 항상 이 함수로만 상태를 바꾼다 */
   function patch(p: Partial<MortarFormState>) {
     setForm((prev) => ({ ...prev, ...p }));
-    setFormVersion((v) => v + 1);
   }
 
   const mode = form.mode ?? '레미탈';
   const view = form.view ?? 'simple';
-  // 지금 화면에서 선택된 것으로 보이는 용도 칩 — 칩이 방통·셀프레벨링 둘뿐이라 모드 하나로
-  // 정해진다(레미탈 모드면 항상 방통 칩, 2026-09-16 용도 칩 2개로 축소)
   const currentTopUsage: TopUsage = mode === '셀프레벨링' ? '셀프레벨링' : '방통전체';
 
+  const step0Valid = true; // 용도는 항상 유효한 값(기본 방통)이 있다 — touched로만 가린다
+  const step1Valid =
+    view === 'simple'
+      ? resolveSimpleAreaSqm(form) !== null
+      : (form.preciseRooms ?? []).some((r) => typeof r.areaSqm === 'number' && r.areaSqm > 0);
+  const step2Valid = typeof form.thicknessMm === 'number' && form.thicknessMm > 0;
+
+  const { activeIndex, allDone, completeFlags, touchedFlags, touch, resetTouched } = useFlowSteps({
+    dataComplete: [step0Valid, step1Valid, step2Valid],
+    allTouched: hasSharedLink,
+    initialTouched: restored?.touched,
+  });
+
   /**
-   * 용도 칩을 고르는 유일한 통로(도배 setPaperType과 같은 이유 — 모드·용도·두께·제품을
-   * 한 번에 정리해야 옛 값이 남아 화면과 계산이 어긋나는 사고를 막는다).
+   * 용도 칩을 고르는 유일한 통로 — 모드·용도·두께·제품을 한 번에 정리해야 옛 값이 남아
+   * 화면과 계산이 어긋나는 사고를 막는다(도배 setPaperType과 같은 이유).
    *
-   * 34평 의미 통일(2026-09-15): 방통(공급 평형 규칙)과 셀프레벨링(작업 면적 그 자체)
-   * 사이를 넘나들 때는 두 규칙의 "평"이 서로 다른 크기라(34평 = 전용 84㎡ vs 34평 = 순수
-   * 112㎡) 이전 면적 값을 그대로 두면 엉뚱한 크기로 계산된다 — 그룹이 바뀔 때만 면적을
-   * 비우고 단위를 그 그룹 기본값으로 되돌린다. (칩이 2개뿐이라 "공급 규칙인지"는 그냥
-   * 셀프레벨링이 아닌지로 판정한다.)
+   * 34평 의미 통일: 방통(공급 평형 규칙)과 셀프레벨링(작업 면적 그 자체) 사이를 넘나들 때는
+   * 두 규칙의 "평"이 서로 다른 크기라 이전 면적 값을 그대로 두면 엉뚱한 크기로 계산된다 —
+   * 그룹이 바뀔 때만 면적을 비우고 단위를 그 그룹 기본값으로 되돌린다.
+   *
+   * 매인 관계(지시서 4-2절): 용도를 바꾸면 면적·두께가 새 프리셋으로 바뀌므로, 두 단계
+   * (면적·두께) 손댐 표시를 되돌려 다시 확인하게 한다(제품·공법도 값 자체를 초기화한다).
    */
   function selectTopUsage(u: TopUsage) {
+    if (u === currentTopUsage) {
+      // 값이 안 바뀌었어도 "용도를 손댔다"는 표시는 남겨야 한다(처음 고르는 경우)
+      touch(0);
+      return;
+    }
     const wasSupply = mode !== '셀프레벨링';
     const willSupply = u !== '셀프레벨링';
     const crossing = wasSupply !== willSupply;
@@ -153,90 +261,210 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
         wireMesh: false,
         ...areaReset,
       });
-      touch(0);
-      return;
+    } else {
+      patch({
+        mode: '레미탈',
+        usage: u,
+        selfLevelUsage: undefined,
+        thicknessMm: USAGE_PRESET[u].defaultMm,
+        productCode: undefined,
+        product: undefined,
+        method: undefined,
+        ...areaReset,
+      });
     }
-
-    patch({
-      mode: '레미탈',
-      usage: u,
-      selfLevelUsage: undefined,
-      thicknessMm: USAGE_PRESET[u].defaultMm,
-      productCode: undefined,
-      product: undefined,
-      method: undefined,
-      ...areaReset,
-    });
     touch(0);
+    resetTouched([1, 2]);
   }
 
+  // 뒤로·앞으로 가기 배선 — 모드를 고를 때만 방문 기록에 쌓는다(도배·바닥재와 같은 규칙)
+  useFlowBackNav({
+    calcId: CALC_ID,
+    modeChosen,
+    onExitToModePicker: () => setUserPickedMode(false),
+    onReenterMode: () => setUserPickedMode(true),
+  });
+
+  // 새로 고침 복원
+  useEffect(() => {
+    if (hasSharedLink) return;
+    saveSessionState<MortarSession>(SESSION_KEY, SESSION_VERSION, {
+      form,
+      touched: touchedFlags,
+      userPickedMode,
+      methodTouched,
+    });
+  }, [form, touchedFlags, userPickedMode, methodTouched, hasSharedLink]);
+
+  // 계산 담당 두 훅에 완전히 같은 options를 넘긴다(계산 담당 약속 — 9-3절)
+  const touchedOptions = {
+    touched: {
+      usage: touchedFlags[0],
+      area: touchedFlags[1],
+      thickness: touchedFlags[2],
+      method: methodTouched,
+    },
+  };
   // 즉답 — 서버 없이 바로 계산되는 포수·체적·현장배합(항상 최신 폼 상태를 즉시 반영)
-  const quick = useMortarQuickCalc(form, products);
+  const quick = useMortarQuickCalc(form, products, touchedOptions);
   // 서버 — 비용·인건(디바운스 + API 호출, 늦게 오거나 실패할 수 있다)
-  const { result, range, loading, error, stale } = useMortarCalc(form, products);
+  const { result, range, loading, error, stale, assumed } = useMortarCalc(form, products, touchedOptions);
 
-  const emptyMessage = view === 'precise' ? '면적을 넣으면 나와요' : '면적과 두께를 넣으면 바로 나와요';
+  const emptyMessage = '용도를 고르면 바로 나와요';
 
-  // ── 튜토리얼식 단계 안내: "간단하게" 모드에서만 3단계(용도 → 면적 → 두께+공법)를 쓴다.
-  // "정확하게"(PreciseSection)는 필드가 훨씬 많아 예전처럼 한 화면에 그대로 둔다(아래 함수
-  // 설명 참고). 훅은 view와 무관하게 항상 불러야 해서(리액트 훅 규칙) 여기서 매번 계산한다.
-  // 2026-09-16 보완: "값이 유효한지(dataComplete)"만으론 기본값(방통·10평 등) 때문에
-  // 진입 즉시 완료로 접혀버린다 — useStepFlow가 touched(실제로 손댔는지)와 함께 가려서
-  // 진짜 완료(completeFlags)를 낸다. 공유 링크(?d=)일 때만 처음부터 전부 손댄 것으로 본다.
-  const step0DataComplete = true; // 용도는 항상 유효한 값(기본 방통)이 있다 — touched로 가린다
-  const step1DataComplete = resolveSimpleAreaSqm(form) !== null;
-  const step2DataComplete = typeof form.thicknessMm === 'number' && form.thicknessMm > 0;
-  const { activeIndex, allDone, completeFlags, reopen, touch } = useStepFlow(
-    [step0DataComplete, step1DataComplete, step2DataComplete],
-    formVersion,
-    hasSharedLink,
-  );
-  const [step0Complete, step1Complete, step2Complete] = completeFlags;
-
-  // 면적 단계 완료 요약 한 줄 — "가로×세로" 입력이면 그 값을, 아니면 면적+단위를 보여준다
-  const areaInputMode = form.areaInputMode ?? 'area';
-  const step1Summary =
-    areaInputMode === 'rect'
-      ? `${form.rectWidth ?? '?'}×${form.rectDepth ?? '?'}m`
-      : `${form.area ?? '?'}${form.areaUnit ?? '평'}`;
-  // 두께 단계 완료 요약 한 줄 — 레미탈이면 공법도 같이 보여준다
-  const step2Summary =
-    mode === '레미탈'
-      ? `${form.thicknessMm}mm · ${(form.method ?? (form.usage ? USAGE_PRESET[form.usage].defaultMethod : '손미장')) === '장비타설' ? '장비 타설' : '손미장'}`
-      : `${form.thicknessMm}mm`;
-
-  // 단계별 안내 한 줄(간단 모드 전용) — StepFlow caption과 하단 고정 바가 같은 문구를 쓴다
-  const stepCaptions = ['용도를 고르세요', '면적을 넣으세요', '두께를 정하세요'];
   /** 폼 상태를 바꾸면서 동시에 해당 단계를 "손댔다"고 표시하는 도우미 */
   function patchArea(p: Partial<MortarFormState>) {
     patch(p);
     touch(1);
   }
-  function patchThickness(p: Partial<MortarFormState>) {
-    patch(p);
+
+  /** 조정 칩 — 공법. 손댔다는 표시를 같이 남긴다 */
+  function onMethodChange(v: '손미장' | '장비타설') {
+    patch({ method: v });
+    setMethodTouched(true);
+  }
+
+  // ── 정확 모드 두께 단계 — 셀프레벨링 자동 제품 전환 포함(예전 PreciseSection.tsx 로직 그대로) ──
+  const modeProducts = products.filter((p) => p.mode === mode);
+  const selectedProduct = form.productCode ? modeProducts.find((p) => p.code === form.productCode) : undefined;
+  const preciseThicknessMax = thicknessMmMax(mode);
+  const preciseThicknessMin = mode === '레미탈' ? 10 : THICKNESS_MM_MIN;
+
+  function handlePreciseThicknessChange(mm: number | '') {
+    if (mm === '') {
+      patch({ thicknessMm: undefined });
+      touch(2);
+      return;
+    }
+    if (mode === '셀프레벨링' && selectedProduct && !productCoversThickness(selectedProduct, mm)) {
+      const rec = recommendSelfLevelProduct(mm, products);
+      patch({ thicknessMm: mm, productCode: rec?.code });
+    } else {
+      patch({ thicknessMm: mm });
+    }
     touch(2);
   }
 
-  // "N/3 · 안내"(간단 모드 전용) — 하단 고정 바와 (완료 전) 결과 패널 자리가 같이 쓰는 문구
-  const progressText = `${Math.min(activeIndex + 1, stepCaptions.length)}/${stepCaptions.length} · ${
-    stepCaptions[Math.min(activeIndex, stepCaptions.length - 1)]
-  }`;
-  // 2026-09-16 보완: 간단 모드는 3단계를 다 "손대서" 끝내기 전엔(allDone) 기본값(방통·10평
-  // 등)으로 이미 계산된 물량·비용을 결과 패널에 보여주지 않는다. quick 자체를 비워서
-  // ResultPanel이 항상 "빈 상태"(placeholder) 가지를 타게 한다 — 정확하게 모드는 단계
-  // 개념이 없어 그대로 둔다.
-  const gateResult = view === 'simple' && !allDone;
-  const quickForPanel = gateResult ? null : quick;
-  const resultForPanel = gateResult ? null : result;
-  const rangeForPanel = gateResult ? null : range;
-  const errorForPanel = gateResult ? null : error;
-  const resultPanelEmptyMessage = gateResult ? progressText : emptyMessage;
+  // 가정 문구 — 용도(방통/셀프레벨링)에 따라 면적 가정값의 뜻이 달라 여기서 계산해 넘긴다
+  const areaAssumedText = usesSupplyAreaConvention(form)
+    ? '34평 가정'
+    : `${Math.round(assumedAreaSqm(form))}㎡ 가정`;
+  const thicknessAssumedText = `${presetThicknessMm(form)}mm 가정`;
+
+  // ── 단계 정의 배열 — 용도 칩 줄은 두 모드가 공유한다 ──
+  const usageStepContent = (
+    <div className="flex flex-wrap gap-2">
+      {TOP_USAGE_ORDER.map((u) => (
+        <Chip
+          key={u}
+          // 지시서 9-2절: 1단계는 아무것도 선택되지 않은 채 시작한다 — 손대기 전엔 칩에
+          // 선택 표시를 하지 않는다(속에 기본값이 있어도)
+          selected={touchedFlags[0] && currentTopUsage === u}
+          onClick={() => selectTopUsage(u)}
+        >
+          {topUsageLabel(u)}
+        </Chip>
+      ))}
+    </div>
+  );
+
+  const steps: FlowStepDef[] = [
+    {
+      key: 'usage',
+      title: '용도',
+      valid: step0Valid,
+      content: usageStepContent,
+    },
+    {
+      key: 'area',
+      title: view === 'simple' ? '면적' : '구역',
+      valid: step1Valid,
+      content:
+        view === 'simple' ? (
+          <QuickAnswer
+            part="area"
+            form={form}
+            patch={patchArea}
+            areaUntouched={!touchedFlags[1]}
+            onAreaEnterComplete={() => touch(1)}
+          />
+        ) : (
+          <PreciseRooms rooms={form.preciseRooms ?? []} onRoomsChange={(v) => patchArea({ preciseRooms: v })} />
+        ),
+    },
+    {
+      key: 'thickness',
+      title: '두께',
+      valid: step2Valid,
+      content:
+        view === 'simple' ? (
+          <QuickAnswer
+            part="thickness"
+            form={form}
+            patch={patch}
+            thicknessUntouched={!touchedFlags[2]}
+            onThicknessTouch={() => touch(2)}
+          />
+        ) : (
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="t-sub text-ink-2">
+                {preciseThicknessMin}~{preciseThicknessMax}mm
+              </span>
+            </div>
+            <NumberField
+              value={touchedFlags[2] ? (form.thicknessMm ?? '') : ''}
+              onChange={handlePreciseThicknessChange}
+              suffix="mm"
+              placeholder={touchedFlags[2] ? `${preciseThicknessMin}~${preciseThicknessMax}` : String(presetThicknessMm(form))}
+              aria-label="두께(mm)"
+              min={preciseThicknessMin}
+              max={preciseThicknessMax}
+              className="w-full"
+            />
+            {quick?.standardRangeNote && <p className="t-sub text-ink-2">{quick.standardRangeNote}</p>}
+          </div>
+        ),
+    },
+  ];
+
+  // ── 조정 칩 — 공법(레미탈만). 셀프레벨링은 조정 칩 구역 자체가 없다 ──
+  const adjustGroups =
+    mode === '레미탈'
+      ? [
+          {
+            key: 'method',
+            label: '공법',
+            children: (
+              <>
+                <Chip
+                  shape="square"
+                  selected={(form.method ?? (form.usage ? USAGE_PRESET[form.usage].defaultMethod : '손미장')) === '손미장'}
+                  onClick={() => onMethodChange('손미장')}
+                >
+                  손미장
+                </Chip>
+                <Chip
+                  shape="square"
+                  selected={(form.method ?? (form.usage ? USAGE_PRESET[form.usage].defaultMethod : '손미장')) === '장비타설'}
+                  onClick={() => onMethodChange('장비타설')}
+                >
+                  장비 타설
+                </Chip>
+              </>
+            ),
+          },
+        ]
+      : [];
 
   function scrollToResult() {
     resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  // 첫 화면 — 아직 모드를 안 골랐으면 질문 하나만 보여준다(결과 패널·하단 바 전부 숨김)
+  const bottomFailed = false; // quick이 있으면 실패 표시를 쓸 일이 없다(포수는 항상 즉시 나온다)
+  const currentStepTitle = steps[Math.min(activeIndex, steps.length - 1)]?.title ?? '';
+
+  // 첫 화면 — 아직 모드를 안 골랐으면 질문 하나만 보여준다
   if (!modeChosen) {
     return (
       <>
@@ -255,129 +483,71 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
 
   return (
     <>
-      {/* 2026-09-14 검사관 지적: page.tsx(서버 컴포넌트)에 검색엔진용 진짜 h1을 따로 심어서
-          이 자리의 제목 줄과 h1이 겹친다 — as="p"로 그려서 페이지 h1이 1개만 남게 한다.
-          모바일 상단바 제목은 짧게 "레미탈 계산기"만(긴 SEO 문구는 page.tsx의 sr-only h1이 맡는다) */}
-      <TopNav title="레미탈 계산기" backHref="/calc" as="p" />
+      <TopNav
+        title="레미탈 계산기"
+        backHref="/calc"
+        as="p"
+        rightSlot={
+          <Segment size="sm" options={VIEW_OPTIONS} value={view} onChange={(v) => patch({ view: v })} className="w-[136px]" />
+        }
+      />
 
-      {/* 좌우 여백을 공용 Container(px-5/lg:px-8)와 동일하게 맞춰 헤더 로고와 x축을 일치시킨다 */}
       <div className="px-5 lg:px-8 py-4 pb-20 lg:pb-8 max-w-[1120px] mx-auto flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(480px,560px)_1fr] lg:gap-8 lg:items-start">
-        {/* 왼쪽 — 입력 */}
-        <div className="flex flex-col gap-6">
-          {/* 화면 모드 세그먼트 — 카드 바깥. 캡션 1줄만(설명글 최소화 원칙) */}
-          <div className="flex flex-col gap-2">
-            <Segment options={VIEW_OPTIONS} value={view} onChange={(v) => patch({ view: v })} />
-            <p className="text-[13px] text-v1-text-secondary">
-              {view === 'simple' ? '면적과 용도만으로 바로 나와요' : '실측·배합·제품까지 반영해요'}
-            </p>
-          </div>
-
-          {view === 'simple' ? (
-            <>
-              {/* 1단계 — 용도. 두께 기본값을 같이 채우고, 셀프레벨링 칩은 모드 자체를 바꾼다.
-                  기본값(방통)이 이미 골라져 있어 처음엔 접힌 채로 보인다 — "바꾸기"로 언제든
-                  셀프레벨링으로 바꿀 수 있다. */}
-              <StepFlow
-                index={0}
-                activeIndex={activeIndex}
-                title="용도"
-                caption={stepCaptions[0]}
-                summary={topUsageLabel(currentTopUsage)}
-                complete={step0Complete}
-                onReopen={() => reopen(0)}
-              >
-                <div className="flex flex-wrap gap-2">
-                  {TOP_USAGE_ORDER.map((u) => (
-                    <Chip key={u} selected={currentTopUsage === u} onClick={() => selectTopUsage(u)}>
-                      {topUsageLabel(u)}
-                    </Chip>
-                  ))}
-                </div>
-              </StepFlow>
-
-              {/* 2단계 — 면적 */}
-              <StepFlow
-                index={1}
-                activeIndex={activeIndex}
-                title="면적"
-                caption={stepCaptions[1]}
-                summary={step1Summary}
-                complete={step1Complete}
-                onReopen={() => reopen(1)}
-              >
-                <QuickAnswer part="area" form={form} patch={patchArea} quick={quick} />
-              </StepFlow>
-
-              {/* 3단계 — 두께(+공법). 값을 계속 조정하는 단계라 끝나도 접지 않는다(keepOpen) */}
-              <StepFlow
-                index={2}
-                activeIndex={activeIndex}
-                title="두께"
-                caption={stepCaptions[2]}
-                summary={step2Summary}
-                complete={step2Complete}
-                keepOpen
-              >
-                <QuickAnswer part="thickness" form={form} patch={patchThickness} quick={quick} />
-              </StepFlow>
-            </>
-          ) : (
-            <>
-              {/* "정확하게"는 필드가 많아(실별 면적·배합비·운송비·양중비·옵션·제품…) 이 설계서에
-                  단계 구조가 따로 없다 — 예전처럼 용도 칩 + PreciseSection을 한 화면에 그대로 둔다 */}
-              <div className="flex flex-col gap-2">
-                <h2 className="text-[17px] font-bold text-foreground">용도</h2>
-                <div className="flex flex-wrap gap-2">
-                  {TOP_USAGE_ORDER.map((u) => (
-                    <Chip key={u} selected={currentTopUsage === u} onClick={() => selectTopUsage(u)}>
-                      {topUsageLabel(u)}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
-              <PreciseSection form={form} patch={patch} products={products} quick={quick} result={result} />
-            </>
-          )}
+        <div className="flex flex-col gap-4">
+          <Segment
+            size="sm"
+            options={VIEW_OPTIONS}
+            value={view}
+            onChange={(v) => patch({ view: v })}
+            className="hidden lg:flex w-[160px]"
+          />
+          <FlowShell steps={steps} activeIndex={activeIndex} completeFlags={completeFlags} />
         </div>
 
-        {/* 오른쪽 — 결과 */}
         <div
           ref={resultRef}
-          className="scroll-mt-16 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto"
+          className="scroll-mt-16 flex flex-col gap-4 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto"
         >
+          <AdjustChips visible={!!quick} groups={adjustGroups} />
+          {/* 정확 모드 "세부 조정" — 조정 칩 아래, 결과 카드 위. 카드로 감싸지 않는다
+              (테두리·배경 없음, 지시서 9-2절). 기존 입력 부품(PreciseSection.tsx)을
+              그대로 옮겨서 쓴다. */}
+          {view === 'precise' && quick && (
+            <Collapsible title="세부 조정">
+              <div className="pt-2">
+                <PreciseSection form={form} patch={patch} products={products} result={result} />
+              </div>
+            </Collapsible>
+          )}
           <ResultPanel
-            quick={quickForPanel}
-            result={resultForPanel}
-            range={rangeForPanel}
+            quick={quick}
+            result={result}
+            range={range}
             loading={loading}
-            error={errorForPanel}
+            error={error}
             stale={stale}
+            assumed={assumed}
+            allDone={allDone}
             form={form}
-            emptyMessage={resultPanelEmptyMessage}
+            areaAssumedText={areaAssumedText}
+            thicknessAssumedText={thicknessAssumedText}
+            emptyMessage={emptyMessage}
           />
         </div>
       </div>
 
-      {/* 모바일 하단 고정 요약 바 — 포수는 quick(즉시)로, 금액은 서버가 왔을 때만 붙인다.
-          2026-09-16 보완: "간단하게"는 3단계를 다 "손대서" 끝내기 전엔(allDone) 기본값으로
-          이미 계산된 숫자 대신 "N/3 · 안내"를 보여준다. "정확하게"는 단계 개념이 없어 예전 그대로. */}
-      <div className="fixed bottom-0 left-0 right-0 h-14 bg-white border-t border-v1-line flex items-center justify-between px-4 lg:hidden z-40">
-        {(view === 'precise' || allDone) && quick ? (
-          <span className="text-[16px] font-semibold text-brown tabular-nums">
-            {quick.bagKg}kg × {formatNum(quick.bags)}포
-            {result && range ? ` · ${formatManRange(range.min, range.max)}` : ''}
-          </span>
-        ) : view === 'simple' ? (
-          <span className="text-[14px] text-v1-text-secondary">{progressText}</span>
-        ) : (
-          <span className="text-[14px] text-v1-text-secondary">{emptyMessage}</span>
-        )}
-        {/* 2026-09-16 형아 피드백: 칩·세그먼트는 다 줄였지만 이 버튼만은 44px를 유지한다(누르는
-            자리라 너무 작아지면 안 됨) */}
-        <Button variant="primary" className="!h-11 !px-4 !text-[14px]" onClick={scrollToResult}>
-          결과 보기
-        </Button>
-      </div>
+      <BottomBar
+        stepNumber={Math.min(activeIndex + 1, steps.length)}
+        stepCount={steps.length}
+        stepTitle={currentStepTitle}
+        amountText={quick ? `${quick.bagKg}kg × ${quick.bags}포${result && range ? ` · ${formatManRange(range.min, range.max)}` : ''}` : undefined}
+        assumedNote={describeMortarBottomBarAssumption(assumed, areaAssumedText) ?? undefined}
+        allDone={allDone}
+        calculating={loading || stale}
+        failed={bottomFailed}
+        onDetail={scrollToResult}
+        onRetry={() => window.location.reload()}
+      />
     </>
   );
 }
