@@ -34,7 +34,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { pushBackLayer, clearBackLayers } from './backLayer';
+import { pushBackLayer, clearBackLayers, activateCalc } from './backLayer';
 
 /** 모드(간단/정확)를 고르는 전환이 방금 일어났는지 — 쌓을지 말지 판정하는 순수 함수 */
 export function shouldPushForModeChosen(modeChosen: boolean, prevModeChosen: boolean): boolean {
@@ -96,6 +96,22 @@ export function useFlowBackNav({
   reopen,
   isKeepOpen,
 }: UseFlowBackNavOptions): void {
+  // onExitToModePicker는 매 렌더 새 함수일 수 있으니 ref로 최신 값을 들고 있다가,
+  // backLayer.ts에는 그 ref를 참조하는 안정적인 함수 하나만 넘긴다(5번 재설계 — activateCalc는
+  // calcId가 안 바뀌면 다시 안 불리므로, 안에서 부르는 콜백이 낡은 클로저가 되면 안 된다)
+  const onExitToModePickerRef = useRef(onExitToModePicker);
+  onExitToModePickerRef.current = onExitToModePicker;
+
+  // (5번 재설계 핵심) 이 계산기가 "지금 화면에 떠 있다"고 backLayer.ts에 등록한다 — 이때부터만
+  // popstate 처리기가 이 calcId의 짝 없는 칸을 건너뛴다. 언마운트되면(정리 함수) 등록을 뗀다
+  // — 그래야 이 계산기를 떠난 뒤 다른 페이지(허브·바닥재·블로그 등)의 뒤로 가기에 전혀
+  // 관여하지 않는다(배포 후 발견된 치명 회귀의 원인 중 하나 — 리스너가 영원히 안 떨어짐).
+  // 다른 효과(아래 두 개)보다 먼저 선언해서, 마운트 시 리스너가 먼저 붙은 뒤에 push가 일어나게 한다.
+  useEffect(() => {
+    const deactivate = activateCalc(calcId, () => onExitToModePickerRef.current());
+    return deactivate;
+  }, [calcId]);
+
   // "모드를 골랐다"는 전환이 실제로 일어난 순간에만 쌓는다(공유 링크로 들어와 처음부터
   // modeChosen이 true인 경우는 전환이 아니므로 쌓지 않는다 — 이때 뒤로 가기는 그냥 페이지를 떠난다)
   const prevModeChosenRef = useRef(modeChosen);

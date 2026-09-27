@@ -45,30 +45,51 @@
 //    당연히 비어 있다), 브라우저 자체의 방문 기록에는 예전에 쌓아 둔 칸(state에 우리
 //    calcId·seq가 적힌 칸)이 그대로 남아 있다 — 그 칸들의 popstate를 받아도 짝이 될
 //    되돌리기 함수가 메모리에 없으니 예전엔 아무 일도 안 하고 조용히 지나갔다(=무반응
-//    뒤로 가기). 이제 popstate가 오면 "이 자리가 우리 표식(calcId·seq)이 있는 칸인데
-//    스택에는 짝이 없다"를 감지해서, 화면을 그대로 두는 대신 곧바로 한 번 더
-//    history.back()을 불러 그 칸을 건너뛴다 — 표식 없는(=우리가 만들지 않은 진짜) 칸을
-//    만날 때까지 반복한다(무한 반복 방지로 한 번의 사용자 조작당 건너뛰는 횟수에 상한을 둔다).
-//    이러면 새로 고침 뒤에는 "단계 되돌리기"까지 복원하진 않지만(그건 이번 지시 대상이
-//    아니다), 뒤로 가기 한 번을 누르면 곧바로 계산기 이전 페이지로 나가는 "눈에 보이는
-//    변화 한 번"이 된다. 입력값 자체는 세션 복원(sessionPersist.ts)이 이미 담당한다.
+//    뒤로 가기). popstate가 오면 "이 자리가 우리 표식(calcId·seq)이 있는 칸인데 스택에는
+//    짝이 없다"를 감지해서, 화면을 그대로 두는 대신 곧바로 한 번 더 history.back()을 불러
+//    그 칸을 건너뛴다(무한 반복 방지 상한).
 //
-// 5) (2026-09-27 실제 브라우저 재검증 중 추가로 발견) 4번 수리를 넣고도 여전히 무반응
-//    한 번이 남는 경우가 있었다 — 계산기 페이지 자체가 처음 열릴 때(주소는 안 바뀌지만)
-//    Next.js 라우터가 자기 내부용으로 표식 없는 칸을 하나 만들어 두는데, 이 칸은 "우리
-//    표식"도 없고 "진짜 다른 페이지"도 아니다(주소가 여전히 계산기 페이지 그대로).
-//    표식 없는 칸을 만나면 무조건 멈추는 옛 규칙대로면, 짝 없는 우리 칸들을 다 건너뛴
-//    다음 이 표식 없는 "같은 페이지 안쪽" 칸에서 멈춰 버려 화면이 하나도 안 바뀐다(=
-//    무반응). 이제 표식이 없어도 "지금 주소가 계산기를 처음 열었을 때와 같은 주소"면
-//    진짜 다른 페이지가 아니라고 보고 계속 건너뛴다 — 주소가 달라지는 진짜 이전 페이지에
-//    닿아야 비로소 멈춘다. "계산기를 처음 열었을 때의 주소"는 이 스택을 만드는 그 순간의
-//    주소(homePathname)로 한 번 기억해 둔다(새로 고침하면 이 값도 그 시점 주소로 다시
-//    잡히니 매번 정확하다).
+// 5) (2026-09-27 배포 후 검사관이 발견한 치명 회귀 — 이번에 전면 재설계로 고쳤다)
+//    지난 판(bac688f)은 "주소가 계산기를 처음 열었을 때와 같으면 표식 없어도 건너뛴다"는
+//    규칙을 추가했는데, 이게 두 가지 사고를 냈다:
+//      (a) homePathname을 "이 스택을 만드는 순간"의 주소로 딱 한 번만 읽었다. 블로그
+//          글에서 "링크를 눌러"(페이지 전체가 새로 열리지 않는 SPA 이동) 계산기로 들어오면,
+//          이 모듈은 블로그 페이지가 뜬 그 시점에 이미 한 번 실행돼 있을 수 있어(다른
+//          경로로 먼저 로드됐거나, Next.js가 미리 불러 두는 경우 등) homePathname이
+//          "계산기 주소"가 아니라 "블로그 주소"로 잘못 굳어 버렸다 — 그러면 블로그 칸도
+//          "우리 페이지"로 오판해서 건너뛰어 버려, 뒤로 가기 한 번에 블로그를 지나쳐
+//          about:blank까지 나가버렸다(재현 가·나·다·라 전부 이 사고).
+//      (b) popstate 처리기를 모듈이 처음 실행될 때 딱 한 번 붙이고 다시는 안 뗐다 —
+//          계산기를 완전히 떠난 뒤(허브·다른 계산기·블로그)에도 이 처리기가 계속 살아서,
+//          그 페이지들에서 일어나는 진짜 뒤로 가기까지 자기 논리로 건드려 버렸다.
+//
+//    고친 방법(주소 비교를 완전히 버리고, "우리 표식 + 지금 활성 계산기"만 본다):
+//      - 표식(calcId·seq)에 "문서 수명 값"(epoch)을 추가했다 — 이 스택 인스턴스가 만들어질
+//        때(=모듈이 실행될 때, 즉 페이지가 새로 열리거나 새로 고침될 때) 딱 한 번 임의로
+//        만든다. 세션이 이어지는 동안(같은 문서) 찍히는 모든 표식은 같은 epoch를 갖는다.
+//      - popstate 처리기는 계산기가 "지금 화면에 떠 있을 때만" 존재한다 — activateCalc()가
+//        계산기가 마운트될 때 등록하고(리스너를 그제서야 붙인다), 돌려준 해지 함수를 그
+//        계산기의 useEffect 정리 함수에서 불러 등록을 뗀다(마지막 계산기가 빠지면 리스너
+//        자체를 제거한다). 다른 페이지(바닥재·미장·블로그·허브)에서는 이 리스너가 아예
+//        없으니 뒤로 가기에 전혀 관여하지 않는다.
+//      - 건너뛸지 말지는 오직: "이 칸에 우리 표식이 있고, 그 calcId가 지금 활성 계산기
+//        목록에 있으면" 건너뛴다(표식이 없거나, calcId가 다른 계산기의 것이면 절대
+//        건너뛰지 않고 멈춘다 — 표식 없는 칸이 블로그든 허브든 옛 계산기의 첫 진입 칸이든
+//        상관없이, "우리 표식이 아니면 남의 칸"이라는 단 하나의 기준만 쓴다).
+//      - 짝 없는 칸을 몇 개 건너뛴 뒤(orphanSkipCount > 0) 마침내 표식이 아예 없는 칸에
+//        닿으면 — 이 칸이 "그 계산기의 첫 진입 칸"이다(계산기가 모드를 고르기 전 상태).
+//        이 칸은 브라우저 주소가 그대로라 Next.js도 화면을 새로 그려주지 않으므로, 등록해
+//        둔 "첫 화면으로 돌아가기" 콜백(onExitToModePicker)을 직접 불러 화면을 모드 카드로
+//        되돌린다 — 이게 "눈에 보이는 변화"다. 짝 없는 칸을 하나도 안 건너뛰고(=곧바로
+//        표식 없는 칸에 닿았다면, 예: 공유 링크로 들어와 아무 것도 안 쌓은 세션) 이 콜백을
+//        부르지 않는다 — 그 칸은 우리 계산기와 무관한 진짜 이전 페이지이므로 브라우저가
+//        알아서 그 페이지를 보여준다.
 //
 // 작성일: 2026년 09월 27일
 // 뒤로 가기 재설계(계산기 식별값 + collapseBackLayer + clearBackLayers): 2026년 09월 27일
 // 짝 없는 옛 칸 건너뛰기(새로 고침·화면 이동 후 복귀 대응): 2026년 09월 27일
-// 같은 페이지 안쪽의 표식 없는 칸까지 마저 건너뛰기(실기기 재검증 추가 수리): 2026년 09월 27일
+// 주소 비교 방식 폐기 + 문서수명(epoch) + 계산기별 리스너 부착/해제로 전면 재설계
+//   (배포 후 발견된 치명 회귀 수리): 2026년 09월 27일
 // ──────────────────────────────────────────────
 
 /** 되돌릴 때 실행할 함수 하나 */
@@ -81,11 +102,18 @@ interface Layer {
   onBack: BackHandler;
 }
 
+/** 우리가 pushState에 실어 둔 표식 모양 — calcId·seq에 더해 "문서 수명 값"(epoch)까지 갖는다 */
+interface Marker {
+  calcId: string;
+  seq: number;
+  epoch: string;
+}
+
 /** 우리가 pushState에 실어 둔 표식 모양인지 확인한다(옛 세션에서 남은 칸인지 판정용) */
-function isOurMarker(state: unknown): state is { calcId: string; seq: number } {
+function isOurMarker(state: unknown): state is Marker {
   if (!state || typeof state !== 'object') return false;
   const s = state as Record<string, unknown>;
-  return typeof s.calcId === 'string' && typeof s.seq === 'number';
+  return typeof s.calcId === 'string' && typeof s.seq === 'number' && typeof s.epoch === 'string';
 }
 
 /** 짝 없는 옛 칸을 한 번의 사용자 조작에 몇 개까지 건너뛸지 상한(무한 반복 방지) */
@@ -94,6 +122,7 @@ const MAX_ORPHAN_SKIP = 30;
 /**
  * 진짜 브라우저 history를 흉내 낸 최소 인터페이스. createBackStack()이 이것만 있으면
  * 되게 짜서, 테스트에서는 진짜 window 없이 이 모양의 가짜 객체를 넘겨 순수 로직만 돌린다.
+ * (5번 재설계: 주소 비교를 버렸으므로 getPathname은 더 이상 필요 없어 뺐다.)
  */
 export interface HistoryAdapter {
   /** 히스토리에 한 칸 쌓는다(주소는 그대로, state만 담는다) */
@@ -102,12 +131,6 @@ export interface HistoryAdapter {
   back: () => void;
   /** popstate가 일어날 때마다 그 시점의 state를 받아 부른다. 해지 함수를 돌려준다 */
   onPopState: (fn: (state: unknown) => void) => () => void;
-  /**
-   * 지금 주소의 경로(pathname)를 읽는다. 표식 없는 칸이 "우리 계산기 페이지 안쪽의
-   * (Next.js 라우터 등이 만든) 팬시 칸"인지 "진짜 다른 페이지"인지 구분하는 데 쓴다
-   * (5번 재수리 참고).
-   */
-  getPathname: () => string;
 }
 
 /** 진짜 window/history에 연결된 어댑터 — 브라우저 환경이 아니면(SSR 등) null */
@@ -121,8 +144,12 @@ function createWindowAdapter(): HistoryAdapter | null {
       window.addEventListener('popstate', handler);
       return () => window.removeEventListener('popstate', handler);
     },
-    getPathname: () => window.location.pathname,
   };
+}
+
+/** 문서 수명을 구분하는 임의 값 하나를 만든다(모듈 실행 때, 즉 createBackStack 호출 때 한 번) */
+function createEpoch(): string {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 }
 
 /**
@@ -142,10 +169,16 @@ export function createBackStack(adapter: HistoryAdapter | null) {
   // 지금 한 번의 사용자 조작(뒤로 가기 한 번 누른 것)으로 짝 없는 옛 칸을 몇 개나 건너뛰고
   // 있는지 — 진짜 처리할 칸을 만나거나 표식 없는 칸을 만나면 0으로 되돌린다(4번 설명 참고)
   let orphanSkipCount = 0;
-  // "계산기를 처음 열었을 때의 주소" — 이 스택을 만드는 이 순간의 주소를 한 번 기억해 둔다.
-  // 표식 없는 칸을 만났을 때 이 주소와 같으면(=아직 계산기 페이지 안쪽) 진짜 이전 페이지가
-  // 아니라고 보고 계속 건너뛴다(5번 설명 참고).
-  const homePathname = adapter?.getPathname() ?? null;
+  // 지금 건너뛰고 있는 칸이 어느 계산기 몫이었는지(표식 없는 칸에 닿았을 때 그 계산기의
+  // "첫 화면으로" 콜백을 부르는 데 쓴다 — 5번 설명 참고)
+  let lastOrphanCalcId: string | null = null;
+  // 이 스택 인스턴스(=이 문서 실행)를 구분하는 값 — 새로 고침하면 새 인스턴스가 만들어지며
+  // 매번 새로 뽑힌다. 이 값이 다른 표식은 "이전 문서에서 찍힌 것"이 확실하다(5번 설명 참고)
+  const epoch = createEpoch();
+  // 지금 화면에 떠 있는(mount된) 계산기들 — calcId -> "첫 화면으로 돌아가기" 콜백.
+  // activateCalc()로 등록되고, 그 계산기가 언마운트될 때(돌려준 함수 호출) 빠진다.
+  // 이 목록이 비어 있으면(=아무 계산기도 안 떠 있으면) popstate 처리기 자체를 뗀다.
+  const activeCalcs = new Map<string, BackHandler>();
 
   function ensureListener() {
     if (unsubscribe || !adapter) return;
@@ -158,38 +191,47 @@ export function createBackStack(adapter: HistoryAdapter | null) {
       const top = stack.pop();
       if (top) {
         orphanSkipCount = 0; // 정상적으로 처리됐으니 건너뛰기 카운트 초기화
+        lastOrphanCalcId = null;
         top.onBack();
         return;
       }
-      // 스택엔 짝이 없다 — 이 칸을 건너뛰어야 하는지 두 가지 경우를 본다:
-      //   (a) 우리 표식(calcId·seq)이 있는 칸 — 새로 고침·화면 이동으로 메모리만 비워지고
-      //       브라우저 기록엔 남아 있던 "옛 칸"이다.
-      //   (b) 표식은 없지만 주소가 여전히 "계산기를 처음 열었을 때"와 같은 칸 — Next.js
-      //       라우터 등이 같은 페이지 안쪽에 만들어 둔 칸으로, 우리가 만들진 않았어도
-      //       "진짜 다른 페이지"는 아니다(5번 설명 참고).
-      // 둘 중 하나면 화면을 그대로 두지 않고 곧바로 한 번 더 뒤로 가서 건너뛴다.
-      const isPhantomSamePage = homePathname !== null && adapter.getPathname() === homePathname;
-      if ((isOurMarker(state) || isPhantomSamePage) && orphanSkipCount < MAX_ORPHAN_SKIP) {
+      // 스택엔 짝이 없다 — 이 칸이 "지금 화면에 떠 있는 계산기"의 표식이면(우리 칸이면)
+      // 건너뛴다. 표식이 없거나(진짜 다른 페이지·계산기의 첫 진입 칸) 다른 calcId(남의
+      // 계산기 몫, 8번 규칙)면 절대 안 건너뛰고 멈춘다 — 주소는 더 이상 비교하지 않는다.
+      if (isOurMarker(state) && activeCalcs.has(state.calcId) && orphanSkipCount < MAX_ORPHAN_SKIP) {
         orphanSkipCount++;
+        lastOrphanCalcId = state.calcId;
         adapter.back();
         return;
       }
-      // 주소가 달라진 칸(=우리가 만들지 않은 진짜 이전 페이지)에 닿았다 — 여기서 멈춘다.
-      // 이 자리가 바로 "눈에 보이는 변화"(계산기 이전 페이지로 나감)다.
+      // 여기서 멈춘다. 방금까지 어느 계산기의 짝 없는 칸을 건너뛰고 있었다면(orphanSkipCount
+      // > 0) 지금 닿은 이 칸은 "그 계산기의 첫 진입 칸"(모드를 고르기 전)이다 — 주소가
+      // 그대로라 화면이 저절로 안 바뀌므로, 등록된 콜백을 직접 불러 모드 카드로 되돌린다.
+      // 건너뛴 게 하나도 없다면(orphanSkipCount === 0, 곧바로 표식 없는 칸에 닿았다면)
+      // 이건 우리와 무관한 진짜 다른 페이지이므로 아무것도 하지 않는다(브라우저가 알아서
+      // 그 페이지를 보여준다).
+      if (orphanSkipCount > 0 && lastOrphanCalcId) {
+        const onReturnToStart = activeCalcs.get(lastOrphanCalcId);
+        onReturnToStart?.();
+      }
       orphanSkipCount = 0;
+      lastOrphanCalcId = null;
     });
   }
 
-  // 계산기가 마운트되기도 전에 이미 옛 칸이 쌓여 있을 수 있으므로(새로 고침 등), 무언가
-  // 쌓이길 기다리지 않고 만들어지는 즉시 리스너를 붙인다(4번 설명 참고 — 예전엔
-  // pushBackLayer가 처음 불릴 때만 붙어서, 아무 push도 없이 시작하는 화면에서는 리스너
-  // 자체가 없어 옛 칸의 popstate를 아예 못 잡았다).
-  ensureListener();
+  /** activeCalcs가 비면 리스너 자체를 뗀다(다른 페이지의 뒤로 가기에 전혀 관여하지 않는다) */
+  function removeListenerIfIdle() {
+    if (activeCalcs.size === 0 && unsubscribe) {
+      unsubscribe();
+      unsubscribe = null;
+    }
+  }
 
   return {
     /**
      * 앞으로 한 칸 나아갈 때 부른다. calcId는 "어느 계산기가 쌓았는지" 표시(언마운트 때
      * 자기 몫만 걷어가려고 쓴다). 실제 브라우저 히스토리에 한 칸을 쌓는다(주소는 그대로).
+     * 이 칸에는 지금 문서의 epoch도 같이 찍힌다.
      *
      * 예약된 collapse(pendingCollapse)가 같은 계산기 몫으로 남아 있으면 — "시트가 닫히며
      * 동시에 다음 단계가 완료되는" 경우다. 이때는 실제로는 "교체"라 history를 아예 안
@@ -203,9 +245,8 @@ export function createBackStack(adapter: HistoryAdapter | null) {
         stack.push({ calcId, seq, onBack });
         return;
       }
-      ensureListener();
       const seq = ++seqCounter;
-      adapter.pushState({ calcId, seq });
+      adapter.pushState({ calcId, seq, epoch });
       stack.push({ calcId, seq, onBack });
     },
 
@@ -245,9 +286,33 @@ export function createBackStack(adapter: HistoryAdapter | null) {
       }
     },
 
+    /**
+     * (5번 재설계 핵심) 이 계산기가 "지금 화면에 떠 있다"고 등록한다 — 이때부터(그리고
+     * 이때만) popstate 처리기가 실제로 붙어서, 이 calcId의 짝 없는 칸을 건너뛰는 일을
+     * 한다. 계산기 컴포넌트가 마운트되는 useEffect에서 부르고, 돌려주는 해지 함수를 그
+     * useEffect의 정리 함수(unmount)에서 불러야 한다 — 마지막 계산기가 빠지면 리스너
+     * 자체가 제거되어(removeListenerIfIdle) 다른 페이지의 뒤로 가기에 전혀 관여하지 않는다.
+     *
+     * onReturnToStart: 짝 없는 칸을 건너뛴 끝에 표식 없는 칸(이 계산기의 첫 진입 칸)에
+     * 닿으면 불린다 — 화면을 모드 카드(첫 화면)로 되돌리는 함수를 넘겨야 한다.
+     */
+    activateCalc(calcId: string, onReturnToStart: BackHandler): () => void {
+      activeCalcs.set(calcId, onReturnToStart);
+      ensureListener();
+      return () => {
+        activeCalcs.delete(calcId);
+        removeListenerIfIdle();
+      };
+    },
+
     /** 시험 전용 — 지금 스택 안을 들여다본다(calcId·seq만, onBack 함수는 안 보여준다) */
     __debugStack(): Array<{ calcId: string; seq: number }> {
       return stack.map((l) => ({ calcId: l.calcId, seq: l.seq }));
+    },
+
+    /** 시험 전용 — 지금 리스너가 붙어 있는지(activateCalc/해지 동작 확인용) */
+    __hasListener(): boolean {
+      return unsubscribe !== null;
     },
   };
 }
@@ -258,6 +323,7 @@ const appStack = createBackStack(createWindowAdapter());
 export const pushBackLayer = appStack.pushBackLayer;
 export const collapseBackLayer = appStack.collapseBackLayer;
 export const clearBackLayers = appStack.clearBackLayers;
+export const activateCalc = appStack.activateCalc;
 
 /** 테스트 전용 — 모듈 전역(싱글턴) 스택을 비운다. 화면 테스트를 새로 쓸 때 계속 쓴다 */
 export function __resetBackLayerStackForTest(): void {

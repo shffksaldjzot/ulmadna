@@ -49,6 +49,10 @@ const CUSTOM_PRODUCT_LIMITS = {
   rollPrice: { min: 1000, max: 1000000, unit: '원' },
   widthCm: { min: 20, max: 400, unit: 'cm' },
   lengthM: { min: 1, max: 100, unit: 'm' },
+  // 2026-09-27 지휘관 추가 지적: 무늬 반복(repeatCm)은 서버가 검사하는데(route.ts:135,
+  // min 0 · max 200) 화면은 안 보고 있었다. 선택 칸이라 비워 두는 건 허용(min 0 자체는
+  // "0 이상"이라 사실상 비워 두거나 0을 넣거나 다 통과 — 실제로 막을 값은 위쪽 200 초과뿐)
+  repeatCm: { min: 0, max: 200, unit: 'cm' },
 } as const;
 
 /** 값이 하나라도 범위를 벗어나면 짧은 안내 문구를(마침표 없이) 돌려주고, 안 벗어나면 undefined */
@@ -165,15 +169,19 @@ export default function PaperPicker({
     setCustom((prev) => ({ ...prev, ...p }));
   }
 
-  // 세 칸 각각의 범위 오류 문구 — 값이 서버가 거절할 범위면 칸 아래에 짧게 보인다
+  // 칸별 범위 오류 문구 — 값이 서버가 거절할 범위면 칸 아래에 짧게 보인다.
+  // 무늬 반복(repeatCm)은 선택 칸이라 비워 두면(=아직 안 적음) 오류가 아니다.
   const priceError = customRangeError(custom.rollPrice, CUSTOM_PRODUCT_LIMITS.rollPrice);
   const widthError = customRangeError(custom.widthCm, CUSTOM_PRODUCT_LIMITS.widthCm);
   const lengthError = customRangeError(custom.lengthM, CUSTOM_PRODUCT_LIMITS.lengthM);
+  const repeatError = customRangeError(custom.repeatCm, CUSTOM_PRODUCT_LIMITS.repeatCm);
 
   /**
    * 지금 임시 입력값(custom)이 실제로 쓸 수 있는 값인지 — "적용" 버튼 활성화 판정.
    * 2026-09-27 배포 전 재검수 지적 4번: 세 칸이 채워졌는지뿐 아니라, 서버가 받아 줄
    * 범위 안인지까지 같이 봐야 한다(안 그러면 가격 1원·폭 1cm 같은 값도 눌려 버린다).
+   * 2026-09-27 지휘관 추가 지적: 무늬 반복도 범위(0~200cm) 밖이면 막아야 한다(선택
+   * 칸이라 비워 두는 것 자체는 여전히 허용 — customRangeError가 빈 값을 오류로 안 본다).
    */
   const customValid =
     custom.rollPrice !== '' &&
@@ -181,7 +189,8 @@ export default function PaperPicker({
     custom.lengthM !== '' &&
     !priceError &&
     !widthError &&
-    !lengthError;
+    !lengthError &&
+    !repeatError;
 
   /**
    * "적용" 버튼을 눌렀을 때만 부른다 — 이 순간에만 폼에 실제로 반영되고(onProductChange),
@@ -367,6 +376,9 @@ export default function PaperPicker({
               value={custom.repeatCm}
               onChange={(v) => updateCustom({ repeatCm: v })}
             />
+            {/* 2026-09-27 지휘관 추가 지적: 무늬 반복도 서버 범위(0~200cm)를 벗어나면 알려준다.
+                비워 두는 건 선택 칸이라 허용되고(오류 아님), 200 넘는 값만 걸린다 */}
+            {repeatError && <span className="t-sub text-danger -mt-1">{repeatError}</span>}
             {/* 2026-09-27 검사관 지적 1번(치명) 수리: 타이핑 도중에는 아무 일도 안 일어나고,
                 이 버튼을 눌러야만(commitCustom) 폼에 반영되고 단계가 완료되며 시트가 닫힌다.
                 세 칸이 다 안 갖춰졌으면(customValid=false) 눌리지 않는다. */}
