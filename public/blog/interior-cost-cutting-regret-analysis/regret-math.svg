@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 480" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" role="img" aria-label="욕실 방수 덧방으로 아낀 돈 250만원과 누수 재시공으로 다시 낸 돈 700만원 이상 비교 막대그래프">
+  <rect width="860" height="480" fill="#ffffff"/>
+  <text x="40" y="46" font-size="25" font-weight="700" fill="#2b2b2b">욕실 방수 덧방으로 250만원 아끼면</text>
+  <text x="40" y="74" font-size="15" fill="#8a8a8a">방수층 손상 상태에서 덧방 선택 기준 · 단위: 만원</text>
+
+  <line x1="40" y1="400" x2="820" y2="400" stroke="#dddddd" stroke-width="2"/>
+
+  <!-- 최초 아낀 돈 250 (올철거 대비) -->
+  <rect x="185" y="250" width="150" height="150" rx="4" fill="#b9b0a9"/>
+  <text x="260" y="238" font-size="18" font-weight="700" fill="#7d746d" text-anchor="middle">250</text>
+  <text x="260" y="430" font-size="16" font-weight="600" fill="#444" text-anchor="middle">최초 아낀 돈</text>
+  <text x="260" y="452" font-size="13" fill="#9a9a9a" text-anchor="middle">올철거 대신 덧방 선택</text>
+
+  <!-- 누수로 다시 낸 돈: 올철거 재시공 600 + 피해보상 100 -->
+  <rect x="530" y="150" width="150" height="250" rx="4" fill="#C26B4A"/>
+  <text x="605" y="284" font-size="15" font-weight="600" fill="#ffffff" text-anchor="middle">올철거 재시공 600</text>
+  <rect x="530" y="112" width="150" height="38" rx="4" fill="#A8512F"/>
+  <text x="605" y="137" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">아랫집 피해보상 100</text>
+  <text x="605" y="100" font-size="18" font-weight="700" fill="#a8512f" text-anchor="middle">700+</text>
+  <text x="605" y="430" font-size="16" font-weight="600" fill="#444" text-anchor="middle">누수 후 다시 낸 돈</text>
+  <text x="605" y="452" font-size="13" fill="#9a9a9a" text-anchor="middle">덧방 250만원은 매몰 + 재시공</text>
+</svg>
