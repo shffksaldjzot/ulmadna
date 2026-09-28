@@ -3,6 +3,7 @@
 //
 // 2026-09-15 디자인 통일 작업: 공용 틀(SiteHeader·Container·SiteFooter)로 교체.
 // 본문 글자(연락처·문의 안내)는 하나도 바꾸지 않았고, 색·글자크기 클래스만 공용 토큰으로 맞췄다.
+// 2026년 09월 28일: "문의 전에 참고하세요"에서 업체 아님·알선 안 함 문장만 뺐다(아래 주석 참고).
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import SiteHeader from '@/components/layout/SiteHeader';
@@ -53,12 +54,14 @@ export default function ContactPage() {
               </ul>
             </section>
 
-            {/* 문의 시 참고 */}
+            {/* 문의 시 참고
+                2026년 09월 28일 형아 결정: "인테리어 업체가 아니며 시공·알선을 하지 않는다",
+                "시공·업체 소개 요청은 돕기 어렵다"는 두 문장을 뺐다.
+                계산기 결과 화면의 "직접 문의" 버튼(2026년 09월 16일 도입)과 어긋나기 때문.
+                참고용 예상 금액이라는 안내만 남긴다. */}
             <section>
               <h2 className="t-section text-ink mb-2">문의 전에 참고하세요</h2>
               <p>
-                얼마드나는 <strong>인테리어 업체가 아니며, 시공을 직접 하거나 특정 업체를 알선하지 않습니다.</strong>
-                &ldquo;시공해 달라&rdquo; &ldquo;업체를 소개해 달라&rdquo;는 요청에는 도움을 드리기 어렵습니다.
                 견적은 어디까지나 <strong>참고용 예상 금액</strong>이며, 정확한 금액은 현장 실측 후 정식 견적서로 확인하셔야 합니다.
               </p>
             </section>
