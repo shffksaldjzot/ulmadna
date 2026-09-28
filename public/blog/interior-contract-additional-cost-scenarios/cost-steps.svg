@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" font-family="'Pretendard','Noto Sans KR',sans-serif">
+  <rect width="800" height="400" fill="#ffffff"/>
+  <text x="60" y="30" font-size="16" font-weight="700" fill="#1f2937">30평대(74~84타입) — 요청 하나 얹을 때마다 뛰는 예산 범위</text>
+
+  <line x1="60" y1="345" x2="740" y2="345" stroke="#d1d5db" stroke-width="1"/>
+
+  <!-- Row 1: 기본 인테리어 5000~6500 -->
+  <text x="60" y="63" font-size="13" fill="#374151">기본 인테리어</text>
+  <rect x="165" y="45" width="157" height="26" rx="4" fill="#c9a27a"/>
+  <text x="165" y="90" font-size="12" fill="#6b7280">5,000만~6,500만원</text>
+
+  <!-- Row 2: +창호 교체 6500~8000 -->
+  <text x="60" y="138" font-size="13" fill="#374151">+ 창호 교체</text>
+  <rect x="322" y="120" width="157" height="26" rx="4" fill="#b98a5f"/>
+  <text x="322" y="165" font-size="12" fill="#6b7280">6,500만~8,000만원</text>
+
+  <!-- Row 3: +발코니 확장 7500~9000 -->
+  <text x="60" y="213" font-size="13" fill="#374151">+ 발코니 확장</text>
+  <rect x="426" y="195" width="157" height="26" rx="4" fill="#a4713f"/>
+  <text x="426" y="240" font-size="12" fill="#6b7280">7,500만~9,000만원</text>
+
+  <!-- Row 4: +시스템에어컨 8500~10000 -->
+  <text x="60" y="288" font-size="13" fill="#374151">+ 시스템에어컨</text>
+  <rect x="531" y="270" width="157" height="26" rx="4" fill="#8a5a2c"/>
+  <text x="531" y="315" font-size="12" fill="#6b7280">8,500만~1억원</text>
+
+  <text x="60" y="378" font-size="12" fill="#9ca3af">※ 실제 견적 빅데이터 기준. 기본 인테리어(도배·바닥·주방·욕실)에 항목을 하나씩 더할 때 예산이 뛰는 폭입니다.</text>
+</svg>
