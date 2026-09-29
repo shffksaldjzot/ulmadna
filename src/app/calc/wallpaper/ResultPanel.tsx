@@ -42,6 +42,7 @@ import { trimFormForShare, describeAreaPair, type WallpaperAssumption } from '@/
 import type { WallpaperCalcResultDTO, WallpaperRange } from '@/lib/v1/useWallpaperCalc';
 import { describeWallpaperAreaAssumptionLine } from '../_components/assumptionText';
 import { formatCostLineAmount, formatRollsText } from '../_components/costLineFormat';
+import { dimTransitionStyle } from '../_components/dimTransition';
 // GA4 — 결과 노출/구성 보기 펼침/공유 버튼 클릭 이벤트
 import { track } from '@/lib/analytics';
 
@@ -137,7 +138,8 @@ export default function ResultPanel({
   return (
     <>
       {error && <p className="text-[13px] text-danger mb-2">마지막 계산에 실패해 이전 값이에요</p>}
-      <Card className={`transition-opacity duration-150 ${dim ? 'opacity-60' : ''}`}>
+      {/* 2026-09-29 지적 3번: 흐려질 땐 즉시, 또렷해질 때만 150ms(dimTransitionStyle) */}
+      <Card className={`transition-opacity ${dim ? 'opacity-60' : ''}`} style={dimTransitionStyle(dim)}>
         {/* 1. 금액 범위(가장 큰 숫자) + 중간값 + "추정" 표시 한 줄 — 지시서 3-13절 순서 1번.
             2026-09-27 검수 지적 9번: "추정" 배지가 360px에서 금액 아래로 밀려 떨어지던 문제 —
             배지를 금액 줄이 아니라 "중간값" 줄 오른쪽 끝에 고정해 폭에 상관없이 자리를 통일했다. */}

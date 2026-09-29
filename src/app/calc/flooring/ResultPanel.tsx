@@ -37,6 +37,7 @@ import { trimFormForShare, describeAreaPair, type FlooringAssumption } from '@/l
 import type { FlooringCalcResultDTO, FlooringRange } from '@/lib/v1/useFlooringCalc';
 import { describeFlooringAreaAssumptionLine } from '../_components/assumptionText';
 import { formatCostLineAmount, formatUnitsRangeText } from '../_components/costLineFormat';
+import { dimTransitionStyle } from '../_components/dimTransition';
 // GA4 — 결과 노출/구성 보기 펼침/공유 버튼 클릭 이벤트
 import { track } from '@/lib/analytics';
 
@@ -129,7 +130,8 @@ export default function ResultPanel({
   return (
     <>
       {error && <p className="text-[13px] text-danger mb-2">마지막 계산에 실패해 이전 값이에요</p>}
-      <Card className={`transition-opacity duration-150 ${dim ? 'opacity-60' : ''}`}>
+      {/* 2026-09-29 지적 3번: 흐려질 땐 즉시, 또렷해질 때만 150ms(dimTransitionStyle) */}
+      <Card className={`transition-opacity ${dim ? 'opacity-60' : ''}`} style={dimTransitionStyle(dim)}>
         {/* 1. 금액 범위 + 중간값 + "추정" 표시 */}
         <div className="text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em] whitespace-nowrap">
           {formatManRange(bigRange.min, bigRange.max)}

@@ -46,6 +46,7 @@ import type { MortarCalcResultDTO, MortarCostLine, MortarRange } from '@/lib/v1/
 import type { MortarQuickResult } from '@/lib/v1/useMortarQuickCalc';
 import { describeMortarAreaAssumptionLine } from '../_components/assumptionText';
 import { formatWonPiece } from '../_components/costLineFormat';
+import { dimTransitionStyle } from '../_components/dimTransition';
 
 export interface ResultPanelProps {
   /** 즉시 계산 결과(서버 응답 없이도 항상 있음) — 수량 줄은 전부 여기서 가져온다 */
@@ -229,7 +230,7 @@ export default function ResultPanel({
             result && range로 직접 검사해야 타입스크립트가 아래에서 null이 아님을 알아준다
             (hasCost는 별도 boolean이라 타입 좁히기가 안 된다) */}
         {result && range ? (
-          <div className={`transition-opacity duration-150 ${dim ? 'opacity-60' : ''}`}>
+          <div className={`transition-opacity ${dim ? 'opacity-60' : ''}`} style={dimTransitionStyle(dim)}>
             <div className="text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em] whitespace-nowrap">
               {formatManRange(range.min, range.max)}
             </div>
@@ -275,7 +276,7 @@ export default function ResultPanel({
 
         {/* ⑤ 기준 줄 + 현장 확인 필요를 이어서 */}
         {hasCost && (
-          <div className={`transition-opacity duration-150 ${dim ? 'opacity-60' : ''}`}>
+          <div className={`transition-opacity ${dim ? 'opacity-60' : ''}`} style={dimTransitionStyle(dim)}>
             <p className="t-body text-ink tabular-nums">{basisLineWithSiteConfirm}</p>
           </div>
         )}
@@ -313,7 +314,7 @@ export default function ResultPanel({
 
         {/* 부자재 (서버 응답이 와야 나온다 — 와이어메시·프라이머 옵션을 켰을 때만) */}
         {submaterials.length > 0 && (
-          <div className={`transition-opacity duration-150 ${dim ? 'opacity-60' : ''}`}>
+          <div className={`transition-opacity ${dim ? 'opacity-60' : ''}`} style={dimTransitionStyle(dim)}>
             <h2 className="text-[17px] font-bold text-foreground border-t border-v1-line-2 pt-3 mt-1">부자재</h2>
             <div className="flex flex-col">
               {submaterials.map((s, i) => (
@@ -338,7 +339,7 @@ export default function ResultPanel({
         {/* ⑥ 비용 구성 — 서버 응답이 없으면 아예 안 그린다(위에서 이미 안내를 보여줬다).
             여기도 result를 직접 검사해 타입을 좁힌다 */}
         {result && (
-          <div className={`transition-opacity duration-150 ${dim ? 'opacity-60' : ''}`}>
+          <div className={`transition-opacity ${dim ? 'opacity-60' : ''}`} style={dimTransitionStyle(dim)}>
             <Collapsible title="구성 보기" defaultOpen>
               <div className="flex flex-col">
                 {groupByLayer(result.cost.breakdown).map((group) => (

@@ -16,6 +16,7 @@
 'use client';
 
 import Button from '@/components/v1/Button';
+import { dimTransitionStyle } from '../dimTransition';
 
 export interface BottomBarProps {
   /** 지금 몇 번째 단계인지(1-based로 이미 계산해 넘겨준다) */
@@ -68,8 +69,12 @@ export default function BottomBar({
         </>
       ) : amountText ? (
         <>
-          {/* 결과가 있는 상태 — 계산 중이면(옛 값을 보여주는 중) 금액만 옅게 한다 */}
-          <span className={'min-w-0 flex items-baseline gap-1 tabular-nums transition-opacity duration-150 ' + (calculating ? 'opacity-50' : '')}>
+          {/* 결과가 있는 상태 — 계산 중이면(옛 값을 보여주는 중) 금액만 옅게 한다.
+              2026-09-29 지적 3번: 흐려질 땐 즉시, 또렷해질 때만 150ms(dimTransitionStyle) */}
+          <span
+            className={'min-w-0 flex items-baseline gap-1 tabular-nums transition-opacity ' + (calculating ? 'opacity-50' : '')}
+            style={dimTransitionStyle(calculating)}
+          >
             {!allDone && (
               <span className="t-sub text-ink-2 flex-none">
                 {stepNumber}/{stepCount} ·
