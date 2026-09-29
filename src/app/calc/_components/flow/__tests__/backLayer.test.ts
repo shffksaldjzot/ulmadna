@@ -710,6 +710,72 @@ describe('backLayer — 뒤로·앞으로 가기 순수 로직', () => {
   );
 
   it(
+    '[8차 검사관 재현] 3단계 완료 → 시트 열고 닫음 → 새로 고침 → 시트 열기 → 뒤 → 뒤 → 뒤: ' +
+      '시트 닫힘 → 모드 카드 → 블로그 순서로 "한 번에 변화 하나씩" 일어나야 한다',
+    () => {
+      const history = new FakeHistory();
+      history.simulateNavigateTo(); // index1: 계산기 첫 진입 칸(표식 없음, "블로그에서 옴" 다음 칸)
+
+      // 1차 세션 — 모드 선택(seq1) + 시트 열기(seq2), 그다음 시트를 뒤로 가기가 아닌
+      // 방법(제품 선택 등)으로 닫아서 collapseBackLayer가 시트 칸을 실제로 거둔다.
+      const stack1 = createBackStack(history);
+      stack1.activateCalc('wallpaper', () => {}, () => {});
+      stack1.pushBackLayer('wallpaper', () => {}, () => {}); // 모드 선택 → index2(seq1)
+      stack1.pushBackLayer('wallpaper', () => {}, () => {}); // 시트 열기 → index3(seq2)
+      expect(history.index).toBe(3);
+      stack1.collapseBackLayer('wallpaper');
+      return Promise.resolve().then(() => {
+        // collapseBackLayer의 마이크로태스크가 실제로 history.back()을 불러 index2(모드
+        // 표식)까지 물러난다 — 시트를 "뒤로 가기가 아닌 방법"으로 닫은 것과 같다.
+        expect(history.index).toBe(2);
+
+        // "새로 고침" 흉내 — 새 스택 인스턴스(메모리 완전히 새로 시작), 지금 서 있는 칸
+        // (index2, 모드 표식 seq1)을 그대로 이어받는다. 이번 세션 memory는 비어 있다.
+        const stack2 = createBackStack(history);
+        let returnedToStartCount = 0;
+        const calls: string[] = [];
+        stack2.activateCalc(
+          'wallpaper',
+          () => {
+            calls.push('모드 카드로');
+            returnedToStartCount++;
+          },
+          () => {},
+        );
+        expect(stack2.__debugCalc('wallpaper')).toEqual({ currentSeq: 1, seqs: [] });
+
+        // "시트 열기" — 이번 세션에서 새로 seq2 자리에 쌓는다(currentSeq=1이므로 다음은 2)
+        stack2.pushBackLayer(
+          'wallpaper',
+          () => calls.push('시트 닫힘'),
+          () => {},
+        );
+        expect(history.index).toBe(3);
+        expect(stack2.__debugCalc('wallpaper')?.currentSeq).toBe(2);
+
+        // 뒤로 1번 — "시트만 닫힘"이어야 한다(모드 카드로 아직 안 감, 블로그로는 더더욱 안 감)
+        history.back();
+        expect(calls).toEqual(['시트 닫힘']);
+        expect(returnedToStartCount).toBe(0);
+        expect(history.index).toBe(2); // 모드 표식 칸(orphan)에 멈춰 있다
+
+        // 뒤로 2번째 — 이제 "모드 카드로"가 정확히 한 번만 불려야 한다(시트 닫힘이 또 불리면 안 됨)
+        history.back();
+        expect(calls).toEqual(['시트 닫힘', '모드 카드로']);
+        expect(returnedToStartCount).toBe(1);
+        expect(history.index).toBe(1); // 표식 없는 계산기 첫 진입 칸 — 블로그까지는 안 감
+
+        // 뒤로 3번째 — backLayer.ts 입장에선 이미 시작 칸(currentSeq=0)이라 아무 콜백도
+        // 더 안 부른다(실제 "블로그로 나가기"는 브라우저 자체 이동이라 이 스택의 책임이 아니다)
+        history.back();
+        expect(calls).toEqual(['시트 닫힘', '모드 카드로']);
+        expect(returnedToStartCount).toBe(1);
+        expect(history.index).toBe(0);
+      });
+    },
+  );
+
+  it(
     '[7차 검사관 요청 — 새 시험 2] 짝 없는 칸 구역에서 앞으로 여러 칸 간 뒤 뒤로 한 번 = ' +
       '시작 칸에 한 번에 도착(중간 옛 칸에서 멈추지 않는다)',
     () => {
