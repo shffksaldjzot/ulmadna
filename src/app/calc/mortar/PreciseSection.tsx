@@ -19,6 +19,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import Chip from '@/components/v1/Chip';
 import NumberField from '@/components/v1/NumberField';
 import Toggle from '@/components/v1/Toggle';
@@ -48,6 +49,14 @@ function isPositive(n: number | undefined): n is number {
 
 export default function PreciseSection({ form, patch, products, result }: PreciseSectionProps) {
   const mode = form.mode ?? '레미탈';
+
+  // 2026-09-29 지적 4번(검사관이 확인 못 한 부분) — "지게차 하차비" 토글의 켜짐 여부를
+  // form.forkliftFeeWon > 0으로만 판정하면, 사용자가 금액 칸을 전부 지우고 새 값을 치는
+  // 그 짧은 순간(칸이 빈 값 = 0으로 취급)에 토글이 꺼진 것처럼 보이면서 금액 칸 자체가
+  // 화면에서 사라져 버렸다(칸을 다시 채울 방법이 없어짐 — 포커스도 같이 날아간다). 토글
+  // 켜짐 여부는 이 부품의 로컬 상태로 따로 기억해서, 금액이 잠깐 비어도 칸이 안 사라지게
+  // 한다. 값 범위·기본값 자체는 안 바꿨다(초기값만 기존 값 유무로 정한다).
+  const [forkliftOn, setForkliftOn] = useState(isPositive(form.forkliftFeeWon));
   const lossPct = Math.round((form.lossRate ?? 0.05) * 100);
 
   const modeProducts = products.filter((p) => p.mode === mode);
@@ -129,13 +138,18 @@ export default function PreciseSection({ form, patch, products, result }: Precis
         <div className="flex items-center justify-between">
           <span className="text-[15px] text-foreground">지게차 하차비</span>
           <Toggle
-            checked={(form.forkliftFeeWon ?? 0) > 0}
-            onChange={(v) => patch({ forkliftFeeWon: v ? FORKLIFT_DEFAULT_FEE_WON : undefined })}
+            checked={forkliftOn}
+            onChange={(v) => {
+              setForkliftOn(v);
+              patch({ forkliftFeeWon: v ? FORKLIFT_DEFAULT_FEE_WON : undefined });
+            }}
             label="지게차 하차비 포함"
           />
         </div>
-        {/* 켰을 때만 금액 칸을 보여준다 — 기본 10만원(운영자 현장 기준), 직접 수정 가능 */}
-        {(form.forkliftFeeWon ?? 0) > 0 && (
+        {/* 켰을 때만 금액 칸을 보여준다 — 기본 10만원(운영자 현장 기준), 직접 수정 가능.
+            forkliftOn(로컬 상태)으로 판정한다 — form.forkliftFeeWon으로 판정하면 금액을
+            지우는 동안 칸이 사라지는 사고가 난다(위 주석 참고) */}
+        {forkliftOn && (
           <div className="flex flex-col items-end gap-1">
             <NumberField
               value={form.forkliftFeeWon ?? ''}
