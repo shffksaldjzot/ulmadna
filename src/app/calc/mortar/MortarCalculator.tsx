@@ -8,7 +8,7 @@
 //
 // 용도(방통·셀프레벨링) 칩은 두 모드가 공유하는 1단계다. 미장 1단계는 **아무것도
 // 선택되지 않은 채** 시작한다 — 속에 기본값(방통전체)이 있어도 칩에 선택 표시를 하지
-// 않는다(touchedFlags[0]로 표시 여부를 가린다).
+// 않는다(touchedMap.usage로 표시 여부를 가린다).
 //
 // 두 훅을 쓴다(예전과 같음):
 //   useMortarQuickCalc  즉시 계산(서버 응답 없이 포수·체적·현장배합을 바로 계산)
@@ -65,9 +65,13 @@ interface MortarCalculatorProps {
   products: MortarProductOption[];
 }
 
-/** 새로 고침 복원(sessionStorage) 열쇠·판 번호 */
+/**
+ * 새로 고침 복원(sessionStorage) 열쇠·판 번호. 2026-09-29: touched 저장 모양을 자리 번호
+ * 배열 → 단계 이름(key) 사전으로 바꿔서 1→2로 올렸다(모드 전환 손댐 오판정 수리). 옛
+ * 배열 값은 버전이 안 맞아 loadSessionState가 null로 취급하므로 에러 없이 기본 상태로 시작한다.
+ */
 const SESSION_KEY = 'calc:mortar:v1';
-const SESSION_VERSION = 1;
+const SESSION_VERSION = 2;
 
 /** 뒤로 가기 스택에서 "이 계산기가 쌓은 몫"을 구분하는 값 */
 const CALC_ID = 'mortar';
@@ -75,7 +79,8 @@ const CALC_ID = 'mortar';
 /** 세션에 저장하는 값의 모양 */
 interface MortarSession {
   form: MortarFormState;
-  touched: boolean[];
+  /** 단계 이름(key)별로 실제로 손댔는지 — 2026-09-29부터 이름 기준(useFlowSteps의 touchedMap) */
+  touched: Record<string, boolean>;
   userPickedMode: boolean;
   /** 조정 칩(공법)을 사용자가 직접 건드렸는지 */
   methodTouched: boolean;
@@ -139,11 +144,17 @@ function isValidMortarFormState(v: unknown): v is MortarFormState {
   return true;
 }
 
+/** 2026-09-29: touched가 "단계 이름(key) → 손댔는지" 사전인지 검사한다(옛 판은 배열이었다) */
+function isValidTouchedMap(v: unknown): v is Record<string, boolean> {
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return false;
+  return Object.values(v as Record<string, unknown>).every((t) => typeof t === 'boolean');
+}
+
 function isValidMortarSession(v: unknown): v is MortarSession {
   if (!v || typeof v !== 'object') return false;
   const s = v as Record<string, unknown>;
   if (!isValidMortarFormState(s.form)) return false;
-  if (!Array.isArray(s.touched) || !s.touched.every((t) => typeof t === 'boolean')) return false;
+  if (!isValidTouchedMap(s.touched)) return false;
   if (typeof s.userPickedMode !== 'boolean') return false;
   if (typeof s.methodTouched !== 'boolean') return false;
   return true;
@@ -217,8 +228,18 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
       : (form.preciseRooms ?? []).some((r) => typeof r.areaSqm === 'number' && r.areaSqm > 0);
   const step2Valid = typeof form.thicknessMm === 'number' && form.thicknessMm > 0;
 
-  const { activeIndex, allDone, completeFlags, touchedFlags, touch, resetTouched } = useFlowSteps({
-    dataComplete: [step0Valid, step1Valid, step2Valid],
+  // 2026-09-29: 2번째 단계는 모드에 따라 뜻이 다르다(간단="면적" vs 정확="구역 목록") —
+  // 자리 번호가 아니라 이름(key)으로 손댐을 구분한다. 용도(usage)·두께(thickness)는 두
+  // 모드가 공유하는 뜻이라 key도 그대로 공유한다(정확 모드에서 50mm를 넣고 간단으로
+  // 돌아와도 두께는 그대로 이어져야 한다 — 지휘관 확인 항목).
+  const areaStepKey = view === 'simple' ? 'area' : 'zones';
+
+  const { activeIndex, allDone, completeFlags, touchedMap, touch, resetTouched } = useFlowSteps({
+    steps: [
+      { key: 'usage', valid: step0Valid },
+      { key: areaStepKey, valid: step1Valid },
+      { key: 'thickness', valid: step2Valid },
+    ],
     allTouched: hasSharedLink,
     initialTouched: restored?.touched,
   });
@@ -237,7 +258,7 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
   function selectTopUsage(u: TopUsage) {
     if (u === currentTopUsage) {
       // 값이 안 바뀌었어도 "용도를 손댔다"는 표시는 남겨야 한다(처음 고르는 경우)
-      touch(0);
+      touch('usage');
       return;
     }
     const wasSupply = mode !== '셀프레벨링';
@@ -272,8 +293,11 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
         ...areaReset,
       });
     }
-    touch(0);
-    resetTouched([1, 2]);
+    touch('usage');
+    // 매인 관계: 용도가 바뀌면 지금 보이는 모드의 면적/구역 단계와 두께 단계를 다시 확인하게
+    // 한다. 다른 모드의 면적 key(예: 지금 간단이면 'zones')는 건드리지 않는다 — 구역 목록
+    // 값은 용도(방통/셀프레벨링)와 무관한 순수 실측값이라 되돌릴 이유가 없다.
+    resetTouched([areaStepKey, 'thickness']);
   }
 
   // 뒤로·앞으로 가기 배선 — 모드를 고를 때만 방문 기록에 쌓는다(도배·바닥재와 같은 규칙)
@@ -289,18 +313,20 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
     if (hasSharedLink) return;
     saveSessionState<MortarSession>(SESSION_KEY, SESSION_VERSION, {
       form,
-      touched: touchedFlags,
+      touched: touchedMap,
       userPickedMode,
       methodTouched,
     });
-  }, [form, touchedFlags, userPickedMode, methodTouched, hasSharedLink]);
+  }, [form, touchedMap, userPickedMode, methodTouched, hasSharedLink]);
 
-  // 계산 담당 두 훅에 완전히 같은 options를 넘긴다(계산 담당 약속 — 9-3절)
+  // 계산 담당 두 훅에 완전히 같은 options를 넘긴다(계산 담당 약속 — 9-3절).
+  // 2026-09-29: area는 'area' key로 직접 꺼낸다(정확 모드의 'zones'와는 독립) — 엔진은
+  // view==='simple'일 때만 이 값을 보므로, 정확 모드에선 어차피 안 쓰인다.
   const touchedOptions = {
     touched: {
-      usage: touchedFlags[0],
-      area: touchedFlags[1],
-      thickness: touchedFlags[2],
+      usage: touchedMap.usage,
+      area: touchedMap.area,
+      thickness: touchedMap.thickness,
       method: methodTouched,
     },
   };
@@ -311,10 +337,10 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
 
   const emptyMessage = '용도를 고르면 바로 나와요';
 
-  /** 폼 상태를 바꾸면서 동시에 해당 단계를 "손댔다"고 표시하는 도우미 */
+  /** 폼 상태를 바꾸면서 동시에 "지금 모드의 면적/구역 단계를 손댔다"고 표시하는 도우미 */
   function patchArea(p: Partial<MortarFormState>) {
     patch(p);
-    touch(1);
+    touch(areaStepKey);
   }
 
   /** 조정 칩 — 공법. 손댔다는 표시를 같이 남긴다 */
@@ -332,7 +358,7 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
   function handlePreciseThicknessChange(mm: number | undefined) {
     if (mm === undefined) {
       patch({ thicknessMm: undefined });
-      touch(2);
+      touch('thickness');
       return;
     }
     if (mode === '셀프레벨링' && selectedProduct && !productCoversThickness(selectedProduct, mm)) {
@@ -341,7 +367,7 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
     } else {
       patch({ thicknessMm: mm });
     }
-    touch(2);
+    touch('thickness');
   }
 
   // 가정 문구 — 용도(방통/셀프레벨링)에 따라 면적 가정값의 뜻이 달라 여기서 계산해 넘긴다
@@ -358,7 +384,7 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
           key={u}
           // 지시서 9-2절: 1단계는 아무것도 선택되지 않은 채 시작한다 — 손대기 전엔 칩에
           // 선택 표시를 하지 않는다(속에 기본값이 있어도)
-          selected={touchedFlags[0] && currentTopUsage === u}
+          selected={touchedMap.usage && currentTopUsage === u}
           onClick={() => selectTopUsage(u)}
         >
           {topUsageLabel(u)}
@@ -375,7 +401,7 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
       content: usageStepContent,
     },
     {
-      key: 'area',
+      key: areaStepKey,
       title: view === 'simple' ? '면적' : '구역',
       valid: step1Valid,
       content:
@@ -384,8 +410,8 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
             part="area"
             form={form}
             patch={patchArea}
-            areaUntouched={!touchedFlags[1]}
-            onAreaEnterComplete={() => touch(1)}
+            areaUntouched={!touchedMap.area}
+            onAreaEnterComplete={() => touch('area')}
           />
         ) : (
           <PreciseRooms rooms={form.preciseRooms ?? []} onRoomsChange={(v) => patchArea({ preciseRooms: v })} />
@@ -398,13 +424,15 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
       // 2026-09-27 저녁 지휘관 3차 검수 지적 6번: 정확 모드도 간단 모드와 완전히 같은
       // 모습(칩+숫자칸)을 쓴다. 정확 모드에서만 onThicknessChangeOverride를 넘겨
       // 셀프레벨링 자동 제품 전환 로직(handlePreciseThicknessChange)을 끼워 넣는다.
+      // 두께는 두 모드가 공유하는 key라(위 areaStepKey와 다름) 정확 모드에서 50mm를
+      // 손대면 간단 모드로 돌아와도 그대로 이어진다(지휘관 확인 항목).
       content: (
         <QuickAnswer
           part="thickness"
           form={form}
           patch={patch}
-          thicknessUntouched={!touchedFlags[2]}
-          onThicknessTouch={() => touch(2)}
+          thicknessUntouched={!touchedMap.thickness}
+          onThicknessTouch={() => touch('thickness')}
           onThicknessChangeOverride={view === 'precise' ? handlePreciseThicknessChange : undefined}
         />
       ),

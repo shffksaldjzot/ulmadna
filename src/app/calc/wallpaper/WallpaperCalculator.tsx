@@ -62,9 +62,14 @@ interface WallpaperCalculatorProps {
   products: WallpaperProductOption[];
 }
 
-/** 새로 고침 복원(sessionStorage) 열쇠·판 번호 — 모양이 바뀌면 SESSION_VERSION을 올려서 옛 값을 버린다 */
+/**
+ * 새로 고침 복원(sessionStorage) 열쇠·판 번호 — 모양이 바뀌면 SESSION_VERSION을 올려서 옛 값을 버린다.
+ * 2026-09-29: touched 저장 모양을 자리 번호 배열 → 단계 이름(key) 사전으로 바꿔서 1→2로 올렸다
+ * (모드 전환 손댐 오판정 수리 — 아래 isValidWallpaperSession 주석 참고). 옛 배열 값은 버전이
+ * 안 맞아 loadSessionState가 그냥 null로 취급하므로 에러 없이 기본 상태로 시작한다.
+ */
 const SESSION_KEY = 'calc:wallpaper:v1';
-const SESSION_VERSION = 1;
+const SESSION_VERSION = 2;
 
 /** 뒤로 가기 스택에서 "이 계산기가 쌓은 몫"을 구분하는 값 */
 const CALC_ID = 'wallpaper';
@@ -72,8 +77,8 @@ const CALC_ID = 'wallpaper';
 /** 세션에 저장하는 값의 모양 */
 interface WallpaperSession {
   form: WallpaperFormState;
-  /** 단계별로 실제로 손댔는지(useFlowSteps의 touchedFlags) */
-  touched: boolean[];
+  /** 단계 이름(key)별로 실제로 손댔는지(useFlowSteps의 touchedMap) — 2026-09-29부터 이름 기준 */
+  touched: Record<string, boolean>;
   /** ModePicker를 이미 지나왔는지 */
   userPickedMode: boolean;
   /** 조정 칩(베이·범위)을 사용자가 직접 건드렸는지 */
@@ -168,11 +173,20 @@ function isValidWallpaperFormState(v: unknown): v is WallpaperFormState {
   return true;
 }
 
+/**
+ * 2026-09-29: touched가 "단계 이름(key) → 손댔는지" 사전인지 검사한다(옛 판은 배열이었다 —
+ * SESSION_VERSION을 올려서 애초에 옛 데이터는 여기까지 안 오지만, 혹시 몰라 모양도 한 번 더 본다).
+ */
+function isValidTouchedMap(v: unknown): v is Record<string, boolean> {
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return false;
+  return Object.values(v as Record<string, unknown>).every((t) => typeof t === 'boolean');
+}
+
 function isValidWallpaperSession(v: unknown): v is WallpaperSession {
   if (!v || typeof v !== 'object') return false;
   const s = v as Record<string, unknown>;
   if (!isValidWallpaperFormState(s.form)) return false;
-  if (!Array.isArray(s.touched) || !s.touched.every((t) => typeof t === 'boolean')) return false;
+  if (!isValidTouchedMap(s.touched)) return false;
   if (typeof s.userPickedMode !== 'boolean') return false;
   if (typeof s.bayTouched !== 'boolean') return false;
   if (typeof s.scopeTouched !== 'boolean') return false;
@@ -261,11 +275,16 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
   function setPaperType(v: '합지' | '실크' | undefined) {
     if (v === form.paperType) return; // 값이 안 바뀌었으면 할 일이 없다
     patch({ paperType: v, productCode: undefined, product: undefined });
-    touch(0);
-    resetTouched([1]);
+    touch('paperType');
+    resetTouched(['product']);
   }
 
   const view = form.view ?? 'simple';
+
+  // 2026-09-29: 3번째 단계는 모드에 따라 뜻이 다르다(간단="면적" vs 정확="실측") — 손댐을
+  // 자리 번호가 아니라 이름(key)으로 구분해야 하므로, 모드별로 다른 key를 쓴다. 벽지
+  // 종류(paperType)·제품(product)은 두 모드가 공유하는 뜻이라 key도 그대로 공유한다.
+  const areaStepKey = view === 'simple' ? 'area' : 'measure';
 
   // ── 1단계(벽지 종류)·2단계(벽지 제품)·3단계(면적/실측) 값 유효 여부(dataComplete) ──
   // 2026-09-27 좁혀가기: 2단계(제품)는 이제 "무엇을 골랐든" 항상 유효하다("아직 안 정했어요"도
@@ -279,8 +298,12 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
         : !!form.pyeong
       : describePreciseInput(form) !== null;
 
-  const { activeIndex, allDone, completeFlags, touchedFlags, touch, resetTouched } = useFlowSteps({
-    dataComplete: [step0Valid, step1Valid, step2Valid],
+  const { activeIndex, allDone, completeFlags, touchedMap, touch, resetTouched } = useFlowSteps({
+    steps: [
+      { key: 'paperType', valid: step0Valid },
+      { key: 'product', valid: step1Valid },
+      { key: areaStepKey, valid: step2Valid },
+    ],
     allTouched: hasSharedLink,
     initialTouched: restored?.touched,
   });
@@ -319,22 +342,25 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
     if (hasSharedLink) return;
     saveSessionState<WallpaperSession>(SESSION_KEY, SESSION_VERSION, {
       form,
-      touched: touchedFlags,
+      touched: touchedMap,
       userPickedMode,
       bayTouched,
       scopeTouched,
     });
-  }, [form, touchedFlags, userPickedMode, bayTouched, scopeTouched, hasSharedLink]);
+  }, [form, touchedMap, userPickedMode, bayTouched, scopeTouched, hasSharedLink]);
 
   // ── 계산 담당 훅: touched를 넘겨야 가정 목록(assumed)이 화면 손댐 여부를 정확히 반영한다 ──
+  // 2026-09-29: 'area' key로 직접 꺼낸다(자리 번호가 아니라 "간단 모드의 면적 단계" 그
+  // 자체) — 정확 모드에서 'measure'를 아무리 손대도 이 값은 안 바뀐다. 계산 담당(엔진)도
+  // touched.area는 view==='simple'일 때만 보므로, 정확 모드에선 이 값이 쓰이지 않는다.
   const { result, range, loading, error, stale, assumed } = useWallpaperCalc(form, products, {
-    touched: { area: touchedFlags[2], bay: bayTouched, scope: scopeTouched },
+    touched: { area: touchedMap.area, bay: bayTouched, scope: scopeTouched },
   });
 
-  /** 폼 상태를 바꾸면서 동시에 "면적/실측 단계를 손댔다"고 표시하는 도우미(3단계 전용) */
+  /** 폼 상태를 바꾸면서 동시에 "지금 모드의 면적/실측 단계를 손댔다"고 표시하는 도우미(3단계 전용) */
   function patchAreaStep(p: Partial<WallpaperFormState>) {
     patch(p);
-    touch(2);
+    touch(areaStepKey);
   }
 
   /** 조정 칩 — 베이. 손댔다는 표시를 같이 남긴다(안 건드리면 계산 담당이 가정으로 본다) */
@@ -383,21 +409,21 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
           productCode={form.productCode}
           onProductCodeChange={(v) => {
             patch({ productCode: v });
-            touch(1);
+            touch('product');
           }}
           products={products}
           product={form.product}
           onProductChange={(v) => {
             patch({ product: v });
             // 직접 입력 세 칸이 다 차서 진짜 값이 생겼을 때만 손댔다고 본다(입력 도중엔 건너뛴다)
-            if (v !== undefined) touch(1);
+            if (v !== undefined) touch('product');
           }}
-          touched={touchedFlags[1]}
+          touched={touchedMap.product}
         />
       ),
     },
     {
-      key: 'area',
+      key: areaStepKey,
       title: view === 'simple' ? '면적' : '실측',
       valid: step2Valid,
       content:
@@ -412,8 +438,8 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
             onAreaUnitChange={(v) => patch({ areaUnit: v })}
             exclusiveSqm={form.exclusiveSqm ?? ''}
             onExclusiveSqmChange={(v) => patchAreaStep({ exclusiveSqm: v === '' ? undefined : v })}
-            onEnterComplete={() => touch(2)}
-            untouched={!touchedFlags[2]}
+            onEnterComplete={() => touch(areaStepKey)}
+            untouched={!touchedMap[areaStepKey]}
           />
         ) : (
           <PreciseSection
