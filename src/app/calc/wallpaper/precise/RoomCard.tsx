@@ -24,6 +24,7 @@ import { IconClose } from '@/components/v1/icons';
 import type { PreciseRoomInput, WallpaperOpening } from '@/lib/v1/wallpaperQuery';
 import OpeningTable from './OpeningTable';
 import { toDisplay, toMeters, heightPlaceholder, type LengthUnit } from './units';
+import { rangeCaption, ROOM_DIM_M_MIN, ROOM_DIM_M_MAX, ROOM_HEIGHT_M_MIN, ROOM_HEIGHT_M_MAX } from '../../_components/inputRanges';
 
 interface RoomCardProps {
   /** 0부터 세는 순서 — 화면 이름 "방 N"을 여기서 만든다 */
@@ -76,6 +77,19 @@ export default function RoomCard({ index, room, unit, onChange, onRemove, height
     return m === '' ? 0 : m;
   }
 
+  // 2026-09-29 지적 2번: 가로·세로·높이가 서버 허용 범위(m)를 벗어나면 칸 아래에 안내를
+  // 보여준다. 경계값(min·max)도 화면 단위(m/mm)로 바꿔서 알려준다 — 서버는 항상 m 기준
+  // (src/app/api/calc/wallpaper/route.ts:83-85)이라 여기서 화면 단위로 환산만 한다.
+  // toDisplay는 빈 값 입력에 대비해 number|''를 돌려주지만, 여기 넣는 min·max는 항상 실제
+  // 숫자라 결과도 항상 숫자다(as number로 그 사실만 표시).
+  const wCaption = rangeCaption(show(room.w), toDisplay(ROOM_DIM_M_MIN, unit) as number, toDisplay(ROOM_DIM_M_MAX, unit) as number, unit);
+  const dCaption = rangeCaption(show(room.d), toDisplay(ROOM_DIM_M_MIN, unit) as number, toDisplay(ROOM_DIM_M_MAX, unit) as number, unit);
+  // 높이는 이 방만 따로 적었을 때만(room.h가 있을 때만) 검사한다 — 비우면 공통 높이를 쓴다
+  const hCaption =
+    room.h !== undefined
+      ? rangeCaption(show(room.h), toDisplay(ROOM_HEIGHT_M_MIN, unit) as number, toDisplay(ROOM_HEIGHT_M_MAX, unit) as number, unit)
+      : undefined;
+
   return (
     <div className="border border-v1-line rounded-[4px] p-3 flex flex-col gap-3">
       {/* 카드 머리 — 자동으로 붙는 이름 + 오른쪽 삭제 × */}
@@ -115,6 +129,9 @@ export default function RoomCard({ index, room, unit, onChange, onRemove, height
             onChange={(v) => onChange({ ...room, d: store(v) })}
           />
         </div>
+        {/* 범위를 벗어난 칸만 짧게 안내 — 가로·세로 둘 다 벗어났으면 두 줄(드문 경우라 괜찮다) */}
+        {wCaption && <p className="t-sub text-danger">가로 {wCaption}</p>}
+        {dCaption && <p className="t-sub text-danger">세로 {dCaption}</p>}
         {/* 가로·세로를 다 적으면 이 방의 벽·천장 면적을 바로 보여준다 (바닥재는 벽 개념이 없어 simple에서 뺀다) */}
         {!simple && (wallSqm > 0 || ceilingSqm > 0) ? (
           <p className="text-[14px] text-v1-text-disabled tabular-nums">{previewParts.join(' · ')}</p>
@@ -136,6 +153,7 @@ export default function RoomCard({ index, room, unit, onChange, onRemove, height
               onChange({ ...room, h: m === '' ? undefined : m });
             }}
           />
+          {hCaption && <p className="t-sub text-danger mt-1">{hCaption}</p>}
         </div>
       </Collapsible>
       )}

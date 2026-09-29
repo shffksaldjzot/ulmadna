@@ -35,6 +35,8 @@ import {
   type FlooringProductOption,
 } from '@/lib/v1/flooringQuery';
 import { useFlooringCalc } from '@/lib/v1/useFlooringCalc';
+import { MIN_EXCLUSIVE_SQM, MAX_EXCLUSIVE_SQM } from '@/lib/v1/flooringEngineInput';
+import { MIN_SUPPLY_PYEONG, MAX_SUPPLY_PYEONG, isWithinRange, isRoomDimValid } from '../_components/inputRanges';
 import { formatManRange } from '@/lib/v1/money';
 // GA4 — 계산기 화면 진입 이벤트(마운트 1번만)
 import { track } from '@/lib/analytics';
@@ -224,12 +226,22 @@ export default function FlooringCalculator({ products }: FlooringCalculatorProps
   // "완료" 여부는 touched로만 갈린다(도배와 같은 규칙).
   const step0Valid = !!form.kind;
   const step1Valid = true;
+  // 2026-09-29 지적 2번: 서버 허용 범위(평 5~200 · ㎡ 20~300)를 벗어난 값은 완료로 치지
+  // 않는다 — 그래야 미완료로 남아 34평 가정으로 계산되고 공유가 숨는다.
+  const simpleAreaInRange =
+    form.areaUnit === '㎡'
+      ? isWithinRange(form.exclusiveSqm, MIN_EXCLUSIVE_SQM, MAX_EXCLUSIVE_SQM)
+      : isWithinRange(form.pyeong, MIN_SUPPLY_PYEONG, MAX_SUPPLY_PYEONG);
   const step2Valid =
     view === 'simple'
-      ? form.areaUnit === '㎡'
-        ? !!form.exclusiveSqm
-        : !!form.pyeong
-      : (form.preciseRooms ?? []).some((r) => r.w > 0 && r.d > 0);
+      ? (form.areaUnit === '㎡' ? !!form.exclusiveSqm : !!form.pyeong) && simpleAreaInRange
+      : (form.preciseRooms ?? []).some((r) => r.w > 0 && r.d > 0) &&
+        (form.preciseRooms ?? []).every((r) => isRoomDimValid(r.w, r.d));
+
+  // 정확 모드에서 계산 담당(useFlooringCalc)에 넘길 방 목록 — 범위 밖 방은 빼고 넘긴다
+  // ("그 값으로는 계산하지 않는다", 지적 2번). 엔진 파일은 안 건드렸다.
+  const roomsForCalc = (form.preciseRooms ?? []).filter((r) => isRoomDimValid(r.w, r.d));
+  const formForCalc = view === 'precise' ? { ...form, preciseRooms: roomsForCalc } : form;
 
   const { activeIndex, allDone, completeFlags, touchedMap, touch, resetTouched } = useFlowSteps({
     steps: [
@@ -278,8 +290,10 @@ export default function FlooringCalculator({ products }: FlooringCalculatorProps
   // ── 계산 담당 훅: touched를 넘겨야 가정 목록(assumed)이 화면 손댐 여부를 정확히 반영한다 ──
   // 2026-09-29: 'area' key로 직접 꺼낸다(자리 번호가 아니라 "간단 모드의 면적 단계" 그 자체) —
   // 정확 모드에서 'measure'를 손대도 이 값은 안 바뀐다(엔진도 view==='simple'일 때만 본다).
-  const { result, range, loading, error, stale, assumed } = useFlooringCalc(form, products, {
-    touched: { area: touchedMap.area, bay: bayTouched, scope: scopeTouched },
+  // 지적 2번: 범위를 벗어났으면 손댔어도 "안 손댄 것"으로 넘긴다 — 엔진이 34평 가정으로
+  // 계산하게 해서, 서버가 거절할 값(예: 999평)을 애초에 안 보낸다.
+  const { result, range, loading, error, stale, assumed } = useFlooringCalc(formForCalc, products, {
+    touched: { area: touchedMap.area && simpleAreaInRange, bay: bayTouched, scope: scopeTouched },
   });
 
   /** 폼 상태를 바꾸면서 동시에 "지금 모드의 면적/실측 단계를 손댔다"고 표시하는 도우미(3단계 전용) */

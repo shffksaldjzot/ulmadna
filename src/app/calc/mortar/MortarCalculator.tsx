@@ -45,7 +45,15 @@ import {
   presetThicknessMm,
   assumedAreaSqm,
 } from '@/lib/v1/mortarEngineInput';
-import { USAGE_PRESET, SELF_LEVEL_USAGE_PRESET } from '@/lib/v1/mortarPresets';
+import { USAGE_PRESET, SELF_LEVEL_USAGE_PRESET, THICKNESS_MM_MIN, thicknessMmMax } from '@/lib/v1/mortarPresets';
+import {
+  MORTAR_AREA_SQM_MIN,
+  MORTAR_AREA_SQM_MAX,
+  MORTAR_ZONE_SQM_MIN,
+  MORTAR_ZONE_SQM_MAX,
+  isWithinRange,
+  mortarThicknessUxMin,
+} from '../_components/inputRanges';
 import QuickAnswer from './QuickAnswer';
 import PreciseRooms from './PreciseRooms';
 import PreciseSection from './PreciseSection';
@@ -222,11 +230,28 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
   const currentTopUsage: TopUsage = mode === '셀프레벨링' ? '셀프레벨링' : '방통전체';
 
   const step0Valid = true; // 용도는 항상 유효한 값(기본 방통)이 있다 — touched로만 가린다
-  const step1Valid =
-    view === 'simple'
-      ? resolveSimpleAreaSqm(form) !== null
-      : (form.preciseRooms ?? []).some((r) => typeof r.areaSqm === 'number' && r.areaSqm > 0);
-  const step2Valid = typeof form.thicknessMm === 'number' && form.thicknessMm > 0;
+
+  // 2026-09-29 지적 2번: 간단 모드 면적(㎡ 환산값)이 서버 허용 범위(0.5~500㎡)를 벗어나면
+  // 완료로 치지 않는다 — resolveSimpleAreaSqm은 이미 있는 함수를 그대로 재사용한다
+  // (엔진 파일을 새로 안 건드림, 평/㎡·방통/셀프 환산은 전부 그 함수가 이미 하고 있다).
+  const simpleAreaSqm = resolveSimpleAreaSqm(form);
+  const simpleAreaInRange = simpleAreaSqm !== null && isWithinRange(simpleAreaSqm, MORTAR_AREA_SQM_MIN, MORTAR_AREA_SQM_MAX);
+
+  // 정확 모드 구역 — 각 구역이 0.1~500㎡ 안이어야 계산에 넣는다. 범위 밖 구역은 통째로
+  // 빼고 계산 담당에 넘긴다("그 값으로는 계산하지 않는다").
+  const zonesForCalc = (form.preciseRooms ?? []).filter(
+    (r) => typeof r.areaSqm === 'number' && isWithinRange(r.areaSqm, MORTAR_ZONE_SQM_MIN, MORTAR_ZONE_SQM_MAX) && r.areaSqm > 0,
+  );
+
+  const step1Valid = view === 'simple' ? simpleAreaInRange : zonesForCalc.length > 0;
+
+  // 두께 — 화면 쪽 최솟값(레미탈 10mm)까지 포함해 mortar/QuickAnswer.tsx 캡션과 같은
+  // 범위로 판정한다(캡션이 안 뜨는데 계산은 막히는 엇갈림 방지).
+  const thicknessUxMin = mortarThicknessUxMin(mode, THICKNESS_MM_MIN);
+  const thicknessMax = thicknessMmMax(mode);
+  const thicknessInRange =
+    typeof form.thicknessMm === 'number' && isWithinRange(form.thicknessMm, thicknessUxMin, thicknessMax);
+  const step2Valid = typeof form.thicknessMm === 'number' && form.thicknessMm > 0 && thicknessInRange;
 
   // 2026-09-29: 2번째 단계는 모드에 따라 뜻이 다르다(간단="면적" vs 정확="구역 목록") —
   // 자리 번호가 아니라 이름(key)으로 손댐을 구분한다. 용도(usage)·두께(thickness)는 두
@@ -322,18 +347,23 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
   // 계산 담당 두 훅에 완전히 같은 options를 넘긴다(계산 담당 약속 — 9-3절).
   // 2026-09-29: area는 'area' key로 직접 꺼낸다(정확 모드의 'zones'와는 독립) — 엔진은
   // view==='simple'일 때만 이 값을 보므로, 정확 모드에선 어차피 안 쓰인다.
+  // 지적 2번: 면적·두께가 범위를 벗어났으면 손댔어도 "안 손댄 것"으로 넘겨 엔진이 가정값
+  // (34평/33㎡·용도 기본 두께)으로 계산하게 한다 — 서버가 거절할 값을 애초에 안 보낸다.
   const touchedOptions = {
     touched: {
       usage: touchedMap.usage,
-      area: touchedMap.area,
-      thickness: touchedMap.thickness,
+      area: touchedMap.area && simpleAreaInRange,
+      thickness: touchedMap.thickness && thicknessInRange,
       method: methodTouched,
     },
   };
+  // 정확 모드에서 계산 담당에 넘길 구역 목록 — 범위 밖 구역은 빼고 넘긴다(위 zonesForCalc).
+  // 남은 구역이 없어지면 엔진이 기존 규칙대로 "구역이 비었다"로 보고 가정 면적으로 계산한다.
+  const formForCalc = view === 'precise' ? { ...form, preciseRooms: zonesForCalc } : form;
   // 즉답 — 서버 없이 바로 계산되는 포수·체적·현장배합(항상 최신 폼 상태를 즉시 반영)
-  const quick = useMortarQuickCalc(form, products, touchedOptions);
+  const quick = useMortarQuickCalc(formForCalc, products, touchedOptions);
   // 서버 — 비용·인건(디바운스 + API 호출, 늦게 오거나 실패할 수 있다)
-  const { result, range, loading, error, stale, assumed } = useMortarCalc(form, products, touchedOptions);
+  const { result, range, loading, error, stale, assumed } = useMortarCalc(formForCalc, products, touchedOptions);
 
   const emptyMessage = '용도를 고르면 바로 나와요';
 

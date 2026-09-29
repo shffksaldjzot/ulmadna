@@ -14,7 +14,8 @@
 
 'use client';
 
-import { MIN_EXCLUSIVE_SQM } from '@/lib/v1/flooringEngineInput';
+import { MIN_EXCLUSIVE_SQM, MAX_EXCLUSIVE_SQM } from '@/lib/v1/flooringEngineInput';
+import { MIN_SUPPLY_PYEONG, MAX_SUPPLY_PYEONG, rangeCaption } from '../_components/inputRanges';
 import AreaInput from '../_components/AreaInput';
 
 export interface QuickAnswerProps {
@@ -29,9 +30,10 @@ export interface QuickAnswerProps {
   onExclusiveSqmChange: (v: number | '') => void;
   /**
    * 숫자 칸에서 엔터를 쳤을 때(값이 유효할 때만) 불러 준다 — 면적 단계를 완료 처리하는 데
-   * 쓴다(지시서 3-6절). 안 주면 그냥 안 부른다.
+   * 쓴다(지시서 3-6절). 2026-09-29 지적 6번: 부르는 쪽이 항상 넘기므로 필수 prop으로
+   * 바꿨다(AreaInput 쪽과 맞춤).
    */
-  onEnterComplete?: () => void;
+  onEnterComplete: () => void;
   /**
    * true면 사용자가 아직 이 면적 단계를 안 눌렀다는 뜻 — AreaInput에 그대로 넘겨서 칩
    * 선택 표시·숫자 칸 값·환산 캡션을 전부 숨긴다. 계산 자체는 기본값(34평)으로 계속
@@ -50,10 +52,13 @@ export default function QuickAnswer({
   onEnterComplete,
   untouched = false,
 }: QuickAnswerProps) {
-  // 직접 입력한 값이 서버가 거부하는 범위면 미리 알려준다(결과 카드의 가정 줄과는
-  // 다른, 이 입력칸 고유의 안내라 중복이 아니다)
-  const pyeongTooSmall = areaUnit === '평' && typeof pyeong === 'number' && pyeong > 0 && pyeong < 5;
-  const sqmTooSmall = areaUnit === '㎡' && typeof exclusiveSqm === 'number' && exclusiveSqm > 0 && exclusiveSqm < MIN_EXCLUSIVE_SQM;
+  // 2026-09-29 지적 2번: 직접 입력한 값이 서버 허용 범위(평 5~200 · ㎡ 20~300)를 벗어나면
+  // 칸 아래에 짧게 알려준다 — 이 범위 밖 값은 FlooringCalculator.tsx가 계산에 안 쓰고
+  // 34평 가정으로 대신 계산한다(가정 표시·공유 숨김은 거기서 처리).
+  const areaCaption =
+    areaUnit === '평'
+      ? rangeCaption(pyeong, MIN_SUPPLY_PYEONG, MAX_SUPPLY_PYEONG, '평')
+      : rangeCaption(exclusiveSqm, MIN_EXCLUSIVE_SQM, MAX_EXCLUSIVE_SQM, '㎡');
 
   return (
     <div className="flex flex-col gap-4">
@@ -65,14 +70,10 @@ export default function QuickAnswer({
         onUnitChange={onAreaUnitChange}
         value={areaUnit === '㎡' ? exclusiveSqm : pyeong}
         onValueChange={(v) => (areaUnit === '㎡' ? onExclusiveSqmChange(v) : onPyeongChange(v))}
-        // 도배와 같은 격자 배치 + 엔터 완료
-        chipGrid
         onEnterComplete={onEnterComplete}
         untouched={untouched}
       />
-      {(pyeongTooSmall || sqmTooSmall) && (
-        <p className="t-sub text-ink-2">{pyeongTooSmall ? '5평부터 계산해요' : `${MIN_EXCLUSIVE_SQM}㎡부터 계산해요`}</p>
-      )}
+      {areaCaption && <p className="t-sub text-danger">{areaCaption}</p>}
     </div>
   );
 }

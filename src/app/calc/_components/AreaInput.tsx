@@ -66,18 +66,13 @@ export interface AreaInputProps {
   caption?: string;
   placeholder?: string;
   /**
-   * 2026-09-27 지시서(계산기 단계 흐름 개선) 3-8절 + 검수 지적 8번 — 도배 계산기의 면적
-   * 칩만 격자로 가지런히 놓는다. 기본 false(기존 flex-wrap 그대로) — 바닥재·미장은 이 prop을
-   * 안 넘기므로 모습이 하나도 안 바뀐다. true면 모바일 3열(칩 폭을 칸에 맞춰 같게), 화면이
-   * 380px보다 좁으면(360px 등) 2열로 줄어든다. 칩 글자가 넘치지 않게 글자 크기를 t-sub(13px)로
-   * 줄인다(두 줄로 감싸는 대신).
-   */
-  chipGrid?: boolean;
-  /**
    * 엔터를 치면(값이 유효할 때) 불러 준다 — 단계 완료 처리용(지시서 3-6절, 검수 지적 8번).
-   * NumberField의 onEnterComplete를 그대로 통과시킨다. 안 넘기면 기존과 동일하다.
+   * NumberField의 onEnterComplete를 그대로 통과시킨다.
+   *
+   * 2026-09-29 지적 6번: 도배·바닥재·미장 세 계산기가 전부 이 값을 넘기게 되면서
+   * "선택 속성"일 이유가 없어져 필수 prop으로 바꿨다(빠뜨리면 타입 에러로 바로 드러난다).
    */
-  onEnterComplete?: () => void;
+  onEnterComplete: () => void;
   /**
    * 2026-09-27 지휘관 3차 검수 지적 1번 — 도배 계산기 전용. true면 "아직 사용자가 이
    * 단계를 안 눌렀다"는 뜻으로, 폼 속 값(value)은 그대로 두되(계산은 그 값으로 계속 하고
@@ -85,7 +80,9 @@ export interface AreaInputProps {
    *   - 칩은 하나도 선택 표시하지 않는다
    *   - 숫자 칸은 비우고, 그 값을 자리 글자(placeholder)로 흐리게 보여준다
    *   - 환산 캡션 줄("≈ 112.4㎡ · 84㎡")은 안 그린다
-   * 기본 false(바닥재·미장은 이 prop을 안 넘기므로 예전 그대로 값이 그대로 보인다).
+   * 기본 false. 2026-09-29 지적 6번 이후로는 도배·바닥재·미장 세 계산기가 전부 이 prop을
+   * 넘긴다(각 계산기의 면적 단계가 손 안 댔을 때는 항상 true) — 안 넘기면(다른 화면이
+   * 이 부품을 새로 쓰는 경우) 예전처럼 값이 그대로 보인다.
    * 사용자가 칩을 누르거나 숫자를 입력하면(그 순간 손댄 걸로 처리돼) 다음 렌더부터
    * untouched가 false로 내려오면서 정상적으로 값이 보인다 — 이 부품 자신은 그 전환을
    * 몰라도 된다(부르는 쪽이 touched 여부를 보고 이 prop을 넘겨준다).
@@ -104,7 +101,6 @@ export default function AreaInput({
   caption,
   placeholder,
   hideUnitToggle = false,
-  chipGrid = false,
   onEnterComplete,
   untouched = false,
 }: AreaInputProps) {
@@ -161,13 +157,14 @@ export default function AreaInput({
       )}
       {caption && <p className="text-[13px] text-v1-text-secondary">{caption}</p>}
 
-      {/* 칩 — 눌러서 바로 값 채우기.
-          chipGrid=true(도배 전용): 모바일 3열 격자, 360px처럼 좁으면 2열로. 칩이 칸을 꽉
-          채우도록 w-full, 글자는 두 줄로 안 넘어가게 t-sub 크기(13px, 인라인 스타일로 강제
-          — Chip 자체의 md 글자 크기 클래스보다 인라인 스타일이 항상 우선한다).
-          chipGrid=false(기본, 바닥재·미장): 예전 그대로 flex-wrap. */}
+      {/* 칩 — 눌러서 바로 값 채우기. 모바일 3열 격자, 화면이 380px보다 좁으면 2열로 줄어든다.
+          칩이 칸을 꽉 채우도록 w-full, 글자는 두 줄로 안 넘어가게 t-sub 크기(13px, 인라인
+          스타일로 강제 — Chip 자체의 md 글자 크기 클래스보다 인라인 스타일이 항상 우선한다).
+          2026-09-29 지적 6번: 세 계산기가 전부 이 격자 배치를 쓰게 되면서 "도배 전용
+          선택 모습"일 이유가 없어져 기본 동작으로 통일했다(예전 flex-wrap 갈래는 아무도
+          안 쓰는 죽은 코드라 지웠다). */}
       {chipList.length > 0 && (
-        <div className={chipGrid ? 'grid grid-cols-2 min-[380px]:grid-cols-3 gap-2' : 'flex flex-wrap gap-2'}>
+        <div className="grid grid-cols-2 min-[380px]:grid-cols-3 gap-2">
           {chipList.map((n) => (
             <Chip
               key={n}
@@ -175,8 +172,8 @@ export default function AreaInput({
               // 화면이 "아직 안 골랐다"고 말해야 하는데 칩이 선택돼 보이면 앞뒤가 안 맞는다)
               selected={!untouched && value === n}
               onClick={() => onValueChange(n)}
-              className={chipGrid ? 'w-full justify-center' : undefined}
-              style={chipGrid ? { fontSize: '13px' } : undefined}
+              className="w-full justify-center"
+              style={{ fontSize: '13px' }}
             >
               {chipLabel(n)}
             </Chip>

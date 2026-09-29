@@ -45,6 +45,7 @@ import {
   THICKNESS_MM_MIN,
   thicknessMmMax,
 } from '@/lib/v1/mortarPresets';
+import { mortarThicknessUxMin } from '../_components/inputRanges';
 
 export interface QuickAnswerProps {
   /** 이 카드에서 어느 부분만 그릴지 — 'area'(시공 면적) / 'thickness'(두께) */
@@ -99,8 +100,9 @@ export default function QuickAnswer({
   const thicknessChips = mode === '레미탈' ? REMICON_THICKNESS_CHIPS : SELF_LEVEL_THICKNESS_CHIPS;
   // 용도별 기본 두께 — 손대기 전 자리 글자(placeholder)로 보여줄 값
   const presetThickness = presetThicknessMm(form);
-  // 두께 입력 허용 범위 — 서버 검증과 같은 값(mortarPresets.ts)
-  const thicknessMin = mode === '레미탈' ? 10 : THICKNESS_MM_MIN;
+  // 두께 입력 허용 범위 — 서버 검증과 같은 값(mortarPresets.ts). 최솟값은 화면 쪽이 더
+  // 엄격할 수 있어(레미탈 10mm) 공용 헬퍼로 뺐다(MortarCalculator.tsx와 같은 값을 쓴다)
+  const thicknessMin = mortarThicknessUxMin(mode, THICKNESS_MM_MIN);
   const thicknessMax = thicknessMmMax(mode);
 
   /**
@@ -201,6 +203,10 @@ export default function QuickAnswer({
         </div>
       </div>
 
+      {/* 2026-09-29 지적 6번: AreaInput의 onEnterComplete는 이제 필수 prop이다. 이 부품은
+          part==='thickness'일 때는 onAreaEnterComplete를 아예 안 받으므로(그 값이 optional로
+          남아 있다) part==='area' 분기에서만 쓰는 자리에 안전하게 이어 주려고 안 쓰는
+          빈 함수로 받쳐 준다(실제로는 이 분기에 오면 항상 실제 함수가 있다). */}
       {areaInputMode === 'area' ? (
         supplyArea ? (
           // 방통 — 도배·바닥재와 같은 공용 부품(AreaInput mode="supply"). 캡션은 지웠다
@@ -213,8 +219,7 @@ export default function QuickAnswer({
             value={areaUntouched ? assumedAreaDisplay : (form.area ?? '')}
             onValueChange={(v) => patch({ area: v === '' ? undefined : v })}
             hideUnitToggle
-            chipGrid
-            onEnterComplete={onAreaEnterComplete}
+            onEnterComplete={onAreaEnterComplete ?? (() => {})}
             untouched={areaUntouched}
           />
         ) : (
@@ -228,8 +233,7 @@ export default function QuickAnswer({
             chips={WORK_AREA_CHIPS_SQM}
             hideUnitToggle
             placeholder="면적을 입력하세요(㎡)"
-            chipGrid
-            onEnterComplete={onAreaEnterComplete}
+            onEnterComplete={onAreaEnterComplete ?? (() => {})}
             untouched={areaUntouched}
           />
         )
