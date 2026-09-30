@@ -61,6 +61,14 @@ export interface ResultPanelProps {
   assumed: MortarAssumption[];
   /** 3단계(용도·면적·두께)가 전부 "손대서" 끝났는지 — 공유 버튼 노출 판정에 쓴다 */
   allDone: boolean;
+  /**
+   * 세부 조정의 배송비·지게차 하차비·양중비 세 금액 칸이 전부 범위(0~1,000만원) 안인지.
+   * 2026-09-30 지휘관 긴급 전달(중요 3) — 하나라도 범위를 벗어나면 그 칸은 "안 넣은
+   * 것"(0원)으로 계산되는데, 그 상태에서 공유를 계속 보여주면 이상할 게 없어 보이지만
+   * 사실 "화면에 적힌 값(범위 밖 큰 숫자)"과 "계산에 쓴 값(0원 취급)"이 달라진 상태다 —
+   * 그래서 공유 자체를 숨긴다(계산기 금액 = 공유 결과 금액을 항상 지키기 위해).
+   */
+  moneyFieldsAllInRange: boolean;
   form: MortarFormState;
   /** 면적 가정 문구("34평 가정" 또는 "33㎡ 가정") — 용도(방통/셀프레벨링)에 따라 달라 부르는 쪽이 계산해 넘긴다 */
   areaAssumedText: string;
@@ -139,6 +147,7 @@ export default function ResultPanel({
   stale,
   assumed,
   allDone,
+  moneyFieldsAllInRange,
   form,
   areaAssumedText,
   thicknessAssumedText,
@@ -189,7 +198,17 @@ export default function ResultPanel({
   // 도배·바닥재와 같은 규칙: 공유는 3단계(용도·면적·두께)가 전부 끝났고, 'area'·
   // 'thickness'·'measuring' 가정이 안 남아 있을 때만 보인다. 공법 조정 칩은 공유를 안 막는다.
   // 2026-09-30 지휘관 긴급 전달(중요 1) — 계산이 실패한 상태(error)에서는 공유를 숨긴다(세 계산기 공통 규칙)
-  const canShare = allDone && !error && !assumed.includes('area') && !assumed.includes('thickness') && !assumed.includes('measuring');
+  // 2026-09-30 지휘관 긴급 전달(중요 3) — 세부 조정 금액 칸(배송비·지게차 하차비·양중비)
+  // 중 하나라도 범위(1,000만원)를 벗어나면 공유를 숨긴다. 그 칸은 계산에서 "안 넣은
+  // 것"(0원)으로 빠지는데, 공유를 그대로 보여주면 화면 칸의 큰 숫자와 계산에 쓴 0원이
+  // 서로 다른 채로 공유되는 사고가 난다.
+  const canShare =
+    allDone &&
+    !error &&
+    moneyFieldsAllInRange &&
+    !assumed.includes('area') &&
+    !assumed.includes('thickness') &&
+    !assumed.includes('measuring');
 
   // ② 수량 한 줄 — "레미탈 40kg × 146포 · 40mm · 84㎡"(㎡는 정수). 가운뎃점으로 줄이
   // 갈리더라도 다음 줄이 가운뎃점으로 시작하지 않게 조각마다 span으로 나눈다.

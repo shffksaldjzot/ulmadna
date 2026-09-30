@@ -57,6 +57,7 @@ import {
   resolveSimpleAreaSqmRaw,
   resolveMortarZonesForCalc,
   pyeongRangeBounds,
+  mortarZonesStepComplete,
 } from '../_components/inputRanges';
 import QuickAnswer from './QuickAnswer';
 import PreciseRooms from './PreciseRooms';
@@ -259,14 +260,23 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
     return rangeCaption(simpleAreaSqmRaw, MORTAR_AREA_SQM_MIN, MORTAR_AREA_SQM_MAX, '㎡');
   })();
 
-  // 2026-09-30 긴급 전달(치명 3 수리) → 이후 지휘관 지시(가정 표시 통일)로 규칙 변경 —
-  // 예전엔 구역 하나라도 범위 밖이면 목록 전체를 비웠는데(구역1 300㎡+구역2 600㎡ → 둘 다
-  // 버림), 이제 도배·바닥재의 방 목록과 같은 규칙으로 맞춘다: 범위 밖 구역"만" 빼고 남은
-  // 것으로 계산한다. 개별은 다 정상인데 합계만 넘치면(범인을 못 고름) 그때만 전부 비우고
-  // 평형 가정값으로 계산한다. resolveMortarZonesForCalc(inputRanges.ts) 참고.
+  // 2026-09-30 긴급 전달(치명 3 수리) → 이후 지휘관 지시(가정 표시 통일)로 규칙 변경,
+  // calc-stepflow-v2(중요 2: 빈 구역 완료 오판정 수리)와 병합하며 "완료 판정"과 "계산에
+  // 쓸 값 고르기"를 아예 분리했다 — 예전엔 구역 하나라도 범위 밖이면 목록 전체를
+  // 비웠는데(구역1 300㎡+구역2 600㎡ → 둘 다 버림), 이제 도배·바닥재의 방 목록과 같은
+  // 규칙으로 맞춘다: 범위 밖 구역"만" 빼고 남은 것으로 계산한다. 개별은 다 정상인데
+  // 합계만 넘치면(범인을 못 고름) 그때만 전부 비우고 평형 가정값으로 계산한다
+  // (resolveMortarZonesForCalc, 계산·가정 표시 담당).
   const zonesResolution = resolveMortarZonesForCalc(form.preciseRooms ?? []);
-  const zonesFullyValid = zonesResolution.fullyValid;
   const zonesForCalc = zonesResolution.zonesForCalc;
+  // "구역 단계가 완료됐는지"는 위 zonesResolution.fullyValid 그대로가 아니라
+  // mortarZonesStepComplete(hasFilled까지 같이 확인)로 따로 판정한다 — 값을 채운 구역이
+  // 0개면(빈 구역만 추가한 상태) zonesResolution.fullyValid는 "판단 대상 없음" 뜻으로
+  // true지만(계산 쪽엔 옳은 규칙 — 가정값으로 계산하면 되니까), 그걸 그대로 "단계
+  // 완료"로 보면 빈 구역만 있어도 하단 바가 3/3으로 앞서가 버리는 버그였다(라이브는
+  // 2/3). mortarZonesStepComplete는 resolveMortarZonesForCalc 위에서 hasFilled까지
+  // 같이 확인해 "빈 구역만 있으면 미완료(2/3), 계산은 그대로 기본값"이 되게 한다.
+  const zonesFullyValid = mortarZonesStepComplete(form.preciseRooms ?? []);
   // 구역 목록 아래에 보여줄 "합계 초과" 안내 — 개별 구역 범위 안내는 PreciseRooms.tsx가
   // 구역마다 따로 보여주므로, 여기서는 "범인 없는 합계 초과" 경우만 다룬다.
   const zoneSumCaption = zonesResolution.sumExceeded ? `합계 ${MORTAR_AREA_SQM_MAX}㎡ 이하` : undefined;
@@ -388,10 +398,19 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
     },
   };
   // 2026-09-29 지적 2번: 세부 조정의 배송비·지게차 하차비·양중비는 면적·두께와 달리
-  // "선택 항목"이라 범위를 벗어나도 가정값으로 되돌리지 않는다 — 그냥 직전에 있었던
-  // 정상 값을 그대로 계산에 쓴다(0원으로 떨어지지도, 가정 표시가 뜨지도 않는다). 화면
-  // 입력 칸(PreciseSection.tsx)은 이 값과 무관하게 form 값을 그대로 보여준다(사용자가
-  // 친 숫자가 안 지워진다) — 여기서 만든 값은 오직 계산 훅에 넘길 때만 쓴다.
+  // "선택 항목"이라 범위를 벗어나도 가정값으로 되돌리지 않는다 — 그냥 "안 넣은 것"
+  // (0원)으로 계산한다. 화면 입력 칸(PreciseSection.tsx)은 이 값과 무관하게 form 값을
+  // 그대로 보여준다(사용자가 친 숫자가 안 지워진다) — 여기서 만든 값은 오직 계산 훅에
+  // 넘길 때만 쓴다.
+  // 2026-09-30 지휘관 긴급 전달(중요 3) — useLastValidNumber가 더 이상 "직전 유효값"을
+  // 쓰지 않는다(치는 도중 거쳐 간 값으로 계산되는 사고 수리, 훅 파일 주석 참고). 그 대신
+  // 여기서 "지금 이 금액 칸들이 전부 범위 안인지"를 따로 기억해 뒀다가, 하나라도 범위
+  // 밖이면 결과 공유 버튼 자체를 숨긴다(ResultPanel에 넘김) — 공유가 보이는 상태에서는
+  // 화면 값과 계산값이 항상 같아진다(둘 다 범위 안이거나 둘 다 비어 있으므로).
+  const deliveryFeeInRange = isWithinRange(form.deliveryFeeWon, 0, MONEY_INPUT_WON_MAX);
+  const liftingFeeInRange = isWithinRange(form.liftingFeeWon, 0, MONEY_INPUT_WON_MAX);
+  const forkliftFeeInRange = isWithinRange(form.forkliftFeeWon, 0, MONEY_INPUT_WON_MAX);
+  const moneyFieldsAllInRange = deliveryFeeInRange && liftingFeeInRange && forkliftFeeInRange;
   const deliveryFeeForCalc = useLastValidNumber(form.deliveryFeeWon, 0, MONEY_INPUT_WON_MAX);
   const liftingFeeForCalc = useLastValidNumber(form.liftingFeeWon, 0, MONEY_INPUT_WON_MAX);
   const forkliftFeeForCalc = useLastValidNumber(form.forkliftFeeWon, 0, MONEY_INPUT_WON_MAX);
@@ -637,6 +656,7 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
             stale={stale}
             assumed={assumed}
             allDone={allDone}
+            moneyFieldsAllInRange={moneyFieldsAllInRange}
             form={form}
             areaAssumedText={areaAssumedText}
             thicknessAssumedText={thicknessAssumedText}

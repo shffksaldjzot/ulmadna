@@ -243,3 +243,23 @@ export function pyeongRangeBounds(
   for (let i = 0; i < 5 && minPyeong > 1 && toSqm(minPyeong - 1) >= minSqm; i++) minPyeong -= 1;
   return { minPyeong: Math.max(1, minPyeong), maxPyeong: Math.max(minPyeong, maxPyeong) };
 }
+
+/**
+ * 2026-09-30 지휘관 긴급 전달(중요 2 수리, 이후 calc-stepflow-v2와 병합하며 재정리) —
+ * 미장 정확 모드 "구역" 단계가 완료됐다고 볼 수 있는지. resolveMortarZonesForCalc의
+ * fullyValid는 "값을 채운 구역이 0개면 판단 대상이 없다"는 뜻으로 true를 돌려준다
+ * (계산 쪽에서는 옳은 규칙 — "구역이 비었으니 가정값으로 계산해라"는 뜻이라서). 문제는
+ * 그 값을 그대로 "단계 완료" 판정에 쓰면, 빈 구역만 추가해도(값을 하나도 안 적어도)
+ * 완료로 보여 버그가 났다("+ 구역 추가"만 눌러도 하단 바가 3/3으로 앞서갔다 — 라이브는
+ * 2/3). 그래서 여기서는 hasFilled(값을 채운 구역이 1개 이상)까지 같이 확인해야 완료로
+ * 본다 — "완료"(이 함수)와 "계산에 쓸 값 고르기"(resolveMortarZonesForCalc)를 분리해서,
+ * 빈 구역만 있어도 미완료(2/3)로 보이면서 계산은 그대로 기본값(zonesForCalc가 빈
+ * 배열이라 엔진이 가정값으로 계산)으로 굴러가게 한다.
+ * MortarCalculator.tsx가 이 함수로 완료 판정을, resolveMortarZonesForCalc로 계산·가정
+ * 표시 판정을 각각 맡긴다. __tests__/inputRanges.test.ts가 화면 없이 이 함수만으로
+ * "빈 구역만 → 미완료"를 검증한다.
+ */
+export function mortarZonesStepComplete<T extends { areaSqm?: number }>(rooms: T[]): boolean {
+  const r = resolveMortarZonesForCalc(rooms);
+  return r.hasFilled && r.fullyValid;
+}

@@ -11,12 +11,16 @@
 //     가정 표시 통일 — 개별 범위 밖만 빼고 계산, 합계 초과는 범인을 못 골라 전부 가정값)
 //   · pyeongRangeBounds: 미장 "평" 입력 안내에 쓸, 실제로 통과하는 평 경계값(2026-09-30
 //     평 입력 안내 단위 통일)
+//   · mortarZonesStepComplete: 정확 모드 "구역" 단계 완료 판정 — 빈 구역만 있으면
+//     미완료(2026-09-30 중요 2 수리, calc-stepflow-v2 병합)
 //
 // 작성일: 2026년 09월 29일
 // moneyRangeCaption 시험 추가(다듬기 라운드): 2026년 09월 29일
 // resolveSimpleAreaSqmRaw·mortarZonesValidity 시험 추가(긴급 수리 2·3): 2026년 09월 30일
 // mortarZonesValidity → resolveMortarZonesForCalc로 교체, pyeongRangeBounds 추가(가정
 // 표시 통일·평 안내 단위 통일): 2026년 09월 30일
+// calc-stepflow-v2 병합 — mortarZonesStepComplete 시험 합류(resolveMortarZonesForCalc
+// 위에 다시 얹음): 2026년 09월 30일
 // ──────────────────────────────────────────────
 
 import { describe, expect, it } from 'vitest';
@@ -29,6 +33,7 @@ import {
   resolveSimpleAreaSqmRaw,
   resolveMortarZonesForCalc,
   pyeongRangeBounds,
+  mortarZonesStepComplete,
   MORTAR_AREA_SQM_MIN,
   MORTAR_AREA_SQM_MAX,
   MORTAR_ZONE_SQM_MIN,
@@ -223,5 +228,33 @@ describe('pyeongRangeBounds — 미장 평 입력 안내의 실제 통과 경계
     const toSqm = (p: number) => p * 3.3058;
     const { minPyeong } = pyeongRangeBounds(0.5, 500, toSqm);
     expect(minPyeong).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe('mortarZonesStepComplete — 정확 모드 "구역" 단계 완료 판정(2026-09-30 중요 2 수리)', () => {
+  it('[검사관 재현] 빈 구역만 있으면(값을 하나도 안 채움) 미완료 — resolveMortarZonesForCalc의 fullyValid는 true를 주지만(계산 쪽 규칙) 단계는 완료가 아니다', () => {
+    expect(mortarZonesStepComplete([{ areaSqm: 0 }])).toBe(false);
+    expect(mortarZonesStepComplete([{}])).toBe(false);
+  });
+
+  it('구역이 아예 없어도(목록 자체가 빔) 미완료', () => {
+    expect(mortarZonesStepComplete([])).toBe(false);
+  });
+
+  it('값을 채운 구역이 1개 이상이고 개별·합계가 전부 범위 안이면 완료', () => {
+    expect(mortarZonesStepComplete([{ areaSqm: 20 }])).toBe(true);
+    expect(mortarZonesStepComplete([{ areaSqm: 20 }, { areaSqm: 30 }])).toBe(true);
+  });
+
+  it('값을 채운 구역이 있어도 개별 범위를 벗어나면 미완료', () => {
+    expect(mortarZonesStepComplete([{ areaSqm: 300 }, { areaSqm: 600 }])).toBe(false);
+  });
+
+  it('값을 채운 구역이 있어도 합계가 범위를 벗어나면 미완료', () => {
+    expect(mortarZonesStepComplete([{ areaSqm: 300 }, { areaSqm: 300 }])).toBe(false);
+  });
+
+  it('값을 채운 구역과 빈 구역이 섞여 있어도, 채운 구역들이 전부 유효하면 완료', () => {
+    expect(mortarZonesStepComplete([{ areaSqm: 20 }, { areaSqm: 0 }, {}])).toBe(true);
   });
 });
