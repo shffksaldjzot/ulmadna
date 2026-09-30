@@ -78,4 +78,14 @@ describe('바깥 값 동기화 판단(shouldResyncText) — 2026-09-30 결함 �
     expect(shouldResyncText(true, '.5', '')).toBe(false);
     expect(shouldResyncText(true, '0.0', '')).toBe(false);
   });
+
+  it('초점이 남은 채 바깥 값이 바뀌면(예: JS로 칩 클릭) blur에서 한 번 맞춰진다', () => {
+    // 2026-09-30 잠재 결함 수리(검사관 발견) — 미장 간단에서 면적 "50"을 친 채(초점 유지)
+    // el.click()으로 "30평" 칩을 누르면(손가락·마우스·키보드 조작과 달리 초점이 안 옮겨감)
+    // 칸엔 "50"이 그대로 남는 사고. NumberField는 렌더 중엔 초점이 있으면 절대 안 맞추고
+    // (shouldResyncText(true, ...)===false), onBlur에서 shouldResyncText(false, ...)를 한
+    // 번 더 불러 그제서야 맞춘다 — 두 시점을 합치면 "초점 중엔 유지, 빠지는 순간 정리"가 된다.
+    expect(shouldResyncText(true, '50', 30)).toBe(false); // 초점이 남아있는 동안엔 그대로 "50"
+    expect(shouldResyncText(false, '50', 30)).toBe(true); // 초점이 빠지는 순간(blur)엔 "30"으로 맞춤
+  });
 });

@@ -175,13 +175,27 @@ export default async function MortarResultPage({ searchParams }: PageProps) {
   // (공유 링크를 손으로 조작한 경우) sanitize·계산을 아예 시도하지 않는다. sanitize·
   // toEngineInput 안의 `.map`·`.some`이 배열 아닌 값을 만나면 TypeError로 500이 났었다.
   const hasMalformedShape = !!decoded && !isArrayFieldOk(decoded.preciseRooms);
-  const state = decoded && !hasMalformedShape ? sanitizeMortarFormState(decoded) : null;
+  // 2026-09-30 잠재 결함 수리(검사관 발견) — 위 Array.isArray 검사는 "배열인지"만 보고
+  // 그 안 원소 하나하나까지는 안 본다. `preciseRooms:[null]`처럼 배열은 맞는데 원소가
+  // null이면, sanitizeMortarFormState 내부의 `r.name` 접근(mortarEngineInput.ts:275)이
+  // 그대로 TypeError를 던진다 — 이 줄이 safeCalc 바깥에 있어서 500이 그대로 샜다.
+  // sanitize 자체를 try/catch로 감싸, 터지면 "모양이 이상함"으로 같이 묶는다.
+  let state: MortarFormState | null = null;
+  let sanitizeFailed = false;
+  if (decoded && !hasMalformedShape) {
+    try {
+      state = sanitizeMortarFormState(decoded);
+    } catch {
+      sanitizeFailed = true;
+    }
+  }
+  const shapeInvalid = hasMalformedShape || sanitizeFailed;
   const products = toMortarProductOptions(MORTAR_PRODUCTS);
   const backHref = d ? `/calc/mortar?d=${d}` : '/calc/mortar';
 
   // safeCalc: 위 검사로 못 잡는 더 깊은 모양 문제까지 대비해 계산 자체도 try/catch로
   // 감싼다 — 무엇이 터지든 500 대신 'invalid'(조건을 다시 넣어 주세요)로 떨어진다.
-  const outcome: CalcOutcome = hasMalformedShape
+  const outcome: CalcOutcome = shapeInvalid
     ? { kind: 'invalid' }
     : state
       ? safeCalc(
