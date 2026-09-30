@@ -195,3 +195,19 @@ export function mortarZonesValidity(rooms: Array<{ areaSqm?: number }>): {
   const sumInRange = filled.length === 0 || isWithinRange(sum, MORTAR_AREA_SQM_MIN, MORTAR_AREA_SQM_MAX);
   return { hasFilled: filled.length > 0, allInRange, sumInRange, sum };
 }
+
+/**
+ * 2026-09-30 지휘관 긴급 전달(중요 2 수리) — 미장 정확 모드 "구역" 단계가 완료됐다고
+ * 볼 수 있는지. mortarZonesValidity는 "값을 채운 구역이 0개면 판단 대상이 없다"는
+ * 뜻으로 allInRange·sumInRange를 둘 다 true로 돌려준다(그 규칙 자체는 옳다 — 계산에
+ * 쓸 때는 "구역이 비었으니 가정값으로 계산해라"는 뜻이라서). 문제는 그 값을 그대로
+ * "단계 완료" 판정에 쓰면, 빈 구역만 추가해도(값을 하나도 안 적어도) 완료로 보여
+ * 버그가 났다("+ 구역 추가"만 눌러도 하단 바가 3/3으로 앞서갔다 — 라이브는 2/3).
+ * 그래서 여기서는 hasFilled(값을 채운 구역이 1개 이상)까지 같이 확인해야 완료로 본다.
+ * MortarCalculator.tsx가 이 함수 하나로 완료 판정을 하고, __tests__/inputRanges.test.ts가
+ * 화면 없이 이 함수만으로 "빈 구역만 → 미완료"를 검증한다.
+ */
+export function mortarZonesStepComplete(rooms: Array<{ areaSqm?: number }>): boolean {
+  const v = mortarZonesValidity(rooms);
+  return v.hasFilled && v.allInRange && v.sumInRange;
+}

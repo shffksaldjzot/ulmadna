@@ -23,6 +23,7 @@ import {
   moneyRangeCaption,
   resolveSimpleAreaSqmRaw,
   mortarZonesValidity,
+  mortarZonesStepComplete,
   MORTAR_AREA_SQM_MIN,
   MORTAR_AREA_SQM_MAX,
   MORTAR_ZONE_SQM_MIN,
@@ -185,5 +186,33 @@ describe('mortarZonesValidity — 구역 목록의 개별·합계 범위 판정(
   it('MORTAR_ZONE_SQM_MIN·MAX 경계값 자체는 통과한다(경계 포함)', () => {
     const r = mortarZonesValidity([{ areaSqm: MORTAR_ZONE_SQM_MIN }, { areaSqm: MORTAR_ZONE_SQM_MAX - MORTAR_ZONE_SQM_MIN }]);
     expect(r.allInRange).toBe(true);
+  });
+});
+
+describe('mortarZonesStepComplete — 정확 모드 "구역" 단계 완료 판정(2026-09-30 중요 2 수리)', () => {
+  it('[검사관 재현] 빈 구역만 있으면(값을 하나도 안 채움) 미완료 — mortarZonesValidity는 true를 주지만 단계는 완료가 아니다', () => {
+    expect(mortarZonesStepComplete([{ areaSqm: 0 }])).toBe(false);
+    expect(mortarZonesStepComplete([{}])).toBe(false);
+  });
+
+  it('구역이 아예 없어도(목록 자체가 빔) 미완료', () => {
+    expect(mortarZonesStepComplete([])).toBe(false);
+  });
+
+  it('값을 채운 구역이 1개 이상이고 개별·합계가 전부 범위 안이면 완료', () => {
+    expect(mortarZonesStepComplete([{ areaSqm: 20 }])).toBe(true);
+    expect(mortarZonesStepComplete([{ areaSqm: 20 }, { areaSqm: 30 }])).toBe(true);
+  });
+
+  it('값을 채운 구역이 있어도 개별 범위를 벗어나면 미완료', () => {
+    expect(mortarZonesStepComplete([{ areaSqm: 300 }, { areaSqm: 600 }])).toBe(false);
+  });
+
+  it('값을 채운 구역이 있어도 합계가 범위를 벗어나면 미완료', () => {
+    expect(mortarZonesStepComplete([{ areaSqm: 300 }, { areaSqm: 300 }])).toBe(false);
+  });
+
+  it('값을 채운 구역과 빈 구역이 섞여 있어도, 채운 구역들이 전부 유효하면 완료', () => {
+    expect(mortarZonesStepComplete([{ areaSqm: 20 }, { areaSqm: 0 }, {}])).toBe(true);
   });
 });

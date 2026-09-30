@@ -56,6 +56,7 @@ import {
   mortarThicknessUxMin,
   resolveSimpleAreaSqmRaw,
   mortarZonesValidity,
+  mortarZonesStepComplete,
 } from '../_components/inputRanges';
 import QuickAnswer from './QuickAnswer';
 import PreciseRooms from './PreciseRooms';
@@ -256,7 +257,12 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
   // 믿을 값"으로 보고 계산에 아예 안 넘긴다(엔진이 "실측이 비었다" 규칙대로 가정값으로
   // 계산하게 한다).
   const zonesValidity = mortarZonesValidity(form.preciseRooms ?? []);
-  const zonesFullyValid = zonesValidity.allInRange && zonesValidity.sumInRange;
+  // 2026-09-30 지휘관 긴급 전달(중요 2) — "구역 단계가 완료됐는지"는 mortarZonesValidity의
+  // 결과 그대로가 아니라 mortarZonesStepComplete(hasFilled까지 같이 확인)로 판정한다.
+  // 자세한 이유는 inputRanges.ts의 그 함수 주석 참고 — 값을 채운 구역이 0개면(빈 구역만
+  // 추가한 상태) mortarZonesValidity가 "판단 대상 없음" 뜻으로 true를 주는데, 그걸 그대로
+  // 완료로 보면 빈 구역만 있어도 3/3으로 앞서가 버리는 버그였다(라이브는 2/3).
+  const zonesFullyValid = mortarZonesStepComplete(form.preciseRooms ?? []);
   // 계산 담당에 넘길 구역 목록 — 일부라도 문제가 있으면 통째로 비워서 넘긴다(부분 계산 금지)
   const zonesForCalc = zonesFullyValid ? (form.preciseRooms ?? []).filter((r) => typeof r.areaSqm === 'number' && r.areaSqm > 0) : [];
   // 구역 목록 아래에 보여줄 "합계 초과" 안내 — 개별 구역 범위 안내는 PreciseRooms.tsx가
@@ -383,10 +389,19 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
     },
   };
   // 2026-09-29 지적 2번: 세부 조정의 배송비·지게차 하차비·양중비는 면적·두께와 달리
-  // "선택 항목"이라 범위를 벗어나도 가정값으로 되돌리지 않는다 — 그냥 직전에 있었던
-  // 정상 값을 그대로 계산에 쓴다(0원으로 떨어지지도, 가정 표시가 뜨지도 않는다). 화면
-  // 입력 칸(PreciseSection.tsx)은 이 값과 무관하게 form 값을 그대로 보여준다(사용자가
-  // 친 숫자가 안 지워진다) — 여기서 만든 값은 오직 계산 훅에 넘길 때만 쓴다.
+  // "선택 항목"이라 범위를 벗어나도 가정값으로 되돌리지 않는다 — 그냥 "안 넣은 것"
+  // (0원)으로 계산한다. 화면 입력 칸(PreciseSection.tsx)은 이 값과 무관하게 form 값을
+  // 그대로 보여준다(사용자가 친 숫자가 안 지워진다) — 여기서 만든 값은 오직 계산 훅에
+  // 넘길 때만 쓴다.
+  // 2026-09-30 지휘관 긴급 전달(중요 3) — useLastValidNumber가 더 이상 "직전 유효값"을
+  // 쓰지 않는다(치는 도중 거쳐 간 값으로 계산되는 사고 수리, 훅 파일 주석 참고). 그 대신
+  // 여기서 "지금 이 금액 칸들이 전부 범위 안인지"를 따로 기억해 뒀다가, 하나라도 범위
+  // 밖이면 결과 공유 버튼 자체를 숨긴다(ResultPanel에 넘김) — 공유가 보이는 상태에서는
+  // 화면 값과 계산값이 항상 같아진다(둘 다 범위 안이거나 둘 다 비어 있으므로).
+  const deliveryFeeInRange = isWithinRange(form.deliveryFeeWon, 0, MONEY_INPUT_WON_MAX);
+  const liftingFeeInRange = isWithinRange(form.liftingFeeWon, 0, MONEY_INPUT_WON_MAX);
+  const forkliftFeeInRange = isWithinRange(form.forkliftFeeWon, 0, MONEY_INPUT_WON_MAX);
+  const moneyFieldsAllInRange = deliveryFeeInRange && liftingFeeInRange && forkliftFeeInRange;
   const deliveryFeeForCalc = useLastValidNumber(form.deliveryFeeWon, 0, MONEY_INPUT_WON_MAX);
   const liftingFeeForCalc = useLastValidNumber(form.liftingFeeWon, 0, MONEY_INPUT_WON_MAX);
   const forkliftFeeForCalc = useLastValidNumber(form.forkliftFeeWon, 0, MONEY_INPUT_WON_MAX);
@@ -629,6 +644,7 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
             stale={stale}
             assumed={assumed}
             allDone={allDone}
+            moneyFieldsAllInRange={moneyFieldsAllInRange}
             form={form}
             areaAssumedText={areaAssumedText}
             thicknessAssumedText={thicknessAssumedText}
