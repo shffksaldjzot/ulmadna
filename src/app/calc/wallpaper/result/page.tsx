@@ -45,6 +45,9 @@ import { describeWallpaperAreaAssumptionLine } from '../../_components/assumptio
 // 거치게 한다. 공유 링크에 서버가 거절할 값(범위 밖 등)이 들어 있으면 계산 자체를 안 하고
 // "조건을 다시 넣어 주세요"를 보여준다(검증 없이 계산해 버리던 사고 수리).
 import { parseInput, ValidationError } from '@/server/calc/validate/wallpaper';
+// 2026-09-30 결함 수리(경미 결함 2번) — 공유 링크(?d=)를 조작해 방 목록(preciseRooms)이나
+// 방 하나의 문·창 목록(openings)이 배열이 아닌 값으로 들어오면 계산 전에 걸러 500을 막는다.
+import { isArrayFieldOk, safeCalc } from '../../_components/resultGuard';
 
 export const metadata = {
   title: '도배 계산기 결과 — 얼마드나',
@@ -81,6 +84,19 @@ type CalcOutcome =
   | { kind: 'empty' }
   | { kind: 'invalid' }
   | { kind: 'ok'; result: WallpaperCalcResult; assumed: WallpaperAssumption[] };
+
+/**
+ * 공유 링크(?d=)를 조작해 배열이어야 할 자리가 배열이 아니면(예: preciseRooms를 문자열로
+ * 바꿔치기) true를 돌려준다. 방 목록 자체와, 방 하나마다 있는 문·창 목록(openings)까지
+ * 확인한다(2026-09-30 결함 수리 — 그대로 두면 이 화면이 500이 났다).
+ */
+function hasMalformedWallpaperShape(state: WallpaperFormState): boolean {
+  if (!isArrayFieldOk(state.preciseRooms)) return true;
+  if (Array.isArray(state.preciseRooms)) {
+    return state.preciseRooms.some((r) => !isArrayFieldOk((r as { openings?: unknown })?.openings));
+  }
+  return false;
+}
 
 function calcFromState(
   state: WallpaperFormState,
@@ -151,7 +167,17 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
   // "조건 바꾸기"에서 그대로 이어 쓸 수 있게 같은 d 쿼리를 되돌려 준다
   const backHref = d ? `/calc/wallpaper?d=${d}` : '/calc/wallpaper';
 
-  const outcome = state ? calcFromState(state, products) : ({ kind: 'empty' } as const);
+  // 2026-09-30 결함 수리(경미 결함 2번) — 배열이어야 할 자리가 배열이 아니면 계산을 아예
+  // 시도하지 않는다. safeCalc는 이 검사로도 못 잡는 더 깊은 모양 문제까지 대비한 마지막
+  // 방어선이다(무엇이 터지든 500 대신 'invalid'로 떨어진다).
+  const outcome: CalcOutcome = state
+    ? hasMalformedWallpaperShape(state)
+      ? { kind: 'invalid' }
+      : safeCalc(
+          () => calcFromState(state, products),
+          () => ({ kind: 'invalid' as const }),
+        )
+    : { kind: 'empty' };
 
   // 공유 링크가 없거나·깨졌거나·디코드는 됐지만 입력이 완전히 비어 있으면(벽지 미선택 /
   // simple인데 평형 없음 / precise인데 치수 없음) 조용히 기본값으로 바꿔치기하지 않고

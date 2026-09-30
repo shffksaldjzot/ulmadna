@@ -26,6 +26,16 @@
 // 쉼표를 넣어 보여주고(입력 중에는 쉼표 없이 숫자만 — 커서 자리가 안 흔들리게) 아래
 // 되풀이 글을 지운다. 기본값 false — 안 주면 기존 그대로(쉼표는 사용자가 직접 쳤을
 // 때만 그 모습 그대로 보인다, 다른 화면은 전혀 안 바뀐다).
+//
+// 2026-09-30 결함 수리(검사관 발견 — 미장 정확 구역 "0.05"를 치면 "5"가 되던 사고):
+// 부르는 쪽 중에는 "값이 아직 0(=안 적음)"과 "0을 실제로 침"을 구분 못 하고 둘 다
+// value 프롭으로 ''을 돌려주는 곳이 있다(예: PreciseRooms.tsx의 `r.areaSqm || ''`).
+// "0.05"를 한 글자씩 치면 도중에 값이 정확히 0을 거쳐가는 순간(친 글자 "0")이 있는데,
+// 그때 이 부품이 "바깥에서 값이 바뀌었다"고 오해해 방금 친 글자를 지우고 있었다.
+// 사실은 바깥이 바꾼 게 아니라 **지금 이 칸에서 치고 있는 중**이므로, 칸에 초점이
+// 있는 동안은(사용자가 치는 도중) 바깥 값이 어떻게 보이든 화면 글자를 절대 되돌려
+// 쓰지 않기로 한다(shouldResyncText). 초점이 없을 때(단위 토글·초기화 등 진짜 바깥
+// 변경)는 예전처럼 그대로 동기화한다.
 // ──────────────────────────────────────────────
 
 'use client';
@@ -52,6 +62,19 @@ export function parseNumberInput(raw: string): number | '' | null {
 /** 바깥에서 받은 값(number 또는 빈 값)을 입력칸 글자로 바꾼다 */
 function valueToText(v: number | ''): string {
   return v === '' ? '' : String(v);
+}
+
+/**
+ * 바깥 값이 바뀌었을 때 화면 글자를 그 값으로 되돌려 써야 하는지 판단한다(순수 함수 —
+ * 화면 없이 테스트한다). focused가 true면(지금 이 칸에서 치는 중) 절대 되돌려 쓰지
+ * 않는다 — 부르는 쪽이 "0"을 ''로 접어 돌려주는 경우(예: `r.areaSqm || ''`), "0.05"를
+ * 치는 도중 값이 정확히 0을 거쳐가면 이 부품이 그걸 "바깥에서 바뀜"으로 오해해 방금
+ * 친 글자를 지워버리던 사고(2026-09-30)를 막는다. 초점이 없을 때만(단위 토글·초기화 등
+ * 진짜 바깥 변경) 지금 글자가 그 값과 다른 뜻일 때 되돌려 쓴다.
+ */
+export function shouldResyncText(focused: boolean, text: string, incomingValue: number | ''): boolean {
+  if (focused) return false;
+  return parseNumberInput(text) !== incomingValue;
 }
 
 /** 바깥 값을 천 단위 쉼표를 넣은 글자로 바꾼다(showCommas 전용, 초점 없을 때만 쓴다) */
@@ -99,12 +122,18 @@ export default function NumberField({
   const [lastValue, setLastValue] = useState<number | ''>(value);
   // 엔터 쳤을 때 blur(키보드 내리기)시키려고 input 자체를 참조해 둔다
   const inputRef = useRef<HTMLInputElement>(null);
+  // 지금 이 칸에 초점이 있는지(사용자가 치는 중인지) — onFocus/onBlur에서만 값을 바꾼다.
+  // ref로 두는 이유: 이 값이 바뀐다고 다시 그려질 필요는 없고, 아래 동기화 판단(렌더 중
+  // 실행되는 코드)에서 "지금 최신 값"을 즉시 읽기만 하면 되기 때문이다.
+  const isFocusedRef = useRef(false);
 
   // 바깥에서 값이 바뀌었으면(단위 토글, 칩 선택, 폼 초기화 등) 화면 글자도 그 값으로 맞춘다.
-  // 단, 화면 글자가 이미 그 값과 같은 뜻이면 그대로 둔다("1,000"을 "1000"으로 바꿔치기하지 않기)
+  // 단, 지금 이 칸에 초점이 있으면(사용자가 치는 중) 절대 되돌려 쓰지 않는다(shouldResyncText,
+  // 2026-09-30 결함 수리 — 안 그러면 "0.05"를 치다가 값이 0을 거쳐갈 때 부르는 쪽이 0을
+  // ''로 접어 돌려주는 경우 방금 친 글자가 지워졌다).
   if (value !== lastValue) {
     setLastValue(value);
-    if (parseNumberInput(text) !== value) {
+    if (shouldResyncText(isFocusedRef.current, text, value)) {
       setText(showCommas ? valueToCommaText(value) : valueToText(value));
     }
   }
@@ -137,10 +166,15 @@ export default function NumberField({
           }
         }}
         onFocus={() => {
+          // 지금부터 이 칸에서 치는 중이라고 표시 — 이 동안은 바깥 값이 어떻게 보이든
+          // 위 동기화 로직이 화면 글자를 되돌려 쓰지 않는다(shouldResyncText).
+          isFocusedRef.current = true;
           // showCommas면 편집 중엔 쉼표를 없애 커서 자리가 안 흔들리게 한다
           if (showCommas) setText((t) => t.replace(/,/g, ''));
         }}
         onBlur={() => {
+          // 다 쳤으니 초점 표시를 내린다 — 이제부터는 바깥 값이 바뀌면 다시 동기화된다.
+          isFocusedRef.current = false;
           // showCommas면 초점이 나갈 때 숫자로 정확히 해석되면 쉼표를 다시 넣어 보여준다
           if (!showCommas) return;
           const parsed = parseNumberInput(text);

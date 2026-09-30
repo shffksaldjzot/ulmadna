@@ -30,6 +30,9 @@ import CalcContactCta from '../../_components/CalcContactCta';
 // 2026-09-30 지휘관 긴급 전달(중요 1 남은 부분) — 이 화면이 API(route.ts)와 같은 검증을
 // 거치게 한다(도배·바닥재와 같은 이유).
 import { parseInput, ValidationError } from '@/server/calc/validate/mortar';
+// 2026-09-30 결함 수리(경미 결함 2번) — 공유 링크(?d=)를 조작해 구역 목록(preciseRooms)이
+// 배열이 아닌 값(문자열 등)으로 들어오면 계산 전에 걸러 500을 막는다.
+import { isArrayFieldOk, safeCalc } from '../../_components/resultGuard';
 
 export const metadata: Metadata = {
   title: '레미탈 계산기 결과 — 얼마드나',
@@ -168,11 +171,24 @@ export default async function MortarResultPage({ searchParams }: PageProps) {
   // 표기가 그대로 노출된다 — decode 직후 sanitizeMortarFormState로 한 번 걸러서, 이후
   // buildSummary·calcFromState 둘 다 "화면에 보여줘도 안전한" 같은 state를 쓰게 한다.
   const decoded = decodeMortarForm(d);
-  const state = decoded ? sanitizeMortarFormState(decoded) : null;
+  // 2026-09-30 결함 수리(경미 결함 2번) — 구역 목록(preciseRooms)이 있는데 배열이 아니면
+  // (공유 링크를 손으로 조작한 경우) sanitize·계산을 아예 시도하지 않는다. sanitize·
+  // toEngineInput 안의 `.map`·`.some`이 배열 아닌 값을 만나면 TypeError로 500이 났었다.
+  const hasMalformedShape = !!decoded && !isArrayFieldOk(decoded.preciseRooms);
+  const state = decoded && !hasMalformedShape ? sanitizeMortarFormState(decoded) : null;
   const products = toMortarProductOptions(MORTAR_PRODUCTS);
   const backHref = d ? `/calc/mortar?d=${d}` : '/calc/mortar';
 
-  const outcome = state ? calcFromState(state, products) : ({ kind: 'empty' } as const);
+  // safeCalc: 위 검사로 못 잡는 더 깊은 모양 문제까지 대비해 계산 자체도 try/catch로
+  // 감싼다 — 무엇이 터지든 500 대신 'invalid'(조건을 다시 넣어 주세요)로 떨어진다.
+  const outcome: CalcOutcome = hasMalformedShape
+    ? { kind: 'invalid' }
+    : state
+      ? safeCalc(
+          () => calcFromState(state, products),
+          () => ({ kind: 'invalid' as const }),
+        )
+      : { kind: 'empty' };
 
   // 2026-09-30 지휘관 긴급 전달 — "입력이 비어 있음"(empty)과 "값은 있는데 서버 범위를
   // 벗어남"(invalid)은 문구를 다르게 보여준다(도배·바닥재와 같은 규칙).

@@ -44,6 +44,9 @@ import { describeFlooringAreaAssumptionLine } from '../../_components/assumption
 // 2026-09-30 지휘관 긴급 전달(중요 1 남은 부분) — 이 화면이 API(route.ts)와 같은 검증을
 // 거치게 한다(도배와 같은 이유).
 import { parseInput, ValidationError } from '@/server/calc/validate/flooring';
+// 2026-09-30 결함 수리(경미 결함 2번) — 공유 링크(?d=)를 조작해 방 목록(preciseRooms)이
+// 배열이 아닌 값으로 들어오면 계산 전에 걸러 500을 막는다.
+import { isArrayFieldOk, safeCalc } from '../../_components/resultGuard';
 
 export const metadata = {
   title: '바닥재 계산기 결과 — 얼마드나',
@@ -70,6 +73,14 @@ type CalcOutcome =
   | { kind: 'empty' }
   | { kind: 'invalid' }
   | { kind: 'ok'; result: FlooringCalcResult; assumed: FlooringAssumption[] };
+
+/**
+ * 공유 링크(?d=)를 조작해 방 목록(preciseRooms)이 배열이 아니면(예: 문자열로 바꿔치기)
+ * true를 돌려준다(2026-09-30 결함 수리 — 그대로 두면 이 화면이 500이 났다).
+ */
+function hasMalformedFlooringShape(state: FlooringFormState): boolean {
+  return !isArrayFieldOk(state.preciseRooms);
+}
 
 function calcFromState(
   state: FlooringFormState,
@@ -123,7 +134,17 @@ export default async function FlooringResultPage({ searchParams }: PageProps) {
   // "조건 바꾸기"에서 그대로 이어 쓸 수 있게 같은 d 쿼리를 되돌려 준다
   const backHref = d ? `/calc/flooring?d=${d}` : '/calc/flooring';
 
-  const outcome = state ? calcFromState(state, products) : ({ kind: 'empty' } as const);
+  // 2026-09-30 결함 수리(경미 결함 2번) — 배열이어야 할 자리가 배열이 아니면 계산을 아예
+  // 시도하지 않는다. safeCalc는 이 검사로도 못 잡는 더 깊은 모양 문제까지 대비한 마지막
+  // 방어선이다(무엇이 터지든 500 대신 'invalid'로 떨어진다).
+  const outcome: CalcOutcome = state
+    ? hasMalformedFlooringShape(state)
+      ? { kind: 'invalid' }
+      : safeCalc(
+          () => calcFromState(state, products),
+          () => ({ kind: 'invalid' as const }),
+        )
+    : { kind: 'empty' };
 
   // 2026-09-30 지휘관 긴급 전달 — "입력이 비어 있음"(empty)과 "값은 있는데 서버 범위를
   // 벗어남"(invalid)은 문구를 다르게 보여준다(도배와 같은 규칙).
