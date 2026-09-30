@@ -188,7 +188,8 @@ export default function ResultPanel({
 
   // 도배·바닥재와 같은 규칙: 공유는 3단계(용도·면적·두께)가 전부 끝났고, 'area'·
   // 'thickness'·'measuring' 가정이 안 남아 있을 때만 보인다. 공법 조정 칩은 공유를 안 막는다.
-  const canShare = allDone && !assumed.includes('area') && !assumed.includes('thickness') && !assumed.includes('measuring');
+  // 2026-09-30 지휘관 긴급 전달(중요 1) — 계산이 실패한 상태(error)에서는 공유를 숨긴다(세 계산기 공통 규칙)
+  const canShare = allDone && !error && !assumed.includes('area') && !assumed.includes('thickness') && !assumed.includes('measuring');
 
   // ② 수량 한 줄 — "레미탈 40kg × 146포 · 40mm · 84㎡"(㎡는 정수). 가운뎃점으로 줄이
   // 갈리더라도 다음 줄이 가운뎃점으로 시작하지 않게 조각마다 span으로 나눈다.

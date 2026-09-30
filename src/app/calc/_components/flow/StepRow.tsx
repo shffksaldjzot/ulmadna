@@ -49,6 +49,53 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState, type ReactNode } from 'react';
 import { IconCheck } from '@/components/v1/icons';
 
+// ──────────────────────────────────────────────
+// 2026-09-30 지휘관 긴급 전달(치명 1) — 자동 초점 이동이 칸에 타이핑하는 도중 글자를
+// 삼켰다. 재현: 미장 간단 면적 칸에 "30"을 치면 "3"만 들어가고 초점이 다음 단계(두께
+// 칩)로 넘어갔다 — 숫자 하나만 쳐도 그 값이 이미 "유효한 값"이라 그 단계가 즉시
+// 완료되고(activeIndex가 다음 칸으로 넘어감), 다음 단계가 "아직 안 옴 → 지금 할 단계"로
+// 바뀌면서 옛 규칙(무조건 자동 초점)이 그 단계의 첫 버튼으로 초점을 억지로 옮겼다.
+//
+// 고침(전부 지켜야 한다):
+//   1) 마지막 입력 방식이 키보드일 때만 자동 초점을 옮긴다(터치·마우스 사용자는 안 옮김).
+//   2) 지금 초점이 글자 입력 칸(input·textarea·select·contenteditable) 안에 있으면
+//      절대 안 옮긴다 — 어느 단계로 전환되는 중이든 무조건 막는다(핵심 수리).
+//   3) 단계가 "처음" 나타날 때(아직 안 옴 → 지금 할 단계)만 옮긴다. 끝낸 단계의 값을
+//      지워서 다시 "지금 할 단계"가 된 경우(재등장)는 옮기지 않는다.
+// 화면 없이 시험할 수 있게 순수 함수로 뺐다(__tests__/StepRow.autoFocus.test.ts).
+// ──────────────────────────────────────────────
+
+/** 마지막으로 기록된 입력 방식 — focusModality.ts가 <html data-focus-modality>에 적어 둔 값 */
+export type FocusModality = 'keyboard' | 'pointer' | undefined;
+/** 이 단계가 "지금 할 단계"로 바뀐 게 처음 나타난 것인지, 한 번 나타났다가 다시 돌아온 것인지 */
+export type StepAppearance = 'first-appearance' | 'reappeared';
+
+/**
+ * 단계가 "지금 할 단계"로 바뀌었을 때 그 안의 첫 버튼으로 초점을 자동으로 옮겨도
+ * 되는지 판단하는 순수 함수(화면·DOM 없이 시험 가능). 셋 다 만족해야 옮긴다.
+ */
+export function shouldAutoFocusStep(params: {
+  modality: FocusModality;
+  focusIsInTextEntry: boolean;
+  appearance: StepAppearance;
+}): boolean {
+  if (params.modality !== 'keyboard') return false;
+  if (params.focusIsInTextEntry) return false;
+  if (params.appearance !== 'first-appearance') return false;
+  return true;
+}
+
+/**
+ * 지금 문서의 초점이 글자를 직접 치는 칸(input·textarea·select·contenteditable) 안인지.
+ * `instanceof HTMLElement`가 아니라 태그 이름·속성만 본다(모양만 맞으면 통과) — 이러면
+ * 이 함수를 진짜 DOM 없이(vitest, jsdom 없이) 순수 함수로 시험할 수 있다.
+ */
+export function isFocusInTextEntry(active: { tagName?: string; isContentEditable?: boolean } | null | undefined): boolean {
+  if (!active) return false;
+  const tag = active.tagName;
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || !!active.isContentEditable;
+}
+
 export interface StepRowProps {
   /** 이 단계의 0-based 순번 */
   index: number;
@@ -108,11 +155,30 @@ const StepRow = forwardRef<HTMLDivElement, StepRowProps>(function StepRow(
     prevStateRef.current = state;
   }, [state]);
 
+  // 이 단계가 "지금 할 단계" 또는 "끝낸 단계"로 한 번이라도 나타난 적 있는지 — 처음
+  // 나타남과 다시 돌아옴(값 지움 등)을 구분하는 데 쓴다(2026-09-30 치명 1 수리 요구사항 3)
+  const everAppearedRef = useRef(false);
+
   // 지금 할 단계로 막 바뀌면 그 안의 첫 버튼으로 초점을 옮긴다(입력칸 제외 — 3-6절).
   // 끝낸 단계로 바뀔 때는 초점을 안 옮긴다(사용자가 지금 만지던 곳 그대로 둔다).
   // 스크롤은 여기서 시키지 않는다(부르는 쪽 FlowShell이 처리한다).
+  //
+  // 2026-09-30 치명 1 수리: 아래 세 조건을 shouldAutoFocusStep(순수 함수)로 전부 확인한
+  // 뒤에만 옮긴다 — 특히 "지금 초점이 글자 입력 칸 안"이면(다른 단계의 숫자 칸에 한창
+  // 타이핑 중이어도) 무조건 안 옮긴다. 이게 핵심이다 — 어느 단계가 지금 할 단계로
+  // 바뀌든, 사용자가 어딘가에 타이핑 중이면 그 타이핑을 절대 방해하지 않는다.
   useEffect(() => {
+    const appearance: StepAppearance = everAppearedRef.current ? 'reappeared' : 'first-appearance';
+    if (state === 'current' || state === 'done') {
+      everAppearedRef.current = true;
+    }
     if (state !== 'current') return;
+    if (typeof document === 'undefined') return;
+
+    const modality = document.documentElement.dataset.focusModality as FocusModality;
+    const focusIsInTextEntry = isFocusInTextEntry(document.activeElement);
+    if (!shouldAutoFocusStep({ modality, focusIsInTextEntry, appearance })) return;
+
     const first = contentRef.current?.querySelector<HTMLElement>('button:not([disabled])');
     first?.focus({ preventScroll: true });
   }, [state]);

@@ -41,21 +41,21 @@ import { useMortarQuickCalc } from '@/lib/v1/useMortarQuickCalc';
 import { formatManRange } from '@/lib/v1/money';
 import {
   sanitizeMortarFormState,
-  resolveSimpleAreaSqm,
   usesSupplyAreaConvention,
   presetThicknessMm,
   assumedAreaSqm,
 } from '@/lib/v1/mortarEngineInput';
+import { pyeongToExclusiveSqm, SQM_PER_PYEONG } from '@/lib/v1/areaUnits';
 import { USAGE_PRESET, SELF_LEVEL_USAGE_PRESET, THICKNESS_MM_MIN, thicknessMmMax, MONEY_INPUT_WON_MAX } from '@/lib/v1/mortarPresets';
 import { useLastValidNumber } from '../_components/useLastValidNumber';
 import {
   MORTAR_AREA_SQM_MIN,
   MORTAR_AREA_SQM_MAX,
-  MORTAR_ZONE_SQM_MIN,
-  MORTAR_ZONE_SQM_MAX,
   isWithinRange,
   rangeCaption,
   mortarThicknessUxMin,
+  resolveSimpleAreaSqmRaw,
+  mortarZonesValidity,
 } from '../_components/inputRanges';
 import QuickAnswer from './QuickAnswer';
 import PreciseRooms from './PreciseRooms';
@@ -234,23 +234,41 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
 
   const step0Valid = true; // 용도는 항상 유효한 값(기본 방통)이 있다 — touched로만 가린다
 
-  // 2026-09-29 지적 2번: 간단 모드 면적(㎡ 환산값)이 서버 허용 범위(0.5~500㎡)를 벗어나면
-  // 완료로 치지 않는다 — resolveSimpleAreaSqm은 이미 있는 함수를 그대로 재사용한다
-  // (엔진 파일을 새로 안 건드림, 평/㎡·방통/셀프 환산은 전부 그 함수가 이미 하고 있다).
-  const simpleAreaSqm = resolveSimpleAreaSqm(form);
-  const simpleAreaInRange = simpleAreaSqm !== null && isWithinRange(simpleAreaSqm, MORTAR_AREA_SQM_MIN, MORTAR_AREA_SQM_MAX);
+  // 2026-09-30 지휘관 긴급 전달(치명 2 수리) — resolveSimpleAreaSqm(엔진 파일)은 계산에
+  // 쓸 값을 만드는 함수라 결과를 이미 0.5~500㎡로 잘라(clamp) 돌려준다. 그 "잘린" 값으로
+  // 범위를 판정하면 늘 범위 안으로 나와 판정이 무의미해진다(152평=502㎡를 넣어도 통과해
+  // 버린 실제 사고). 그래서 화면 쪽 판정에는 **자르기 전(raw) 값**(resolveSimpleAreaSqmRaw,
+  // inputRanges.ts)을 따로 계산해서 쓴다 — 계산에 실제로 넘기는 값은 여전히 기존
+  // resolveSimpleAreaSqm(clamp 있는 쪽)을 그대로 쓴다(엔진 파일은 안 건드림).
+  const simpleAreaSqmRaw = resolveSimpleAreaSqmRaw(form, usesSupplyAreaConvention(form), pyeongToExclusiveSqm, SQM_PER_PYEONG);
+  const simpleAreaInRange = simpleAreaSqmRaw !== null && isWithinRange(simpleAreaSqmRaw, MORTAR_AREA_SQM_MIN, MORTAR_AREA_SQM_MAX);
   // 2026-09-29 지적 4번: 범위 밖 안내 — 평/㎡·방통/셀프 환산이 갈려서 사용자가 지금 보는
   // 단위로 정확히 맞추기 번거로우니, 환산이 끝난 ㎡ 기준으로 안내한다("500㎡ 이하").
-  // 칸이 비어 있으면(simpleAreaSqm===null) 안내 대상이 아니다.
-  const areaRangeCaption = simpleAreaSqm !== null ? rangeCaption(simpleAreaSqm, MORTAR_AREA_SQM_MIN, MORTAR_AREA_SQM_MAX, '㎡') : undefined;
+  // 칸이 비어 있으면(simpleAreaSqmRaw===null) 안내 대상이 아니다.
+  const areaRangeCaption =
+    simpleAreaSqmRaw !== null ? rangeCaption(simpleAreaSqmRaw, MORTAR_AREA_SQM_MIN, MORTAR_AREA_SQM_MAX, '㎡') : undefined;
 
-  // 정확 모드 구역 — 각 구역이 0.1~500㎡ 안이어야 계산에 넣는다. 범위 밖 구역은 통째로
-  // 빼고 계산 담당에 넘긴다("그 값으로는 계산하지 않는다").
-  const zonesForCalc = (form.preciseRooms ?? []).filter(
-    (r) => typeof r.areaSqm === 'number' && isWithinRange(r.areaSqm, MORTAR_ZONE_SQM_MIN, MORTAR_ZONE_SQM_MAX) && r.areaSqm > 0,
-  );
+  // 2026-09-30 긴급 전달(치명 3 수리) — 정확 모드 구역: 예전엔 "유효한 구역이 하나만
+  // 있어도 완료"로 봐서, 범위 밖 구역만 조용히 빼고 나머지로 계산해 버렸다(구역1 300㎡ +
+  // 구역2 600㎡ → 구역1만으로 계산, 가정 표시도 없이 공유까지 보임 — 그 공유 링크를
+  // 열면 다른 금액이 나오는 사고). 이제 **개별 구역이 전부 범위 안이고 합계도 전체
+  // 범위(0.5~500㎡) 안일 때만** 완료로 본다 — 하나라도 걸리면 목록 전체를 "아직 못
+  // 믿을 값"으로 보고 계산에 아예 안 넘긴다(엔진이 "실측이 비었다" 규칙대로 가정값으로
+  // 계산하게 한다).
+  const zonesValidity = mortarZonesValidity(form.preciseRooms ?? []);
+  const zonesFullyValid = zonesValidity.allInRange && zonesValidity.sumInRange;
+  // 계산 담당에 넘길 구역 목록 — 일부라도 문제가 있으면 통째로 비워서 넘긴다(부분 계산 금지)
+  const zonesForCalc = zonesFullyValid ? (form.preciseRooms ?? []).filter((r) => typeof r.areaSqm === 'number' && r.areaSqm > 0) : [];
+  // 구역 목록 아래에 보여줄 "합계 초과" 안내 — 개별 구역 범위 안내는 PreciseRooms.tsx가
+  // 구역마다 따로 보여주므로(지난 라운드에 이미 구현) 여기서는 합계 초과만 다룬다.
+  const zoneSumCaption =
+    zonesValidity.allInRange && !zonesValidity.sumInRange ? `합계 ${MORTAR_AREA_SQM_MAX}㎡ 이하` : undefined;
+  // 값을 채운 구역이 있는데(hasFilled) 뭔가 범위를 벗어났으면 "실측 입력 중"으로 본다
+  // (엔진의 'measuring' 판정은 "빈 칸"만 검사해서 이 경우는 안 잡아 준다 — 화면에서
+  // 따로 표시한다. 계산은 엔진의 기존 "실측이 비었다" 가정값 규칙을 그대로 탄다).
+  const zonesMeasuringInProgress = zonesValidity.hasFilled && !zonesFullyValid;
 
-  const step1Valid = view === 'simple' ? simpleAreaInRange : zonesForCalc.length > 0;
+  const step1Valid = view === 'simple' ? simpleAreaInRange : zonesFullyValid;
 
   // 두께 — 화면 쪽 최솟값(레미탈 10mm)까지 포함해 mortar/QuickAnswer.tsx 캡션과 같은
   // 범위로 판정한다(캡션이 안 뜨는데 계산은 막히는 엇갈림 방지).
@@ -422,10 +440,16 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
     touch('thickness');
   }
 
-  // 가정 문구 — 용도(방통/셀프레벨링)에 따라 면적 가정값의 뜻이 달라 여기서 계산해 넘긴다
-  const areaAssumedText = usesSupplyAreaConvention(form)
-    ? '34평 가정'
-    : `${Math.round(assumedAreaSqm(form))}㎡ 가정`;
+  // 가정 문구 — 용도(방통/셀프레벨링)에 따라 면적 가정값의 뜻이 달라 여기서 계산해 넘긴다.
+  // 2026-09-30 치명 3: 정확 모드에서 구역 일부가 범위를 벗어나 통째로 못 믿을 값이 된
+  // 경우("실측은 있는데 무효")는 "34평 가정"이 아니라 "실측 입력 중"으로 보여준다 —
+  // 엔진 자체의 'measuring' 판정은 "빈 칸"만 봐서 이 경우를 못 잡아 주므로 화면에서
+  // 문구만 바꿔치기한다(계산은 엔진의 기존 "실측 비었음" 가정값 규칙 그대로 탄다).
+  const areaAssumedText = zonesMeasuringInProgress
+    ? '실측 입력 중'
+    : usesSupplyAreaConvention(form)
+      ? '34평 가정'
+      : `${Math.round(assumedAreaSqm(form))}㎡ 가정`;
   const thicknessAssumedText = `${presetThicknessMm(form)}mm 가정`;
 
   // ── 단계 정의 배열 — 용도 칩 줄은 두 모드가 공유한다 ──
@@ -470,7 +494,11 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
             areaRangeCaption={areaRangeCaption}
           />
         ) : (
-          <PreciseRooms rooms={form.preciseRooms ?? []} onRoomsChange={(v) => patchArea({ preciseRooms: v })} />
+          <PreciseRooms
+            rooms={form.preciseRooms ?? []}
+            onRoomsChange={(v) => patchArea({ preciseRooms: v })}
+            sumCaption={zoneSumCaption}
+          />
         ),
     },
     {

@@ -21,9 +21,15 @@ import { rangeCaption, MORTAR_ZONE_SQM_MIN, MORTAR_ZONE_SQM_MAX } from '../_comp
 export interface PreciseRoomsProps {
   rooms: MortarPreciseRoom[];
   onRoomsChange: (v: MortarPreciseRoom[]) => void;
+  /**
+   * 2026-09-30 치명 3 수리 — 구역들의 합계가 전체 범위(0.5~500㎡)를 넘으면
+   * MortarCalculator.tsx가 "합계 500㎡ 이하" 같은 문구를 계산해 넘겨준다. 개별 구역
+   * 범위 안내(아래 caption)와는 별개로 목록 맨 아래에 한 번 더 보여준다.
+   */
+  sumCaption?: string;
 }
 
-export default function PreciseRooms({ rooms, onRoomsChange }: PreciseRoomsProps) {
+export default function PreciseRooms({ rooms, onRoomsChange, sumCaption }: PreciseRoomsProps) {
   function addRoom() {
     onRoomsChange([...rooms, { name: `구역${rooms.length + 1}`, areaSqm: 0 }]);
   }
@@ -79,6 +85,7 @@ export default function PreciseRooms({ rooms, onRoomsChange }: PreciseRoomsProps
       >
         + 구역 추가
       </button>
+      {sumCaption && <p className="t-sub text-danger">{sumCaption}</p>}
     </div>
   );
 }

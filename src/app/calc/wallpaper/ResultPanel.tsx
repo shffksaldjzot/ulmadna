@@ -112,7 +112,10 @@ export default function ResultPanel({
 
   // 지휘관 확정 규칙(2026-09-27, 3-13절 수정): 공유는 3단계가 전부 끝났고, 'area'·'measuring'
   // 가정이 안 남아 있을 때만 보인다. 베이·범위 조정 칩과 "제품 미정"은 공유를 막지 않는다.
-  const canShare = allDone && !assumed.includes('area') && !assumed.includes('measuring');
+  // 2026-09-30 지휘관 긴급 전달(중요 1) — 계산이 실패한 상태(error)에서는 옛 금액이
+  // 그대로 남아 있어도 공유를 숨긴다(서버가 거절한 값을 공유하면 받는 사람이 다른
+  // 금액을 보게 된다). 세 계산기 모두 같은 규칙으로 통일한다.
+  const canShare = allDone && !error && !assumed.includes('area') && !assumed.includes('measuring');
 
   /** "결과 공유" — 모바일은 공유 시트가 있으면 그것부터, 아니면 링크 복사 */
   async function handleShare() {

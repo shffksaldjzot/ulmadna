@@ -19,6 +19,13 @@ import NumberField from '@/components/v1/NumberField';
 import { IconClose } from '@/components/v1/icons';
 import type { WallpaperOpening } from '@/lib/v1/wallpaperQuery';
 import { cmToDisplay, displayToCm } from './units';
+import {
+  rangeCaption,
+  OPENING_WIDTH_CM_MIN,
+  OPENING_WIDTH_CM_MAX,
+  OPENING_HEIGHT_CM_MIN,
+  OPENING_HEIGHT_CM_MAX,
+} from '../../_components/inputRanges';
 
 /** 문을 새로 추가할 때 미리 채워 두는 표준 규격 (cm) — 90 × 210 */
 const DEFAULT_DOOR_CM = { w: 90, h: 210 } as const;
@@ -58,7 +65,12 @@ export default function OpeningTable({ openings, onChange }: OpeningTableProps) 
         </div>
       )}
 
-      {openings.map((row, i) => (
+      {openings.map((row, i) => {
+        // 2026-09-30 지휘관 긴급 전달(중요 1) — 문·창 크기가 서버 범위(가로 10~1000cm ·
+        // 세로 10~400cm)를 벗어나면 짧게 알려준다(값이 0이면 아직 안 적은 것이라 안 뜬다).
+        const wCaption = rangeCaption(cmToDisplay(row.w) || '', OPENING_WIDTH_CM_MIN, OPENING_WIDTH_CM_MAX, 'cm');
+        const hCaption = rangeCaption(cmToDisplay(row.h) || '', OPENING_HEIGHT_CM_MIN, OPENING_HEIGHT_CM_MAX, 'cm');
+        return (
         <div key={i} className="flex flex-col gap-2">
           {/* 윗줄: 종류(문/창) 세그먼트 + 오른쪽 줄 삭제 × */}
           <div className="flex items-center gap-2">
@@ -123,8 +135,14 @@ export default function OpeningTable({ openings, onChange }: OpeningTableProps) 
               onChange={(v) => patchRow(i, { count: v === '' ? 0 : v })}
             />
           </div>
+          {(wCaption || hCaption) && (
+            <p className="t-sub text-danger">
+              {[wCaption && `가로 ${wCaption}`, hCaption && `세로 ${hCaption}`].filter(Boolean).join(' · ')}
+            </p>
+          )}
         </div>
-      ))}
+        );
+      })}
 
       {/* 줄 추가 — 참고 폼의 "+ 문·창문 추가"와 같은 자리. 새 줄은 문 90×210으로 시작한다 */}
       <button

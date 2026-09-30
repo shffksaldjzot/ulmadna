@@ -292,9 +292,18 @@ export default function FlooringCalculator({ products }: FlooringCalculatorProps
   // 정확 모드에서 'measure'를 손대도 이 값은 안 바뀐다(엔진도 view==='simple'일 때만 본다).
   // 지적 2번: 범위를 벗어났으면 손댔어도 "안 손댄 것"으로 넘긴다 — 엔진이 34평 가정으로
   // 계산하게 해서, 서버가 거절할 값(예: 999평)을 애초에 안 보낸다.
-  const { result, range, loading, error, stale, assumed } = useFlooringCalc(formForCalc, products, {
+  const { result, range, loading, error, stale, assumed: assumedFromEngine } = useFlooringCalc(formForCalc, products, {
     touched: { area: touchedMap.area && simpleAreaInRange, bay: bayTouched, scope: scopeTouched },
   });
+  // 2026-09-30 지휘관 긴급 전달(중요 2) — 정확 모드에서 방 일부가 범위 밖이라 빠지면
+  // (roomsForCalc가 원래 방 수보다 적음), 엔진은 남은 방만 보고 "실측이 다 채워졌다"고
+  // 판단해 'measuring' 가정을 안 넣어 준다. 화면이 그 사정을 알고 있으니 직접 더해서
+  // 내려보낸다(도배와 같은 규칙 — describeFlooringAreaAssumptionLine·canShare가 이미
+  // 'measuring'을 처리하고 있어서 이 값만 더하면 나머지는 기존 로직 그대로 맞는다).
+  const roomsFilteredDueToRange = view === 'precise' && (form.preciseRooms ?? []).length > roomsForCalc.length;
+  const assumed = roomsFilteredDueToRange && !assumedFromEngine.includes('measuring')
+    ? [...assumedFromEngine, 'measuring' as const]
+    : assumedFromEngine;
 
   /** 폼 상태를 바꾸면서 동시에 "지금 모드의 면적/실측 단계를 손댔다"고 표시하는 도우미(3단계 전용) */
   function patchAreaStep(p: Partial<FlooringFormState>) {

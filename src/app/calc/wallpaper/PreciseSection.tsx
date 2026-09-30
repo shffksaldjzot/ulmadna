@@ -38,6 +38,7 @@ import RoomCard from './precise/RoomCard';
 import OpeningTable from './precise/OpeningTable';
 import { toDisplay, toMeters, heightPlaceholder } from './precise/units';
 import { DEFAULT_CEILING_HEIGHT_M } from '@/lib/v1/wallpaperDefaults';
+import { rangeCaption, ROOM_HEIGHT_M_MIN, ROOM_HEIGHT_M_MAX } from '../_components/inputRanges';
 
 export interface PreciseSectionProps {
   /** 입력 방식 — 방별 실측 / 벽 길이 직접 입력 */
@@ -106,6 +107,15 @@ export default function PreciseSection(props: PreciseSectionProps) {
     onLengthOpeningsChange,
   } = props;
 
+  // 2026-09-30 지휘관 긴급 전달(중요 1) — 공통 높이가 서버 범위(1.5~6m)를 벗어나면 안내.
+  // 경계값도 화면 단위(m/mm)로 바꿔서 알려준다(RoomCard.tsx의 방별 높이 캡션과 같은 방식).
+  const heightCaption = rangeCaption(
+    toDisplay(heightM, unit),
+    toDisplay(ROOM_HEIGHT_M_MIN, unit) as number,
+    toDisplay(ROOM_HEIGHT_M_MAX, unit) as number,
+    unit,
+  );
+
   /** 방 한 장 추가 — 참고 폼처럼 문 한 개(90×210)가 미리 들어간 채로 생긴다 */
   function addRoom() {
     const next: PreciseRoomInput = {
@@ -147,7 +157,9 @@ export default function PreciseSection(props: PreciseSectionProps) {
         </ChipGroup>
       </div>
 
-      {/* 3. 높이 — 비우면 훅이 기본 2.3m로 계산한다 */}
+      {/* 3. 높이 — 비우면 훅이 기본 2.3m로 계산한다.
+          2026-09-30 지휘관 긴급 전달(중요 1) — 서버 범위(1.5~6m)를 벗어나면(예: 10m) 화면
+          검사가 없어서 서버가 거절해 "마지막 계산에 실패" 상태가 됐다. 칸 아래 안내 추가 */}
       <Field label="높이">
         <NumberField
           aria-label="천장 높이"
@@ -156,6 +168,7 @@ export default function PreciseSection(props: PreciseSectionProps) {
           value={toDisplay(heightM, unit)}
           onChange={(v) => onHeightChange(toMeters(v, unit))}
         />
+        {heightCaption && <p className="t-sub text-danger">{heightCaption}</p>}
       </Field>
 
       {/* 4. 방 크기 모드 — 방 카드 목록 */}
