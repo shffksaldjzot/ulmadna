@@ -324,15 +324,17 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
         roomsOpeningsValid &&
         lengthOpeningsValid;
 
-  // 정확 모드에서 계산 담당(useWallpaperCalc)에 넘길 값 — 범위를 벗어난 것은 통째로 빼고
-  // 넘긴다("그 값으로는 계산하지 않는다", 지적 2번). 방은 자기 치수나 문·창 중 하나라도
-  // 범위 밖이면 그 방 전체를 뺀다. 공통 높이가 범위 밖이면 그 값 자체를 안 보내 엔진이
-  // 기본 높이(2.3m)를 쓰게 한다. 남은 게 없어지면 엔진이 기존 규칙대로 "실측이 비었다"로
-  // 보고 34평 가정으로 계산한다(엔진 파일은 안 건드렸다).
-  const roomsForCalc = (form.preciseRooms ?? []).filter(
-    (r) => isRoomDimValid(r.w, r.d, r.h) && r.openings.every((o) => isOpeningDimValid(o.w, o.h)),
-  );
-  const lengthOpeningsForCalc = lengthOpeningsValid ? form.lengthOpenings : [];
+  // 정확 모드에서 계산 담당(useWallpaperCalc)에 넘길 값 — 범위를 벗어난 값"만" 빼고
+  // 나머지로 계산한다(지적 2번 + 2026-09-30 지휘관 긴급 전달 "가정 표시 통일": 방·구역·
+  // 문창 전부 같은 규칙 — 범인만 빼고 남은 것으로 계산). 방 자체 치수(가로·세로·높이)가
+  // 범위 밖이면 그 방을 통째로 뺀다. 문·창은 범위 밖인 그 줄만 빼고 방은 남긴다(방까지
+  // 통째로 빼면 멀쩡한 벽 면적까지 같이 사라진다). 공통 높이가 범위 밖이면 그 값만 안
+  // 보내 엔진이 기본 높이(2.3m)를 쓰게 한다. 남은 게 없어지면 엔진이 기존 규칙대로
+  // "실측이 비었다"로 보고 34평 가정으로 계산한다(엔진 파일은 안 건드렸다).
+  const roomsForCalc = (form.preciseRooms ?? [])
+    .filter((r) => isRoomDimValid(r.w, r.d, r.h))
+    .map((r) => ({ ...r, openings: r.openings.filter((o) => isOpeningDimValid(o.w, o.h)) }));
+  const lengthOpeningsForCalc = (form.lengthOpenings ?? []).filter((o) => isOpeningDimValid(o.w, o.h));
   const formForCalc =
     view === 'precise'
       ? {
@@ -403,15 +405,25 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
   const { result, range, loading, error, stale, assumed: assumedFromEngine } = useWallpaperCalc(formForCalc, products, {
     touched: { area: touchedMap.area && simpleAreaInRange, bay: bayTouched, scope: scopeTouched },
   });
-  // 2026-09-30 지휘관 긴급 전달(중요 2) — 정확 모드에서 방 일부가 범위 밖이라 빠지면
-  // (roomsForCalc가 원래 방 수보다 적음), 엔진은 "남은 방만 보면 실측이 다 채워져 있다"고
+  // 2026-09-30 지휘관 긴급 전달(중요 2 + 가정 표시 통일) — 정확 모드에서 방·문창·공통
+  // 높이 중 하나라도 범위 밖이라 빠지면, 엔진은 "남은 값만 보면 실측이 다 채워져 있다"고
   // 판단해 'measuring'(실측 입력 중) 가정을 안 넣어 준다(엔진은 걸러지기 전 사정을 모른다
   // — 엔진 파일은 안 건드렸다). 그래서 화면이 그 사정을 알고 있는 채로 'measuring'을
   // 직접 더해서 내려보낸다 — 기존 describeWallpaperAreaAssumptionLine·canShare가 이미
   // 'measuring'을 보고 "실측 입력 중" 표시·공유 숨김을 처리하고 있어서, 이 값 하나만
-  // 더해 주면 나머지는 전부 기존 로직 그대로 맞아떨어진다.
-  const roomsFilteredDueToRange = view === 'precise' && (form.preciseRooms ?? []).length > roomsForCalc.length;
-  const assumed = roomsFilteredDueToRange && !assumedFromEngine.includes('measuring')
+  // 더해 주면 나머지는 전부 기존 로직 그대로 맞아떨어진다. 방 수만 보면 놓치는 경우
+  // (방은 그대로 남았는데 그 안의 문·창 줄 하나만 빠진 경우)까지 잡으려고 문·창 개수도
+  // 같이 비교한다.
+  const openingsCountBefore = (form.preciseRooms ?? []).reduce((s, r) => s + r.openings.length, 0);
+  const openingsCountAfter = roomsForCalc.reduce((s, r) => s + r.openings.length, 0);
+  const lengthOpeningsCountBefore = (form.lengthOpenings ?? []).length;
+  const preciseFilteredDueToRange =
+    view === 'precise' &&
+    ((form.preciseRooms ?? []).length > roomsForCalc.length ||
+      openingsCountAfter < openingsCountBefore ||
+      lengthOpeningsForCalc.length < lengthOpeningsCountBefore ||
+      !heightInRange);
+  const assumed = preciseFilteredDueToRange && !assumedFromEngine.includes('measuring')
     ? [...assumedFromEngine, 'measuring' as const]
     : assumedFromEngine;
 

@@ -16,6 +16,7 @@ import TopNav from '@/components/v1/TopNav';
 import Card from '@/components/v1/Card';
 import Collapsible from '@/components/v1/Collapsible';
 import Disclaimer from '@/components/v1/Disclaimer';
+import Button from '@/components/v1/Button';
 import { calcMortar } from '@/server/calc/mortar';
 import type { MortarCalcInput, MortarCalcResult } from '@/server/calc/mortar';
 import { MORTAR_PRODUCTS } from '@/server/calc/data/mortar-products';
@@ -26,23 +27,40 @@ import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
 // 2026-09-15 디자인 통일 작업: 도배 결과 화면에만 있던 저장·공유 기능을 레미탈에도 그대로 붙인다
 import { PostToBoardCheckbox, ResultFab } from '../../_components/ResultActions';
 import CalcContactCta from '../../_components/CalcContactCta';
+// 2026-09-30 지휘관 긴급 전달(중요 1 남은 부분) — 이 화면이 API(route.ts)와 같은 검증을
+// 거치게 한다(도배·바닥재와 같은 이유).
+import { parseInput, ValidationError } from '@/server/calc/validate/mortar';
 
 export const metadata: Metadata = {
   title: '레미탈 계산기 결과 — 얼마드나',
   alternates: { canonical: 'https://ulmadna.com/calc/mortar' },
+  // 2026-09-30 검사관 10차 — 결과 공유 화면은 사람마다 조건이 다 달라(남의 견적 조건)
+  // 검색에 안 잡히게 한다.
+  robots: { index: false, follow: true },
 };
 
 /**
  * 폼 상태 → 서버 계산 결과.
  * 즉답 화면의 훅과 같은 toEngineInput으로 요청을 만들어, 같은 조건이면 같은 값이 나오게 한다.
+ *
+ * 2026-09-30 지휘관 긴급 전달(중요 1 남은 부분) — calcMortar를 부르기 직전에 API
+ * 라우트와 같은 parseInput으로 한 번 더 검사한다(도배·바닥재와 같은 이유·같은 방식).
  */
+type CalcOutcome = { kind: 'empty' } | { kind: 'invalid' } | { kind: 'ok'; result: MortarCalcResult };
+
 function calcFromState(
   state: MortarFormState,
   products: ReturnType<typeof toMortarProductOptions>,
-): MortarCalcResult | null {
+): CalcOutcome {
   const engineInput = toEngineInput(state, products);
-  if (!engineInput) return null;
-  return calcMortar(engineInput as MortarCalcInput);
+  if (!engineInput) return { kind: 'empty' };
+  try {
+    const validated = parseInput(engineInput as MortarCalcInput);
+    return { result: calcMortar(validated), kind: 'ok' };
+  } catch (e) {
+    if (e instanceof ValidationError) return { kind: 'invalid' };
+    throw e;
+  }
 }
 
 /** 조건 요약 1줄 (예: "레미탈 · 방통 전체 · 45mm · 10평") */
@@ -154,9 +172,11 @@ export default async function MortarResultPage({ searchParams }: PageProps) {
   const products = toMortarProductOptions(MORTAR_PRODUCTS);
   const backHref = d ? `/calc/mortar?d=${d}` : '/calc/mortar';
 
-  const result = state ? calcFromState(state, products) : null;
+  const outcome = state ? calcFromState(state, products) : ({ kind: 'empty' } as const);
 
-  if (!state || !result) {
+  // 2026-09-30 지휘관 긴급 전달 — "입력이 비어 있음"(empty)과 "값은 있는데 서버 범위를
+  // 벗어남"(invalid)은 문구를 다르게 보여준다(도배·바닥재와 같은 규칙).
+  if (!state || outcome.kind !== 'ok') {
     return (
       <>
         <TopNav
@@ -171,13 +191,21 @@ export default async function MortarResultPage({ searchParams }: PageProps) {
         {/* px-5: 상단바(TopNav)와 좌우 여백을 맞춘다 */}
         <div className="px-5 py-4 flex flex-col gap-4 max-w-[720px] mx-auto">
           <Card>
-            <p className="text-[15px] text-v1-text-secondary">조건이 비어 있어요</p>
+            <p className="text-[15px] text-v1-text-secondary">
+              {outcome.kind === 'invalid' ? '조건을 다시 넣어 주세요' : '조건이 비어 있어요'}
+            </p>
+            {outcome.kind === 'invalid' && (
+              <Link href="/calc/mortar" className="inline-block mt-3">
+                <Button>계산기로 가기</Button>
+              </Link>
+            )}
           </Card>
         </div>
       </>
     );
   }
 
+  const { result } = outcome;
   const { quantity, submaterials, labor, cost } = result;
 
   return (

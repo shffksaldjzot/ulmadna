@@ -21,6 +21,7 @@ import TopNav from '@/components/v1/TopNav';
 import Card from '@/components/v1/Card';
 import Collapsible from '@/components/v1/Collapsible';
 import Disclaimer from '@/components/v1/Disclaimer';
+import Button from '@/components/v1/Button';
 import { calcFlooring } from '@/server/calc/flooring';
 import type { FlooringCalcInput, FlooringCalcResult } from '@/server/calc/flooring';
 import { FLOORING_PRODUCTS } from '@/server/calc/data/flooring-products';
@@ -40,6 +41,9 @@ import CalcContactCta from '../../_components/CalcContactCta';
 // 규칙을 쓰려고 공용 파일(원래 도배 전용이었으나 9장 작업으로 _components/로 옮김)에서 가져온다
 import { formatCostLineAmount, formatUnitsRangeText } from '../../_components/costLineFormat';
 import { describeFlooringAreaAssumptionLine } from '../../_components/assumptionText';
+// 2026-09-30 지휘관 긴급 전달(중요 1 남은 부분) — 이 화면이 API(route.ts)와 같은 검증을
+// 거치게 한다(도배와 같은 이유).
+import { parseInput, ValidationError } from '@/server/calc/validate/flooring';
 
 export const metadata = {
   title: '바닥재 계산기 결과 — 얼마드나',
@@ -47,6 +51,9 @@ export const metadata = {
   // 검색엔진에는 전부 "같은 페이지의 변형"이라고 알려주기 위해 canonical을 원본
   // 계산기 페이지로 모아준다(2026-09-14, 형아 지시: 계산기 SEO 정비).
   alternates: { canonical: 'https://ulmadna.com/calc/flooring' },
+  // 2026-09-30 검사관 10차 — 결과 공유 화면은 사람마다 조건이 다 달라(남의 견적 조건)
+  // 검색에 안 잡히게 한다.
+  robots: { index: false, follow: true },
 };
 
 /**
@@ -55,15 +62,30 @@ export const metadata = {
  * 금액이 나오게 한다. null이면(종류 미선택) 이 함수도 null을 돌려주고, 페이지가 "조건이
  * 비어 있어요" 빈 상태를 보여준다.
  */
+/**
+ * 2026-09-30 지휘관 긴급 전달(중요 1 남은 부분) — calcFlooring을 부르기 직전에 API
+ * 라우트와 같은 parseInput으로 한 번 더 검사한다(도배와 같은 이유·같은 방식).
+ */
+type CalcOutcome =
+  | { kind: 'empty' }
+  | { kind: 'invalid' }
+  | { kind: 'ok'; result: FlooringCalcResult; assumed: FlooringAssumption[] };
+
 function calcFromState(
   state: FlooringFormState,
   products: ReturnType<typeof toFlooringProductOptions>,
-): { result: FlooringCalcResult; assumed: FlooringAssumption[] } | null {
+): CalcOutcome {
   const engineInput = toEngineInputWithAssumed(state, products);
-  if (!engineInput) return null;
-  // toEngineInput(순수 함수)이 만드는 요청 모양은 공통 규칙 문서 API 계약을 그대로
-  // 따랐고, calcFlooring(실제 엔진)의 FlooringCalcInput도 같은 계약이라 필드가 그대로 맞는다.
-  return { result: calcFlooring(engineInput.request as FlooringCalcInput), assumed: engineInput.assumed };
+  if (!engineInput) return { kind: 'empty' };
+  try {
+    // toEngineInput(순수 함수)이 만드는 요청 모양은 공통 규칙 문서 API 계약을 그대로
+    // 따랐고, calcFlooring(실제 엔진)의 FlooringCalcInput도 같은 계약이라 필드가 그대로 맞는다.
+    const validated = parseInput(engineInput.request);
+    return { result: calcFlooring(validated), assumed: engineInput.assumed, kind: 'ok' };
+  } catch (e) {
+    if (e instanceof ValidationError) return { kind: 'invalid' };
+    throw e;
+  }
 }
 
 /** 조건 요약 1줄 (예: "34평 · 3베이 · 전체 · 마루 · 구축 기준 · 철거 제외") */
@@ -101,11 +123,11 @@ export default async function FlooringResultPage({ searchParams }: PageProps) {
   // "조건 바꾸기"에서 그대로 이어 쓸 수 있게 같은 d 쿼리를 되돌려 준다
   const backHref = d ? `/calc/flooring?d=${d}` : '/calc/flooring';
 
-  const calc = state ? calcFromState(state, products) : null;
-  const result = calc?.result ?? null;
-  const assumed = calc?.assumed ?? [];
+  const outcome = state ? calcFromState(state, products) : ({ kind: 'empty' } as const);
 
-  if (!state || !result) {
+  // 2026-09-30 지휘관 긴급 전달 — "입력이 비어 있음"(empty)과 "값은 있는데 서버 범위를
+  // 벗어남"(invalid)은 문구를 다르게 보여준다(도배와 같은 규칙).
+  if (!state || outcome.kind !== 'ok') {
     return (
       <>
         <TopNav
@@ -120,13 +142,21 @@ export default async function FlooringResultPage({ searchParams }: PageProps) {
         {/* px-5: 상단바(TopNav)와 좌우 여백을 맞춘다 */}
         <div className="px-5 py-4 flex flex-col gap-4 max-w-[720px] mx-auto">
           <Card>
-            <p className="text-[15px] text-v1-text-secondary">조건이 비어 있어요</p>
+            <p className="text-[15px] text-v1-text-secondary">
+              {outcome.kind === 'invalid' ? '조건을 다시 넣어 주세요' : '조건이 비어 있어요'}
+            </p>
+            {outcome.kind === 'invalid' && (
+              <Link href="/calc/flooring" className="inline-block mt-3">
+                <Button>계산기로 가기</Button>
+              </Link>
+            )}
           </Card>
         </div>
       </>
     );
   }
 
+  const { result, assumed } = outcome;
   const { quantity, submaterials, cost } = result;
   const unitLabel = quantity.unit === '박스' ? '박스' : 'm';
   const lossLabel = quantity.lossMode === '실제' ? `실제 로스 ${quantity.lossPct}%` : `추정 로스 ${quantity.lossPct}%`;

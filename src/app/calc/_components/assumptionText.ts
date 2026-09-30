@@ -25,10 +25,17 @@
 
 /**
  * 하단 고정 바 전용 — 지시서 3-9절 검수 지적 1번: 하단 바는 자리가 좁으니 'area' 가정이
- * 있을 때 "34평 가정" 하나만 붙이고, 그 외(제품 미정·실측 입력 중 등)는 하단 바에 안 보여준다
- * (결과 카드에는 이미 다 나와 있다). 가정이 없으면 null(바에 아무것도 안 붙인다).
+ * 있을 때 "34평 가정" 하나만 붙이고, 그 외(제품 미정 등)는 하단 바에 안 보여준다(결과
+ * 카드에는 이미 다 나와 있다). 가정이 없으면 null(바에 아무것도 안 붙인다).
+ *
+ * 2026-09-30 지휘관 긴급 전달(가정 표시 통일) — 'measuring'(정확 모드에서 범위 밖 값이
+ * 있어 일부를 빼고 계산 중)은 결과 카드(describeWallpaperAreaAssumptionLine)와 똑같이
+ * 하단 바에도 "실측 입력 중"을 보여준다 — 예전엔 이 함수가 'area'만 봐서, 방 일부만
+ * 빠진 경우(전체 가정은 아니라 'area' 태그가 안 붙음) 하단 바에 아무 표시도 안 됐다.
+ * 결과 카드와 같은 우선순위(측정 중이 최우선)를 그대로 맞춘다.
  */
 export function describeWallpaperBottomBarAssumption(assumed: readonly string[]): string | null {
+  if (assumed.includes('measuring')) return '실측 입력 중';
   return assumed.includes('area') ? '34평 가정' : null;
 }
 
@@ -74,6 +81,10 @@ export function describeMortarBottomBarAssumption(
   assumed: readonly string[],
   areaAssumedText: string,
 ): string | null {
+  // 2026-09-30 지휘관 긴급 전달(가정 표시 통일) — 도배·바닥재와 같은 우선순위로 맞춘다
+  // ('measuring'이 최우선). 예전엔 이 함수가 'area'만 봐서, 구역 일부만 빼고 계산하는
+  // 중(전체 가정은 아님)에는 하단 바에 아무 표시도 안 됐다.
+  if (assumed.includes('measuring')) return '실측 입력 중';
   return assumed.includes('area') ? areaAssumedText : null;
 }
 

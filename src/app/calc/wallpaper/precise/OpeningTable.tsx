@@ -56,12 +56,15 @@ export default function OpeningTable({ openings, onChange }: OpeningTableProps) 
 
   return (
     <div className="flex flex-col gap-3">
-      {/* 줄이 하나라도 있을 때만 칸 이름 줄을 보여 준다(아래 숫자칸 3개와 같은 flex-1 비율로 맞춘다) */}
+      {/* 줄이 하나라도 있을 때만 칸 이름 줄을 보여 준다(아래 숫자칸 3개와 같은 비율로 맞춘다).
+          2026-09-30 검사관 10차 지적 — 360px 폭에서 "가로·세로"(3자리 + cm)가 "개수"(1~2자리
+          + 개)보다 더 넓은 칸이 필요한데 셋 다 flex-1로 똑같이 나눠서 "210"의 "0"이 cm
+          글자와 겹쳐 잘려 보였다. 개수 칸을 좁히고 그만큼 가로·세로에 나눠 준다. */}
       {openings.length > 0 && (
         <div className="flex gap-2 text-[14px] text-v1-text-label">
-          <span className="flex-1 min-w-0">가로</span>
-          <span className="flex-1 min-w-0">세로</span>
-          <span className="flex-1 min-w-0">개수</span>
+          <span className="flex-[1.2] min-w-0">가로</span>
+          <span className="flex-[1.2] min-w-0">세로</span>
+          <span className="flex-[0.8] min-w-0">개수</span>
         </div>
       )}
 
@@ -108,10 +111,11 @@ export default function OpeningTable({ openings, onChange }: OpeningTableProps) 
             </button>
           </div>
 
-          {/* 아랫줄: 가로 cm · 세로 cm · 개수 (한 줄에 3칸 → 각 flex-1 min-w-0으로 넘침 방지) */}
+          {/* 아랫줄: 가로 cm · 세로 cm · 개수 — 위 칸 이름 줄과 같은 비율(1.2 : 1.2 : 0.8)로
+              맞춘다(360px에서 세 자리 숫자가 cm과 겹치던 문제 수리, 2026-09-30 검사관 10차) */}
           <div className="flex gap-2">
             <NumberField
-              className="flex-1 min-w-0"
+              className="flex-[1.2] min-w-0"
               aria-label="문·창 가로"
               suffix="cm"
               placeholder="가로"
@@ -119,7 +123,7 @@ export default function OpeningTable({ openings, onChange }: OpeningTableProps) 
               onChange={(v) => patchRow(i, { w: displayToCm(v) })}
             />
             <NumberField
-              className="flex-1 min-w-0"
+              className="flex-[1.2] min-w-0"
               aria-label="문·창 세로"
               suffix="cm"
               placeholder="세로"
@@ -127,7 +131,7 @@ export default function OpeningTable({ openings, onChange }: OpeningTableProps) 
               onChange={(v) => patchRow(i, { h: displayToCm(v) })}
             />
             <NumberField
-              className="flex-1 min-w-0"
+              className="flex-[0.8] min-w-0"
               aria-label="문·창 개수"
               suffix="개"
               placeholder="1"

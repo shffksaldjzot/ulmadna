@@ -472,5 +472,12 @@ const appStack = createBackStack(createWindowAdapter());
 
 export const pushBackLayer = appStack.pushBackLayer;
 export const collapseBackLayer = appStack.collapseBackLayer;
+// 2026-09-30 검사관 10차 지적 — 지금 화면 코드(계산기 3종)는 아무도 이 싱글턴 몫의
+// clearBackLayers를 안 부른다(각 계산기는 useFlowBackNav.ts 등을 거쳐 pushBackLayer·
+// collapseBackLayer·activateCalc만 쓴다). __tests__/backLayer.test.ts가 쓰는
+// stack.clearBackLayers는 createBackStack이 만든 "시험용 독립 스택"의 몫이라 이것과는
+// 다른 것이다 — 지우면 시험이 깨지진 않지만, 나중에 계산기가 사라질 때(모드 카드로
+// 돌아가는 것과 별개로 계산기 자체를 벗어날 때) 그 계산기 몫을 걷어가는 자리로 쓰라고
+// 만든 공개 창구라 지우지 않고 남겨 둔다.
 export const clearBackLayers = appStack.clearBackLayers;
 export const activateCalc = appStack.activateCalc;

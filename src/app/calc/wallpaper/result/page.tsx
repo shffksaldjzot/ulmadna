@@ -41,6 +41,10 @@ import CalcContactCta from '../../_components/CalcContactCta';
 // 링크를 받은 사람이 보낸 사람과 다른 정보를 보게 된다.
 import { formatCostLineAmount, formatRollsText } from '../../_components/costLineFormat';
 import { describeWallpaperAreaAssumptionLine } from '../../_components/assumptionText';
+// 2026-09-30 지휘관 긴급 전달(중요 1 남은 부분) — 이 화면이 API(route.ts)와 같은 검증을
+// 거치게 한다. 공유 링크에 서버가 거절할 값(범위 밖 등)이 들어 있으면 계산 자체를 안 하고
+// "조건을 다시 넣어 주세요"를 보여준다(검증 없이 계산해 버리던 사고 수리).
+import { parseInput, ValidationError } from '@/server/calc/validate/wallpaper';
 
 export const metadata = {
   title: '도배 계산기 결과 — 얼마드나',
@@ -48,6 +52,9 @@ export const metadata = {
   // 검색엔진에는 전부 "같은 페이지의 변형"이라고 알려주기 위해 canonical을 원본
   // 계산기 페이지로 모아준다(2026-09-14, 형아 지시: 계산기 SEO 정비).
   alternates: { canonical: 'https://ulmadna.com/calc/wallpaper' },
+  // 2026-09-30 검사관 10차 — 결과 공유 화면은 사람마다 조건이 다 달라(남의 견적 조건)
+  // 검색에 안 잡히게 한다. 계산기 자체(alternates 위)는 그대로 색인된다.
+  robots: { index: false, follow: true },
 };
 
 // 2026-09-11 검사관 지적: 시세(/calc/price)·질문(/calc/q) 페이지가 아직 없다.
@@ -63,16 +70,35 @@ const SHOW_UNFINISHED_LINKS = false;
  * 2026-09-27 배포 전 검사관 지적 7번: engineInput.assumed(무엇을 가정해서 계산했는지)도
  * 같이 돌려준다 — 예전엔 이 값을 버려서, 공유 링크로 제품을 안 정한 채 받은 사람은
  * "제품 미정" 표시도 롤 수 범위도 못 보고 대표값 하나만 봤다(보낸 사람과 다른 정보).
+ *
+ * 2026-09-30 지휘관 긴급 전달(중요 1 남은 부분) — toEngineInput은 모양만 맞추는 순수
+ * 함수라 값 범위를 검사하지 않는다. 그래서 서버가 거절할 값(예: 높이 10m)이 든 공유
+ * 링크를 열면 API를 거치지 않고 그대로 계산돼 버렸다. calcWallpaper를 부르기 직전에
+ * API 라우트(route.ts)와 완전히 같은 parseInput으로 한 번 더 검사한다 — 통과 못 하면
+ * 'invalid'를 돌려주고, 페이지가 "조건을 다시 넣어 주세요"를 보여준다.
  */
+type CalcOutcome =
+  | { kind: 'empty' }
+  | { kind: 'invalid' }
+  | { kind: 'ok'; result: WallpaperCalcResult; assumed: WallpaperAssumption[] };
+
 function calcFromState(
   state: WallpaperFormState,
   products: ReturnType<typeof toWallpaperProductOptions>,
-): { result: WallpaperCalcResult; assumed: WallpaperAssumption[] } | null {
+): CalcOutcome {
   const engineInput = toEngineInput(state, products);
-  if (!engineInput) return null;
+  if (!engineInput) return { kind: 'empty' };
   const { base, paper, assumed } = engineInput;
   const request: WallpaperCalcInput = { ...base, paperType: paper.paperType, product: paper.product };
-  return { result: calcWallpaper(request), assumed };
+  try {
+    // parseInput은 body(unknown)를 받는 함수라 이미 만든 request 객체를 그대로 넣어도
+    // 똑같이 한 칸씩 검사해 준다(같은 타입이라 통과하면 값이 그대로 나온다).
+    const validated = parseInput(request);
+    return { result: calcWallpaper(validated), assumed, kind: 'ok' };
+  } catch (e) {
+    if (e instanceof ValidationError) return { kind: 'invalid' };
+    throw e;
+  }
 }
 
 /** 조건 요약 1줄 (예: "34평 · 3베이 · 전체 · 천장 포함 · 실크") */
@@ -125,14 +151,16 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
   // "조건 바꾸기"에서 그대로 이어 쓸 수 있게 같은 d 쿼리를 되돌려 준다
   const backHref = d ? `/calc/wallpaper?d=${d}` : '/calc/wallpaper';
 
-  const calc = state ? calcFromState(state, products) : null;
-  const result = calc?.result ?? null;
-  const assumed = calc?.assumed ?? [];
+  const outcome = state ? calcFromState(state, products) : ({ kind: 'empty' } as const);
 
   // 공유 링크가 없거나·깨졌거나·디코드는 됐지만 입력이 완전히 비어 있으면(벽지 미선택 /
   // simple인데 평형 없음 / precise인데 치수 없음) 조용히 기본값으로 바꿔치기하지 않고
   // 빈 상태를 그대로 보여준다 — 원인이 달라도 전부 같은 화면이다.
-  if (!state || !result) {
+  //
+  // 2026-09-30 지휘관 긴급 전달 — "입력이 비어 있음"(empty)과 "값은 있는데 서버 범위를
+  // 벗어남"(invalid)은 원인이 달라서 문구도 다르게 보여준다(형아 지시: 문구 새로 만들지
+  // 말라는 원칙과 별개로, 이 두 문구는 이번 수리에서 지시받은 것 그대로다).
+  if (!state || outcome.kind !== 'ok') {
     return (
       <>
         <TopNav
@@ -147,13 +175,21 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
         {/* px-5: 상단바(TopNav)와 좌우 여백을 맞춘다 */}
         <div className="px-5 py-4 flex flex-col gap-4 max-w-[720px] mx-auto">
           <Card>
-            <p className="text-[15px] text-v1-text-secondary">조건이 비어 있어요</p>
+            <p className="text-[15px] text-v1-text-secondary">
+              {outcome.kind === 'invalid' ? '조건을 다시 넣어 주세요' : '조건이 비어 있어요'}
+            </p>
+            {outcome.kind === 'invalid' && (
+              <Link href="/calc/wallpaper" className="inline-block mt-3">
+                <Button>계산기로 가기</Button>
+              </Link>
+            )}
           </Card>
         </div>
       </>
     );
   }
 
+  const { result, assumed } = outcome;
   const { quantity, submaterials, cost } = result;
   // 로스 근거 라벨: 실제/추정/면적 기준으로 문구가 달라진다(설계 정본 카드1 규칙)
   const lossLabel =

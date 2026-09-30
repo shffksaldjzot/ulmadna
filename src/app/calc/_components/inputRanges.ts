@@ -88,17 +88,16 @@ export function rangeCaption(value: number | '' | undefined, min: number, max: n
   return undefined;
 }
 
-/** 경계값 표기 — 정수면 그대로, 소수면 그대로(0.3처럼) 보여준다 */
+/**
+ * 경계값 표기 — 정수·소수 둘 다 String()이 그대로 알아보기 좋은 모습을 주므로(0.3은
+ * "0.3", 500은 "500") 특별히 다르게 다룰 필요가 없다.
+ * 2026-09-30 검사관 10차 지적 — 예전엔 정수·소수 분기가 있었는데 두 갈래가 결과까지
+ * 완전히 같았다(String(n)만 겹쳐 불렀다) — 뜻 없는 분기라 하나로 합쳤다.
+ */
 function formatBound(n: number): string {
-  return Number.isInteger(n) ? String(n) : String(n);
+  return String(n);
 }
 
-/**
- * 정확 모드 방 하나(가로·세로, m 단위 — 저장값은 항상 m)가 서버 범위 안인지.
- * 계산기(WallpaperCalculator·FlooringCalculator)가 "이 방을 계산에 넣어도 되는지" 판단할
- * 때 쓴다. 값이 아직 0(=안 적음)이면 범위 판단 대상이 아니므로 true(방해하지 않음).
- * 높이(h)는 있을 때만 검사한다(없으면 공통 높이를 쓰므로 이 방 자체는 문제 없다).
- */
 /**
  * 미장 두께 입력의 "화면 쪽" 최솟값 — 서버 최솟값(THICKNESS_MM_MIN=1, mortarPresets.ts)보다
  * 엄격하다. 레미탈은 10mm 미만이 현장에서 뜻이 없어(2026-09-27 QuickAnswer.tsx부터 있던
@@ -123,6 +122,14 @@ export function moneyRangeCaption(value: number | undefined, maxWon: number): st
   return `${maxManwon}만원 이하`;
 }
 
+/**
+ * 정확 모드 방 하나(가로·세로, m 단위 — 저장값은 항상 m)가 서버 범위 안인지.
+ * 계산기(WallpaperCalculator·FlooringCalculator)가 "이 방을 계산에 넣어도 되는지" 판단할
+ * 때 쓴다. 값이 아직 0(=안 적음)이면 범위 판단 대상이 아니므로 true(방해하지 않음).
+ * 높이(h)는 있을 때만 검사한다(없으면 공통 높이를 쓰므로 이 방 자체는 문제 없다).
+ * 2026-09-30 검사관 10차 지적 — 이 주석이 엉뚱하게 formatBound 위에 붙어 있었다(자리
+ * 잘못 잡음). 실제로 설명하는 함수(이 함수) 바로 위로 옮겼다.
+ */
 export function isRoomDimValid(w: number, d: number, h?: number): boolean {
   if (w > 0 && !isWithinRange(w, ROOM_DIM_M_MIN, ROOM_DIM_M_MAX)) return false;
   if (d > 0 && !isWithinRange(d, ROOM_DIM_M_MIN, ROOM_DIM_M_MAX)) return false;
@@ -171,27 +178,68 @@ export function resolveSimpleAreaSqmRaw(
 }
 
 /**
- * 정확 모드 구역 목록이 전부 유효한지 판정한다(2026-09-30 치명 3 수리) — 개별 구역
- * 범위(0.1~500㎡)뿐 아니라 **합계도 전체 범위(0.5~500㎡) 안이어야 한다**
- * (resolvePreciseAreaSqm이 합계를 그 범위로 자르므로, 화면도 같은 기준으로 미리 막는다).
- * 구역이 하나라도 범위 밖이거나 합계가 범위를 넘으면 이 목록 전체를 "아직 못 믿을 값"
- * 으로 본다 — 일부만 골라 계산하지 않는다(도배·바닥재의 방 목록과 다른 점: 방은 범위
- * 밖인 것만 빼고 계산해도 되지만, 미장 구역 합계는 값 자체가 바뀌므로 전부 아니면
- * 아무것도 안 쓴다).
+ * 정확 모드 구역 목록에서 "계산에 쓸 것"을 골라낸다(2026-09-30 지휘관 긴급 전달 —
+ * 가정 표시·계산 규칙 통일). 도배·바닥재 방 목록과 같은 규칙으로 맞췄다:
+ *   1) 개별 구역이 범위(0.1~500㎡) 밖이면 **그 구역만 빼고** 나머지로 계산한다(전체를
+ *      버리지 않는다 — 예전엔 하나라도 범위 밖이면 목록 전체를 비웠는데, 그러면 방
+ *      하나만 커도 나머지 정상 구역들이 억울하게 다 같이 버려졌다).
+ *   2) 개별로는 전부 정상인데 **합계**가 전체 범위(0.5~500㎡)를 넘으면, 어느 구역을
+ *      빼야 할지 정할 근거가 없으므로(범인이 없다) 전부 빼고 평형 가정값으로 계산한다
+ *      (resolvePreciseAreaSqm이 실제로 하는 일과 같다 — 화면이 미리 그 사정을 안다).
+ *   3) 채운 구역이 하나도 없으면(아직 실측 전) 평소처럼 "아직 안 골랐다"로 본다.
+ * measuring이 true면 "실측 입력 중"을 보여주고 공유를 숨긴다 — ①·② 둘 다 "적은 값을
+ * 그대로 믿지 못해 뭔가를 빼고 계산했다"는 뜻이기 때문이다.
  */
-export function mortarZonesValidity(rooms: Array<{ areaSqm?: number }>): {
+export function resolveMortarZonesForCalc<T extends { areaSqm?: number }>(rooms: T[]): {
   /** 값을 채운(0보다 큰) 구역이 하나라도 있는지 */
   hasFilled: boolean;
-  /** 채운 구역이 전부 개별 범위(0.1~500㎡) 안인지(채운 게 없으면 true) */
-  allInRange: boolean;
-  /** 채운 구역들의 합계가 전체 범위(0.5~500㎡) 안인지(채운 게 없으면 true) */
-  sumInRange: boolean;
-  /** 채운 구역 합계(㎡) */
-  sum: number;
+  /** 채운 구역을 전부 그대로(하나도 안 빼고) 계산에 썼는지 */
+  fullyValid: boolean;
+  /** 계산에 실제로 넘길 구역 목록(위 규칙대로 거른 결과) — 원본 객체 모양(name 등)을 그대로 유지한다 */
+  zonesForCalc: T[];
+  /** 뭔가 채웠는데 일부(또는 전부)를 그대로 못 써서 "실측 입력 중"으로 봐야 하는지 */
+  measuring: boolean;
+  /** 개별은 다 정상인데 합계만 넘어서(②) 범인을 못 골라 전부 뺀 경우인지 — 구역 목록
+   *  아래 "합계 500㎡ 이하" 안내를 이 경우에만 보여준다 */
+  sumExceeded: boolean;
 } {
-  const filled = rooms.filter((r): r is { areaSqm: number } => isPositiveNumber(r.areaSqm));
-  const allInRange = filled.every((r) => isWithinRange(r.areaSqm, MORTAR_ZONE_SQM_MIN, MORTAR_ZONE_SQM_MAX));
-  const sum = filled.reduce((s, r) => s + r.areaSqm, 0);
-  const sumInRange = filled.length === 0 || isWithinRange(sum, MORTAR_AREA_SQM_MIN, MORTAR_AREA_SQM_MAX);
-  return { hasFilled: filled.length > 0, allInRange, sumInRange, sum };
+  const filled = rooms.filter((r) => isPositiveNumber(r.areaSqm));
+  if (filled.length === 0) {
+    return { hasFilled: false, fullyValid: true, zonesForCalc: [], measuring: false, sumExceeded: false };
+  }
+  const individuallyValid = filled.filter((r) => isWithinRange(r.areaSqm, MORTAR_ZONE_SQM_MIN, MORTAR_ZONE_SQM_MAX));
+  const droppedIndividual = individuallyValid.length < filled.length;
+  const sum = individuallyValid.reduce((s, r) => s + (r.areaSqm ?? 0), 0);
+  const sumInRange = individuallyValid.length > 0 && isWithinRange(sum, MORTAR_AREA_SQM_MIN, MORTAR_AREA_SQM_MAX);
+  if (sumInRange) {
+    return { hasFilled: true, fullyValid: !droppedIndividual, zonesForCalc: individuallyValid, measuring: droppedIndividual, sumExceeded: false };
+  }
+  // 개별은 정상인데 합계가 넘쳤거나(sumExceeded), 살아남은 구역이 하나도 없으면 — 범인을
+  // 못 골라 전부 빼고 평형 가정값으로 계산한다.
+  return { hasFilled: true, fullyValid: false, zonesForCalc: [], measuring: true, sumExceeded: individuallyValid.length > 0 };
+}
+
+/**
+ * 미장 "평" 입력 범위 안내에 쓸, 실제로 통과하는 평 경계값을 계산한다(2026-09-30 지휘관
+ * 긴급 전달 — 평 입력 안내 단위 통일). ㎡ 한도(min·max)는 그대로 화면에 보여주면
+ * "500㎡ 이하"처럼 사용자가 지금 고른 단위(평)와 안 맞는 안내가 나간다. toSqm(평→㎡
+ * 환산 함수, 방통은 pyeongToExclusiveSqm처럼 비선형일 수 있다)으로 거꾸로 평을 찾되,
+ * 최댓값은 내림·최솟값은 올림해서 "안내한 값을 그대로 넣으면 반드시 통과"하게 만들고,
+ * toSqm을 다시 불러 확인 + 한 칸씩 보정한다(변환식이 완전한 선형이 아닐 수 있어 방어적으로 짰다).
+ */
+export function pyeongRangeBounds(
+  minSqm: number,
+  maxSqm: number,
+  toSqm: (pyeong: number) => number,
+): { minPyeong: number; maxPyeong: number } {
+  // 100평을 기준으로 대략의 "평당 ㎡"를 추정해 출발점을 잡는다(선형이 아니어도 근사로 충분하다)
+  const approxSqmPerPyeong = toSqm(100) / 100;
+  let maxPyeong = Math.max(1, Math.floor(maxSqm / approxSqmPerPyeong));
+  let minPyeong = Math.max(1, Math.ceil(minSqm / approxSqmPerPyeong));
+  // 실제로 통과하는지 확인하고 안 맞으면 한 칸씩 보정한다(무한 루프 방지로 최대 5번)
+  for (let i = 0; i < 5 && toSqm(maxPyeong) > maxSqm; i++) maxPyeong -= 1;
+  for (let i = 0; i < 5 && toSqm(maxPyeong + 1) <= maxSqm; i++) maxPyeong += 1;
+  for (let i = 0; i < 5 && toSqm(minPyeong) < minSqm; i++) minPyeong += 1;
+  for (let i = 0; i < 5 && minPyeong > 1 && toSqm(minPyeong - 1) >= minSqm; i++) minPyeong -= 1;
+  return { minPyeong: Math.max(1, minPyeong), maxPyeong: Math.max(minPyeong, maxPyeong) };
 }

@@ -7,11 +7,16 @@
 //   · isRoomDimValid: 방 하나(가로·세로·높이)가 서버 범위 안인지
 //   · moneyRangeCaption: 금액 칸(배송비 등)의 "1,000만원 이하" 식 안내(2026-09-29 다듬기 지적 2번)
 //   · resolveSimpleAreaSqmRaw: 자르기 전(raw) ㎡ 환산값(2026-09-30 치명 2 수리)
-//   · mortarZonesValidity: 구역 목록의 개별·합계 범위 판정(2026-09-30 치명 3 수리)
+//   · resolveMortarZonesForCalc: 구역 목록에서 "계산에 쓸 것"을 고르는 규칙(2026-09-30
+//     가정 표시 통일 — 개별 범위 밖만 빼고 계산, 합계 초과는 범인을 못 골라 전부 가정값)
+//   · pyeongRangeBounds: 미장 "평" 입력 안내에 쓸, 실제로 통과하는 평 경계값(2026-09-30
+//     평 입력 안내 단위 통일)
 //
 // 작성일: 2026년 09월 29일
 // moneyRangeCaption 시험 추가(다듬기 라운드): 2026년 09월 29일
 // resolveSimpleAreaSqmRaw·mortarZonesValidity 시험 추가(긴급 수리 2·3): 2026년 09월 30일
+// mortarZonesValidity → resolveMortarZonesForCalc로 교체, pyeongRangeBounds 추가(가정
+// 표시 통일·평 안내 단위 통일): 2026년 09월 30일
 // ──────────────────────────────────────────────
 
 import { describe, expect, it } from 'vitest';
@@ -22,7 +27,8 @@ import {
   mortarThicknessUxMin,
   moneyRangeCaption,
   resolveSimpleAreaSqmRaw,
-  mortarZonesValidity,
+  resolveMortarZonesForCalc,
+  pyeongRangeBounds,
   MORTAR_AREA_SQM_MIN,
   MORTAR_AREA_SQM_MAX,
   MORTAR_ZONE_SQM_MIN,
@@ -146,44 +152,76 @@ describe('resolveSimpleAreaSqmRaw — 자르기 전(raw) ㎡ 환산값(2026-09-3
   });
 });
 
-describe('mortarZonesValidity — 구역 목록의 개별·합계 범위 판정(2026-09-30 치명 3 수리)', () => {
-  it('채운 구역이 없으면 전부 통과(판단 대상 없음)', () => {
-    const r = mortarZonesValidity([{ areaSqm: 0 }, {}]);
-    expect(r).toEqual({ hasFilled: false, allInRange: true, sumInRange: true, sum: 0 });
+describe('resolveMortarZonesForCalc — 구역 목록에서 계산에 쓸 것 고르기(2026-09-30 가정 표시 통일)', () => {
+  it('채운 구역이 없으면 손 안 댐(fullyValid=true, measuring=false)', () => {
+    const r = resolveMortarZonesForCalc([{ areaSqm: 0 }, {}]);
+    expect(r).toEqual({ hasFilled: false, fullyValid: true, zonesForCalc: [], measuring: false, sumExceeded: false });
   });
 
-  it('전부 정상 범위면 개별·합계 다 통과', () => {
-    const r = mortarZonesValidity([{ areaSqm: 20 }, { areaSqm: 30 }]);
+  it('전부 정상 범위면 그대로 전부 계산에 쓴다(measuring=false)', () => {
+    const r = resolveMortarZonesForCalc([{ areaSqm: 20 }, { areaSqm: 30 }]);
     expect(r.hasFilled).toBe(true);
-    expect(r.allInRange).toBe(true);
-    expect(r.sumInRange).toBe(true);
-    expect(r.sum).toBe(50);
+    expect(r.fullyValid).toBe(true);
+    expect(r.measuring).toBe(false);
+    expect(r.zonesForCalc).toEqual([{ areaSqm: 20 }, { areaSqm: 30 }]);
   });
 
-  it('[검사관 재현 — 구역 하나가 범위 밖] 구역1 300㎡ + 구역2 600㎡ → 개별 판정이 false', () => {
-    const r = mortarZonesValidity([{ areaSqm: 300 }, { areaSqm: 600 }]);
-    expect(r.allInRange).toBe(false);
+  it('[검사관 재현 — 구역 하나만 범위 밖] 구역1 300㎡ + 구역2 600㎡ → 600만 빼고 300으로 계산(합계 300은 범위 안)', () => {
+    const r = resolveMortarZonesForCalc([{ areaSqm: 300 }, { areaSqm: 600 }]);
+    expect(r.fullyValid).toBe(false);
+    expect(r.measuring).toBe(true);
+    expect(r.sumExceeded).toBe(false);
+    expect(r.zonesForCalc).toEqual([{ areaSqm: 300 }]);
   });
 
-  it('[검사관 재현 — 합계 초과] 300㎡ + 300㎡ = 600㎡, 개별은 전부 범위 안이지만 합계가 500㎡ 초과', () => {
-    const r = mortarZonesValidity([{ areaSqm: 300 }, { areaSqm: 300 }]);
-    expect(r.allInRange).toBe(true); // 300은 개별 범위(0.1~500) 안
-    expect(r.sumInRange).toBe(false); // 합계 600은 전체 범위(0.5~500) 밖
-    expect(r.sum).toBe(600);
+  it('[재현 — 합계 초과, 범인 없음] 300㎡ + 300㎡ = 600㎡(개별은 전부 정상) → 전부 빼고 가정값', () => {
+    const r = resolveMortarZonesForCalc([{ areaSqm: 300 }, { areaSqm: 300 }]);
+    expect(r.fullyValid).toBe(false);
+    expect(r.measuring).toBe(true);
+    expect(r.sumExceeded).toBe(true);
+    expect(r.zonesForCalc).toEqual([]);
   });
 
-  it('경계값 — 합계가 정확히 500㎡면 통과', () => {
-    const r = mortarZonesValidity([{ areaSqm: 250 }, { areaSqm: 250 }]);
-    expect(r.sumInRange).toBe(true);
+  it('경계값 — 합계가 정확히 500㎡면 그대로 통과(전부 계산에 씀)', () => {
+    const r = resolveMortarZonesForCalc([{ areaSqm: 250 }, { areaSqm: 250 }]);
+    expect(r.fullyValid).toBe(true);
+    expect(r.sumExceeded).toBe(false);
+    expect(r.zonesForCalc).toEqual([{ areaSqm: 250 }, { areaSqm: 250 }]);
   });
 
-  it('경계값 — 구역 하나가 개별 최솟값(0.1㎡) 미만이면 개별 판정 false', () => {
-    const r = mortarZonesValidity([{ areaSqm: 0.05 }]);
-    expect(r.allInRange).toBe(false);
+  it('구역 하나가 개별 최솟값(0.1㎡) 미만이면 그 구역만 빼고 계산(남는 게 없으면 전부 가정값)', () => {
+    const r = resolveMortarZonesForCalc([{ areaSqm: 0.05 }]);
+    expect(r.fullyValid).toBe(false);
+    expect(r.measuring).toBe(true);
+    expect(r.sumExceeded).toBe(false); // 살아남은 구역이 0개라 "합계 초과"가 아니다
+    expect(r.zonesForCalc).toEqual([]);
   });
 
-  it('MORTAR_ZONE_SQM_MIN·MAX 경계값 자체는 통과한다(경계 포함)', () => {
-    const r = mortarZonesValidity([{ areaSqm: MORTAR_ZONE_SQM_MIN }, { areaSqm: MORTAR_ZONE_SQM_MAX - MORTAR_ZONE_SQM_MIN }]);
-    expect(r.allInRange).toBe(true);
+  it('MORTAR_ZONE_SQM_MIN·MAX 경계값 자체는 그대로 통과한다(경계 포함)', () => {
+    const r = resolveMortarZonesForCalc([{ areaSqm: MORTAR_ZONE_SQM_MIN }, { areaSqm: MORTAR_ZONE_SQM_MAX - MORTAR_ZONE_SQM_MIN }]);
+    expect(r.fullyValid).toBe(true);
+  });
+});
+
+describe('pyeongRangeBounds — 미장 평 입력 안내의 실제 통과 경계값(2026-09-30 평 안내 단위 통일)', () => {
+  it('선형 환산(1평=3.3058㎡)에서 0.5~500㎡ 경계를 평으로 뒤집는다', () => {
+    const toSqm = (p: number) => p * 3.3058;
+    const { minPyeong, maxPyeong } = pyeongRangeBounds(0.5, 500, toSqm);
+    expect(toSqm(maxPyeong)).toBeLessThanOrEqual(500);
+    expect(toSqm(maxPyeong + 1)).toBeGreaterThan(500);
+    expect(toSqm(minPyeong)).toBeGreaterThanOrEqual(0.5);
+  });
+
+  it('비선형(공급→전용, 3.3058×0.75 근사) 환산에서도 안내한 값이 실제로 통과한다', () => {
+    const toSqm = (p: number) => Math.round(p * 3.3058 * 0.75 * 10) / 10;
+    const { minPyeong, maxPyeong } = pyeongRangeBounds(0.5, 500, toSqm);
+    expect(toSqm(maxPyeong)).toBeLessThanOrEqual(500);
+    expect(toSqm(minPyeong)).toBeGreaterThanOrEqual(0.5);
+  });
+
+  it('최솟값은 1평 밑으로 내려가지 않는다', () => {
+    const toSqm = (p: number) => p * 3.3058;
+    const { minPyeong } = pyeongRangeBounds(0.5, 500, toSqm);
+    expect(minPyeong).toBeGreaterThanOrEqual(1);
   });
 });
