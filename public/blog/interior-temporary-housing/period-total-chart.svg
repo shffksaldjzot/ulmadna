@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 330" role="img" aria-label="인테리어 공사 중 거주 선택지별 총비용 — 살면서 66만~93만원, 비우면 2주 290만~344만원, 4주 374만~442만원, 6주 453만~551만원">
+  <rect width="760" height="330" fill="#faf7f2"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="18" font-weight="700" fill="#3b2a20">공사 중 거주 선택지별 추가 총비용 (만원)</text>
+  <text x="24" y="56" font-family="sans-serif" font-size="12" fill="#7a6a5e">비우는 경우 = 5톤 보관이사(이사 2회+보관료) + 주 단위 단기임대</text>
+  <g stroke="#e3dbd0" stroke-width="1">
+    <line x1="170" y1="76" x2="170" y2="290"/><line x1="260" y1="76" x2="260" y2="290"/><line x1="350" y1="76" x2="350" y2="290"/><line x1="440" y1="76" x2="440" y2="290"/><line x1="530" y1="76" x2="530" y2="290"/><line x1="620" y1="76" x2="620" y2="290"/>
+  </g>
+  <g font-family="sans-serif" font-size="11" fill="#7a6a5e" text-anchor="middle">
+    <text x="170" y="308">0</text><text x="260" y="308">100</text><text x="350" y="308">200</text><text x="440" y="308">300</text><text x="530" y="308">400</text><text x="620" y="308">500</text>
+  </g>
+  <g font-family="sans-serif" font-size="13" fill="#3b2a20" text-anchor="end">
+    <text x="160" y="106">살면서 (부분 공사)</text>
+    <text x="160" y="151">비우기 2주</text>
+    <text x="160" y="196">비우기 4주</text>
+    <text x="160" y="241">비우기 6주</text>
+  </g>
+  <rect x="229.4" y="88" width="24.3" height="26" rx="4" fill="#9fb8a0"/>
+  <rect x="431" y="133" width="48.6" height="26" rx="4" fill="#d9a066"/>
+  <rect x="506.6" y="178" width="61.2" height="26" rx="4" fill="#d9a066"/>
+  <rect x="577.7" y="223" width="88.2" height="26" rx="4" fill="#c4633f"/>
+  <g font-family="sans-serif" font-size="12" font-weight="700" fill="#3b2a20">
+    <text x="262" y="106">66~93</text>
+    <text x="488" y="151">290~344</text>
+    <text x="576" y="196">374~442</text>
+    <text x="674" y="241">453~551</text>
+  </g>
+</svg>
