@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" font-family="sans-serif">
+  <rect width="720" height="420" fill="#faf7f2"/>
+  <text x="360" y="30" text-anchor="middle" font-size="18" font-weight="700" fill="#3b2f2a">홈카페장 붙은 냉장고장 — 정면 배치와 콘센트 위치</text>
+  <!-- 천장/바닥 -->
+  <line x1="40" y1="60" x2="680" y2="60" stroke="#8a7d72" stroke-width="2"/>
+  <line x1="40" y1="380" x2="680" y2="380" stroke="#8a7d72" stroke-width="2"/>
+  <!-- 냉장고장 상부 -->
+  <rect x="60" y="66" width="230" height="44" fill="#e7dfd5" stroke="#8a7d72"/>
+  <text x="175" y="93" text-anchor="middle" font-size="13" fill="#3b2f2a">냉장고 위 상부장</text>
+  <!-- 냉장고 -->
+  <rect x="60" y="116" width="230" height="264" fill="#d9d2c9" stroke="#8a7d72"/>
+  <text x="175" y="240" text-anchor="middle" font-size="16" font-weight="700" fill="#3b2f2a">냉장고</text>
+  <text x="175" y="262" text-anchor="middle" font-size="12" fill="#6b5f56">뒤·옆·위 방열 여유는 모델 설치도면 기준</text>
+  <!-- 냉장고 콘센트 -->
+  <circle cx="90" cy="150" r="7" fill="#c8553d"/>
+  <text x="102" y="150" font-size="12" fill="#c8553d">① 냉장고 콘센트</text>
+  <text x="102" y="166" font-size="11" fill="#c8553d">뒤판 중앙은 피하고 구석·위쪽</text>
+  <!-- 홈카페장 상부 -->
+  <rect x="300" y="66" width="200" height="120" fill="#e7dfd5" stroke="#8a7d72"/>
+  <text x="400" y="118" text-anchor="middle" font-size="13" fill="#3b2f2a">상부 도어장</text>
+  <text x="400" y="138" text-anchor="middle" font-size="12" fill="#6b5f56">잘 안 쓰는 물건</text>
+  <!-- 오픈 작업 공간 -->
+  <rect x="300" y="192" width="200" height="78" fill="#fff" stroke="#c8553d" stroke-dasharray="5 4"/>
+  <text x="400" y="216" text-anchor="middle" font-size="13" font-weight="700" fill="#c8553d">오픈 작업 공간</text>
+  <text x="400" y="234" text-anchor="middle" font-size="12" fill="#6b5f56">커피머신 + 라인조명</text>
+  <circle cx="470" cy="256" r="7" fill="#c8553d"/>
+  <text x="510" y="232" font-size="12" font-weight="700" fill="#c8553d">② 매립 2구 콘센트</text>
+  <text x="510" y="248" font-size="11" fill="#c8553d">상판 위 100~150mm, 기기 뒤 구석</text>
+  <!-- 상판 -->
+  <rect x="300" y="270" width="200" height="8" fill="#8a7d72"/>
+  <text x="510" y="277" font-size="12" fill="#6b5f56">상판 850~900mm</text>
+  <!-- 하부 -->
+  <rect x="300" y="278" width="200" height="102" fill="#e7dfd5" stroke="#8a7d72"/>
+  <text x="400" y="322" text-anchor="middle" font-size="13" fill="#3b2f2a">하부 인출 서랍</text>
+  <text x="400" y="342" text-anchor="middle" font-size="12" fill="#6b5f56">/ 로봇청소기 칸</text>
+  <!-- 측면 안내 -->
+  <text x="520" y="120" font-size="13" font-weight="700" fill="#3b2f2a">배선은 냉장고 반입 전에</text>
+  <text x="520" y="140" font-size="12" fill="#6b5f56">냉장고 콘센트에서 따오지 말고</text>
+  <text x="520" y="158" font-size="12" fill="#6b5f56">가능하면 홈카페 회로를 따로</text>
+  <text x="520" y="178" font-size="12" fill="#6b5f56">문 열림 방향 → 벽 쪽 냉장고는</text>
+  <text x="520" y="196" font-size="12" fill="#6b5f56">벽과 사이 여유 확인</text>
+  <text x="360" y="405" text-anchor="middle" font-size="12" fill="#8a7d72">※ 개념도입니다. 실제 치수는 냉장고 모델과 현장 실측에 따라 달라집니다.</text>
+</svg>
