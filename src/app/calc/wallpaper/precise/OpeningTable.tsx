@@ -69,6 +69,7 @@ export default function OpeningTable({ openings, onChange }: OpeningTableProps) 
                 { value: 'window', label: '창' },
               ]}
               value={row.kind}
+              ariaLabel={`개구부 ${i + 1} 종류`}
               onChange={(v) => {
                 // 창으로 바꿀 때, 아직 문 표준 규격 그대로면 창은 규격이 제각각이라 빈 칸으로 비워 준다
                 if (v === 'window' && row.w === DEFAULT_DOOR_CM.w && row.h === DEFAULT_DOOR_CM.h) {

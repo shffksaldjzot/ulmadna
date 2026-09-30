@@ -5,12 +5,14 @@
 //   · isWithinRange: 빈 값·범위 안·범위 밖 판정
 //   · rangeCaption: 범위 밖일 때만 짧은 안내 글을 돌려준다(마침표 없이)
 //   · isRoomDimValid: 방 하나(가로·세로·높이)가 서버 범위 안인지
+//   · moneyRangeCaption: 금액 칸(배송비 등)의 "1,000만원 이하" 식 안내(2026-09-29 다듬기 지적 2번)
 //
 // 작성일: 2026년 09월 29일
+// moneyRangeCaption 시험 추가(다듬기 라운드): 2026년 09월 29일
 // ──────────────────────────────────────────────
 
 import { describe, expect, it } from 'vitest';
-import { isWithinRange, rangeCaption, isRoomDimValid, mortarThicknessUxMin } from '../inputRanges';
+import { isWithinRange, rangeCaption, isRoomDimValid, mortarThicknessUxMin, moneyRangeCaption } from '../inputRanges';
 
 describe('isWithinRange — 범위 판정', () => {
   it('빈 값(\'\')이나 undefined는 아직 판단할 게 없으니 true(방해 안 함)', () => {
@@ -68,5 +70,20 @@ describe('mortarThicknessUxMin — 미장 두께 화면 쪽 최솟값', () => {
   });
   it('셀프레벨링은 서버 최솟값을 그대로 쓴다', () => {
     expect(mortarThicknessUxMin('셀프레벨링', 1)).toBe(1);
+  });
+});
+
+describe('moneyRangeCaption — 금액 칸(배송비 등) 범위 안내(2026-09-29 지적 2번)', () => {
+  it('상한 이하면 안내 없음', () => {
+    expect(moneyRangeCaption(5_000_000, 10_000_000)).toBeUndefined();
+  });
+  it('상한과 정확히 같으면 안내 없음(경계값 포함)', () => {
+    expect(moneyRangeCaption(10_000_000, 10_000_000)).toBeUndefined();
+  });
+  it('[검사관 관점 재현] 상한을 넘으면 "만원" 단위로 콤마 찍어 안내한다', () => {
+    expect(moneyRangeCaption(99_000_000, 10_000_000)).toBe('1,000만원 이하');
+  });
+  it('빈 값(undefined)은 안내 없음(아직 안 넣은 칸)', () => {
+    expect(moneyRangeCaption(undefined, 10_000_000)).toBeUndefined();
   });
 });

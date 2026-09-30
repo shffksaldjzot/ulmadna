@@ -29,6 +29,7 @@
 'use client';
 
 import Chip from '@/components/v1/Chip';
+import ChipGroup from '@/components/v1/ChipGroup';
 import NumberField from '@/components/v1/NumberField';
 import {
   pyeongToExclusiveSqm,
@@ -88,6 +89,14 @@ export interface AreaInputProps {
    * 몰라도 된다(부르는 쪽이 touched 여부를 보고 이 prop을 넘겨준다).
    */
   untouched?: boolean;
+  /**
+   * 2026-09-29 지적 4번 — 부르는 쪽(QuickAnswer.tsx 등)이 이미 "칸 아래 범위 안내"를
+   * 따로 그리고 있을 때(예: "200평 이하") true로 준다. true면 이 부품 자신의 환산
+   * 캡션("≈ 3302.5㎡ · 2476.9㎡")을 안 그린다 — 범위를 벗어난 값의 환산까지 같이
+   * 보여주면 안내 글과 환산 줄이 동시에 떠서 정신없다(999평을 넣었을 때 "3302.5㎡"
+   * 같은 뜻 없는 환산까지 보일 이유가 없다). 기본 false — 안 주면 예전 그대로.
+   */
+  outOfRange?: boolean;
 }
 
 export default function AreaInput({
@@ -103,6 +112,7 @@ export default function AreaInput({
   hideUnitToggle = false,
   onEnterComplete,
   untouched = false,
+  outOfRange = false,
 }: AreaInputProps) {
   // 칩 목록 — supply 모드는 평/㎡ 기본 칩이 있고, work·exclusive는 호출한 쪽이 넘겨준다
   const defaultChips = mode === 'supply' ? (unit === '평' ? SUPPLY_PYEONG_CHIPS : EXCLUSIVE_SQM_CHIPS) : undefined;
@@ -127,18 +137,18 @@ export default function AreaInput({
     }
     return `≈ ${sqmToPyeong(value)}평`;
   }
-  const convCaption = untouched ? null : conversionCaption();
+  const convCaption = untouched || outOfRange ? null : conversionCaption();
 
   const unitToggle = (
     // 평/㎡ 단위 토글 — 값 선택이 아니라 "보기 방식"을 바꾸는 소형 토글이라 size="sm"(32px)
-    <div className="flex gap-2">
-      <Chip shape="square" size="sm" selected={unit === '평'} onClick={() => onUnitChange('평')}>
+    <ChipGroup role="radiogroup" ariaLabel="단위" className="flex gap-2">
+      <Chip shape="square" size="sm" asRadio selected={unit === '평'} onClick={() => onUnitChange('평')}>
         평
       </Chip>
-      <Chip shape="square" size="sm" selected={unit === '㎡'} onClick={() => onUnitChange('㎡')}>
+      <Chip shape="square" size="sm" asRadio selected={unit === '㎡'} onClick={() => onUnitChange('㎡')}>
         ㎡
       </Chip>
-    </div>
+    </ChipGroup>
   );
 
   return (
@@ -164,10 +174,11 @@ export default function AreaInput({
           선택 모습"일 이유가 없어져 기본 동작으로 통일했다(예전 flex-wrap 갈래는 아무도
           안 쓰는 죽은 코드라 지웠다). */}
       {chipList.length > 0 && (
-        <div className="grid grid-cols-2 min-[380px]:grid-cols-3 gap-2">
+        <ChipGroup role="radiogroup" ariaLabel="면적" className="grid grid-cols-2 min-[380px]:grid-cols-3 gap-2">
           {chipList.map((n) => (
             <Chip
               key={n}
+              asRadio
               // untouched면 실제 값이 34여도 칩은 하나도 선택 표시 안 한다(검수 지적 1번 —
               // 화면이 "아직 안 골랐다"고 말해야 하는데 칩이 선택돼 보이면 앞뒤가 안 맞는다)
               selected={!untouched && value === n}
@@ -178,7 +189,7 @@ export default function AreaInput({
               {chipLabel(n)}
             </Chip>
           ))}
-        </div>
+        </ChipGroup>
       )}
 
       {/* 직접 입력 — untouched면 칸은 비우고 실제 값(34 등)을 자리 글자로 흐리게 보여준다.

@@ -482,6 +482,9 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
     {
       key: 'scope',
       label: '범위',
+      // 범위(벽·천장)는 각각 따로 켜고 끄는 묶음이다(둘 다 켤 수 있음) — ChipGroup에
+      // role="group"으로 알려 준다(2026-09-29 지적 1번, AdjustChips가 multi를 본다)
+      multi: true,
       children: <ConditionChips target={form.target ?? 'both'} onTargetChange={onTargetChange} />,
     },
     ...(view === 'simple'
@@ -492,7 +495,7 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
             children: (
               <>
                 {[2, 3, 4].map((b) => (
-                  <Chip key={b} selected={form.bay === b} onClick={() => onBayChange(b as 2 | 3 | 4)}>
+                  <Chip key={b} asRadio selected={form.bay === b} onClick={() => onBayChange(b as 2 | 3 | 4)}>
                     {b}베이
                   </Chip>
                 ))}
@@ -541,7 +544,7 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
         backHref="/calc"
         as="p"
         rightSlot={
-          <Segment size="sm" options={VIEW_OPTIONS} value={view} onChange={(v) => patch({ view: v })} className="w-[136px]" />
+          <Segment size="sm" options={VIEW_OPTIONS} value={view} onChange={(v) => patch({ view: v })} className="w-[136px]" ariaLabel="계산 모드" />
         }
       />
 
@@ -554,6 +557,7 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
             value={view}
             onChange={(v) => patch({ view: v })}
             className="hidden lg:flex w-[160px]"
+            ariaLabel="계산 모드"
           />
           <FlowShell steps={steps} activeIndex={activeIndex} completeFlags={completeFlags} />
         </div>
@@ -562,7 +566,10 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
             순서: 단계 → 조정 칩 → 결과 카드). PC(lg)에선 오른쪽 패널 맨 위에 조정 칩이 온다(3-14절) */}
         <div
           ref={resultRef}
-          className="scroll-mt-16 flex flex-col gap-4 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto"
+          // 2026-09-29 지적 3번: 결과 카드 구역에도 flowFocusScope를 줘서 토글·버튼·시트
+          // 안 입력 칸의 초점 테두리가 전부 새 틀 강조색(--accent)으로 통일되게 한다
+          // (예전엔 이 구역이 범위 밖이라 진한 갈색 그대로였다)
+          className="scroll-mt-16 flex flex-col gap-4 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto flowFocusScope"
         >
           <AdjustChips visible={!!result} groups={adjustGroups} />
           {/* 3-13절: 첫 단계(벽지 종류)를 고르기 전에는 결과 카드를 그리지 않는다 — result가

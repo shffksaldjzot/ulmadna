@@ -19,6 +19,13 @@
 // 미장의 숫자 칸도 전부 이 부품을 쓰므로, 그 화면들에도 원래 없던 "엔터=키보드 내림"
 // 동작이 몰래 생긴 것). 이제 onEnterComplete를 넘긴 화면(도배의 새 단계 흐름)에서만
 // 엔터 처리를 하고, 안 넘긴 화면은 브라우저 기본 동작 그대로 둔다.
+//
+// 2026-09-29 검사관 다듬기 지적 3번 — showCommas 선택 속성 추가: 미장 세부 조정의
+// 배송비·지게차 하차비·양중비는 칸 아래에 "50,000원"처럼 값을 되풀이해 보여주는 글이
+// 있었다(천 단위 쉼표가 필요해서 둔 것). 이제 칸 안의 숫자 자체가 초점이 없을 때만
+// 쉼표를 넣어 보여주고(입력 중에는 쉼표 없이 숫자만 — 커서 자리가 안 흔들리게) 아래
+// 되풀이 글을 지운다. 기본값 false — 안 주면 기존 그대로(쉼표는 사용자가 직접 쳤을
+// 때만 그 모습 그대로 보인다, 다른 화면은 전혀 안 바뀐다).
 // ──────────────────────────────────────────────
 
 'use client';
@@ -47,6 +54,11 @@ function valueToText(v: number | ''): string {
   return v === '' ? '' : String(v);
 }
 
+/** 바깥 값을 천 단위 쉼표를 넣은 글자로 바꾼다(showCommas 전용, 초점 없을 때만 쓴다) */
+function valueToCommaText(v: number | ''): string {
+  return v === '' ? '' : v.toLocaleString('ko-KR');
+}
+
 interface NumberFieldProps {
   value: number | '';
   onChange: (v: number | '') => void;
@@ -65,6 +77,8 @@ interface NumberFieldProps {
    * 기본 동작 그대로 — 바닥재·미장 등 기존 화면은 전혀 안 바뀐다, 검사관 지적 10번).
    */
   onEnterComplete?: () => void;
+  /** true면 초점이 없을 때만 천 단위 쉼표를 넣어 보여준다(입력 중엔 숫자만). 기본 false */
+  showCommas?: boolean;
 }
 
 export default function NumberField({
@@ -76,10 +90,11 @@ export default function NumberField({
   min,
   max,
   onEnterComplete,
+  showCommas = false,
   ...rest
 }: NumberFieldProps) {
   // 입력칸에 실제로 보이는 글자. 사용자가 치는 그대로 들고 있는다("3." 같은 중간 상태 포함)
-  const [text, setText] = useState<string>(valueToText(value));
+  const [text, setText] = useState<string>(showCommas ? valueToCommaText(value) : valueToText(value));
   // 바깥 값이 바뀐 걸 알아채려고 직전 값을 같이 기억해 둔다
   const [lastValue, setLastValue] = useState<number | ''>(value);
   // 엔터 쳤을 때 blur(키보드 내리기)시키려고 input 자체를 참조해 둔다
@@ -90,7 +105,7 @@ export default function NumberField({
   if (value !== lastValue) {
     setLastValue(value);
     if (parseNumberInput(text) !== value) {
-      setText(valueToText(value));
+      setText(showCommas ? valueToCommaText(value) : valueToText(value));
     }
   }
 
@@ -120,6 +135,16 @@ export default function NumberField({
             setLastValue(parsed);
             onChange(parsed);
           }
+        }}
+        onFocus={() => {
+          // showCommas면 편집 중엔 쉼표를 없애 커서 자리가 안 흔들리게 한다
+          if (showCommas) setText((t) => t.replace(/,/g, ''));
+        }}
+        onBlur={() => {
+          // showCommas면 초점이 나갈 때 숫자로 정확히 해석되면 쉼표를 다시 넣어 보여준다
+          if (!showCommas) return;
+          const parsed = parseNumberInput(text);
+          if (typeof parsed === 'number') setText(valueToCommaText(parsed));
         }}
         onKeyDown={(e) => {
           // onEnterComplete를 안 넘긴 화면(바닥재·미장 등 기존 화면)은 엔터를 특별

@@ -27,13 +27,14 @@ export interface ScopeChipsProps {
 export default function ScopeChips({ scope, onScopeChange }: ScopeChipsProps) {
   return (
     <>
-      <Chip selected={scope === '전체'} onClick={() => onScopeChange('전체')}>
+      {/* 하나만 고르는 배타적 선택이라 asRadio — AdjustChips가 감싼 ChipGroup(role="radiogroup")과 짝 */}
+      <Chip asRadio selected={scope === '전체'} onClick={() => onScopeChange('전체')}>
         전체
       </Chip>
-      <Chip selected={scope === '방만'} onClick={() => onScopeChange('방만')}>
+      <Chip asRadio selected={scope === '방만'} onClick={() => onScopeChange('방만')}>
         방만
       </Chip>
-      <Chip selected={scope === '거실주방'} onClick={() => onScopeChange('거실주방')}>
+      <Chip asRadio selected={scope === '거실주방'} onClick={() => onScopeChange('거실주방')}>
         거실·주방·복도
       </Chip>
     </>

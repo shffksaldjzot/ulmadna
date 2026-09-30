@@ -20,6 +20,7 @@
 'use client';
 
 import Chip from '@/components/v1/Chip';
+import ChipGroup from '@/components/v1/ChipGroup';
 import RoomCard from '../wallpaper/precise/RoomCard';
 import type { LengthUnit } from '../wallpaper/precise/units';
 import type { FlooringPreciseRoom } from '@/lib/v1/flooringQuery';
@@ -58,14 +59,14 @@ export default function PreciseSection({ unit, onUnitChange, rooms, onRoomsChang
           평/㎡ 토글과 같은 소형 단위 토글이라 size="sm"(32px, 2026-09-16 형아 피드백) */}
       <div className="flex items-center justify-between">
         <span className="text-[15px] font-semibold text-foreground">단위</span>
-        <div className="flex gap-2">
-          <Chip shape="square" size="sm" selected={unit === 'm'} onClick={() => onUnitChange('m')}>
+        <ChipGroup role="radiogroup" ariaLabel="단위" className="flex gap-2">
+          <Chip shape="square" size="sm" asRadio selected={unit === 'm'} onClick={() => onUnitChange('m')}>
             m
           </Chip>
-          <Chip shape="square" size="sm" selected={unit === 'mm'} onClick={() => onUnitChange('mm')}>
+          <Chip shape="square" size="sm" asRadio selected={unit === 'mm'} onClick={() => onUnitChange('mm')}>
             mm
           </Chip>
-        </div>
+        </ChipGroup>
       </div>
 
       {/* 2. 방 크기 — 방 카드 목록 (RoomCard simple=true: 가로·세로만 보인다) */}

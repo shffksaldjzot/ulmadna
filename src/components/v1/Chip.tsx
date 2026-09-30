@@ -29,9 +29,16 @@ interface ChipProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   shape?: 'pill' | 'square';
   /** 칩 크기. 기본 'md'(36/14). 'sm'(32/13)은 평/㎡·면적/가로×세로 같은 소형 단위 토글 전용 */
   size?: 'md' | 'sm';
+  /**
+   * 2026-09-29 지시서 3-6절 다듬기 — 이 칩이 "하나만 고르는 묶음"(ChipGroup role="radiogroup")
+   * 안에 있을 때 true로 준다. true면 aria-pressed 대신 role="radio"+aria-checked를 낸다
+   * (스크린리더가 "여러 개 중 하나 고르기"로 정확히 읽는다). 기본 false — 안 주면 기존
+   * 그대로 aria-pressed만 낸다(여러 개를 각각 켜고 끄는 묶음, 단독 버튼 전부 안 바뀜).
+   */
+  asRadio?: boolean;
 }
 
-export default function Chip({ selected, shape = 'pill', size = 'md', className = '', children, ...rest }: ChipProps) {
+export default function Chip({ selected, shape = 'pill', size = 'md', asRadio = false, className = '', children, ...rest }: ChipProps) {
   // 모양만 다르고 선택/미선택 색상 규칙은 동일하다
   const shapeClass = shape === 'square' ? 'rounded-[4px]' : 'rounded-full';
   // 크기별 높이·좌우 패딩·글자 크기 — md(기본 선택 칩) / sm(소형 단위 토글)
@@ -51,7 +58,7 @@ export default function Chip({ selected, shape = 'pill', size = 'md', className 
           : 'bg-white border border-v1-line-3 text-v1-text-secondary font-normal') +
         ' ' + className
       }
-      aria-pressed={selected}
+      {...(asRadio ? { role: 'radio', 'aria-checked': !!selected } : { 'aria-pressed': !!selected })}
       {...rest}
     >
       {children}

@@ -279,6 +279,7 @@ export default function MaterialPicker({
         ]}
         value={kind}
         onChange={onKindChange}
+        ariaLabel="자재"
       />
     );
   }

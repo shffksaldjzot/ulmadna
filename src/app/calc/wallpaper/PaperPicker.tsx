@@ -268,6 +268,7 @@ export default function PaperPicker({
         ]}
         value={paperType}
         onChange={onPaperTypeChange}
+        ariaLabel="벽지 종류"
       />
     );
   }

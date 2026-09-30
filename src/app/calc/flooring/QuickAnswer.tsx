@@ -72,6 +72,8 @@ export default function QuickAnswer({
         onValueChange={(v) => (areaUnit === '㎡' ? onExclusiveSqmChange(v) : onPyeongChange(v))}
         onEnterComplete={onEnterComplete}
         untouched={untouched}
+        // 2026-09-29 지적 4번: 범위 밖일 때(areaCaption이 있을 때)는 환산 줄을 안 그린다
+        outOfRange={!!areaCaption}
       />
       {areaCaption && <p className="t-sub text-danger">{areaCaption}</p>}
     </div>

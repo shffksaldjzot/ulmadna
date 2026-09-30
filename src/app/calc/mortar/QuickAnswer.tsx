@@ -30,6 +30,7 @@
 'use client';
 
 import Chip from '@/components/v1/Chip';
+import ChipGroup from '@/components/v1/ChipGroup';
 import NumberField from '@/components/v1/NumberField';
 import AreaInput from '../_components/AreaInput';
 import type { MortarFormState } from '@/lib/v1/mortarQuery';
@@ -45,7 +46,7 @@ import {
   THICKNESS_MM_MIN,
   thicknessMmMax,
 } from '@/lib/v1/mortarPresets';
-import { mortarThicknessUxMin } from '../_components/inputRanges';
+import { mortarThicknessUxMin, rangeCaption } from '../_components/inputRanges';
 
 export interface QuickAnswerProps {
   /** 이 카드에서 어느 부분만 그릴지 — 'area'(시공 면적) / 'thickness'(두께) */
@@ -67,18 +68,17 @@ export interface QuickAnswerProps {
    * 전부 대신 처리한다. 간단 모드는 이 prop을 안 넘겨서 기본 동작 그대로다.
    */
   onThicknessChangeOverride?: (mm: number | undefined) => void;
+  /**
+   * 2026-09-29 지적 2·4번 — 면적(㎡ 환산값)이 서버 범위(0.5~500㎡)를 벗어났을 때 보여줄
+   * 안내 글("500㎡ 이하"). MortarCalculator.tsx가 계산해서 넘긴다(평/㎡·방통/셀프
+   * 환산이 갈려서 이 부품 혼자서는 정확한 경계값을 못 구한다). 있으면 칸 아래에 보여주고
+   * AreaInput의 환산 줄("≈ ...평")은 같이 안 뜨게 막는다(part==='area' 전용).
+   */
+  areaRangeCaption?: string;
 }
 
 /** 작업 면적 그 자체(공급/전용 개념 없음)로 쓰는 용도 — 셀프레벨링의 작은 직접 면적 칩(㎡) */
 const WORK_AREA_CHIPS_SQM: readonly number[] = [3, 5, 10, 20];
-
-/** 두께 입력이 허용 범위를 벗어났을 때 칸 아래에 보여줄 짧은 문구(마침표 없이) */
-function thicknessRangeNote(value: number | '' | undefined, min: number, max: number): string | undefined {
-  if (value === undefined || value === '') return undefined;
-  if (value < min) return `${min}mm 이상`;
-  if (value > max) return `${max}mm 이하`;
-  return undefined;
-}
 
 export default function QuickAnswer({
   part,
@@ -89,6 +89,7 @@ export default function QuickAnswer({
   onAreaEnterComplete,
   onThicknessTouch,
   onThicknessChangeOverride,
+  areaRangeCaption,
 }: QuickAnswerProps) {
   const mode = form.mode ?? '레미탈';
   const areaInputMode = form.areaInputMode ?? 'area';
@@ -130,14 +131,17 @@ export default function QuickAnswer({
   // 간단·정확 모드가 완전히 같은 모습을 쓴다(2026-09-27 저녁 검수 지적 6번).
   if (part === 'thickness') {
     // 범위를 벗어난 값을 쳤을 때만 짧게 알려준다(정적 "10~150mm" 캡션은 삭제)
-    const rangeNote = !thicknessUntouched ? thicknessRangeNote(form.thicknessMm, thicknessMin, thicknessMax) : undefined;
+    // 2026-09-29: 공용 rangeCaption 하나로 통일했다(예전엔 이 파일 안에 똑같은 일을 하는
+    // thicknessRangeNote를 따로 두고 있었다 — 죽은 코드 정리)
+    const rangeNote = !thicknessUntouched ? rangeCaption(form.thicknessMm, thicknessMin, thicknessMax, 'mm') : undefined;
     return (
       <div className="flex flex-col gap-2">
         {/* 두께 칩 — 8개(레미탈)·6개(셀프레벨링)라 들쭉날쭉해 보이지 않게 4열 격자로 고정한다 */}
-        <div className="grid grid-cols-4 gap-2">
+        <ChipGroup role="radiogroup" ariaLabel="두께" className="grid grid-cols-4 gap-2">
           {thicknessChips.map((mm) => (
             <Chip
               key={mm}
+              asRadio
               // 손대기 전엔 실제 값이 기본 두께와 같아도 선택 표시를 안 한다(지시서 9-2절 —
               // "칩 미선택"으로 시작해야 한다)
               selected={!thicknessUntouched && form.thicknessMm === mm}
@@ -148,7 +152,7 @@ export default function QuickAnswer({
               {mm}mm
             </Chip>
           ))}
-        </div>
+        </ChipGroup>
         <NumberField
           // 손대기 전엔 칸을 비우고 용도별 기본 두께를 자리 글자로 흐리게 보여준다
           value={thicknessUntouched ? '' : (form.thicknessMm ?? '')}
@@ -171,10 +175,11 @@ export default function QuickAnswer({
       {/* 입력 방식 토글 두 묶음을 한 줄 왼쪽·오른쪽으로 나눈다(2026-09-27 저녁 검수 지적
           3번) — 안쪽 라벨("시공 면적")은 뺐다(제목 "면적"과 같은 말이라 중복). */}
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex gap-2">
+        <ChipGroup role="radiogroup" ariaLabel="입력 방식" className="flex gap-2">
           <Chip
             shape="square"
             size="sm"
+            asRadio
             selected={areaInputMode === 'area'}
             onClick={() => patch({ areaInputMode: 'area' })}
           >
@@ -183,22 +188,23 @@ export default function QuickAnswer({
           <Chip
             shape="square"
             size="sm"
+            asRadio
             selected={areaInputMode === 'rect'}
             onClick={() => patch({ areaInputMode: 'rect' })}
           >
             가로×세로
           </Chip>
-        </div>
+        </ChipGroup>
         <div className="flex gap-2">
           {supplyArea && areaInputMode === 'area' && (
-            <>
-              <Chip shape="square" size="sm" selected={areaUnit === '평'} onClick={() => patch({ areaUnit: '평' })}>
+            <ChipGroup role="radiogroup" ariaLabel="단위" className="flex gap-2">
+              <Chip shape="square" size="sm" asRadio selected={areaUnit === '평'} onClick={() => patch({ areaUnit: '평' })}>
                 평
               </Chip>
-              <Chip shape="square" size="sm" selected={areaUnit === '㎡'} onClick={() => patch({ areaUnit: '㎡' })}>
+              <Chip shape="square" size="sm" asRadio selected={areaUnit === '㎡'} onClick={() => patch({ areaUnit: '㎡' })}>
                 ㎡
               </Chip>
-            </>
+            </ChipGroup>
           )}
         </div>
       </div>
@@ -221,6 +227,7 @@ export default function QuickAnswer({
             hideUnitToggle
             onEnterComplete={onAreaEnterComplete ?? (() => {})}
             untouched={areaUntouched}
+            outOfRange={!!areaRangeCaption}
           />
         ) : (
           // 셀프레벨링 — 집 평형 개념이 없는 작업 면적 그 자체
@@ -235,6 +242,7 @@ export default function QuickAnswer({
             placeholder="면적을 입력하세요(㎡)"
             onEnterComplete={onAreaEnterComplete ?? (() => {})}
             untouched={areaUntouched}
+            outOfRange={!!areaRangeCaption}
           />
         )
       ) : (
@@ -257,6 +265,9 @@ export default function QuickAnswer({
           />
         </div>
       )}
+      {/* 2026-09-29 지적 2·4번: 면적/가로×세로 어느 입력 방식이든 공통으로 보여준다
+          (가로×세로는 AreaInput을 안 쓰니 환산 줄 자체가 없어서 outOfRange가 필요 없다) */}
+      {areaRangeCaption && <p className="t-sub text-danger">{areaRangeCaption}</p>}
     </div>
   );
 }

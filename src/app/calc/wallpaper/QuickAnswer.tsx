@@ -73,9 +73,11 @@ export default function QuickAnswer({
         onUnitChange={onAreaUnitChange}
         value={areaUnit === '㎡' ? exclusiveSqm : pyeong}
         onValueChange={(v) => (areaUnit === '㎡' ? onExclusiveSqmChange(v) : onPyeongChange(v))}
-        // 도배 계산기 전용 격자 배치 + 엔터 완료(바닥재·미장은 이 prop들을 안 넘겨서 그대로다)
         onEnterComplete={onEnterComplete}
         untouched={untouched}
+        // 2026-09-29 지적 4번: 범위 밖일 때(areaCaption이 있을 때)는 환산 줄("≈ ...㎡")을
+        // 안 그린다 — 범위 안내 글과 같이 뜨면 뜻 없는 환산까지 보여 정신없다.
+        outOfRange={!!areaCaption}
       />
       {areaCaption && <p className="t-sub text-danger">{areaCaption}</p>}
     </div>

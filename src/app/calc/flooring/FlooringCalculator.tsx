@@ -406,7 +406,7 @@ export default function FlooringCalculator({ products }: FlooringCalculatorProps
             children: (
               <>
                 {[2, 3, 4].map((b) => (
-                  <Chip key={b} selected={form.bay === b} onClick={() => onBayChange(b as 2 | 3 | 4)}>
+                  <Chip key={b} asRadio selected={form.bay === b} onClick={() => onBayChange(b as 2 | 3 | 4)}>
                     {b}베이
                   </Chip>
                 ))}
@@ -452,7 +452,7 @@ export default function FlooringCalculator({ products }: FlooringCalculatorProps
         backHref="/calc"
         as="p"
         rightSlot={
-          <Segment size="sm" options={VIEW_OPTIONS} value={view} onChange={(v) => patch({ view: v })} className="w-[136px]" />
+          <Segment size="sm" options={VIEW_OPTIONS} value={view} onChange={(v) => patch({ view: v })} className="w-[136px]" ariaLabel="계산 모드" />
         }
       />
 
@@ -465,6 +465,7 @@ export default function FlooringCalculator({ products }: FlooringCalculatorProps
             value={view}
             onChange={(v) => patch({ view: v })}
             className="hidden lg:flex w-[160px]"
+            ariaLabel="계산 모드"
           />
           <FlowShell steps={steps} activeIndex={activeIndex} completeFlags={completeFlags} />
         </div>
@@ -472,7 +473,10 @@ export default function FlooringCalculator({ products }: FlooringCalculatorProps
         {/* 오른쪽 — 조정 칩 + 결과 */}
         <div
           ref={resultRef}
-          className="scroll-mt-16 flex flex-col gap-4 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto"
+          // 2026-09-29 지적 3번: 결과 카드 구역에도 flowFocusScope를 줘서 토글·버튼·시트
+          // 안 입력 칸의 초점 테두리가 전부 새 틀 강조색(--accent)으로 통일되게 한다
+          // (예전엔 이 구역이 범위 밖이라 진한 갈색 그대로였다)
+          className="scroll-mt-16 flex flex-col gap-4 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto flowFocusScope"
         >
           <AdjustChips visible={!!result} groups={adjustGroups} />
           {/* 첫 단계(자재)를 고르기 전에는 결과 카드를 그리지 않는다 */}

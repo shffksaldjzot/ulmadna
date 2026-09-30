@@ -36,10 +36,17 @@ export interface FlowStepDef {
 export interface AdjustChipGroup {
   /** React 키 겸 구분용 이름 */
   key: string;
-  /** 왼쪽에 붙는 작은 라벨 (t-sub) */
+  /** 왼쪽에 붙는 작은 라벨 (t-sub) — 방향키 묶음의 aria-label로도 그대로 쓴다 */
   label: string;
   /** 실제 칩 버튼들 */
   children: ReactNode;
+  /**
+   * 2026-09-29 지시서 3-6절 다듬기 — 이 묶음이 "여러 개를 각각 켜고 끄는" 묶음이면 true
+   * (예: 도배 범위의 벽·천장 — 둘 다 켤 수 있다). 기본 false(하나만 고르는 묶음, 예:
+   * 베이·공법) — AdjustChips가 이 값을 보고 ChipGroup의 role을 radiogroup/group으로
+   * 가른다.
+   */
+  multi?: boolean;
 }
 
 /** 제품 목록 시트(ProductSheet)에 넣는 한 줄 */

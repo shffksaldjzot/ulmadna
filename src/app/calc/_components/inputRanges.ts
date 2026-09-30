@@ -84,6 +84,19 @@ export function mortarThicknessUxMin(mode: '레미탈' | '셀프레벨링', serv
   return mode === '레미탈' ? 10 : serverMin;
 }
 
+/**
+ * 원(₩) 단위 금액 칸(배송비·지게차 하차비·양중비)의 범위 안내 글 — "1,000만원 이하"처럼
+ * "만원" 단위로 콤마 찍어 보여준다(원 단위 숫자를 그대로 보여주면 "10000000원 이하"로
+ * 안 읽혀서). 최솟값은 이 세 칸이 전부 0(음수는 NumberField가 아예 못 치게 막는다)이라
+ * "이상" 안내는 필요 없다.
+ */
+export function moneyRangeCaption(value: number | undefined, maxWon: number): string | undefined {
+  if (value === undefined || typeof value !== 'number' || !Number.isFinite(value)) return undefined;
+  if (value <= maxWon) return undefined;
+  const maxManwon = Math.round(maxWon / 10_000).toLocaleString('ko-KR');
+  return `${maxManwon}만원 이하`;
+}
+
 export function isRoomDimValid(w: number, d: number, h?: number): boolean {
   if (w > 0 && !isWithinRange(w, ROOM_DIM_M_MIN, ROOM_DIM_M_MAX)) return false;
   if (d > 0 && !isWithinRange(d, ROOM_DIM_M_MIN, ROOM_DIM_M_MAX)) return false;

@@ -11,6 +11,7 @@
 
 'use client';
 
+import ChipGroup from '@/components/v1/ChipGroup';
 import type { AdjustChipGroup } from './types';
 
 export interface AdjustChipsProps {
@@ -27,7 +28,12 @@ export default function AdjustChips({ visible, groups }: AdjustChipsProps) {
       {groups.map((g) => (
         <div key={g.key} className="flex items-center gap-2 flex-wrap">
           <span className="t-sub text-ink-2 flex-none">{g.label}</span>
-          {g.children}
+          {/* 2026-09-29 지시서 3-6절 다듬기 — 방향키로 묶음 안을 옮겨 다닐 수 있게
+              ChipGroup으로 감싼다. multi(여러 개 선택)면 role="group", 아니면
+              role="radiogroup"(칩 쪽도 asRadio로 role="radio"를 낸다) */}
+          <ChipGroup role={g.multi ? 'group' : 'radiogroup'} ariaLabel={g.label} className="flex items-center gap-2 flex-wrap">
+            {g.children}
+          </ChipGroup>
         </div>
       ))}
     </div>

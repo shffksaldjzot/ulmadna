@@ -31,6 +31,7 @@ import { useSearchParams } from 'next/navigation';
 import TopNav from '@/components/v1/TopNav';
 import Segment from '@/components/v1/Segment';
 import Chip from '@/components/v1/Chip';
+import ChipGroup from '@/components/v1/ChipGroup';
 import Collapsible from '@/components/v1/Collapsible';
 import { DEFAULT_MORTAR_FORM, decodeMortarForm, type MortarFormState } from '@/lib/v1/mortarQuery';
 import type { MortarProductOption } from '@/lib/v1/mortarProductOptions';
@@ -45,13 +46,15 @@ import {
   presetThicknessMm,
   assumedAreaSqm,
 } from '@/lib/v1/mortarEngineInput';
-import { USAGE_PRESET, SELF_LEVEL_USAGE_PRESET, THICKNESS_MM_MIN, thicknessMmMax } from '@/lib/v1/mortarPresets';
+import { USAGE_PRESET, SELF_LEVEL_USAGE_PRESET, THICKNESS_MM_MIN, thicknessMmMax, MONEY_INPUT_WON_MAX } from '@/lib/v1/mortarPresets';
+import { useLastValidNumber } from '../_components/useLastValidNumber';
 import {
   MORTAR_AREA_SQM_MIN,
   MORTAR_AREA_SQM_MAX,
   MORTAR_ZONE_SQM_MIN,
   MORTAR_ZONE_SQM_MAX,
   isWithinRange,
+  rangeCaption,
   mortarThicknessUxMin,
 } from '../_components/inputRanges';
 import QuickAnswer from './QuickAnswer';
@@ -236,6 +239,10 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
   // (엔진 파일을 새로 안 건드림, 평/㎡·방통/셀프 환산은 전부 그 함수가 이미 하고 있다).
   const simpleAreaSqm = resolveSimpleAreaSqm(form);
   const simpleAreaInRange = simpleAreaSqm !== null && isWithinRange(simpleAreaSqm, MORTAR_AREA_SQM_MIN, MORTAR_AREA_SQM_MAX);
+  // 2026-09-29 지적 4번: 범위 밖 안내 — 평/㎡·방통/셀프 환산이 갈려서 사용자가 지금 보는
+  // 단위로 정확히 맞추기 번거로우니, 환산이 끝난 ㎡ 기준으로 안내한다("500㎡ 이하").
+  // 칸이 비어 있으면(simpleAreaSqm===null) 안내 대상이 아니다.
+  const areaRangeCaption = simpleAreaSqm !== null ? rangeCaption(simpleAreaSqm, MORTAR_AREA_SQM_MIN, MORTAR_AREA_SQM_MAX, '㎡') : undefined;
 
   // 정확 모드 구역 — 각 구역이 0.1~500㎡ 안이어야 계산에 넣는다. 범위 밖 구역은 통째로
   // 빼고 계산 담당에 넘긴다("그 값으로는 계산하지 않는다").
@@ -357,9 +364,24 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
       method: methodTouched,
     },
   };
+  // 2026-09-29 지적 2번: 세부 조정의 배송비·지게차 하차비·양중비는 면적·두께와 달리
+  // "선택 항목"이라 범위를 벗어나도 가정값으로 되돌리지 않는다 — 그냥 직전에 있었던
+  // 정상 값을 그대로 계산에 쓴다(0원으로 떨어지지도, 가정 표시가 뜨지도 않는다). 화면
+  // 입력 칸(PreciseSection.tsx)은 이 값과 무관하게 form 값을 그대로 보여준다(사용자가
+  // 친 숫자가 안 지워진다) — 여기서 만든 값은 오직 계산 훅에 넘길 때만 쓴다.
+  const deliveryFeeForCalc = useLastValidNumber(form.deliveryFeeWon, 0, MONEY_INPUT_WON_MAX);
+  const liftingFeeForCalc = useLastValidNumber(form.liftingFeeWon, 0, MONEY_INPUT_WON_MAX);
+  const forkliftFeeForCalc = useLastValidNumber(form.forkliftFeeWon, 0, MONEY_INPUT_WON_MAX);
+
   // 정확 모드에서 계산 담당에 넘길 구역 목록 — 범위 밖 구역은 빼고 넘긴다(위 zonesForCalc).
   // 남은 구역이 없어지면 엔진이 기존 규칙대로 "구역이 비었다"로 보고 가정 면적으로 계산한다.
-  const formForCalc = view === 'precise' ? { ...form, preciseRooms: zonesForCalc } : form;
+  const formForCalc = {
+    ...form,
+    ...(view === 'precise' ? { preciseRooms: zonesForCalc } : {}),
+    deliveryFeeWon: deliveryFeeForCalc,
+    liftingFeeWon: liftingFeeForCalc,
+    forkliftFeeWon: forkliftFeeForCalc,
+  };
   // 즉답 — 서버 없이 바로 계산되는 포수·체적·현장배합(항상 최신 폼 상태를 즉시 반영)
   const quick = useMortarQuickCalc(formForCalc, products, touchedOptions);
   // 서버 — 비용·인건(디바운스 + API 호출, 늦게 오거나 실패할 수 있다)
@@ -408,10 +430,13 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
 
   // ── 단계 정의 배열 — 용도 칩 줄은 두 모드가 공유한다 ──
   const usageStepContent = (
-    <div className="flex flex-wrap gap-2">
+    // 2026-09-29 지시서 3-6절 다듬기 — 방향키로 옮겨 다닐 수 있게 ChipGroup으로 감싼다.
+    // 하나만 고르는 묶음이라 role="radiogroup"(칩도 asRadio로 role="radio"를 낸다)
+    <ChipGroup role="radiogroup" ariaLabel="용도" className="flex flex-wrap gap-2">
       {TOP_USAGE_ORDER.map((u) => (
         <Chip
           key={u}
+          asRadio
           // 지시서 9-2절: 1단계는 아무것도 선택되지 않은 채 시작한다 — 손대기 전엔 칩에
           // 선택 표시를 하지 않는다(속에 기본값이 있어도)
           selected={touchedMap.usage && currentTopUsage === u}
@@ -420,7 +445,7 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
           {topUsageLabel(u)}
         </Chip>
       ))}
-    </div>
+    </ChipGroup>
   );
 
   const steps: FlowStepDef[] = [
@@ -442,6 +467,7 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
             patch={patchArea}
             areaUntouched={!touchedMap.area}
             onAreaEnterComplete={() => touch('area')}
+            areaRangeCaption={areaRangeCaption}
           />
         ) : (
           <PreciseRooms rooms={form.preciseRooms ?? []} onRoomsChange={(v) => patchArea({ preciseRooms: v })} />
@@ -480,6 +506,7 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
               <>
                 <Chip
                   shape="square"
+                  asRadio
                   selected={(form.method ?? (form.usage ? USAGE_PRESET[form.usage].defaultMethod : '손미장')) === '손미장'}
                   onClick={() => onMethodChange('손미장')}
                 >
@@ -487,6 +514,7 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
                 </Chip>
                 <Chip
                   shape="square"
+                  asRadio
                   selected={(form.method ?? (form.usage ? USAGE_PRESET[form.usage].defaultMethod : '손미장')) === '장비타설'}
                   onClick={() => onMethodChange('장비타설')}
                 >
@@ -529,7 +557,7 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
         backHref="/calc"
         as="p"
         rightSlot={
-          <Segment size="sm" options={VIEW_OPTIONS} value={view} onChange={(v) => patch({ view: v })} className="w-[136px]" />
+          <Segment size="sm" options={VIEW_OPTIONS} value={view} onChange={(v) => patch({ view: v })} className="w-[136px]" ariaLabel="계산 모드" />
         }
       />
 
@@ -541,13 +569,17 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
             value={view}
             onChange={(v) => patch({ view: v })}
             className="hidden lg:flex w-[160px]"
+            ariaLabel="계산 모드"
           />
           <FlowShell steps={steps} activeIndex={activeIndex} completeFlags={completeFlags} />
         </div>
 
         <div
           ref={resultRef}
-          className="scroll-mt-16 flex flex-col gap-4 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto"
+          // 2026-09-29 지적 3번: 결과 카드 구역에도 flowFocusScope를 줘서 토글·버튼·시트
+          // 안 입력 칸의 초점 테두리가 전부 새 틀 강조색(--accent)으로 통일되게 한다
+          // (예전엔 이 구역이 범위 밖이라 진한 갈색 그대로였다)
+          className="scroll-mt-16 flex flex-col gap-4 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto flowFocusScope"
         >
           <AdjustChips visible={!!quick} groups={adjustGroups} />
           {/* 정확 모드 "세부 조정" — 조정 칩 아래, 결과 카드 위. 카드로 감싸지 않는다
