@@ -8,7 +8,7 @@
 // ──────────────────────────────────────────────
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { showAskToast } from './AskToast';
@@ -19,6 +19,20 @@ export default function AskCommentForm({ postId }: { postId: number }) {
   const router = useRouter();
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
+  // 이 질문에 오늘 더 달 수 있는 댓글 수(글당 하루 20개) — 로그인했을 때만 불러 작게 보여 준다
+  const [left, setLeft] = useState<number | null>(null);
+  const [reload, setReload] = useState(0);
+  useEffect(() => {
+    if (status !== 'authenticated') return;
+    let alive = true;
+    fetch(`/api/ask/quota?post=${postId}`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { commentLeft?: number } | null) => alive && typeof d?.commentLeft === 'number' && setLeft(d.commentLeft))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [status, postId, reload]);
 
   /** 로그인 화면으로(돌아올 곳 = 지금 질문) */
   function goLogin() {
@@ -44,6 +58,7 @@ export default function AskCommentForm({ postId }: { postId: number }) {
       }
       if (!r.ok) throw new Error(d.error || '댓글을 올리지 못했어요');
       setText('');
+      setReload((n) => n + 1); // 남은 댓글 수 다시 받기
       showAskToast('올렸어요 · AI가 이어서 답해요');
       router.refresh();
     } catch (err) {
@@ -54,21 +69,26 @@ export default function AskCommentForm({ postId }: { postId: number }) {
   }
 
   return (
+    <>
     <form className="write" onSubmit={onSubmit}>
       <input
         value={text}
         onChange={(e) => setText(e.target.value)}
         onFocus={() => {
           // 로그인 안 했으면 칸을 누르는 순간 안내
-          if (status === 'unauthenticated') showAskToast('카카오 로그인이 필요해요');
+          if (status === 'unauthenticated') showAskToast('로그인이 필요해요');
         }}
         maxLength={LIMITS.commentMax}
         placeholder={status === 'authenticated' ? '이어서 물어보기' : '이어서 물어보기 · 로그인 필요'}
         aria-label="이어서 물어보기"
       />
-      <button type="submit" disabled={busy}>
+      <button type="submit" disabled={busy || left === 0}>
         {status === 'authenticated' ? '보내기' : '로그인'}
       </button>
     </form>
+    {status === 'authenticated' && left != null && (
+      <p className="write-note">{left > 0 ? `이 질문에 오늘 댓글 ${left}개 더 달 수 있어요` : '이 질문엔 오늘 댓글을 다 달았어요 · 자정에 다시 열려요'}</p>
+    )}
+    </>
   );
 }

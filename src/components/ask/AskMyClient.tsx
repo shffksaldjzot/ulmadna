@@ -13,10 +13,12 @@ import { useSession } from 'next-auth/react';
 import type { AskListItem } from '@/lib/ask/constants';
 import { askHref, timeAgo } from '@/lib/ask/format';
 import AskCard from './AskCard';
+import AskAccountBox from './AskAccountBox';
 import { readSaved, type SavedAsk } from './saved';
+import { isIdUser } from '@/lib/account/validate';
 
 export default function AskMyClient() {
-  const { status } = useSession();
+  const { status, data: session } = useSession();
   const [tab, setTab] = useState<'mine' | 'saved'>('mine');
   const [nick, setNick] = useState<string | null>(null);
   const [mine, setMine] = useState<AskListItem[] | null>(null); // null = 불러오는 중
@@ -47,7 +49,7 @@ export default function AskMyClient() {
         <div className="eyebrow">얼마드나 물어보기</div>
         <h1 className="t-page">내 질문</h1>
         <p className="lead">
-          {nick ? `${nick} · ` : ''}카카오 로그인 ·{' '}
+          {nick ? `${nick} · ` : ''}{isIdUser(session?.user?.id) ? '아이디 로그인' : '카카오 로그인'} ·{' '}
           <Link href="/ask/nickname?next=/ask/my" style={{ color: 'var(--accent)', fontWeight: 600 }}>
             {nick ? '이름 바꾸기' : '이름 정하기'}
           </Link>
@@ -96,6 +98,8 @@ export default function AskMyClient() {
           ))}
         </div>
       )}
+      {/* 비밀번호 바꾸기(아이디 회원) · 회원 탈퇴 */}
+      <AskAccountBox />
       <aside className="aside" />
     </main>
   );

@@ -62,5 +62,9 @@ export async function PUT(req: Request) {
     console.error('[ask][profile][PUT]', error.message);
     return fail(500, '저장하지 못했어요');
   }
+  // 아이디 회원(user:<uuid>)이면 회원 표의 닉네임도 같이 맞춘다(실패해도 이름 바꾸기는 성공으로)
+  if (uid.startsWith('user:')) {
+    await sb.from('ask_users').update({ nickname }).eq('id', uid.slice(5));
+  }
   return NextResponse.json({ ok: true, nickname });
 }
