@@ -255,13 +255,17 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
           <div className="text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em]">
             {formatRollsText(quantity)}
           </div>
-          <p className="text-[15px] text-foreground leading-[1.6] tabular-nums">
+          {/* 2026-10-03 사장 지적 1번(공유 화면까지 확대 적용) — 수량 한 줄은 즉답 화면
+              (ResultPanel.tsx)과 같은 "요약" 톤: 15px·ink·수량 숫자라 굵기 600 */}
+          <p className="text-[15px] font-semibold text-ink leading-[1.6] tabular-nums">
             벽 {quantity.wallSqm}㎡ · 천장 {quantity.ceilingSqm}㎡ · {lossLabel}
           </p>
           {/* 면적·가정 한 줄 — "제품 미정" 등(검사관 지적 7번). 즉답 화면 ResultPanel.tsx와
-              같은 자리·같은 함수를 쓴다 */}
-          {areaAssumptionLine && <p className="text-[13px] text-v1-text-secondary tabular-nums">{areaAssumptionLine}</p>}
-          {/* 면적(벽 길이) 모드는 방별 물량이 없어 "실별 보기"가 뜻이 없다 — 숨긴다(검사관 지적 17번) */}
+              같은 자리·같은 함수를 쓴다. 색만 즉답 화면과 같은 ink-2로 맞춘다(크기·굵기는 그대로) */}
+          {areaAssumptionLine && <p className="text-[13px] text-ink-2 tabular-nums">{areaAssumptionLine}</p>}
+          {/* 면적(벽 길이) 모드는 방별 물량이 없어 "실별 보기"가 뜻이 없다 — 숨긴다(검사관 지적 17번).
+              2026-10-03: 접힘 속 세부는 "보조 정보"답게 13~14px·ink-2로 낮췄다(이름은 굵기
+              400, 금액은 500, 캡션은 12.5px disabled) */}
           {quantity.inputMode !== '면적' && (
             <Collapsible title="실별 보기">
               <div className="flex flex-col">
@@ -272,10 +276,10 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
                       i === quantity.byRoom.length - 1 ? '' : 'border-b border-v1-line-2'
                     }`}
                   >
-                    <span className="text-[15px] text-foreground">{r.name}</span>
-                    <span className="text-[15px] text-v1-text-secondary tabular-nums">
+                    <span className="text-[14px] text-ink-2">{r.name}</span>
+                    <span className="text-[14px] font-medium text-ink-2 tabular-nums">
                       {r.rolls}롤{' '}
-                      <span className="text-[13px] text-v1-text-disabled">{r1(r.wallSqm + r.ceilingSqm)}㎡</span>
+                      <span className="text-[12.5px] font-normal text-v1-text-disabled">{r1(r.wallSqm + r.ceilingSqm)}㎡</span>
                     </span>
                   </div>
                 ))}
@@ -283,25 +287,25 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
             </Collapsible>
           )}
 
-          {/* 부자재 */}
-          <h2 className="text-[17px] font-bold text-foreground border-t border-v1-line-2 pt-3 mt-1">부자재</h2>
+          {/* 부자재 — 섹션 제목은 소제목이라 굵기 600 유지, 크기만 17px→14px·ink-2로 낮췄다 */}
+          <h2 className="text-[14px] font-semibold text-ink-2 border-t border-v1-line-2 pt-3 mt-1">부자재</h2>
           <div className="flex flex-col">
             {submaterials.map((s, i) => (
               <div key={s.key} className={`py-[10px] ${i === submaterials.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
                 <div className="flex items-center justify-between">
-                  <span className="text-[15px] text-foreground">{s.name}</span>
-                  <span className="text-[15px] text-foreground tabular-nums">
+                  <span className="text-[14px] text-ink-2">{s.name}</span>
+                  <span className="text-[14px] font-medium text-ink-2 tabular-nums">
                     {formatNum(s.qty)}
                     {s.unit}
                   </span>
                 </div>
-                <p className="text-[13px] text-v1-text-disabled tabular-nums">{s.basis}</p>
+                <p className="text-[12.5px] text-v1-text-disabled tabular-nums">{s.basis}</p>
               </div>
             ))}
           </div>
 
-          {/* 비용 */}
-          <h2 className="text-[17px] font-bold text-foreground border-t border-v1-line-2 pt-3 mt-1">비용</h2>
+          {/* 비용 — "부자재"와 같은 소제목 톤 */}
+          <h2 className="text-[14px] font-semibold text-ink-2 border-t border-v1-line-2 pt-3 mt-1">비용</h2>
           {/* 금액과 단위는 줄바꿈으로 갈라지면 안 되므로(디자인 가이드 원칙) whitespace-nowrap.
               배지가 자리 부족하면 배지만 다음 줄로 내려가게 flex-wrap 허용 */}
           <div className="flex items-center gap-2 flex-wrap">
@@ -317,19 +321,20 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
           <p className="text-[15px] font-semibold text-v1-text-secondary tabular-nums">
             중간 {toMan(cost.mid).toLocaleString('ko-KR')}만원
           </p>
-          <p className="text-[15px] text-foreground tabular-nums">{cost.basisLine}</p>
+          {/* 기준 줄 — 즉답 화면과 같은 "요약" 톤(15px·ink), 굵기는 그대로(근거 문장이라 안 올림) */}
+          <p className="text-[15px] text-ink tabular-nums">{cost.basisLine}</p>
           <Collapsible title="구성 보기" defaultOpen>
             <div className="flex flex-col">
               {cost.breakdown.map((line, i) => (
                 <div key={line.key} className={`py-[10px] ${i === cost.breakdown.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
                   <div className="flex items-center justify-between">
-                    <span className="text-[15px] text-foreground">{line.name}</span>
-                    <span className="text-[15px] text-foreground tabular-nums">{formatCostLineAmount(line)}</span>
+                    <span className="text-[14px] text-ink-2">{line.name}</span>
+                    <span className="text-[14px] font-medium text-ink-2 tabular-nums">{formatCostLineAmount(line)}</span>
                   </div>
-                  <p className="text-[13px] text-v1-text-disabled tabular-nums">{line.note}</p>
+                  <p className="text-[12.5px] text-v1-text-disabled tabular-nums">{line.note}</p>
                 </div>
               ))}
-              <p className="text-[13px] text-v1-text-disabled pt-[10px]">소비자가 기준 · 부가세 포함</p>
+              <p className="text-[12.5px] text-v1-text-disabled pt-[10px]">소비자가 기준 · 부가세 포함</p>
             </div>
           </Collapsible>
         </Card>

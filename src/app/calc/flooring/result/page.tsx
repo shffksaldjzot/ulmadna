@@ -212,12 +212,16 @@ export default async function FlooringResultPage({ searchParams }: PageProps) {
           </div>
           {/* 2026-09-27 저녁 지휘관 3차 검수 지적 8번: 면적 정수·"총" 삭제 — 즉답 화면
               (ResultPanel.tsx)과 같은 표기로 맞춘다 */}
-          <p className="text-[15px] text-foreground leading-[1.6] tabular-nums">
+          {/* 2026-10-03 사장 지적 1번(공유 화면까지 확대 적용) — 수량 한 줄은 즉답 화면
+              (ResultPanel.tsx)과 같은 "요약" 톤: 15px·ink·수량 숫자라 굵기 600 */}
+          <p className="text-[15px] font-semibold text-ink leading-[1.6] tabular-nums">
             바닥 {Math.round(quantity.floorSqm)}㎡ · {lossLabel}
             {quantity.pieces != null ? ` · ${formatNum(quantity.pieces)}장` : ''}
           </p>
-          {/* 면적·가정 한 줄 — "제품 미정" 등. 즉답 화면 ResultPanel.tsx와 같은 자리·같은 함수를 쓴다 */}
-          {areaAssumptionLine && <p className="text-[13px] text-v1-text-secondary tabular-nums">{areaAssumptionLine}</p>}
+          {/* 면적·가정 한 줄 — 즉답 화면과 같은 색(ink-2)으로만 맞춘다(크기·굵기는 그대로) */}
+          {areaAssumptionLine && <p className="text-[13px] text-ink-2 tabular-nums">{areaAssumptionLine}</p>}
+          {/* 2026-10-03: 접힘 속 세부는 "보조 정보"답게 13~14px·ink-2로 낮췄다(이름 굵기 400,
+              금액 500, 캡션 12.5px disabled) */}
           <Collapsible title="실별 보기">
             <div className="flex flex-col">
               {quantity.byRoom.map((r, i) => (
@@ -227,30 +231,30 @@ export default async function FlooringResultPage({ searchParams }: PageProps) {
                     i === quantity.byRoom.length - 1 ? '' : 'border-b border-v1-line-2'
                   }`}
                 >
-                  <span className="text-[15px] text-foreground">{r.name}</span>
-                  <span className="text-[15px] text-v1-text-secondary tabular-nums">
+                  <span className="text-[14px] text-ink-2">{r.name}</span>
+                  <span className="text-[14px] font-medium text-ink-2 tabular-nums">
                     {formatNum(r.units)}
                     {unitLabel}{' '}
-                    <span className="text-[13px] text-v1-text-disabled">{formatNum(r.floorSqm)}㎡</span>
+                    <span className="text-[12.5px] font-normal text-v1-text-disabled">{formatNum(r.floorSqm)}㎡</span>
                   </span>
                 </div>
               ))}
             </div>
           </Collapsible>
 
-          {/* 부자재 */}
-          <h2 className="text-[17px] font-bold text-foreground border-t border-v1-line-2 pt-3 mt-1">부자재</h2>
+          {/* 부자재 — 섹션 제목은 소제목이라 굵기 600 유지, 크기만 17px→14px·ink-2로 낮췄다 */}
+          <h2 className="text-[14px] font-semibold text-ink-2 border-t border-v1-line-2 pt-3 mt-1">부자재</h2>
           <div className="flex flex-col">
             {submaterials.map((s, i) => (
               <div key={s.key} className={`py-[10px] ${i === submaterials.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
                 <div className="flex items-center justify-between">
-                  <span className="text-[15px] text-foreground">{s.name}</span>
-                  <span className="text-[15px] text-foreground tabular-nums">
+                  <span className="text-[14px] text-ink-2">{s.name}</span>
+                  <span className="text-[14px] font-medium text-ink-2 tabular-nums">
                     {formatNum(s.qty)}
                     {s.unit}
                   </span>
                 </div>
-                <p className="text-[13px] text-v1-text-disabled tabular-nums">
+                <p className="text-[12.5px] text-v1-text-disabled tabular-nums">
                   {s.basis}
                   {s.grade === 'C' && !s.basis.includes('추정') ? ' · 추정' : ''}
                 </p>
@@ -258,8 +262,8 @@ export default async function FlooringResultPage({ searchParams }: PageProps) {
             ))}
           </div>
 
-          {/* 비용 */}
-          <h2 className="text-[17px] font-bold text-foreground border-t border-v1-line-2 pt-3 mt-1">비용</h2>
+          {/* 비용 — "부자재"와 같은 소제목 톤 */}
+          <h2 className="text-[14px] font-semibold text-ink-2 border-t border-v1-line-2 pt-3 mt-1">비용</h2>
           <div className="flex items-center gap-2 flex-wrap">
             <div className="text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em] whitespace-nowrap">
               {formatManRange(cost.min, cost.max)}
@@ -273,21 +277,22 @@ export default async function FlooringResultPage({ searchParams }: PageProps) {
           <p className="text-[15px] font-semibold text-v1-text-secondary tabular-nums">
             중간 {toMan(cost.mid).toLocaleString('ko-KR')}만원
           </p>
-          <p className="text-[15px] text-foreground tabular-nums">{cost.basisLine}</p>
+          {/* 기준 줄 — 즉답 화면과 같은 "요약" 톤(15px·ink), 굵기는 그대로 */}
+          <p className="text-[15px] text-ink tabular-nums">{cost.basisLine}</p>
           <Collapsible title="구성 보기" defaultOpen>
             <div className="flex flex-col">
               {cost.breakdown.map((line, i) => (
                 <div key={line.key} className={`py-[10px] ${i === cost.breakdown.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-[15px] text-foreground min-w-0 truncate">{line.name}</span>
-                    <span className="text-[15px] text-foreground tabular-nums whitespace-nowrap flex-none">
+                    <span className="text-[14px] text-ink-2 min-w-0 truncate">{line.name}</span>
+                    <span className="text-[14px] font-medium text-ink-2 tabular-nums whitespace-nowrap flex-none">
                       {formatCostLineAmount(line)}
                     </span>
                   </div>
-                  <p className="text-[13px] text-v1-text-disabled tabular-nums">{line.note}</p>
+                  <p className="text-[12.5px] text-v1-text-disabled tabular-nums">{line.note}</p>
                 </div>
               ))}
-              <p className="text-[13px] text-v1-text-disabled pt-[10px]">소비자가 기준 · 부가세 포함</p>
+              <p className="text-[12.5px] text-v1-text-disabled pt-[10px]">소비자가 기준 · 부가세 포함</p>
             </div>
           </Collapsible>
         </Card>

@@ -42,7 +42,10 @@ export default function Collapsible({ title, children, defaultOpen = false, clas
         className="w-full flex items-center justify-between min-h-11 border-t border-v1-line-2 pt-2 mt-1 text-left"
         aria-expanded={open}
       >
-        <span className="text-[16px] font-semibold text-foreground">{title}</span>
+        {/* 2026-10-03 사장 지적 1번: 접힘 제목은 "소제목"이라 굵기(600)는 유지하되, 결과
+            카드 위쪽 요약 줄보다 작고 연한 보조 톤(14px·ink-2)으로 낮췄다 — 예전엔 16px·
+            거의 검정(foreground)이라 접힌 제목이 위 요약 줄보다 더 도드라져 보였다. */}
+        <span className="text-[14px] font-semibold text-ink-2">{title}</span>
         {open ? (
           <IconChevronUp className="text-v1-text-label" />
         ) : (

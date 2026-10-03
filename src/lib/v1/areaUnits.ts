@@ -60,8 +60,12 @@ export function exclusiveSqmToPyeong(exclusiveSqm: number): number {
   return r1(exclusiveSqm / EXCLUSIVE_RATIO / SQM_PER_PYEONG);
 }
 
-/** 평 모드 대표 칩 목록 — 공급 평형 (도배·바닥재 공통) */
-export const SUPPLY_PYEONG_CHIPS: readonly number[] = [18, 24, 25, 30, 34, 40, 45];
+/** 평 모드 대표 칩 목록 — 공급 평형 (도배·바닥재 공통)
+ *  2026-10-03 사장 지적 2번: 24평·25평 둘 다 전용 59㎡로 같아서 칩에 "24평·25평"이
+ *  중복으로 떴다 — 59㎡는 보통 "25평형"으로 부르니 칩에서는 24를 빼고 25만 남긴다.
+ *  단, 아래 PYEONG_TO_EXCLUSIVE_SQM 환산표의 24 항목은 직접 입력값을 평형으로 바꿔
+ *  보여줄 때 여전히 쓰이므로 그대로 둔다(칩 목록에서만 뺀 것). */
+export const SUPPLY_PYEONG_CHIPS: readonly number[] = [18, 25, 30, 34, 40, 45];
 
 /** ㎡ 모드 대표 칩 목록 — 전용면적 (34평 국민평형 84㎡를 포함한 대표값) */
 export const EXCLUSIVE_SQM_CHIPS: readonly number[] = [59, 74, 84, 101, 114];
