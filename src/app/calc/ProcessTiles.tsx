@@ -8,12 +8,14 @@
 
 import Link from 'next/link';
 
-/** 실제로 열려 있는 계산기 3개 — 카드로 크게 보여준다 */
+/** 실제로 열려 있는 계산기 — 카드로 크게 보여준다(2026-10-03 타일 추가로 4개) */
 const LIVE_CALCULATORS = [
   { name: '도배', href: '/calc/wallpaper', desc: '벽지 롤수와 비용' },
   // 2026-10-03 검색 노출: 카드 설명에 "몰탈 계산기"를 넣어 링크 글자가 핵심어를 담게 함
   { name: '미장', href: '/calc/mortar', desc: '몰탈 계산기 · 레미탈 포대수와 비용' },
   { name: '바닥재', href: '/calc/flooring', desc: '바닥재 수량과 비용' },
+  // 2026-10-03 타일 계산기 추가 — 설명 글에 핵심어("타일 계산기")를 그대로 담는다
+  { name: '타일', href: '/calc/tile', desc: '타일 계산기 · 박스 수와 시공비' },
 ];
 
 /** 아직 없는 공정 — 칸을 만들지 않고 회색 한 줄로만 안내 */
@@ -24,7 +26,7 @@ export default function ProcessTiles() {
     <section className="flex flex-col gap-3">
       <h2 className="t-section text-ink">공정별 물량 계산기</h2>
 
-      <ul className="grid grid-cols-1 sm:grid-cols-3 gap-3" aria-label="공정별 계산기">
+      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" aria-label="공정별 계산기">
         {LIVE_CALCULATORS.map((calc) => (
           <li key={calc.name}>
             <Link

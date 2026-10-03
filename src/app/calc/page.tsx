@@ -25,7 +25,7 @@ import { JsonLd, breadcrumbLd, SITE_URL } from '@/lib/seo/jsonld';
 
 export const metadata: Metadata = {
   title: '인테리어 공정별 계산기 — 얼마드나',
-  description: '도배·바닥재 등 공정별 물량과 비용을 무료로 바로 계산해보세요. 로그인·개인정보 없음.',
+  description: '도배·바닥재·몰탈·타일 등 공정별 물량과 비용을 무료로 바로 계산해보세요. 로그인·개인정보 없음.',
   alternates: { canonical: `${SITE_URL}/calc` },
 };
 

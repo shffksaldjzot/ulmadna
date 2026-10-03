@@ -20,10 +20,11 @@
 // 2026년 09월 10일: 바닥재 계산기(U 지시서) 추가
 // 2026년 09월 11일: 계산기 경로 /calc 이전 + 매치되는 계산기 전부 반환하도록 개편
 // 2026년 09월 15일: 레미탈·몰탈·셀프레벨링 계산기(mortar) 추가
+// 2026년 10월 03일: 타일 계산기(tile) 추가
 // ──────────────────────────────────────────────
 
 /** 지금 열려 있는 계산기 종류 (새 공정 계산기가 생기면 여기에 한 줄 추가) */
-export type CalculatorKey = "wallpaper" | "flooring" | "mortar";
+export type CalculatorKey = "wallpaper" | "flooring" | "mortar" | "tile";
 
 /** 계산기 하나의 화면 문구·주소 */
 export interface CalculatorInfo {
@@ -40,6 +41,11 @@ export interface CalculatorInfo {
   mini: string;
   /** 이 계산기를 붙일 글을 고르는 신호 단어 (제목+태그, 띄어쓰기 무시) */
   keywords: string[];
+  /**
+   * (선택) 신호 단어와 "같이" 있어야 하는 말 — 하나라도 있어야 붙인다.
+   * 신호 단어 하나만으로는 너무 넓을 때 쓴다(예: 타일 — TV 벽걸이·자재 구매 글까지 붙던 문제, 2026-10-03).
+   */
+  requireAny?: string[];
 }
 
 export const CALCULATORS: Record<CalculatorKey, CalculatorInfo> = {
@@ -80,6 +86,19 @@ export const CALCULATORS: Record<CalculatorKey, CalculatorInfo> = {
     //    (미장·몰탈이 실제 주제가 아닌데도 스치듯 언급만 되는 글이 많음).
     keywords: ["미장", "방통", "레미탈", "몰탈", "모르타르", "셀프레벨링", "셀프 레벨링", "바닥 미장", "바닥 평탄"],
   },
+  tile: {
+    key: "tile",
+    label: "타일 계산기",
+    href: "/calc/tile",
+    headline: "욕실 타일, 몇 박스에 시공비 얼마일까?",
+    sub: "공간만 고르면 타일 박스 수와 덧방·철거 시공비 범위가 바로 나옵니다. 줄눈재·압착시멘트까지. 로그인·개인정보 없음.",
+    mini: "타일 박스 수·시공비가 바로 나와요",
+    // 2026-10-03: 제목·태그에 "타일"이 있고, 아래 requireAny 말 중 하나가 같이 있을 때만 붙인다.
+    //    "타일" 단독으로는 TV 벽걸이·자재 구매·공사 순서 글 등 16편에 붙어 버렸다(검사관 지적).
+    //    ⚠️ "덧방"·"줄눈" 단독은 신호 단어로 쓰지 않는다(장판 덧방·줄눈 시공 글 오탐).
+    keywords: ["타일"],
+    requireAny: ["욕실", "화장실", "바닥", "시공", "덧방", "줄눈", "현관", "베란다", "포세린"],
+  },
 };
 
 /**
@@ -117,7 +136,10 @@ export function detectCalculator(
     .replace(/수도\s*배관/g, " ");
   const matched: CalculatorKey[] = [];
   for (const info of Object.values(CALCULATORS)) {
-    if (info.keywords.some((k) => hay.includes(k.toLowerCase()))) matched.push(info.key);
+    const hit = info.keywords.some((k) => hay.includes(k.toLowerCase()));
+    // requireAny가 있으면 그 말 중 하나도 같이 있어야 한다(신호 단어가 너무 넓은 계산기용)
+    const withRequired = !info.requireAny || info.requireAny.some((k) => hay.includes(k.toLowerCase()));
+    if (hit && withRequired) matched.push(info.key);
   }
   return matched;
 }
