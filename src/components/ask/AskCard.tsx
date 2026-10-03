@@ -7,7 +7,7 @@
 // 작성일: 2026년 10월 03일
 // ──────────────────────────────────────────────
 import Link from 'next/link';
-import { categoryLabel, titleWithCategory, type AskListItem } from '@/lib/ask/constants';
+import { titleWithCategory, type AskListItem } from '@/lib/ask/constants';
 import { askHref, timeAgo } from '@/lib/ask/format';
 import { IcBubble } from './icons';
 
@@ -17,8 +17,6 @@ export default function AskCard({ item, hideNick = false, extraTag }: { item: As
     <Link className="q" href={askHref(item.slug)}>
       <div className="tags">
         {answered ? <span className="tag ans">AI 답변</span> : <span className="tag wait">답변 준비 중</span>}
-        {/* 말머리 배지(옛 종류 배지 자리) */}
-        <span className="tag">{categoryLabel(item.category)}</span>
         {item.trades.length > 0 && <span className="tag">{item.trades.join(' · ')}</span>}
         {extraTag && <span className="tag mine">{extraTag}</span>}
       </div>

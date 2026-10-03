@@ -166,7 +166,8 @@ export default async function AskPostPage({ params }: { params: Promise<{ slug: 
         {/* 질문 */}
         <article className="post">
           <div className="tags">
-            <span className="tag">{kindLabel}</span>
+            {/* 태그 줄: 답변 상태 + 공정만(말머리는 제목 앞 [말머리]로만 보여 준다 — 배지 중복 제거) */}
+            {answer ? <span className="tag ans">AI 답변</span> : <span className="tag wait">답변 준비 중</span>}
             {post.trades.length > 0 && <span className="tag">{post.trades.join(' · ')}</span>}
           </div>
           <h1>
