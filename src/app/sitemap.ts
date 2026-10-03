@@ -43,6 +43,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE}/calc/flooring`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     // 몰탈 계산기 — "몰탈 계산기" 검색 노출 강화 대상이라 한 단계 높임(2026년 10월 03일)
     { url: `${SITE}/calc/mortar`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
+    // 타일 계산기 — "타일 계산기" 검색 노출 대상(2026년 10월 03일 신설)
+    { url: `${SITE}/calc/tile`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
     // 물어보기 목록 (2026년 10월 03일)
     { url: `${SITE}/ask`, lastModified: new Date(), changeFrequency: 'hourly' as const, priority: 0.8 },
     // 카테고리 허브 8장 — 주제별 모음 페이지 (글 목록 다음으로 중요한 색인 대상)
