@@ -267,8 +267,10 @@ export default function ResultPanel({
           <p className="t-body text-ink-2">{error ? '비용은 잠시 후 다시' : '비용 계산 중'}</p>
         )}
 
-        {/* ② 수량 한 줄 — 수량은 quick(즉시 계산)에서 바로 나온다. dim 처리 안 함(항상 최신) */}
-        <p className="t-body text-ink tabular-nums pt-2 border-t border-v1-line-2 flex flex-wrap gap-x-1">
+        {/* ② 수량 한 줄 — 수량은 quick(즉시 계산)에서 바로 나온다. dim 처리 안 함(항상 최신).
+            2026-10-03 사장 지적 1번: 요약 줄이 접힘 속 세부보다 흐려 보이던 문제 —
+            본문 크기(15px)는 그대로 두고 수량 숫자라 굵기만 600으로 올렸다(색은 ink 그대로). */}
+        <p className="t-body font-semibold text-ink tabular-nums pt-2 border-t border-v1-line-2 flex flex-wrap gap-x-1">
           {quantityChunks.map((chunk, i, arr) => (
             <span key={i} className="whitespace-nowrap">
               {chunk}
@@ -277,8 +279,9 @@ export default function ResultPanel({
           ))}
         </p>
 
-        {/* ③ 보조 한 줄 */}
-        <p className="t-sub text-ink-2 tabular-nums flex flex-wrap gap-x-1">
+        {/* ③ 보조 한 줄 — 2026-10-03: "로스 포함·몰탈 체적·인원" 같은 조건 줄도 ②와 같은
+            근거 정보라 t-sub(13px·ink-2)에서 t-body(15px·ink)로 올리고 숫자라 굵기도 600으로 */}
+        <p className="t-body font-semibold text-ink tabular-nums flex flex-wrap gap-x-1">
           {subChunks.map((chunk, i, arr) => (
             <span key={i} className="whitespace-nowrap">
               {chunk}
@@ -301,12 +304,15 @@ export default function ResultPanel({
           </div>
         )}
 
+        {/* 2026-10-03 사장 지적 1번: 접힘 속 세부는 "보조 정보"답게 13~14px·ink-2로 낮췄다
+            (이름·안내문은 굵기 400 그대로, 금액류만 500). 글자 크기·굵기·색만 바뀌고 구조·
+            문구·순서는 그대로다. */}
         {quick.altMix && (
           <Collapsible title="현장 배합 대안">
-            <p className="text-[15px] text-foreground py-2 tabular-nums">
+            <p className="text-[14px] text-ink-2 py-2 tabular-nums">
               시멘트 40kg × {formatNum(quick.altMix.cementBags)}포 + 모래 {quick.altMix.sandM3}㎥
             </p>
-            <p className="text-[13px] text-v1-text-disabled">배합비 {quick.altMix.mixRatio} · 참고용, 비용에는 안 넣었어요</p>
+            <p className="text-[12.5px] text-v1-text-disabled">배합비 {quick.altMix.mixRatio} · 참고용, 비용에는 안 넣었어요</p>
           </Collapsible>
         )}
 
@@ -321,10 +327,10 @@ export default function ResultPanel({
                     i === result.quantity.byRoom.length - 1 ? '' : 'border-b border-v1-line-2'
                   }`}
                 >
-                  <span className="text-[15px] text-foreground">{r.name}</span>
-                  <span className="text-[15px] text-v1-text-secondary tabular-nums">
+                  <span className="text-[14px] text-ink-2">{r.name}</span>
+                  <span className="text-[14px] font-medium text-ink-2 tabular-nums">
                     {formatNum(r.bags)}포{' '}
-                    <span className="text-[13px] text-v1-text-disabled">{formatNum(r.areaSqm)}㎡</span>
+                    <span className="text-[12.5px] font-normal text-v1-text-disabled">{formatNum(r.areaSqm)}㎡</span>
                   </span>
                 </div>
               ))}
@@ -335,18 +341,18 @@ export default function ResultPanel({
         {/* 부자재 (서버 응답이 와야 나온다 — 와이어메시·프라이머 옵션을 켰을 때만) */}
         {submaterials.length > 0 && (
           <div className={`transition-opacity ${dim ? 'opacity-60' : ''}`} style={dimTransitionStyle(dim)}>
-            <h2 className="text-[17px] font-bold text-foreground border-t border-v1-line-2 pt-3 mt-1">부자재</h2>
+            <h2 className="text-[14px] font-semibold text-ink-2 border-t border-v1-line-2 pt-3 mt-1">부자재</h2>
             <div className="flex flex-col">
               {submaterials.map((s, i) => (
                 <div key={s.key} className={`py-[10px] ${i === submaterials.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
                   <div className="flex items-center justify-between">
-                    <span className="text-[15px] text-foreground">{s.name}</span>
-                    <span className="text-[15px] text-foreground tabular-nums">
+                    <span className="text-[14px] text-ink-2">{s.name}</span>
+                    <span className="text-[14px] font-medium text-ink-2 tabular-nums">
                       {formatNum(s.qty)}
                       {s.unit}
                     </span>
                   </div>
-                  <p className="text-[13px] text-v1-text-disabled tabular-nums">
+                  <p className="text-[12.5px] text-v1-text-disabled tabular-nums">
                     {s.basis}
                     {s.grade === 'C' && !s.basis.includes('추정') ? ' · 추정' : ''}
                   </p>
@@ -364,9 +370,11 @@ export default function ResultPanel({
               <div className="flex flex-col">
                 {groupByLayer(result.cost.breakdown).map((group) => (
                   <div key={group.layer} className="py-[10px] border-b border-v1-line-2">
+                    {/* 층 이름(자재·부자재·인건 등)은 소제목이라 굵기 600 유지, 옆 소계
+                        금액은 다른 금액들과 똑같이 굵기 500으로 낮췄다(2026-10-03) */}
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-[13px] font-semibold text-v1-text-label">{group.layer}</span>
-                      <span className="text-[13px] font-semibold text-v1-text-label tabular-nums whitespace-nowrap">
+                      <span className="text-[13px] font-semibold text-ink-2">{group.layer}</span>
+                      <span className="text-[13px] font-medium text-ink-2 tabular-nums whitespace-nowrap">
                         {formatLayerSubtotal(group.subMin, group.subMax)}
                       </span>
                     </div>
@@ -374,12 +382,12 @@ export default function ResultPanel({
                       {group.lines.map((line) => (
                         <div key={line.key} className="py-[6px]">
                           <div className="flex items-center justify-between gap-3">
-                            <span className="text-[15px] text-foreground min-w-0 truncate">{line.name}</span>
-                            <span className="text-[15px] text-foreground tabular-nums whitespace-nowrap flex-none">
+                            <span className="text-[14px] text-ink-2 min-w-0 truncate">{line.name}</span>
+                            <span className="text-[14px] font-medium text-ink-2 tabular-nums whitespace-nowrap flex-none">
                               {formatCostLineAmount(line)}
                             </span>
                           </div>
-                          <p className="text-[13px] text-v1-text-disabled tabular-nums">
+                          <p className="text-[12.5px] text-v1-text-disabled tabular-nums">
                             {line.note}
                             {line.grade === 'C' && !line.note.includes('추정') ? ' · 추정' : ''}
                           </p>
@@ -388,7 +396,7 @@ export default function ResultPanel({
                     </div>
                   </div>
                 ))}
-                <p className="text-[13px] text-v1-text-disabled pt-[10px]">소비자가 기준 · 부가세 포함</p>
+                <p className="text-[12.5px] text-v1-text-disabled pt-[10px]">소비자가 기준 · 부가세 포함</p>
               </div>
             </Collapsible>
           </div>

@@ -151,7 +151,9 @@ export default function ResultPanel({
         {/* 2. 수량 한 줄 — 제품 미정이면 범위로("19~46박스"), 최소=최대면 하나만.
             2026-09-27 저녁 지휘관 3차 검수 지적 8번: 면적은 정수로("68.1㎡" → "68㎡"),
             장 수 앞의 "총"은 뺀다("총 816장" → "816장"). */}
-        <p className="t-body text-ink tabular-nums pt-2 border-t border-v1-line-2 flex flex-wrap gap-x-1">
+        {/* 2026-10-03 사장 지적 1번: 수량 요약 줄이 접힘 속 세부보다 흐려 보이던 문제 —
+            크기(15px)·색(ink)은 그대로, 수량 숫자라 굵기만 600으로 올렸다 */}
+        <p className="t-body font-semibold text-ink tabular-nums pt-2 border-t border-v1-line-2 flex flex-wrap gap-x-1">
           {[
             formatUnitsRangeText(quantity.units, quantity.unitsRange, unitLabel),
             `바닥 ${Math.round(quantity.floorSqm)}㎡`,
@@ -169,6 +171,9 @@ export default function ResultPanel({
         {/* 4. 기준 줄 */}
         <p className="t-body text-ink tabular-nums">{cost.basisLine}</p>
 
+        {/* 2026-10-03 사장 지적 1번: 접힘 속 세부는 "보조 정보"답게 13~14px·ink-2로 낮췄다
+            (이름·안내문은 굵기 400, 금액류만 500). 글자 크기·굵기·색만 바뀌고 구조·문구·
+            순서는 그대로다. */}
         <Collapsible title="실별 보기">
           <div className="flex flex-col">
             {quantity.byRoom.map((r, i) => (
@@ -178,11 +183,11 @@ export default function ResultPanel({
                   i === quantity.byRoom.length - 1 ? '' : 'border-b border-v1-line-2'
                 }`}
               >
-                <span className="text-[15px] text-foreground">{r.name}</span>
-                <span className="text-[15px] text-v1-text-secondary tabular-nums">
+                <span className="text-[14px] text-ink-2">{r.name}</span>
+                <span className="text-[14px] font-medium text-ink-2 tabular-nums">
                   {formatNum(r.units)}
                   {unitLabel}{' '}
-                  <span className="text-[13px] text-v1-text-disabled">{formatNum(r.floorSqm)}㎡</span>
+                  <span className="text-[12.5px] font-normal text-v1-text-disabled">{formatNum(r.floorSqm)}㎡</span>
                 </span>
               </div>
             ))}
@@ -190,18 +195,18 @@ export default function ResultPanel({
         </Collapsible>
 
         {/* 5. 부자재 */}
-        <h2 className="text-[17px] font-bold text-foreground border-t border-v1-line-2 pt-3 mt-1">부자재</h2>
+        <h2 className="text-[14px] font-semibold text-ink-2 border-t border-v1-line-2 pt-3 mt-1">부자재</h2>
         <div className="flex flex-col">
           {submaterials.map((s, i) => (
             <div key={s.key} className={`py-[10px] ${i === submaterials.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
               <div className="flex items-center justify-between">
-                <span className="text-[15px] text-foreground">{s.name}</span>
-                <span className="text-[15px] text-foreground tabular-nums">
+                <span className="text-[14px] text-ink-2">{s.name}</span>
+                <span className="text-[14px] font-medium text-ink-2 tabular-nums">
                   {formatNum(s.qty)}
                   {s.unit}
                 </span>
               </div>
-              <p className="text-[13px] text-v1-text-disabled tabular-nums">
+              <p className="text-[12.5px] text-v1-text-disabled tabular-nums">
                 {s.basis}
                 {s.grade === 'C' && !s.basis.includes('추정') ? ' · 추정' : ''}
               </p>
@@ -215,8 +220,8 @@ export default function ResultPanel({
           <div className="flex flex-col">
             <div className="py-[10px] border-b border-v1-line-2 flex items-center justify-between gap-3">
               <div className="flex flex-col gap-[2px] min-w-0">
-                <span className="text-[15px] text-foreground">기존 바닥재 철거</span>
-                <span className="text-[13px] text-v1-text-disabled">구축 기준 견적 · 끄면 철거비를 뺍니다</span>
+                <span className="text-[14px] text-ink-2">기존 바닥재 철거</span>
+                <span className="text-[12.5px] text-v1-text-disabled">구축 기준 견적 · 끄면 철거비를 뺍니다</span>
               </div>
               <Toggle
                 checked={form.removeOld ?? true}
@@ -227,8 +232,8 @@ export default function ResultPanel({
             </div>
             <div className="py-[10px] border-b border-v1-line-2 flex items-center justify-between gap-3">
               <div className="flex flex-col gap-[2px] min-w-0">
-                <span className="text-[15px] text-foreground">걸레받이 교체</span>
-                <span className="text-[13px] text-v1-text-disabled">끄면 걸레받이 비용을 뺍니다</span>
+                <span className="text-[14px] text-ink-2">걸레받이 교체</span>
+                <span className="text-[12.5px] text-v1-text-disabled">끄면 걸레받이 비용을 뺍니다</span>
               </div>
               <Toggle
                 checked={form.baseboard ?? true}
@@ -240,15 +245,15 @@ export default function ResultPanel({
             {cost.breakdown.map((line, i) => (
               <div key={line.key} className={`py-[10px] ${i === cost.breakdown.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-[15px] text-foreground min-w-0 truncate">{line.name}</span>
-                  <span className="text-[15px] text-foreground tabular-nums whitespace-nowrap flex-none">
+                  <span className="text-[14px] text-ink-2 min-w-0 truncate">{line.name}</span>
+                  <span className="text-[14px] font-medium text-ink-2 tabular-nums whitespace-nowrap flex-none">
                     {formatCostLineAmount(line)}
                   </span>
                 </div>
-                <p className="text-[13px] text-v1-text-disabled tabular-nums">{line.note}</p>
+                <p className="text-[12.5px] text-v1-text-disabled tabular-nums">{line.note}</p>
               </div>
             ))}
-            <p className="text-[13px] text-v1-text-disabled pt-[10px]">소비자가 기준 · 부가세 포함</p>
+            <p className="text-[12.5px] text-v1-text-disabled pt-[10px]">소비자가 기준 · 부가세 포함</p>
           </div>
         </Collapsible>
       </Card>

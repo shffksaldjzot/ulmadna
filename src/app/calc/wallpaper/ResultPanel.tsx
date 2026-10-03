@@ -164,7 +164,9 @@ export default function ResultPanel({
             세 조각(롤 수·벽·천장)을 각각 span으로 나눠 flex-wrap 해서, 390px에서는 한 줄에
             다 들어가고 360px처럼 좁아 줄바꿈될 때도 다음 줄이 가운뎃점으로 시작하지 않는다
             (가운뎃점을 항상 "앞 조각 끝"에 붙여 뒀기 때문). */}
-        <p className="t-body text-ink tabular-nums pt-2 border-t border-v1-line-2 flex flex-wrap gap-x-1">
+        {/* 2026-10-03 사장 지적 1번: 수량 요약 줄이 접힘 속 세부보다 흐려 보이던 문제 —
+            크기(15px)·색(ink)은 그대로, 수량 숫자라 굵기만 600으로 올렸다 */}
+        <p className="t-body font-semibold text-ink tabular-nums pt-2 border-t border-v1-line-2 flex flex-wrap gap-x-1">
           {[
             formatRollsText(quantity),
             `벽 ${Math.round(quantity.wallSqm)}㎡`,
@@ -185,6 +187,9 @@ export default function ResultPanel({
         <p className="t-body text-ink tabular-nums">{cost.basisLine}</p>
 
         {/* 면적(벽 길이) 모드는 방별 물량이 없어 "실별 보기"가 뜻이 없다 — 숨긴다 */}
+        {/* 2026-10-03 사장 지적 1번: 접힘 속 세부는 "보조 정보"답게 13~14px·ink-2로 낮췄다
+            (이름·안내문은 굵기 400, 금액류만 500). 글자 크기·굵기·색만 바뀌고 구조·문구·
+            순서는 그대로다. */}
         {quantity.inputMode !== '면적' && (
           <Collapsible title="실별 보기">
             <div className="flex flex-col">
@@ -195,10 +200,10 @@ export default function ResultPanel({
                     i === quantity.byRoom.length - 1 ? '' : 'border-b border-v1-line-2'
                   }`}
                 >
-                  <span className="text-[15px] text-foreground">{r.name}</span>
-                  <span className="text-[15px] text-v1-text-secondary tabular-nums">
+                  <span className="text-[14px] text-ink-2">{r.name}</span>
+                  <span className="text-[14px] font-medium text-ink-2 tabular-nums">
                     {r.rolls}롤{' '}
-                    <span className="text-[13px] text-v1-text-disabled">
+                    <span className="text-[12.5px] font-normal text-v1-text-disabled">
                       {Math.round((r.wallSqm + r.ceilingSqm) * 10) / 10}㎡
                     </span>
                   </span>
@@ -209,18 +214,18 @@ export default function ResultPanel({
         )}
 
         {/* 5. 부자재 */}
-        <h2 className="text-[17px] font-bold text-foreground border-t border-v1-line-2 pt-3 mt-1">부자재</h2>
+        <h2 className="text-[14px] font-semibold text-ink-2 border-t border-v1-line-2 pt-3 mt-1">부자재</h2>
         <div className="flex flex-col">
           {submaterials.map((s, i) => (
             <div key={s.key} className={`py-[10px] ${i === submaterials.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
               <div className="flex items-center justify-between">
-                <span className="text-[15px] text-foreground">{s.name}</span>
-                <span className="text-[15px] text-foreground tabular-nums">
+                <span className="text-[14px] text-ink-2">{s.name}</span>
+                <span className="text-[14px] font-medium text-ink-2 tabular-nums">
                   {formatNum(s.qty)}
                   {s.unit}
                 </span>
               </div>
-              <p className="text-[13px] text-v1-text-disabled tabular-nums">
+              <p className="text-[12.5px] text-v1-text-disabled tabular-nums">
                 {s.basis}
                 {s.grade === 'C' && !s.basis.includes('추정') ? ' · 추정' : ''}
               </p>
@@ -233,21 +238,21 @@ export default function ResultPanel({
           <div className="flex flex-col">
             <div className="py-[10px] border-b border-v1-line-2 flex items-center justify-between gap-3">
               <div className="flex flex-col gap-[2px] min-w-0">
-                <span className="text-[15px] text-foreground">기존 벽지 제거</span>
-                <span className="text-[13px] text-v1-text-disabled">구축 기준 견적 · 끄면 철거비를 뺍니다</span>
+                <span className="text-[14px] text-ink-2">기존 벽지 제거</span>
+                <span className="text-[12.5px] text-v1-text-disabled">구축 기준 견적 · 끄면 철거비를 뺍니다</span>
               </div>
               <Toggle checked={form.removeOld ?? true} onChange={onRemoveOldChange} label="기존 벽지 제거 포함" className="flex-none" />
             </div>
             {cost.breakdown.map((line, i) => (
               <div key={line.key} className={`py-[10px] ${i === cost.breakdown.length - 1 ? '' : 'border-b border-v1-line-2'}`}>
                 <div className="flex items-center justify-between">
-                  <span className="text-[15px] text-foreground">{line.name}</span>
-                  <span className="text-[15px] text-foreground tabular-nums">{formatCostLineAmount(line)}</span>
+                  <span className="text-[14px] text-ink-2">{line.name}</span>
+                  <span className="text-[14px] font-medium text-ink-2 tabular-nums">{formatCostLineAmount(line)}</span>
                 </div>
-                <p className="text-[13px] text-v1-text-disabled tabular-nums">{line.note}</p>
+                <p className="text-[12.5px] text-v1-text-disabled tabular-nums">{line.note}</p>
               </div>
             ))}
-            <p className="text-[13px] text-v1-text-disabled pt-[10px]">소비자가 기준 · 부가세 포함</p>
+            <p className="text-[12.5px] text-v1-text-disabled pt-[10px]">소비자가 기준 · 부가세 포함</p>
           </div>
         </Collapsible>
       </Card>
