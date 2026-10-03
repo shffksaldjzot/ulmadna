@@ -92,7 +92,13 @@
 .ask-scope .more .n{color:var(--ink-3)}
 .ask-scope .empty{padding:56px 20px;text-align:center;color:var(--ink-2);font-size:15px}
 .ask-scope .empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
-.ask-scope .list-top{display:none}
+.ask-scope .list-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 20px 12px}
+/* 오늘 남은 질문 한 줄 · 0개일 때 눌리지 않는 단추 */
+.ask-scope .ask-quota{margin:0;font-size:14px;color:var(--ink-2)}
+.ask-scope .bhead .ask-quota{margin:-8px 0 2px}
+.ask-scope .ask-quota b{color:var(--accent);font-weight:700}
+.ask-scope .is-off{background:var(--line)!important;color:var(--ink-2)!important;box-shadow:none!important;pointer-events:none;cursor:default}
+.ask-scope .write-note{margin:6px 22px 0;font-size:12.5px;color:var(--ink-3)}
 
 /* ---------- 질문 상세 ---------- */
 .ask-scope .post{margin:10px 20px 0}
@@ -243,7 +249,8 @@
   .ask-scope{--tab-h:0px}
   .ask-scope .fab,.ask-scope .mini-ask{display:none}
   .ask-scope .ask-btn-pc{display:inline-flex;width:auto;padding:0 22px;height:48px}
-  .ask-scope .list-top{display:flex;justify-content:flex-end;margin:0 0 12px}
+  .ask-scope .list-top{margin:0 0 12px}
+  .ask-scope .write-note{margin-left:2px}
   /* 상단 바(Container 1120 + 좌우 32)와 왼쪽 시작선을 맞춘다 → 1280 화면에서 112px */
   .ask-scope .app{max-width:1120px;padding:16px 32px 60px;display:grid;grid-template-columns:minmax(0,700px) 300px;gap:0 40px;align-items:start}
   .ask-scope .app > *{grid-column:1}

@@ -22,6 +22,8 @@ export default function PrivacyPage() {
               <ul className="list-disc pl-5 mt-2 space-y-1">
                 <li><strong>비회원:</strong> 개인정보를 일절 수집하지 않습니다. 견적 계산, PDF/엑셀 다운로드, 카카오톡 공유 모두 개인정보 없이 이용 가능합니다.</li>
                 <li><strong>카카오 로그인 회원:</strong> 카카오 계정 닉네임, 카카오 고유 ID만 수집합니다. 이메일, 전화번호, 주소 등은 수집하지 않습니다.</li>
+                {/* 2026년 10월 03일: 아이디 회원가입(익명 가입) 추가에 따른 항목 */}
+                <li><strong>아이디 가입 회원:</strong> 아이디, 비밀번호(암호화하여 저장 — 원문은 저장하지 않음), 비밀번호 힌트, 닉네임을 수집합니다. 이메일은 비밀번호 찾기용으로 본인이 선택한 경우에만 수집합니다. 실명·전화번호는 받지 않습니다. 탈퇴 시 즉시 삭제됩니다.</li>
               </ul>
             </section>
 
@@ -30,6 +32,7 @@ export default function PrivacyPage() {
               <ul className="list-disc pl-5 space-y-1">
                 <li>견적 저장 및 불러오기 기능 제공</li>
                 <li>저장된 견적 비교 기능 제공</li>
+                <li>물어보기 게시판 질문·댓글 작성, 로그인 및 비밀번호 찾기(아이디 가입 회원)</li>
               </ul>
             </section>
 

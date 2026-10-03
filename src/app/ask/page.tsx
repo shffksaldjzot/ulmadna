@@ -14,7 +14,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import AskShell from '@/components/ask/AskShell';
 import AskListClient from '@/components/ask/AskListClient';
-import { IcPlus } from '@/components/ask/icons';
+import AskListActions from '@/components/ask/AskListActions';
 import { countPosts, getStats, listPosts, popularPosts } from '@/lib/ask/server';
 import { askHref, shortDate } from '@/lib/ask/format';
 
@@ -46,10 +46,8 @@ export default async function AskListPage() {
           <div className="eyebrow">얼마드나 물어보기</div>
           <div className="h1row">
             <h1 className="t-page">견적, 물어보세요</h1>
-            <Link className="btn p ask-btn-pc" href="/ask/new">
-              <IcPlus />
-              질문하기
-            </Link>
+            {/* PC 제목 오른쪽 질문하기(오늘 남은 질문이 0개면 눌리지 않음) */}
+            <AskListActions variant="title" />
           </div>
           <p className="lead">AI가 얼마드나 빅데이터로 통상 단가와 적정 여부를 답해요</p>
           <hr />
@@ -79,13 +77,8 @@ export default async function AskListPage() {
           </section>
         )}
 
-        {/* PC 전용: 목록 위 질문하기 단추 하나 더 */}
-        <div className="list-top">
-          <Link className="btn p ask-btn-pc" href="/ask/new">
-            <IcPlus />
-            질문하기
-          </Link>
-        </div>
+        {/* 목록 위 줄: 오늘 남은 질문 한 줄(모든 화면) + PC 질문하기 단추 하나 더 */}
+        <AskListActions variant="row" />
 
         <AskListClient initialItems={items} initialNext={next} total={total} />
 
@@ -117,10 +110,7 @@ export default async function AskListPage() {
       </main>
 
       {/* 모바일: 떠 있는 질문하기 단추 */}
-      <Link className="fab" href="/ask/new">
-        <IcPlus />
-        질문하기
-      </Link>
+      <AskListActions variant="fab" />
     </AskShell>
   );
 }
