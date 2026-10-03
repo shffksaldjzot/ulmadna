@@ -37,11 +37,10 @@ import {
 } from '@/lib/ask/format';
 import { CONTACT_PHONE_DISPLAY, CONTACT_PHONE_TEL } from '@/lib/contact';
 
-export const revalidate = 60;
-// 미리 만들어 둘 주소는 없음 — 처음 열릴 때 그리고 60초 동안 보관(ISR)
-export function generateStaticParams() {
-  return [];
-}
+// 2026-10-03 운영 500 수리: ISR(정적 + 60초 보관)로 두면 Vercel에서 세션 확인(auth) 같은
+// 동적 호출과 충돌해 상세가 500으로 떨어졌다(집컴에서는 재현 안 됨). 요청마다 서버에서
+// 그리게 바꾼다 — 검색 노출(서버 렌더 HTML)은 그대로다.
+export const dynamic = 'force-dynamic';
 
 const SITE = 'https://ulmadna.com';
 
