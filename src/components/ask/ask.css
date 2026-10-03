@@ -67,6 +67,8 @@
 .ask-scope .chips::-webkit-scrollbar{display:none}
 .ask-scope .chip{flex:none;height:46px;padding:0 20px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:15.5px;font-weight:600;color:var(--ink);display:inline-flex;align-items:center;gap:6px}
 .ask-scope .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.ask-scope .chips-sub{margin-top:-6px}
+.ask-scope .chips-sub .chip.sm.sel{background:var(--accent-wash);border-color:var(--accent);color:var(--accent);font-weight:600}
 .ask-scope .chips.wrap{flex-wrap:wrap;overflow:visible}
 .ask-scope .chip.sel{background:var(--accent-wash);border-color:var(--accent);color:var(--accent)}
 .ask-scope .chip.sm{height:40px;font-size:14px;padding:0 14px;font-weight:500;color:var(--ink-2);background:var(--soft);border-color:var(--line-2)}
@@ -209,6 +211,7 @@
 .ask-scope .f .hint{font-size:13px;color:var(--ink-3);margin-top:6px}
 .ask-scope .f .cnt{text-align:right;font-size:12.5px;color:var(--ink-3);margin-top:4px}
 .ask-scope .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ask-scope .f-emph .upload > button{border-color:var(--accent);color:var(--accent)}
 .ask-scope .upload{display:flex;gap:10px;flex-wrap:wrap}
 .ask-scope .upload > *{width:88px;height:88px;border-radius:12px;border:1px dashed var(--line);display:grid;place-items:center;font-size:12.5px;color:var(--ink-3);text-align:center;line-height:1.3;position:relative}
 .ask-scope .upload .has{border-style:solid;background:var(--soft);overflow:visible}

@@ -18,7 +18,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { LIMITS, PHOTO_TYPES, PYEONG_OPTIONS, REGIONS, TRADES, type AskKind } from '@/lib/ask/constants';
+import { ASK_CATEGORIES, LIMITS, PHOTO_TYPES, PYEONG_OPTIONS, REGIONS, TRADES, kindFromCategory, type AskCategory } from '@/lib/ask/constants';
 import { askHref } from '@/lib/ask/format';
 import { showAskToast } from './AskToast';
 import { IcBack } from './icons';
@@ -38,7 +38,10 @@ export default function AskNewForm({ fromSlug, fromTitle }: { fromSlug: string |
   const { status } = useSession();
   const [ready, setReady] = useState(false); // 로그인·닉네임 확인 끝났는지
 
-  const [kind, setKind] = useState<AskKind>('estimate');
+  // 말머리(필수) — 처음엔 비어 있고, 안 고르면 올리기 단추가 잠긴다
+  const [category, setCategory] = useState<AskCategory | null>(null);
+  // 옛 두 갈래(kind)는 말머리에서 정해진다: 견적서 봐주세요=estimate(사진 필수), 나머지=cost
+  const kind = category ? kindFromCategory(category) : null;
   const [from, setFrom] = useState<string | null>(fromSlug);
   const [photos, setPhotos] = useState<PickedPhoto[]>([]);
   const [title, setTitle] = useState('');
@@ -143,6 +146,7 @@ export default function AskNewForm({ fromSlug, fromTitle }: { fromSlug: string |
 
   /** 보내기 전 검사 — 문제가 있으면 안내 문장 */
   function problem(): string | null {
+    if (!category) return '말머리를 골라 주세요';
     if (kind === 'estimate' && !photos.some((p) => p.status === 'done')) return '견적서 사진을 한 장 이상 올려 주세요';
     if (photos.some((p) => p.status === 'uploading')) return '사진을 올리는 중이에요';
     if (title.trim().length < LIMITS.titleMin) return `제목을 ${LIMITS.titleMin}자 이상 적어 주세요`;
@@ -167,6 +171,7 @@ export default function AskNewForm({ fromSlug, fromTitle }: { fromSlug: string |
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           kind,
+          category,
           title: title.trim(),
           body: body.trim(),
           pyeong: opt ? opt.pyeong : pyeongSel === 'custom' && pyeongCustom ? Number(pyeongCustom) : null,
@@ -213,16 +218,6 @@ export default function AskNewForm({ fromSlug, fromTitle }: { fromSlug: string |
           <AskQuotaLine quota={quota} />
         </div>
 
-        {/* 두 갈래 */}
-        <div className="seg" role="tablist">
-          <button type="button" role="tab" aria-selected={kind === 'estimate'} className={kind === 'estimate' ? 'on' : ''} onClick={() => setKind('estimate')}>
-            견적서 봐주세요
-          </button>
-          <button type="button" role="tab" aria-selected={kind === 'cost'} className={kind === 'cost' ? 'on' : ''} onClick={() => setKind('cost')}>
-            비용 물어보기
-          </button>
-        </div>
-
         <form
           className="form"
           onSubmit={(e) => {
@@ -231,6 +226,27 @@ export default function AskNewForm({ fromSlug, fromTitle }: { fromSlug: string |
           }}
           aria-busy={!ready}
         >
+          {/* 말머리(필수) — 네이버 카페식. ASK_CATEGORIES 에 한 줄 더하면 칩이 자동으로 늘어난다 */}
+          <div className="f">
+            <span className="lbl">
+              말머리 <b>필수</b>
+            </span>
+            <div className="chips wrap" style={{ padding: 0 }} role="radiogroup" aria-label="말머리">
+              {ASK_CATEGORIES.map((c) => (
+                <button
+                  key={c.key}
+                  type="button"
+                  role="radio"
+                  aria-checked={category === c.key}
+                  className={`chip${category === c.key ? ' sel' : ''}`}
+                  onClick={() => setCategory(c.key)}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* 블로그 글에서 넘어왔으면 글 맥락 칩 */}
           {from && fromTitle && (
             <div className="ctx">
@@ -250,7 +266,8 @@ export default function AskNewForm({ fromSlug, fromTitle }: { fromSlug: string |
           )}
 
           {/* 사진 */}
-          <div className="f">
+          {/* 견적서 봐주세요를 고르면 사진 칸을 강조색 테두리로(사진 필수) */}
+          <div className={`f${kind === 'estimate' ? ' f-emph' : ''}`}>
             <span className="lbl">
               {kind === 'estimate' ? '견적서 사진' : '사진'} <b>{kind === 'estimate' ? '필수' : '선택'}</b>
             </span>
@@ -392,8 +409,8 @@ export default function AskNewForm({ fromSlug, fromTitle }: { fromSlug: string |
 
         {/* 보내기 단추 — 모바일은 하단 탭 위에 떠 있고, PC는 양식 아래 */}
         <div className="cta">
-          <button type="button" className="btn p" onClick={() => void submit()} disabled={busy || !ready || uploading || noQuota}>
-            {noQuota ? (quota?.globalLeft === 0 ? '오늘 접수 마감' : '오늘 질문을 다 썼어요') : busy ? '올리는 중…' : uploading ? '사진 올리는 중…' : '질문 올리기 · 5~10분 뒤 답변'}
+          <button type="button" className="btn p" onClick={() => void submit()} disabled={busy || !ready || uploading || noQuota || !category}>
+            {!category && !noQuota ? '말머리를 골라 주세요' : noQuota ? (quota?.globalLeft === 0 ? '오늘 접수 마감' : '오늘 질문을 다 썼어요') : busy ? '올리는 중…' : uploading ? '사진 올리는 중…' : '질문 올리기 · 5~10분 뒤 답변'}
           </button>
         </div>
       </main>

@@ -15,7 +15,7 @@
 import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getSupabaseAdmin } from '@/lib/supabase';
-import { LIMITS, type AskBasis, type AskKind, type AskListItem, type AskPhoto, type AskStats } from './constants';
+import { LIMITS, normalizeCategory, type AskBasis, type AskCategory, type AskKind, type AskListItem, type AskPhoto, type AskStats } from './constants';
 
 /** 서비스 역할 클라이언트를 안전하게 — 환경변수가 없으면 null */
 export function adminOrNull(): SupabaseClient | null {
@@ -39,6 +39,7 @@ export interface AskPost {
   user_id: string;
   nickname: string;
   kind: AskKind;
+  category: AskCategory; // 말머리(표 칸이 아직 없으면 kind로 채움)
   title: string;
   body: string;
   pyeong: number | null;
@@ -77,6 +78,47 @@ export interface AskComment {
 // 목록 카드에 필요한 칸만 고른다(본문·user_id 제외 — 가볍게, 그리고 회원 번호가 새지 않게)
 const LIST_COLS = 'id,slug,nickname,kind,title,trades,status,comment_count,view_count,created_at,photos';
 
+// ── 말머리(category) 칸 방어 ──
+// 20261003_ask_category.sql 을 사장님이 실행하기 전에는 ask_posts.category 칸이 없다.
+// 그때 category 를 고르면 Supabase 가 오류를 내므로, 한 번 실패하면 "칸 없음"으로 기억하고
+// category 없이 다시 읽는다(말머리는 옛 kind 로 채움). 서버가 다시 뜨면 다시 시도한다.
+let categoryColumn: boolean | null = null;
+
+/** 오류가 "category 칸이 없다"는 뜻인지 */
+export function isMissingCategory(err: unknown): boolean {
+  const e = (err ?? {}) as { code?: string; message?: string };
+  const msg = String(e.message ?? '');
+  return /category/i.test(msg) && (e.code === '42703' || e.code === 'PGRST204' || /does not exist|Could not find/i.test(msg));
+}
+/** 칸이 없다고 알게 됐을 때 기억 */
+export function markNoCategoryColumn() {
+  categoryColumn = false;
+}
+
+/** 목록용 칸 목록(category 칸이 있으면 같이) */
+function listCols(): string {
+  return categoryColumn === false ? LIST_COLS : `${LIST_COLS},category`;
+}
+
+/**
+ * 목록 읽기 공통 — make(칸목록, category칸있음) 로 질의를 만들어 실행하고,
+ * category 칸이 없어서 실패하면 한 번만 category 없이 다시 실행한다.
+ */
+async function withCategoryFallback<T>(make: (cols: string, hasCat: boolean) => PromiseLike<{ data: T | null; error: unknown }>): Promise<{ data: T | null; error: unknown }> {
+  const first = await make(listCols(), categoryColumn !== false);
+  if (first.error && categoryColumn !== false && isMissingCategory(first.error)) {
+    categoryColumn = false;
+    return make(listCols(), false);
+  }
+  if (!first.error && categoryColumn === null) categoryColumn = true;
+  return first;
+}
+
+/** DB 한 줄의 말머리 — category 칸 값, 없으면 옛 kind 로 */
+function categoryOf(r: Record<string, unknown>): AskCategory {
+  return normalizeCategory(r.category) ?? (r.kind === 'estimate' ? 'estimate' : 'cost');
+}
+
 /** DB 한 줄 → 목록 카드 값 (답변 요약은 따로 붙인다) */
 function toListItem(r: Record<string, unknown>, summary: string | null): AskListItem {
   return {
@@ -84,6 +126,7 @@ function toListItem(r: Record<string, unknown>, summary: string | null): AskList
     slug: String(r.slug),
     nickname: String(r.nickname ?? ''),
     kind: (r.kind as AskKind) ?? 'cost',
+    category: categoryOf(r),
     title: String(r.title ?? ''),
     trades: Array.isArray(r.trades) ? (r.trades as string[]) : [],
     status: (r.status as AskListItem['status']) ?? 'queued',
@@ -117,7 +160,8 @@ async function summariesFor(sb: SupabaseClient, ids: number[]): Promise<Map<numb
 
 export interface ListQuery {
   cursor?: number | null; // 이 번호보다 작은(오래된) 질문부터
-  kind?: AskKind | null;
+  kind?: AskKind | null; // 옛 필터(호환)
+  category?: AskCategory | null; // 말머리 필터(정본)
   trade?: string | null;
   userId?: string | null; // 내 질문만
   limit?: number;
@@ -132,13 +176,21 @@ export async function listPosts(q: ListQuery = {}): Promise<{ items: AskListItem
   if (!sb) return { items: [], next: null };
   const limit = Math.min(50, q.limit ?? LIMITS.pageSize);
   try {
-    let query = sb.from('ask_posts').select(LIST_COLS).order('id', { ascending: false }).limit(limit + 1);
-    if (q.userId) query = query.eq('user_id', q.userId);
-    else query = query.neq('status', 'hidden');
-    if (q.cursor) query = query.lt('id', q.cursor);
-    if (q.kind) query = query.eq('kind', q.kind);
-    if (q.trade) query = query.contains('trades', [q.trade]);
-    const { data, error } = await query;
+    const { data, error } = await withCategoryFallback<Record<string, unknown>[]>((cols, hasCat) => {
+      let query = sb.from('ask_posts').select(cols).order('id', { ascending: false }).limit(limit + 1);
+      if (q.userId) query = query.eq('user_id', q.userId);
+      else query = query.neq('status', 'hidden');
+      if (q.cursor) query = query.lt('id', q.cursor);
+      if (q.kind) query = query.eq('kind', q.kind);
+      if (q.category) {
+        if (hasCat) query = query.eq('category', q.category);
+        // 칸이 없을 땐 옛 kind 로 거른다: 견적서=estimate, 비용 질문=cost, 새 말머리는 아직 글이 있을 수 없음
+        else if (q.category === 'estimate' || q.category === 'cost') query = query.eq('kind', q.category);
+        else query = query.eq('id', -1);
+      }
+      if (q.trade) query = query.contains('trades', [q.trade]);
+      return query as unknown as PromiseLike<{ data: Record<string, unknown>[] | null; error: unknown }>;
+    });
     if (error) {
       warn('list', error);
       return { items: [], next: null };
@@ -177,12 +229,14 @@ export async function popularPosts(limit = 5): Promise<AskListItem[]> {
   const sb = adminOrNull();
   if (!sb) return [];
   try {
-    const { data, error } = await sb
-      .from('ask_posts')
-      .select(LIST_COLS)
+    const { data, error } = await withCategoryFallback<Record<string, unknown>[]>((cols) =>
+      sb
+        .from('ask_posts')
+        .select(cols)
       .eq('status', 'answered')
       .order('view_count', { ascending: false })
-      .limit(limit);
+      .limit(limit) as unknown as PromiseLike<{ data: Record<string, unknown>[] | null; error: unknown }>,
+    );
     if (error) {
       warn('popular', error);
       return [];
@@ -207,6 +261,7 @@ export async function getPostById(id: number): Promise<AskPost | null> {
     if (!data) return null;
     return {
       ...(data as AskPost),
+      category: categoryOf(data as Record<string, unknown>), // 칸이 없으면 kind로
       trades: Array.isArray(data.trades) ? data.trades : [],
       photos: Array.isArray(data.photos) ? (data.photos as AskPhoto[]) : [],
     };
@@ -289,24 +344,28 @@ export async function similarPosts(post: Pick<AskPost, 'id' | 'trades'>, limit =
   try {
     const out: Record<string, unknown>[] = [];
     if (post.trades.length) {
-      const { data } = await sb
-        .from('ask_posts')
-        .select(LIST_COLS)
+      const { data } = await withCategoryFallback<Record<string, unknown>[]>((cols) =>
+        sb
+          .from('ask_posts')
+          .select(cols)
         .eq('status', 'answered')
         .neq('id', post.id)
         .overlaps('trades', post.trades)
         .order('id', { ascending: false })
-        .limit(limit);
+        .limit(limit) as unknown as PromiseLike<{ data: Record<string, unknown>[] | null; error: unknown }>,
+      );
       out.push(...((data ?? []) as Record<string, unknown>[]));
     }
     if (out.length < limit) {
-      const { data } = await sb
-        .from('ask_posts')
-        .select(LIST_COLS)
+      const { data } = await withCategoryFallback<Record<string, unknown>[]>((cols) =>
+        sb
+          .from('ask_posts')
+          .select(cols)
         .eq('status', 'answered')
         .neq('id', post.id)
         .order('id', { ascending: false })
-        .limit(limit * 2);
+        .limit(limit * 2) as unknown as PromiseLike<{ data: Record<string, unknown>[] | null; error: unknown }>,
+      );
       for (const r of (data ?? []) as Record<string, unknown>[]) {
         if (out.length >= limit) break;
         if (!out.some((o) => o.id === r.id)) out.push(r);
@@ -324,13 +383,15 @@ export async function postsFromBlog(fromSlug: string, limit = 2): Promise<AskLis
   const sb = adminOrNull();
   if (!sb) return [];
   try {
-    const { data, error } = await sb
-      .from('ask_posts')
-      .select(LIST_COLS)
+    const { data, error } = await withCategoryFallback<Record<string, unknown>[]>((cols) =>
+      sb
+        .from('ask_posts')
+        .select(cols)
       .eq('from_slug', fromSlug)
       .eq('status', 'answered')
       .order('id', { ascending: false })
-      .limit(limit);
+      .limit(limit) as unknown as PromiseLike<{ data: Record<string, unknown>[] | null; error: unknown }>,
+    );
     if (error) {
       warn('fromBlog', error);
       return [];

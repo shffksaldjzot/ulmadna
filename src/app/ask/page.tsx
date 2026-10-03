@@ -15,6 +15,7 @@ import Link from 'next/link';
 import AskShell from '@/components/ask/AskShell';
 import AskListClient from '@/components/ask/AskListClient';
 import AskListActions from '@/components/ask/AskListActions';
+import { titleWithCategory } from '@/lib/ask/constants';
 import { countPosts, getStats, listPosts, popularPosts } from '@/lib/ask/server';
 import { askHref, shortDate } from '@/lib/ask/format';
 
@@ -100,7 +101,7 @@ export default async function AskListPage() {
               <div className="rows" style={{ marginTop: 6 }}>
                 {popular.map((p) => (
                   <Link key={p.id} href={askHref(p.slug)}>
-                    {p.title}
+                    {titleWithCategory(p.category, p.title)}
                     <small>조회 {p.view_count.toLocaleString()}</small>
                   </Link>
                 ))}

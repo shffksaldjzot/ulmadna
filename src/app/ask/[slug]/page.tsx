@@ -22,7 +22,7 @@ import { IcBack } from '@/components/ask/icons';
 import { getComments, getLatestAnswer, getPostById, helpfulCount, maskedPhotoUrl, similarPosts } from '@/lib/ask/server';
 import { renderAnswerMarkdown } from '@/lib/ask/markdown';
 import { blogPostRef, blogPostsForTrades } from '@/lib/ask/blogref';
-import { KIND_LABEL, TRADE_CALC } from '@/lib/ask/constants';
+import { TRADE_CALC, categoryLabel, titleWithCategory } from '@/lib/ask/constants';
 import {
   askHref,
   conditionText,
@@ -69,7 +69,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!post) return { title: '질문을 찾을 수 없어요 — 얼마드나 물어보기', robots: { index: false, follow: false } };
   const answer = await loadAnswer(post.id);
   const cond = conditionText(post.pyeong, post.trades);
-  const title = `${post.title}${cond ? ` (${cond})` : ''} — 얼마드나 물어보기`;
+  // <title>·OG 는 "[말머리] 제목" 형식(네이버 카페식)
+  const title = `${titleWithCategory(post.category, post.title)}${cond ? ` (${cond})` : ''} — 얼마드나 물어보기`;
   // 설명문: 답변 한 줄 요약 → 없으면 질문 본문 앞부분
   const description = (answer?.summary || stripMarkdown(post.body) || post.title).slice(0, 150);
   const url = `${SITE}${askHref(post.slug)}`;
@@ -87,7 +88,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         ? { robots: { index: false, follow: true } }
         : {}),
     openGraph: {
-      title: post.title,
+      title: titleWithCategory(post.category, post.title),
       description,
       url,
       type: 'article',
@@ -111,7 +112,7 @@ export default async function AskPostPage({ params }: { params: Promise<{ slug: 
     answer ? renderAnswerMarkdown(answer.body_md) : Promise.resolve(''),
   ]);
 
-  const kindLabel = KIND_LABEL[post.kind];
+  const kindLabel = categoryLabel(post.category); // 말머리 이름(옛 종류 자리)
   const cond = conditionText(post.pyeong, post.trades);
   const answeredMin = answer ? minutesBetween(post.created_at, answer.created_at) : null;
   // 공정에서 바로 열 수 있는 계산기(답변 근거에 따로 적혀 있으면 그걸 우선)
@@ -132,7 +133,7 @@ export default async function AskPostPage({ params }: { params: Promise<{ slug: 
         '@type': 'QAPage',
         mainEntity: {
           '@type': 'Question',
-          name: post.title,
+          name: titleWithCategory(post.category, post.title),
           text: post.body || post.title,
           answerCount: 1 + comments.filter((c) => c.is_ai).length,
           dateCreated: post.created_at,
@@ -169,7 +170,7 @@ export default async function AskPostPage({ params }: { params: Promise<{ slug: 
             {post.trades.length > 0 && <span className="tag">{post.trades.join(' · ')}</span>}
           </div>
           <h1>
-            {post.title}
+            {titleWithCategory(post.category, post.title)}
             {post.photos.length > 0 ? ` (사진 ${post.photos.length}장)` : ''}
           </h1>
           <div className="meta">
@@ -211,7 +212,7 @@ export default async function AskPostPage({ params }: { params: Promise<{ slug: 
             {post.region && <span>{post.region}</span>}
             {post.trades.length > 0 && <span>{post.trades.join(' · ')}</span>}
           </div>
-          <AskPostActions postId={post.id} slug={post.slug} title={post.title} />
+          <AskPostActions postId={post.id} slug={post.slug} title={titleWithCategory(post.category, post.title)} />
         </article>
 
         {/* 얼마드나 AI 답변 — 없으면 준비 중 상자 */}
@@ -320,7 +321,7 @@ export default async function AskPostPage({ params }: { params: Promise<{ slug: 
             <div className="card rows">
               {similar.map((s) => (
                 <Link key={s.id} href={askHref(s.slug)}>
-                  {s.title}
+                  {titleWithCategory(s.category, s.title)}
                   <small suppressHydrationWarning>AI 답변 · {timeAgo(s.created_at)}</small>
                 </Link>
               ))}

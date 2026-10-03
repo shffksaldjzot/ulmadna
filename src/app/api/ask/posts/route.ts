@@ -1,7 +1,7 @@
 // ──────────────────────────────────────────────
 // 물어보기 — 질문 목록 더 보기(GET) · 질문 올리기(POST)
 //
-// GET  /api/ask/posts?cursor=번호&kind=estimate|cost&trade=도배&mine=1
+// GET  /api/ask/posts?cursor=번호&category=말머리key&trade=도배&mine=1  (옛 kind=estimate|cost 도 동작)
 //      → { items, next } (next = 다음 쪽 커서, 더 없으면 null)
 //      mine=1 이면 로그인한 사람의 질문만(숨김 상태여도 내 글은 보인다).
 // POST /api/ask/posts  (로그인 + 닉네임 필요)
@@ -12,9 +12,9 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { currentUserId, fail } from '@/lib/ask/session';
-import { adminOrNull, listPosts, getNickname, countToday } from '@/lib/ask/server';
+import { adminOrNull, listPosts, getNickname, countToday, isMissingCategory, markNoCategoryColumn } from '@/lib/ask/server';
 import { computeQuota, blockedMessage } from '@/lib/ask/quota';
-import { LIMITS, TRADES, REGIONS, type AskKind } from '@/lib/ask/constants';
+import { LIMITS, TRADES, REGIONS, normalizeCategory, kindFromCategory, type AskKind, type AskCategory } from '@/lib/ask/constants';
 import { makeSlug, kstDayStartIso, hasPhoneNumber } from '@/lib/ask/format';
 
 export const dynamic = 'force-dynamic';
@@ -25,6 +25,7 @@ export async function GET(req: Request) {
   const cursor = cursorRaw && /^\d+$/.test(cursorRaw) ? Number(cursorRaw) : null;
   const kindRaw = url.searchParams.get('kind');
   const kind: AskKind | null = kindRaw === 'estimate' || kindRaw === 'cost' ? kindRaw : null;
+  const category = normalizeCategory(url.searchParams.get('category')); // 말머리 필터(정본)
   const tradeRaw = url.searchParams.get('trade');
   const trade = tradeRaw && (TRADES as readonly string[]).includes(tradeRaw) ? tradeRaw : null;
 
@@ -36,7 +37,7 @@ export async function GET(req: Request) {
     return NextResponse.json(res, { headers: { 'Cache-Control': 'private, no-store' } });
   }
 
-  const res = await listPosts({ cursor, kind, trade });
+  const res = await listPosts({ cursor, kind, category, trade });
   // 공개 목록은 짧게(60초) 캐시해도 된다 — 목록 화면도 60초마다 새로 그린다
   return NextResponse.json(res, { headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' } });
 }
@@ -65,7 +66,10 @@ export async function POST(req: Request) {
   if (!nickname) return fail(409, '먼저 이름을 정해 주세요', { needNickname: true });
 
   // ── 값 검사 ──
-  const kind: AskKind = input.kind === 'estimate' ? 'estimate' : 'cost';
+  // 말머리(필수). 화면은 꼭 고르게 하고, 말머리 없이 옛 kind만 보내는 쪽(답변기·씨앗 스크립트)은 kind로 정한다.
+  const category: AskCategory | null = normalizeCategory(input.category) ?? (input.kind === 'estimate' || input.kind === 'cost' ? input.kind : null);
+  if (!category) return fail(400, '말머리를 골라 주세요', { field: 'category' });
+  const kind: AskKind = kindFromCategory(category); // 옛 칸(check: estimate|cost) 호환용으로 같이 저장
   const title = str(input.title);
   const body = str(input.body);
   if (title.length < LIMITS.titleMin || title.length > LIMITS.titleMax) return fail(400, `제목은 ${LIMITS.titleMin}~${LIMITS.titleMax}자로 적어 주세요`);
@@ -99,9 +103,7 @@ export async function POST(req: Request) {
 
     // ── 저장: 번호를 먼저 받아야 주소를 만들 수 있어서 임시 주소로 넣고 바로 바꾼다 ──
     const tmpSlug = `tmp-${crypto.randomUUID()}`;
-    const { data: ins, error: iErr } = await sb
-      .from('ask_posts')
-      .insert({
+    const row: Record<string, unknown> = {
         slug: tmpSlug,
         user_id: uid,
         nickname,
@@ -115,9 +117,15 @@ export async function POST(req: Request) {
         photos,
         from_slug: fromSlug,
         status: 'queued',
-      })
-      .select('id')
-      .single();
+        category,
+    };
+    let { data: ins, error: iErr } = await sb.from('ask_posts').insert(row).select('id').single();
+    // 말머리 칸(20261003_ask_category.sql)을 아직 안 만들었으면 category 없이 다시 넣는다(말머리는 kind로 남음)
+    if (iErr && isMissingCategory(iErr)) {
+      markNoCategoryColumn();
+      delete row.category;
+      ({ data: ins, error: iErr } = await sb.from('ask_posts').insert(row).select('id').single());
+    }
     if (iErr || !ins) throw iErr ?? new Error('insert 실패');
 
     const slug = makeSlug(Number(ins.id), title);

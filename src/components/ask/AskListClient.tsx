@@ -10,22 +10,17 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { LIST_TRADES, type AskListItem } from '@/lib/ask/constants';
+import { ASK_CATEGORIES, LIST_TRADES, type AskCategory, type AskListItem } from '@/lib/ask/constants';
 import AskCard from './AskCard';
 import { IcSearch } from './icons';
 
-/** 칩 하나 — 이름과 API 조건 */
-interface ChipDef {
-  label: string;
-  kind?: 'estimate' | 'cost';
-  trade?: string;
-}
-const CHIPS: ChipDef[] = [
-  { label: '전체' },
-  { label: '견적서 봐주세요', kind: 'estimate' },
-  { label: '비용 질문', kind: 'cost' },
-  ...LIST_TRADES.map((t) => ({ label: t, trade: t })),
-];
+/**
+ * 필터 두 줄 (형아 지시 2026년 10월 03일 — 네이버 카페식 말머리)
+ *   첫째 줄: 전체 + 말머리(ASK_CATEGORIES — constants.ts 에 한 줄 더하면 칩도 자동으로 늘어남)
+ *   둘째 줄: 공정(누르면 켜짐, 다시 누르면 꺼짐)
+ * 둘 다 안 골랐으면 서버가 처음 그려 준 목록을 그대로 쓴다.
+ */
+type CatKey = AskCategory | null;
 
 export default function AskListClient({
   initialItems,
@@ -36,35 +31,36 @@ export default function AskListClient({
   initialNext: number | null;
   total: number;
 }) {
-  const [chip, setChip] = useState(0); // 고른 칩 번호
+  const [cat, setCat] = useState<CatKey>(null); // 고른 말머리(null=전체)
+  const [trade, setTrade] = useState<string | null>(null); // 고른 공정(null=전체)
   const [items, setItems] = useState(initialItems);
   const [next, setNext] = useState<number | null>(initialNext);
   const [loading, setLoading] = useState(false);
   const [q, setQ] = useState('');
 
   /** API에서 한 쪽 받아오기 */
-  async function fetchPage(def: ChipDef, cursor: number | null) {
+  async function fetchPage(c: CatKey, t: string | null, cursor: number | null) {
     const sp = new URLSearchParams();
     if (cursor) sp.set('cursor', String(cursor));
-    if (def.kind) sp.set('kind', def.kind);
-    if (def.trade) sp.set('trade', def.trade);
+    if (c) sp.set('category', c);
+    if (t) sp.set('trade', t);
     const r = await fetch(`/api/ask/posts?${sp.toString()}`);
     if (!r.ok) return { items: [] as AskListItem[], next: null };
     return (await r.json()) as { items: AskListItem[]; next: number | null };
   }
 
-  /** 칩 누름 — 전체면 처음 목록으로, 아니면 그 조건으로 새로 받기 */
-  async function pickChip(i: number) {
-    if (i === chip) return;
-    setChip(i);
-    if (i === 0) {
+  /** 필터 바꾸기 — 둘 다 비면 처음 목록으로, 아니면 그 조건 첫 쪽을 새로 받기 */
+  async function applyFilter(c: CatKey, t: string | null) {
+    setCat(c);
+    setTrade(t);
+    if (!c && !t) {
       setItems(initialItems);
       setNext(initialNext);
       return;
     }
     setLoading(true);
     try {
-      const res = await fetchPage(CHIPS[i], null);
+      const res = await fetchPage(c, t, null);
       setItems(res.items);
       setNext(res.next);
     } finally {
@@ -77,7 +73,7 @@ export default function AskListClient({
     if (!next || loading) return;
     setLoading(true);
     try {
-      const res = await fetchPage(CHIPS[chip], next);
+      const res = await fetchPage(cat, trade, next);
       setItems((prev) => [...prev, ...res.items.filter((x) => !prev.some((p) => p.id === x.id))]);
       setNext(res.next);
     } finally {
@@ -100,10 +96,22 @@ export default function AskListClient({
         <IcSearch />
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="34평 실크 도배 얼마…" aria-label="질문 검색" />
       </label>
-      <div className="chips" role="tablist" aria-label="질문 고르기">
-        {CHIPS.map((c, i) => (
-          <button key={c.label} type="button" role="tab" aria-selected={i === chip} className={`chip${i === chip ? ' on' : ''}`} onClick={() => pickChip(i)}>
+      {/* 첫째 줄: 전체 + 말머리 */}
+      <div className="chips" role="tablist" aria-label="말머리">
+        <button type="button" role="tab" aria-selected={cat === null} className={`chip${cat === null ? ' on' : ''}`} onClick={() => applyFilter(null, trade)}>
+          전체
+        </button>
+        {ASK_CATEGORIES.map((c) => (
+          <button key={c.key} type="button" role="tab" aria-selected={cat === c.key} className={`chip${cat === c.key ? ' on' : ''}`} onClick={() => applyFilter(c.key, trade)}>
             {c.label}
+          </button>
+        ))}
+      </div>
+      {/* 둘째 줄: 공정(작은 칩, 다시 누르면 꺼짐) */}
+      <div className="chips chips-sub" aria-label="공정">
+        {LIST_TRADES.map((t) => (
+          <button key={t} type="button" aria-pressed={trade === t} className={`chip sm${trade === t ? ' sel' : ''}`} onClick={() => applyFilter(cat, trade === t ? null : t)}>
+            {t}
           </button>
         ))}
       </div>
@@ -133,7 +141,7 @@ export default function AskListClient({
       {next && !q && (
         <button type="button" className="more" onClick={loadMore} disabled={loading}>
           {loading ? '불러오는 중…' : '더 보기'}{' '}
-          {chip === 0 && total > 0 && (
+          {!cat && !trade && total > 0 && (
             <span className="n">
               {items.length} / {total.toLocaleString()}
             </span>
