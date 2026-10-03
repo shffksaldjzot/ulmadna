@@ -592,7 +592,7 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
   if (!modeChosen) {
     return (
       <>
-        <TopNav title="레미탈 계산기" backHref="/calc" as="p" />
+        <TopNav title="몰탈(레미탈) 계산기" backHref="/calc" as="p" />
         <div className="px-5 lg:px-8 max-w-[1120px] mx-auto">
           <ModePicker
             onPick={(v: CalcViewMode) => {
@@ -608,7 +608,7 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
   return (
     <>
       <TopNav
-        title="레미탈 계산기"
+        title="몰탈(레미탈) 계산기"
         backHref="/calc"
         as="p"
         rightSlot={

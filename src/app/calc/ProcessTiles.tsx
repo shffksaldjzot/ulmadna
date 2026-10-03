@@ -11,7 +11,8 @@ import Link from 'next/link';
 /** 실제로 열려 있는 계산기 3개 — 카드로 크게 보여준다 */
 const LIVE_CALCULATORS = [
   { name: '도배', href: '/calc/wallpaper', desc: '벽지 롤수와 비용' },
-  { name: '미장', href: '/calc/mortar', desc: '레미탈 포대수와 비용' },
+  // 2026-10-03 검색 노출: 카드 설명에 "몰탈 계산기"를 넣어 링크 글자가 핵심어를 담게 함
+  { name: '미장', href: '/calc/mortar', desc: '몰탈 계산기 · 레미탈 포대수와 비용' },
   { name: '바닥재', href: '/calc/flooring', desc: '바닥재 수량과 비용' },
 ];
 
