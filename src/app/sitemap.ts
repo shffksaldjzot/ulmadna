@@ -1,12 +1,20 @@
 import type { MetadataRoute } from 'next';
 import { getAllPostMeta } from '@/lib/blog';
 import { BLOG_CATEGORIES } from '@/lib/blog-categories';
+import { answeredForSitemap } from '@/lib/ask/server';
+import { askHref } from '@/lib/ask/format';
+
+// 물어보기 질문이 새로 답변되면 사이트맵에도 들어가야 해서 1시간마다 새로 만든다
+// (집컴이 /api/ask/revalidate 를 부르면 그때 바로 새로 만든다) — 2026년 10월 03일
+export const revalidate = 3600;
 
 const SITE = 'https://ulmadna.com';
 
-// 사이트맵 — 홈 + 블로그 목록 + 모든 블로그 글 (구글 색인용)
-export default function sitemap(): MetadataRoute.Sitemap {
+// 사이트맵 — 홈 + 블로그 목록 + 모든 블로그 글 + 물어보기(목록·답변 달린 질문) (구글 색인용)
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const posts = getAllPostMeta();
+  // 답변 달린 질문 전부 — 표가 없거나 연결이 안 되면 빈 목록(사이트맵은 그대로 나감)
+  const asks = await answeredForSitemap();
 
   return [
     {
@@ -34,6 +42,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE}/calc/wallpaper`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     { url: `${SITE}/calc/flooring`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     { url: `${SITE}/calc/mortar`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
+    // 물어보기 목록 (2026년 10월 03일)
+    { url: `${SITE}/ask`, lastModified: new Date(), changeFrequency: 'hourly' as const, priority: 0.8 },
     // 카테고리 허브 8장 — 주제별 모음 페이지 (글 목록 다음으로 중요한 색인 대상)
     ...BLOG_CATEGORIES.map((c) => ({
       url: `${SITE}/blog/category/${c.id}`,
@@ -49,6 +59,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: p.updated ? new Date(p.updated) : p.date ? new Date(p.date) : new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.8,
+    })),
+    // 물어보기 — 답변 달린 질문 각각 (주소의 한글은 인코딩해서 넣는다)
+    ...asks.map((a) => ({
+      url: `${SITE}${askHref(a.slug)}`,
+      lastModified: a.updated_at ? new Date(a.updated_at) : new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
     })),
   ];
 }

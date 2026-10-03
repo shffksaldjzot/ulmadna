@@ -15,9 +15,16 @@ export default function LoginPage() {
   // 로그인 실패 시 NextAuth가 /login?error=... 로 되돌려 보낸다.
   // (useSearchParams 대신 주소창을 직접 읽어서 Suspense 없이 처리)
   const [errCode, setErrCode] = useState<string | null>(null);
+  // 로그인 뒤 돌아갈 곳 — 2026년 10월 03일: 물어보기(질문하기·댓글 등)에서 넘어오면
+  // /login?callbackUrl=/ask/new 처럼 돌아올 곳을 달고 온다. 우리 사이트 안 주소(/로 시작,
+  // //로 시작하지 않음)만 받아들인다(바깥 사이트로 튕기는 장난 방지). 없으면 예전처럼 홈.
+  const [callbackUrl, setCallbackUrl] = useState('/');
   useEffect(() => {
-    const code = new URLSearchParams(window.location.search).get('error');
+    const sp = new URLSearchParams(window.location.search);
+    const code = sp.get('error');
     if (code) setErrCode(code);
+    const cb = sp.get('callbackUrl');
+    if (cb && cb.startsWith('/') && !cb.startsWith('//')) setCallbackUrl(cb);
   }, []);
 
   return (
@@ -39,7 +46,7 @@ export default function LoginPage() {
           )}
 
           <button
-            onClick={() => signIn('kakao', { callbackUrl: '/' })}
+            onClick={() => signIn('kakao', { callbackUrl })}
             className="w-full flex items-center justify-center gap-3 py-3 rounded-card text-sm font-medium transition-colors"
             style={{ backgroundColor: '#FEE500', color: '#191919' }}
           >

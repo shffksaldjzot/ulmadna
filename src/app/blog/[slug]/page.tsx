@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import CalculatorCta from "@/components/blog/CalculatorCta";
+// 글 끝 "이 글 보고 궁금한 게 있나요?" 물어보기 카드 (2026년 10월 03일)
+import AskCta from "@/components/blog/AskCta";
 import { CALCULATORS } from "@/lib/blog-calculators";
 import ServiceCta from "@/components/blog/ServiceCta";
 import { getService } from "@/lib/services";
@@ -294,6 +296,10 @@ export default async function BlogPost({
             <div className="blog-body" dangerouslySetInnerHTML={{ __html: post.html }} />
             {/* 스포일러 캔버스 효과(점진적 향상) — .blog-spoiler 강화 */}
             <BlogSpoilerInk />
+
+            {/* 본문 끝 — "이 글 보고 궁금한 게 있나요?" 물어보기 카드(이어서 볼 글 앞, 2026년 10월 03일)
+                누르면 이 글을 맥락으로 붙인 질문하기 화면(/ask/new?from=글주소)으로 간다 */}
+            <AskCta slug={post.slug} />
 
             {/* 본문(글 자체)이 끝나는 지점 — 스크롤이 여기 들어오면 "이어서 볼 만한 글"이 뜸 */}
             <ReadMoreAtEnd candidates={readMoreCandidates} />
