@@ -406,3 +406,37 @@ export async function getNickname(userId: string): Promise<string | null> {
     return null;
   }
 }
+
+/**
+ * 오늘(한국 시간 0시부터) 사용량 세기 — 하루 제한 계산(lib/ask/quota.ts)의 재료
+ *   globalUsed : 사이트 전체 오늘 질문 수(숨김 제외, user_id가 'seed'로 시작하는 씨앗 글 제외)
+ *   userUsed   : 내 오늘 질문 수(userId 없으면 null)
+ *   commentUsed: 내 오늘 댓글 수 합계(userId 없으면 null)
+ * 표가 없거나 연결이 안 되면 0으로 센다(화면이 터지지 않게).
+ */
+export async function countToday(dayStartIso: string, userId: string | null): Promise<{ globalUsed: number; userUsed: number | null; commentUsed: number | null }> {
+  const sb = adminOrNull();
+  const out = { globalUsed: 0, userUsed: userId ? 0 : null, commentUsed: userId ? 0 : null } as {
+    globalUsed: number;
+    userUsed: number | null;
+    commentUsed: number | null;
+  };
+  if (!sb) return out;
+  try {
+    const g = sb
+      .from('ask_posts')
+      .select('id', { count: 'exact', head: true })
+      .gte('created_at', dayStartIso)
+      .neq('status', 'hidden')
+      .not('user_id', 'like', 'seed%');
+    const u = userId ? sb.from('ask_posts').select('id', { count: 'exact', head: true }).eq('user_id', userId).gte('created_at', dayStartIso) : null;
+    const c = userId ? sb.from('ask_comments').select('id', { count: 'exact', head: true }).eq('user_id', userId).gte('created_at', dayStartIso) : null;
+    const [gr, ur, cr] = await Promise.all([g, u, c]);
+    out.globalUsed = gr.count ?? 0;
+    if (ur) out.userUsed = ur.count ?? 0;
+    if (cr) out.commentUsed = cr.count ?? 0;
+  } catch (e) {
+    warn('countToday', e);
+  }
+  return out;
+}

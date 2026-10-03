@@ -22,7 +22,7 @@ import { LIMITS, PHOTO_TYPES, PYEONG_OPTIONS, REGIONS, TRADES, type AskKind } fr
 import { askHref } from '@/lib/ask/format';
 import { showAskToast } from './AskToast';
 import { IcBack } from './icons';
-import { AskQuotaLine, useAskQuota } from './AskQuota';
+import { AskQuotaLine, quotaLocked, useAskQuota } from './AskQuota';
 
 /** 고른 사진 한 장의 상태 */
 interface PickedPhoto {
@@ -52,7 +52,7 @@ export default function AskNewForm({ fromSlug, fromTitle }: { fromSlug: string |
   const fileRef = useRef<HTMLInputElement>(null);
   // 오늘 남은 질문 수(하루 3개) — 0개면 올리기 단추를 막고 자정까지 카운트다운
   const quota = useAskQuota();
-  const noQuota = !!quota?.loggedIn && quota.left === 0;
+  const noQuota = quotaLocked(quota); // 전체 마감이거나 내 몫(하루 1개)을 다 썼으면 잠금
 
   // 이 화면 주소(로그인·닉네임 화면에서 돌아올 곳)
   const selfUrl = `/ask/new${fromSlug ? `?from=${encodeURIComponent(fromSlug)}` : ''}`;
@@ -208,9 +208,8 @@ export default function AskNewForm({ fromSlug, fromTitle }: { fromSlug: string |
         <div className="bhead">
           <div className="eyebrow">얼마드나 물어보기</div>
           <h1 className="t-page">무엇이 궁금하세요?</h1>
-          <p className="lead">
-            실시간 답변이 아니에요 · 견적서 자료를 찾아 보느라 <b style={{ color: 'var(--ink)' }}>5~10분</b> 걸려요
-          </p>
+          {/* 형아 결정: "실시간 아님 · 5~10분" 강조색 알약 한 줄 + 오늘 남은 질문 */}
+          <p className="ask-notice">실시간 답변이 아니에요 · 자료를 찾아 보느라 5~10분 걸려요</p>
           <AskQuotaLine quota={quota} />
         </div>
 
@@ -396,7 +395,7 @@ export default function AskNewForm({ fromSlug, fromTitle }: { fromSlug: string |
         {/* 보내기 단추 — 모바일은 하단 탭 위에 떠 있고, PC는 양식 아래 */}
         <div className="cta">
           <button type="button" className="btn p" onClick={() => void submit()} disabled={busy || !ready || uploading || noQuota}>
-            {noQuota ? '오늘 질문을 다 썼어요' : busy ? '올리는 중…' : uploading ? '사진 올리는 중…' : '질문 올리기 · 5~10분 뒤 답변'}
+            {noQuota ? (quota?.globalLeft === 0 ? '오늘 접수 마감' : '오늘 질문을 다 썼어요') : busy ? '올리는 중…' : uploading ? '사진 올리는 중…' : '질문 올리기 · 5~10분 뒤 답변'}
           </button>
         </div>
       </main>

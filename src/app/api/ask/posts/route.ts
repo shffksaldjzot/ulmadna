@@ -5,14 +5,15 @@
 //      → { items, next } (next = 다음 쪽 커서, 더 없으면 null)
 //      mine=1 이면 로그인한 사람의 질문만(숨김 상태여도 내 글은 보인다).
 // POST /api/ask/posts  (로그인 + 닉네임 필요)
-//      → 검사 · 하루 3개 제한 · 주소(slug) 만들기 · status=queued 로 저장 → { slug }
+//      → 검사 · 하루 제한(전체 10개 선착순 + 회원당 1개) · 주소(slug) 만들기 · status=queued 로 저장 → { slug }
 //      저장 뒤엔 집컴 답변기가 5분마다 새 글을 찾아 답을 쓴다(이 API는 답을 안 씀).
 // 작성일: 2026년 10월 03일
 // ──────────────────────────────────────────────
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { currentUserId, fail } from '@/lib/ask/session';
-import { adminOrNull, listPosts, getNickname } from '@/lib/ask/server';
+import { adminOrNull, listPosts, getNickname, countToday } from '@/lib/ask/server';
+import { computeQuota, blockedMessage } from '@/lib/ask/quota';
 import { LIMITS, TRADES, REGIONS, type AskKind } from '@/lib/ask/constants';
 import { makeSlug, kstDayStartIso, hasPhoneNumber } from '@/lib/ask/format';
 
@@ -90,14 +91,11 @@ export async function POST(req: Request) {
   const photos = photoPaths.map((raw) => ({ raw, masked: null }));
 
   try {
-    // ── 하루 3개 제한(한국 날짜 기준 오늘 0시부터) ──
-    const { count, error: cErr } = await sb
-      .from('ask_posts')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', uid)
-      .gte('created_at', kstDayStartIso());
-    if (cErr) throw cErr;
-    if ((count ?? 0) >= LIMITS.postsPerDay) return fail(429, `질문은 하루 ${LIMITS.postsPerDay}개까지예요. 내일 다시 올려 주세요`);
+    // ── 하루 제한(한국 날짜 기준 오늘 0시부터): 전체 10개 선착순 + 회원당 1개 ──
+    // 계산 규칙은 lib/ask/quota.ts 한 곳(화면 안내 /api/ask/quota 와 같은 기준)
+    const q = computeQuota(await countToday(kstDayStartIso(), uid));
+    const blockedMsg = blockedMessage(q.blocked);
+    if (blockedMsg) return fail(429, blockedMsg, { blocked: q.blocked });
 
     // ── 저장: 번호를 먼저 받아야 주소를 만들 수 있어서 임시 주소로 넣고 바로 바꾼다 ──
     const tmpSlug = `tmp-${crypto.randomUUID()}`;

@@ -275,7 +275,9 @@ export default async function AskPostPage({ params }: { params: Promise<{ slug: 
             <span>
               <b>{late ? '답변이 늦어지고 있어요' : 'AI가 비슷한 견적서를 찾고 있어요'}</b>
               <br />
-              {late ? '차례대로 답하고 있어요 · 조금만 기다려 주세요' : '실시간이 아니라 5~10분 걸려요 · 새로 고침하면 답이 보여요'}
+              {late ? '차례대로 답하고 있어요 · 조금만 기다려 주세요' : '새로 고침하면 답이 보여요'}
+              {/* 형아 결정: 목록·질문하기 머리와 같은 강조 문구 */}
+              <span className="ask-notice">실시간 답변이 아니에요 · 자료를 찾아 보느라 5~10분 걸려요</span>
             </span>
           </div>
         )}

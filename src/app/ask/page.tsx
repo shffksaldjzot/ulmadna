@@ -50,6 +50,10 @@ export default async function AskListPage() {
             <AskListActions variant="title" />
           </div>
           <p className="lead">AI가 얼마드나 빅데이터로 통상 단가와 적정 여부를 답해요</p>
+          {/* 형아 결정: "실시간 아님 · 5~10분"을 작은 글자에서 꺼내 강조색 알약으로 한 줄 */}
+          <p className="ask-notice">실시간 답변이 아니에요 · 자료를 찾아 보느라 5~10분 걸려요</p>
+          {/* 오늘 남은 질문(전체 10개 선착순 · 내 몫 1개) — 본문 크기, 숫자 강조색 */}
+          <AskListActions variant="quota" />
           <hr />
         </div>
 
@@ -70,14 +74,11 @@ export default async function AskListPage() {
             </p>
             <div className="foot">
               <span>매일 새벽 갱신{stats.updated ? ` · ${shortDate(stats.updated)}` : ''}</span>
-              <span>
-                실시간 답변이 아니에요 · 자료를 찾아 보느라 <b>5~10분</b>
-              </span>
             </div>
           </section>
         )}
 
-        {/* 목록 위 줄: 오늘 남은 질문 한 줄(모든 화면) + PC 질문하기 단추 하나 더 */}
+        {/* 목록 위 줄: PC 질문하기 단추 하나 더(남은 수는 머리에 있음) */}
         <AskListActions variant="row" />
 
         <AskListClient initialItems={items} initialNext={next} total={total} />

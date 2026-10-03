@@ -38,6 +38,17 @@ export const TRADE_CALC: Record<string, { label: string; href: string }> = {
   '미장 · 방수': { label: '미장 견적서', href: '/calc/mortar' },
 };
 
+/**
+ * 하루 질문·댓글 제한 (형아 결정 2026년 10월 03일, 한국 시간 자정 기준)
+ *   ASK_DAILY_GLOBAL            = 사이트 전체 하루 질문 10개 선착순
+ *   ASK_DAILY_PER_USER          = 회원 한 명당 하루 질문(원글) 1개
+ *   ASK_DAILY_COMMENTS_PER_USER = 회원 한 명당 하루 댓글 3개(글당이 아니라 하루 합계)
+ * 숫자를 바꾸려면 여기만 고치면 서버 검사·화면 안내가 같이 바뀐다.
+ */
+export const ASK_DAILY_GLOBAL = 10;
+export const ASK_DAILY_PER_USER = 1;
+export const ASK_DAILY_COMMENTS_PER_USER = 3;
+
 /** 제한값 — 서버 검사와 화면 안내가 같은 숫자를 쓰게 한 곳에 둔다 */
 export const LIMITS = {
   titleMax: 60,
@@ -45,8 +56,7 @@ export const LIMITS = {
   bodyMax: 3000,
   photosMax: 5,
   photoBytes: 10 * 1024 * 1024, // 10MB
-  postsPerDay: 3,
-  commentsPerDayPerPost: 20,
+  postsPerDay: 1, // = ASK_DAILY_PER_USER (옛 이름 호환)
   commentMax: 1000,
   nickMin: 2,
   nickMax: 12,
