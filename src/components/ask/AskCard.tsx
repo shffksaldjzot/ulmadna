@@ -7,7 +7,7 @@
 // 작성일: 2026년 10월 03일
 // ──────────────────────────────────────────────
 import Link from 'next/link';
-import { KIND_LABEL, type AskListItem } from '@/lib/ask/constants';
+import { titleWithCategory, type AskListItem } from '@/lib/ask/constants';
 import { askHref, timeAgo } from '@/lib/ask/format';
 import { IcBubble } from './icons';
 
@@ -17,12 +17,12 @@ export default function AskCard({ item, hideNick = false, extraTag }: { item: As
     <Link className="q" href={askHref(item.slug)}>
       <div className="tags">
         {answered ? <span className="tag ans">AI 답변</span> : <span className="tag wait">답변 준비 중</span>}
-        <span className="tag">{KIND_LABEL[item.kind]}</span>
         {item.trades.length > 0 && <span className="tag">{item.trades.join(' · ')}</span>}
         {extraTag && <span className="tag mine">{extraTag}</span>}
       </div>
       <div className="ttl">
-        {item.title}
+        {/* "[말머리] 제목" — 네이버 카페식 */}
+        {titleWithCategory(item.category, item.title)}
         {item.photoCount > 0 ? ` (사진 ${item.photoCount}장)` : ''}
       </div>
       {answered && item.summary && <div className="prev">답변: {item.summary}</div>}
@@ -35,12 +35,11 @@ export default function AskCard({ item, hideNick = false, extraTag }: { item: As
         )}
         {/* "12분 전"은 서버가 그린 시각과 브라우저 시각이 조금 달라도 경고를 내지 않게 */}
         <span suppressHydrationWarning>{timeAgo(item.created_at)}</span>
-        {item.comment_count > 0 && (
-          <span className="cm" aria-label={`댓글 ${item.comment_count}개`}>
-            <IcBubble />
-            {item.comment_count}
-          </span>
-        )}
+        {/* 댓글 수는 0개여도 항상 보인다(형아 지시 2026년 10월 03일) */}
+        <span className="cm" aria-label={`댓글 ${item.comment_count}개`}>
+          <IcBubble />
+          {item.comment_count}
+        </span>
       </div>
     </Link>
   );

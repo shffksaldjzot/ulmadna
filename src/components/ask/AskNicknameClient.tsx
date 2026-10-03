@@ -14,8 +14,6 @@ import { useSession } from 'next-auth/react';
 import { LIMITS } from '@/lib/ask/constants';
 import { nicknameProblem } from '@/lib/ask/format';
 
-/** 추천 이름 후보 3개 — 서버 그림과 브라우저 그림이 같아야 해서 무작위로 섞지 않는다 */
-const SUGGEST = ['입주준비', '도토리', '84타입'];
 
 export default function AskNicknameClient({ next }: { next: string }) {
   const { status } = useSession();
@@ -24,7 +22,6 @@ export default function AskNicknameClient({ next }: { next: string }) {
   const [check, setCheck] = useState<{ ok: boolean; msg: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const sugg = SUGGEST;
 
   // 로그인 확인 + 원래 이름 불러오기
   useEffect(() => {
@@ -111,13 +108,6 @@ export default function AskNicknameClient({ next }: { next: string }) {
           placeholder={`${LIMITS.nickMin}~${LIMITS.nickMax}자`}
         />
         {check && <div className={check.ok ? 'ok' : 'no'}>{check.msg}</div>}
-      </div>
-      <div className="sugg">
-        {sugg.map((s) => (
-          <button key={s} type="button" className="chip" onClick={() => setName(s)}>
-            {s}
-          </button>
-        ))}
       </div>
       <button type="button" className="btn p" style={{ marginTop: 16 }} onClick={() => void save()} disabled={busy || !check?.ok}>
         {had ? '저장하기' : '시작하기'}

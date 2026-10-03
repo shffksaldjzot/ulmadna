@@ -2,7 +2,7 @@
 // 물어보기 — 이어서 물어보기(댓글) 올리기
 //
 // POST /api/ask/comments  { postId, body }  (로그인 + 닉네임 필요)
-//   - 한 사람이 한 질문에 하루 20개까지
+//   - 회원당 하루 댓글 3개 합계(ASK_DAILY_COMMENTS_PER_USER, 글당 아님)
 //   - 저장 뒤 질문의 댓글 수를 다시 세서 맞추고, 그 질문 화면을 새로 그린다
 //   - AI 재답변은 집컴 답변기가 새 댓글을 찾아 is_ai=true 댓글로 단다(여기선 안 함)
 // 작성일: 2026년 10월 03일
@@ -11,7 +11,7 @@ import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { currentUserId, fail } from '@/lib/ask/session';
 import { adminOrNull, getNickname } from '@/lib/ask/server';
-import { LIMITS } from '@/lib/ask/constants';
+import { LIMITS, ASK_DAILY_COMMENTS_PER_USER } from '@/lib/ask/constants';
 import { kstDayStartIso, hasPhoneNumber } from '@/lib/ask/format';
 
 export const dynamic = 'force-dynamic';
@@ -43,15 +43,14 @@ export async function POST(req: Request) {
     if (pErr) throw pErr;
     if (!post || post.status === 'hidden') return fail(404, '질문을 찾을 수 없어요');
 
-    // 하루 20개 제한(이 질문에 오늘 단 내 댓글 수)
+    // 회원당 하루 댓글 3개 합계(글당이 아니라 오늘 단 내 댓글 전체)
     const { count, error: cErr } = await sb
       .from('ask_comments')
       .select('id', { count: 'exact', head: true })
-      .eq('post_id', postId)
       .eq('user_id', uid)
       .gte('created_at', kstDayStartIso());
     if (cErr) throw cErr;
-    if ((count ?? 0) >= LIMITS.commentsPerDayPerPost) return fail(429, `한 질문에 댓글은 하루 ${LIMITS.commentsPerDayPerPost}개까지예요`);
+    if ((count ?? 0) >= ASK_DAILY_COMMENTS_PER_USER) return fail(429, `댓글은 하루 ${ASK_DAILY_COMMENTS_PER_USER}개까지예요 · 자정에 다시 열려요`);
 
     const { error: iErr } = await sb.from('ask_comments').insert({ post_id: postId, user_id: uid, nickname, is_ai: false, body });
     if (iErr) throw iErr;

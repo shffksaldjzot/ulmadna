@@ -12,6 +12,7 @@
 // ──────────────────────────────────────────────
 import { NextResponse } from 'next/server';
 import { getStats, postsFromBlog } from '@/lib/ask/server';
+import { titleWithCategory } from '@/lib/ask/constants';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +21,7 @@ export async function GET(req: Request) {
   const safeFrom = /^[0-9A-Za-z가-힣_-]{1,120}$/.test(from) ? from : '';
   const [stats, posts] = await Promise.all([getStats(), safeFrom ? postsFromBlog(safeFrom, 2) : Promise.resolve([])]);
   return NextResponse.json(
-    { stats, posts: posts.map((p) => ({ slug: p.slug, title: p.title })) },
+    { stats, posts: posts.map((p) => ({ slug: p.slug, title: titleWithCategory(p.category, p.title) })) },
     { headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300' } },
   );
 }

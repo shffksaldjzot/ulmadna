@@ -67,6 +67,8 @@
 .ask-scope .chips::-webkit-scrollbar{display:none}
 .ask-scope .chip{flex:none;height:46px;padding:0 20px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:15.5px;font-weight:600;color:var(--ink);display:inline-flex;align-items:center;gap:6px}
 .ask-scope .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.ask-scope .chips-sub{margin-top:-6px}
+.ask-scope .chips-sub .chip.sm.sel{background:var(--accent-wash);border-color:var(--accent);color:var(--accent);font-weight:600}
 .ask-scope .chips.wrap{flex-wrap:wrap;overflow:visible}
 .ask-scope .chip.sel{background:var(--accent-wash);border-color:var(--accent);color:var(--accent)}
 .ask-scope .chip.sm{height:40px;font-size:14px;padding:0 14px;font-weight:500;color:var(--ink-2);background:var(--soft);border-color:var(--line-2)}
@@ -94,11 +96,19 @@
 .ask-scope .empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
 .ask-scope .list-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 20px 12px}
 /* 오늘 남은 질문 한 줄 · 0개일 때 눌리지 않는 단추 */
-.ask-scope .ask-quota{margin:0;font-size:14px;color:var(--ink-2)}
-.ask-scope .bhead .ask-quota{margin:-8px 0 2px}
-.ask-scope .ask-quota b{color:var(--accent);font-weight:700}
+.ask-scope .ask-quota{margin:0 0 16px}
+.ask-scope .ask-quota .main{margin:0;font-size:16px;color:var(--ink);font-weight:500}
+.ask-scope .ask-quota .main b{color:var(--accent);font-weight:800}
+.ask-scope .ask-quota .mine{margin:2px 0 0;font-size:13.5px;color:var(--ink-2)}
+/* "실시간 답변이 아니에요 · 5~10분" — 강조색 테두리 알약(16px) */
+.ask-scope .ask-notice{display:inline-flex;align-items:center;margin:0 0 12px;padding:7px 14px;border:1px solid var(--accent);border-radius:999px;background:var(--surface);color:var(--accent);font-size:16px;font-weight:600;line-height:1.4}
+.ask-scope .waitbox .ask-notice{display:flex;width:fit-content;margin:10px 0 0;font-size:15px}
+.ask-scope .bhead .lead{margin-bottom:12px}
 .ask-scope .is-off{background:var(--line)!important;color:var(--ink-2)!important;box-shadow:none!important;pointer-events:none;cursor:default}
 .ask-scope .write-note{margin:6px 22px 0;font-size:12.5px;color:var(--ink-3)}
+/* 로그인 안 했을 때 댓글 자리 한 줄 */
+.ask-scope .write-login{margin:10px 20px 0;padding:14px 18px;background:var(--surface);border:1px solid var(--line);border-radius:999px;font-size:15px;color:var(--ink-2)}
+.ask-scope .write-login a{color:var(--accent);font-weight:700}
 
 /* ---------- 질문 상세 ---------- */
 .ask-scope .post{margin:10px 20px 0}
@@ -201,6 +211,7 @@
 .ask-scope .f .hint{font-size:13px;color:var(--ink-3);margin-top:6px}
 .ask-scope .f .cnt{text-align:right;font-size:12.5px;color:var(--ink-3);margin-top:4px}
 .ask-scope .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ask-scope .f-emph .upload > button{border-color:var(--accent);color:var(--accent)}
 .ask-scope .upload{display:flex;gap:10px;flex-wrap:wrap}
 .ask-scope .upload > *{width:88px;height:88px;border-radius:12px;border:1px dashed var(--line);display:grid;place-items:center;font-size:12.5px;color:var(--ink-3);text-align:center;line-height:1.3;position:relative}
 .ask-scope .upload .has{border-style:solid;background:var(--soft);overflow:visible}
@@ -251,6 +262,7 @@
   .ask-scope .ask-btn-pc{display:inline-flex;width:auto;padding:0 22px;height:48px}
   .ask-scope .list-top{margin:0 0 12px}
   .ask-scope .write-note{margin-left:2px}
+  .ask-scope .write-login{margin-left:0;margin-right:0}
   /* 상단 바(Container 1120 + 좌우 32)와 왼쪽 시작선을 맞춘다 → 1280 화면에서 112px */
   .ask-scope .app{max-width:1120px;padding:16px 32px 60px;display:grid;grid-template-columns:minmax(0,700px) 300px;gap:0 40px;align-items:start}
   .ask-scope .app > *{grid-column:1}
