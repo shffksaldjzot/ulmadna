@@ -104,6 +104,9 @@
 .ask-scope .bhead .lead{margin-bottom:12px}
 .ask-scope .is-off{background:var(--line)!important;color:var(--ink-2)!important;box-shadow:none!important;pointer-events:none;cursor:default}
 .ask-scope .write-note{margin:6px 22px 0;font-size:12.5px;color:var(--ink-3)}
+/* 로그인 안 했을 때 댓글 자리 한 줄 */
+.ask-scope .write-login{margin:10px 20px 0;padding:14px 18px;background:var(--surface);border:1px solid var(--line);border-radius:999px;font-size:15px;color:var(--ink-2)}
+.ask-scope .write-login a{color:var(--accent);font-weight:700}
 
 /* ---------- 질문 상세 ---------- */
 .ask-scope .post{margin:10px 20px 0}
@@ -256,6 +259,7 @@
   .ask-scope .ask-btn-pc{display:inline-flex;width:auto;padding:0 22px;height:48px}
   .ask-scope .list-top{margin:0 0 12px}
   .ask-scope .write-note{margin-left:2px}
+  .ask-scope .write-login{margin-left:0;margin-right:0}
   /* 상단 바(Container 1120 + 좌우 32)와 왼쪽 시작선을 맞춘다 → 1280 화면에서 112px */
   .ask-scope .app{max-width:1120px;padding:16px 32px 60px;display:grid;grid-template-columns:minmax(0,700px) 300px;gap:0 40px;align-items:start}
   .ask-scope .app > *{grid-column:1}

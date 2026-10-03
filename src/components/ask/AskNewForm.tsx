@@ -285,7 +285,6 @@ export default function AskNewForm({ fromSlug, fromTitle }: { fromSlug: string |
               hidden
               onChange={(e) => onPick(e.target.files)}
             />
-            <div className="hint">사진은 공개돼요 · 전화번호 · 동호수 · 개인 이름은 자동으로 가려요(업체명은 그대로)</div>
           </div>
 
           {/* 제목 */}
@@ -369,10 +368,9 @@ export default function AskNewForm({ fromSlug, fromTitle }: { fromSlug: string |
             </div>
           )}
 
+          {/* 안내는 한 줄만(설명글 최소 원칙) */}
           <div className="notice">
-            <span>답은 AI가 빅데이터 견적서 자료로 작성하고 &quot;AI 답변&quot;으로 표시돼요</span>
-            <span>질문 · 답 · 견적서 사진은 누구나 볼 수 있고 검색에도 나와요 · 올린 견적서는 통계 자료로도 쓰여요</span>
-            <span>이름 · 전화번호 · 주소는 적지 마세요</span>
+            <span>질문 · 답 · 사진은 공개돼요 · 이름 · 전화번호는 적지 마세요</span>
           </div>
         </form>
 

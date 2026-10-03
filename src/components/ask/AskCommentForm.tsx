@@ -9,7 +9,7 @@
 'use client';
 
 import { useEffect, useState, type FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { showAskToast } from './AskToast';
 import { LIMITS } from '@/lib/ask/constants';
@@ -17,6 +17,7 @@ import { LIMITS } from '@/lib/ask/constants';
 export default function AskCommentForm({ postId }: { postId: number }) {
   const { status } = useSession();
   const router = useRouter();
+  const pathname = usePathname() ?? '/ask';
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   // 오늘 더 쓸 수 있는 댓글 수(회원당 하루 3개 합계, 글당 아님) — 로그인했을 때만 불러 작게 보여 준다
@@ -68,16 +69,21 @@ export default function AskCommentForm({ postId }: { postId: number }) {
     }
   }
 
+  // 로그인 안 한 사람: 입력칸 대신 한 줄 + 로그인 링크(회원이면 누구나 — 질문자가 아니어도 — 댓글을 쓸 수 있다)
+  if (status === 'unauthenticated') {
+    return (
+      <p className="write-login">
+        로그인하면 댓글을 쓸 수 있어요 · <a href={`/login?callbackUrl=${encodeURIComponent(pathname)}`}>로그인</a>
+      </p>
+    );
+  }
+
   return (
     <>
     <form className="write" onSubmit={onSubmit}>
       <input
         value={text}
         onChange={(e) => setText(e.target.value)}
-        onFocus={() => {
-          // 로그인 안 했으면 칸을 누르는 순간 안내
-          if (status === 'unauthenticated') showAskToast('로그인이 필요해요');
-        }}
         maxLength={LIMITS.commentMax}
         placeholder={status === 'authenticated' ? '이어서 물어보기' : '이어서 물어보기 · 로그인 필요'}
         aria-label="이어서 물어보기"
