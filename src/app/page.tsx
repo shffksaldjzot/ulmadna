@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useCalculator } from '@/hooks/useCalculator';
 import InputPanel from '@/components/calculator/InputPanel';
 import ResultPanel from '@/components/calculator/ResultPanel';
@@ -45,6 +46,17 @@ export default function Home() {
       <Container className="pt-6 pb-2 lg:pt-8 lg:pb-4 flex flex-col gap-4">
         <p className="t-body text-ink-2">인테리어, 얼마 드나. 견적서 없이 바로 계산</p>
         <ProcessTiles />
+        {/* 물어보기 진입 카드(작게) — 받은 견적서가 적정한지 AI에게 물어보는 게시판 (2026년 10월 03일) */}
+        <Link
+          href="/ask"
+          className="flex items-center justify-between gap-3 rounded-card border border-line bg-surface px-5 py-4 hover:border-accent transition-colors"
+        >
+          <span className="flex flex-col gap-1 min-w-0">
+            <span className="t-body font-bold text-ink">견적서 받았는데 적정한지 궁금하면</span>
+            <span className="t-sub text-ink-2">실제 견적서 자료로 AI가 답해요 · 물어보기</span>
+          </span>
+          <span className="t-body font-semibold text-accent flex-none" aria-hidden="true">→</span>
+        </Link>
       </Container>
 
       {/* ───── 메인: 타일 + 입력 (55~60%) + 결과 (40~45%) ─────

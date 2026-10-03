@@ -27,6 +27,8 @@ import { openContactSheet } from '@/lib/contactSheet';
 const NAV_ITEMS: { href: string; label: string; match: (p: string) => boolean }[] = [
   { href: '/calc', label: '계산기', match: (p) => p.startsWith('/calc') },
   { href: '/blog', label: '블로그', match: (p) => p.startsWith('/blog') && !p.startsWith('/blog/my') },
+  // 2026년 10월 03일: "물어보기" 게시판 진입 메뉴(PC 전용 — 모바일 하단 탭은 그대로 둔다)
+  { href: '/ask', label: '물어보기', match: (p) => p.startsWith('/ask') },
   // 2026-09-15: "내 글"이라고 하면 내가 직접 쓴 글로 오해할 수 있어서(블로그팀 수정과 동일 이유)
   // 라벨을 "본 글·저장"으로 맞췄다 — /blog/my 페이지 제목·공유 문구와 일치시킴
   { href: '/blog/my', label: '본 글·저장', match: (p) => p.startsWith('/blog/my') },

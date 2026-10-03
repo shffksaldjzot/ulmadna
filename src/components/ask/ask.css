@@ -1,0 +1,262 @@
+/* ============================================================
+   얼마드나 "물어보기" 게시판 — 화면 꾸미기
+   정본: design_lab/board/app.css (사장님 승인 시안) 치수를 그대로 옮겼다.
+   - 상단 바·하단 탭은 라이브 부품(SiteHeader·SiteFooter/BottomTabs)을 쓰므로 여기엔 없다.
+   - 모든 규칙은 .ask-scope 안에서만 먹는다 → 블로그·계산기 화면에 새지 않는다.
+   - 색은 globals.css 정본 토큰(--bg --surface --ink --ink-2 --line --accent)과
+     이미 있는 보조 토큰(--v1-*, --green)만 쓴다. 새 색 없음.
+   작성일: 2026년 10월 03일
+   ============================================================ */
+.ask-scope{
+  /* 시안의 보조 이름 → 기존 토큰에 연결(값은 시안과 같다) */
+  --ink-3:var(--v1-text-disabled);   /* #A79C90 흐린 글자 */
+  --line-2:var(--v1-line-2);         /* #EFE7DC 안쪽 구분선 */
+  --soft:var(--v1-card-soft);        /* #FAF7F3 옅은 면 */
+  --accent-wash:color-mix(in srgb, var(--accent) 10%, white); /* 강조색 옅은 바탕 */
+  --tab-h:57px;                      /* 라이브 하단 탭 높이(56 + 테두리 1) */
+  color:var(--ink);
+  font-size:16px;line-height:1.6;
+  word-break:keep-all;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;
+  -webkit-font-smoothing:antialiased;
+}
+.ask-scope *{box-sizing:border-box}
+.ask-scope a{color:inherit;text-decoration:none}
+.ask-scope button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+.ask-scope button:focus-visible,.ask-scope a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+.ask-scope input,.ask-scope textarea,.ask-scope select{font:inherit}
+.ask-scope svg.i{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block}
+.ask-scope [hidden]{display:none!important}
+/* 글자 단계 — 이 화면 안에서만 시안 치수로 */
+.ask-scope .t-page{font-size:28px;font-weight:800;line-height:1.3;letter-spacing:-.01em}
+.ask-scope .t-section{font-size:18px;font-weight:700}
+.ask-scope .t-body{font-size:15px}
+.ask-scope .t-sub{font-size:14px;color:var(--ink-2)}
+
+/* 페이지 바탕 + 본문 틀 */
+.ask-page{background:var(--bg);flex:1}
+.ask-scope .app{max-width:720px;margin:0 auto;padding:0 0 28px}
+
+/* ---------- 페이지 머리 ---------- */
+.ask-scope .bhead{padding:22px 20px 0}
+.ask-scope .bhead .eyebrow{font-size:15px;font-weight:600;color:var(--accent);margin-bottom:6px}
+.ask-scope .bhead .h1row{display:flex;align-items:center;gap:16px}
+.ask-scope .bhead h1{margin:0 0 8px}
+.ask-scope .bhead .h1row .ask-btn-pc{margin-left:auto;margin-bottom:8px}
+.ask-scope .bhead .lead{font-size:16px;color:var(--ink-2);margin:0 0 18px}
+.ask-scope .bhead hr{border:0;border-top:1px solid var(--line);margin:0 0 18px}
+.ask-scope .sub{display:flex;align-items:center;gap:6px;padding:16px 20px 0;font-size:15px;color:var(--accent);font-weight:600;flex-wrap:wrap}
+.ask-scope .sub a{display:inline-flex;align-items:center;gap:2px}
+.ask-scope .sub .cur{color:var(--ink-2);font-weight:400}
+
+/* 빅데이터 상자 */
+.ask-scope .why{margin:0 20px 16px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+.ask-scope .why .big{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.ask-scope .why .big small{width:100%;font-size:14px;color:var(--ink-2);font-weight:500}
+.ask-scope .why .big b{font-size:40px;font-weight:800;letter-spacing:-.02em;line-height:1;color:var(--ink)}
+.ask-scope .why .tick{font-size:18px;font-weight:800;color:var(--accent);display:inline-flex;align-items:baseline;gap:6px}
+.ask-scope .why .tick small{width:auto;font-size:12.5px;color:var(--ink-3);font-weight:500}
+.ask-scope .why .line{margin:12px 0 0;font-size:15px;color:var(--ink-2);line-height:1.55}
+.ask-scope .why .line b{color:var(--ink)}
+.ask-scope .why .foot{margin-top:10px;font-size:12.5px;color:var(--ink-3);display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px}
+.ask-scope .why .foot b{color:var(--green);font-weight:600}
+
+/* ---------- 검색·칩 ---------- */
+.ask-scope .search{margin:0 20px 14px;height:56px;border:1px solid var(--line);border-radius:999px;background:var(--surface);display:flex;align-items:center;gap:10px;padding:0 22px;color:var(--ink-3);font-size:17px}
+.ask-scope .search input{border:0;outline:0;flex:1;min-width:0;background:transparent;color:var(--ink);font-size:17px}
+.ask-scope .chips{display:flex;gap:8px;padding:0 20px 16px;overflow-x:auto;scrollbar-width:none}
+.ask-scope .chips::-webkit-scrollbar{display:none}
+.ask-scope .chip{flex:none;height:46px;padding:0 20px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:15.5px;font-weight:600;color:var(--ink);display:inline-flex;align-items:center;gap:6px}
+.ask-scope .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.ask-scope .chips.wrap{flex-wrap:wrap;overflow:visible}
+.ask-scope .chip.sel{background:var(--accent-wash);border-color:var(--accent);color:var(--accent)}
+.ask-scope .chip.sm{height:40px;font-size:14px;padding:0 14px;font-weight:500;color:var(--ink-2);background:var(--soft);border-color:var(--line-2)}
+
+/* ---------- 질문 목록 ---------- */
+.ask-scope .list{margin:0 20px;display:grid;gap:12px}
+.ask-scope .q{display:block;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 18px 16px}
+.ask-scope .q:active{background:var(--soft)}
+.ask-scope .q .tags{display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.ask-scope .tag{font-size:12.5px;font-weight:600;color:var(--ink-2);background:var(--soft);border:1px solid var(--line-2);padding:3px 10px;border-radius:999px}
+.ask-scope .tag.ans{color:#fff;background:var(--accent);border-color:var(--accent)}
+.ask-scope .tag.wait{color:var(--ink-2);background:var(--surface);border:1px dashed var(--line)}
+.ask-scope .tag.mine{color:var(--green);background:color-mix(in srgb, var(--green) 10%, white);border-color:color-mix(in srgb, var(--green) 22%, white)}
+.ask-scope .q .ttl{font-size:18px;font-weight:700;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ask-scope .q .prev{font-size:14.5px;color:var(--ink-2);margin-top:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ask-scope .q .meta{display:flex;gap:6px;font-size:13.5px;color:var(--ink-3);margin-top:10px;padding-top:10px;border-top:1px solid var(--line-2);align-items:center}
+.ask-scope .q .meta .nick{color:var(--ink-2)}
+.ask-scope .q .meta .cm{margin-left:auto;display:inline-flex;align-items:center;gap:4px}
+.ask-scope .q .meta .cm svg{width:16px;height:16px}
+.ask-scope .fab{position:fixed;right:16px;bottom:calc(var(--tab-h) + 16px + env(safe-area-inset-bottom,0px));z-index:30;height:52px;padding:0 22px;border-radius:999px;background:var(--accent);color:#fff;font-size:16px;font-weight:700;display:inline-flex;align-items:center;gap:8px;box-shadow:0 8px 20px color-mix(in srgb, var(--accent) 30%, transparent)}
+.ask-scope .fab svg{width:20px;height:20px}
+.ask-scope .more{display:block;width:calc(100% - 40px);margin:12px 20px 0;height:52px;border:1px solid var(--line);border-radius:999px;background:var(--surface);text-align:center;line-height:50px;font-size:15px;color:var(--ink-2)}
+.ask-scope .more .n{color:var(--ink-3)}
+.ask-scope .empty{padding:56px 20px;text-align:center;color:var(--ink-2);font-size:15px}
+.ask-scope .empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
+.ask-scope .list-top{display:none}
+
+/* ---------- 질문 상세 ---------- */
+.ask-scope .post{margin:10px 20px 0}
+.ask-scope .post .tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.ask-scope .post h1{margin:0 0 10px;font-size:26px;font-weight:800;line-height:1.35;letter-spacing:-.01em}
+.ask-scope .post .meta{display:flex;gap:8px;align-items:center;font-size:15px;color:var(--ink-2);flex-wrap:wrap}
+.ask-scope .post .meta .rt{height:34px;padding:0 12px;border-radius:999px;background:var(--accent-wash);color:var(--accent);font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:4px}
+.ask-scope .post .acts{display:flex;gap:10px;margin:16px 0 0}
+.ask-scope .post .acts button{width:52px;height:52px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--ink-2)}
+.ask-scope .post .acts button.on{color:var(--accent);border-color:var(--accent)}
+.ask-scope .post .acts button.txt{width:auto;padding:0 16px;border-radius:999px;font-size:14px}
+.ask-scope .post .body{margin-top:18px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;font-size:16px;line-height:1.75;white-space:pre-line}
+.ask-scope .photos{display:flex;gap:8px;margin-top:12px}
+.ask-scope .photos > *{flex:1;min-width:0;aspect-ratio:4/3;border-radius:12px;background:var(--soft);border:1px solid var(--line-2);display:grid;place-items:center;font-size:12.5px;color:var(--ink-3);text-align:center;line-height:1.3;overflow:hidden}
+.ask-scope .photos img{width:100%;height:100%;object-fit:cover;display:block}
+.ask-scope .facts{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.ask-scope .facts span{font-size:13.5px;color:var(--ink-2);background:var(--soft);padding:5px 12px;border-radius:999px;border:1px solid var(--line-2)}
+
+/* 얼마드나 AI 답변 카드 */
+.ask-scope .answer{margin:12px 20px 0;background:var(--surface);border:1.5px solid var(--accent);border-radius:16px;padding:18px}
+.ask-scope .answer .who{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.ask-scope .av-ai{width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:800;line-height:1;text-align:center;flex:none}
+.ask-scope .answer .who b{font-size:16px;display:block}
+.ask-scope .answer .who small{font-size:13px;color:var(--ink-3)}
+.ask-scope .answer .badge{margin-left:auto;font-size:12.5px;font-weight:600;color:var(--accent);background:var(--accent-wash);padding:5px 10px;border-radius:999px}
+.ask-scope .answer .body{font-size:16px;line-height:1.7}
+.ask-scope .answer .body p{margin:0 0 10px}
+.ask-scope .answer .body ul,.ask-scope .answer .body ol{margin:0 0 10px;padding-left:20px}
+.ask-scope .answer .body ul{list-style:disc}
+.ask-scope .answer .body ol{list-style:decimal}
+.ask-scope .answer .body li{margin:4px 0}
+.ask-scope .answer .body h2,.ask-scope .answer .body h3{font-size:16px;font-weight:700;margin:14px 0 6px}
+.ask-scope .answer .body strong{font-weight:700}
+.ask-scope .answer .body a{color:var(--accent);font-weight:600}
+.ask-scope .answer .body blockquote{margin:6px 0 12px;padding:12px 14px;background:var(--soft);border-radius:12px}
+.ask-scope .answer .body blockquote p{margin:0}
+.ask-scope .ask-table-wrap{overflow-x:auto;margin:0 0 12px}
+.ask-scope .answer table{width:100%;border-collapse:collapse;font-size:14px;min-width:420px}
+.ask-scope .answer th{text-align:right;font-weight:500;color:var(--ink-3);font-size:12.5px;padding:6px 0 6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.ask-scope .answer th:first-child{text-align:left;padding-left:0}
+.ask-scope .answer td{padding:9px 0 9px 8px;border-bottom:1px solid var(--line-2);text-align:right}
+.ask-scope .answer td:first-child{text-align:left;padding-left:0}
+.ask-scope .answer td.ok{color:var(--green);font-weight:600;white-space:nowrap}
+.ask-scope .answer td.hi{color:var(--accent);font-weight:600;white-space:nowrap}
+.ask-scope .answer td.rng{color:var(--ink-2);white-space:nowrap}
+.ask-scope .answer .ref{margin-top:10px;padding-top:12px;border-top:1px solid var(--line-2);font-size:13.5px;color:var(--ink-2);display:grid;gap:5px}
+.ask-scope .answer .ref a{color:var(--accent);font-weight:600}
+.ask-scope .answer .help{display:flex;gap:8px;align-items:center;margin-top:14px;font-size:13px;color:var(--ink-3);flex-wrap:wrap}
+.ask-scope .answer .help .btns{margin-left:auto;display:flex;gap:6px}
+.ask-scope .answer .help button{white-space:nowrap;height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);font-size:13.5px;color:var(--ink-2);background:var(--surface)}
+.ask-scope .answer .help button.on{border-color:var(--accent);color:var(--accent);background:var(--accent-wash)}
+
+/* 이어서 물어본 것(댓글) */
+.ask-scope .thread{margin:16px 20px 0}
+.ask-scope .thread h3,.ask-scope .related h3{margin:0 0 8px 2px;font-size:16px;font-weight:700}
+.ask-scope .c{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:8px}
+.ask-scope .c.ul{border-color:var(--accent);background:color-mix(in srgb, var(--accent) 4%, white)}
+.ask-scope .c .who{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--ink-3);margin-bottom:6px}
+.ask-scope .c .who b{color:var(--ink);font-weight:600;font-size:14.5px}
+.ask-scope .c .who .av{width:26px;height:26px;border-radius:50%;background:var(--line);display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--ink-2)}
+.ask-scope .c.ul .who .av{background:var(--accent);color:#fff}
+.ask-scope .c p{margin:0;font-size:15.5px;line-height:1.65;white-space:pre-line}
+.ask-scope .write{position:sticky;bottom:calc(var(--tab-h) + 8px + env(safe-area-inset-bottom,0px));z-index:10;margin:10px 20px 0;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 6px 6px 18px;display:flex;align-items:center;gap:8px}
+.ask-scope .write input{border:0;outline:0;flex:1;min-width:0;font-size:15px;background:transparent;color:var(--ink)}
+.ask-scope .write button{height:40px;padding:0 18px;border-radius:999px;background:var(--accent);color:#fff;font-size:14px;font-weight:700;flex:none}
+.ask-scope .write button:disabled{opacity:.5}
+.ask-scope .waitbox{margin:12px 20px 0;padding:16px 18px;background:var(--surface);border:1px dashed var(--accent);border-radius:16px;font-size:15px;color:var(--ink-2);display:flex;gap:12px;align-items:flex-start}
+.ask-scope .waitbox .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);flex:none;margin-top:7px;animation:ask-pulse 1.6s ease-in-out infinite}
+.ask-scope .waitbox b{font-weight:600;color:var(--ink)}
+@keyframes ask-pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.ask-scope .waitbox .dot{animation:none}}
+.ask-scope .related{margin:18px 20px 0}
+.ask-scope .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+.ask-scope .card .ttl{font-size:16px;font-weight:700}
+.ask-scope .card .t-sub{margin-top:3px}
+.ask-scope .card .btn{margin-top:12px}
+.ask-scope .rows a{display:block;padding:12px 0;border-top:1px solid var(--line-2);font-size:15.5px;font-weight:500}
+.ask-scope .rows a:first-child{border-top:0;padding-top:4px}
+.ask-scope .rows a small{display:block;font-size:13px;color:var(--ink-3);font-weight:400;margin-top:2px}
+
+/* ---------- 버튼 ---------- */
+.ask-scope .btn{height:52px;border-radius:999px;font-size:16px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%}
+.ask-scope .btn.p{background:var(--accent);color:#fff}
+.ask-scope .btn.p:active,.ask-scope .btn.p:hover{background:var(--accent-press)}
+.ask-scope .btn.p:disabled{opacity:.5}
+.ask-scope .btn.o{border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.ask-scope .btn svg{width:20px;height:20px}
+.ask-scope .ask-btn-pc{display:none}
+
+/* ---------- 질문하기 ---------- */
+.ask-scope .seg{display:flex;margin:14px 20px 10px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px}
+.ask-scope .seg button{flex:1;height:42px;border-radius:999px;font-size:15px;color:var(--ink-2);font-weight:600}
+.ask-scope .seg button.on{background:var(--accent);color:#fff}
+.ask-scope .form{margin:0 20px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:grid;gap:16px}
+.ask-scope .f label,.ask-scope .f .lbl{display:block;font-size:14px;color:var(--ink-2);margin-bottom:6px;font-weight:500}
+.ask-scope .f label b,.ask-scope .f .lbl b{color:var(--accent);font-weight:600;margin-left:4px;font-size:12.5px}
+.ask-scope .f input,.ask-scope .f textarea,.ask-scope .f select{width:100%;height:50px;border:1px solid var(--line);border-radius:12px;padding:0 14px;font-size:16px;background:var(--surface);color:var(--ink)}
+.ask-scope .f textarea{height:170px;padding:12px 14px;resize:vertical;line-height:1.6}
+.ask-scope .f input:focus,.ask-scope .f textarea:focus,.ask-scope .f select:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.ask-scope .f .hint{font-size:13px;color:var(--ink-3);margin-top:6px}
+.ask-scope .f .cnt{text-align:right;font-size:12.5px;color:var(--ink-3);margin-top:4px}
+.ask-scope .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ask-scope .upload{display:flex;gap:10px;flex-wrap:wrap}
+.ask-scope .upload > *{width:88px;height:88px;border-radius:12px;border:1px dashed var(--line);display:grid;place-items:center;font-size:12.5px;color:var(--ink-3);text-align:center;line-height:1.3;position:relative}
+.ask-scope .upload .has{border-style:solid;background:var(--soft);overflow:visible}
+.ask-scope .upload .has img{width:100%;height:100%;object-fit:cover;border-radius:11px}
+.ask-scope .upload .has .x{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:var(--ink);color:#fff;font-size:12px;display:grid;place-items:center}
+.ask-scope .upload .has .st{position:absolute;inset:auto 0 0 0;font-size:11px;background:color-mix(in srgb, var(--ink) 60%, transparent);color:#fff;border-radius:0 0 11px 11px;padding:2px 0}
+.ask-scope .ctx{display:flex;gap:10px;align-items:center;padding:12px 14px;background:var(--accent-wash);border-radius:12px;font-size:13.5px;color:var(--ink-2)}
+.ask-scope .ctx b{color:var(--ink);font-weight:600;display:block;font-size:14px}
+.ask-scope .ctx button{margin-left:auto;font-size:13px;color:var(--accent);font-weight:600;white-space:nowrap}
+.ask-scope .notice{font-size:13.5px;color:var(--ink-2);display:grid;gap:4px}
+.ask-scope .notice span::before{content:"·";margin-right:6px;color:var(--ink-3)}
+.ask-scope .err{font-size:14px;color:var(--accent);font-weight:600}
+.ask-scope .cta{position:fixed;left:0;right:0;bottom:calc(var(--tab-h) + env(safe-area-inset-bottom,0px));z-index:30;background:var(--surface);border-top:1px solid var(--line);padding:10px 20px;max-width:720px;margin:0 auto}
+.ask-scope .app.form-page{padding-bottom:96px}
+
+/* ---------- 닉네임 ---------- */
+.ask-scope .nickbox{margin:24px 20px 0;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px 18px}
+.ask-scope .nickbox .av{width:60px;height:60px;border-radius:50%;background:var(--accent-wash);color:var(--accent);display:grid;place-items:center;font-size:24px;font-weight:800;margin:0 auto 12px}
+.ask-scope .nickbox h2{margin:0 0 4px;text-align:center;font-size:19px;font-weight:700}
+.ask-scope .nickbox p{margin:0 0 16px;text-align:center;font-size:14px;color:var(--ink-2)}
+.ask-scope .nickbox .ok{font-size:13px;color:var(--green);margin-top:6px}
+.ask-scope .nickbox .no{font-size:13px;color:var(--accent);margin-top:6px}
+.ask-scope .nickbox .sugg{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+
+/* ---------- 블로그 글 끝 "질문하기" 카드 ---------- */
+.ask-scope.ask-embed{margin:28px 0 0}
+.ask-scope .ask{background:var(--surface);border:1.5px solid var(--accent);border-radius:16px;padding:18px;display:grid;grid-template-columns:48px 1fr;gap:4px 14px;align-items:center}
+.ask-scope .ask .av-ai{width:48px;height:48px;font-size:13px;grid-row:1/span 2}
+.ask-scope .ask > b{font-size:17px;font-weight:700;color:var(--ink)}
+.ask-scope .ask > small{font-size:14px;color:var(--ink-2)}
+.ask-scope .ask > small b{color:var(--ink)}
+.ask-scope .ask .up{color:var(--accent);font-weight:700}
+.ask-scope .ask .btn{grid-column:1/-1;margin-top:10px;color:#fff}
+.ask-scope .ask .recent{grid-column:1/-1;margin-top:12px;padding-top:12px;border-top:1px solid var(--line-2);font-size:14px;color:var(--ink-2)}
+.ask-scope .ask .recent a{display:block;padding:5px 0;color:var(--ink)}
+.ask-scope .ask .recent a span{color:var(--accent);font-weight:600;margin-right:6px;font-size:12.5px}
+.ask-scope .mini-ask{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tab-h) + 14px + env(safe-area-inset-bottom,0px));z-index:30;height:46px;padding:0 18px;border-radius:999px;background:var(--accent);color:#fff;font-size:15px;font-weight:700;display:inline-flex;align-items:center;gap:8px;box-shadow:0 8px 20px color-mix(in srgb, var(--accent) 30%, transparent);white-space:nowrap}
+.ask-scope .mini-ask svg{width:18px;height:18px}
+
+/* ---------- 토스트(짧은 알림) ---------- */
+.ask-toast{position:fixed;left:50%;bottom:calc(57px + 80px);transform:translateX(-50%) translateY(8px);background:var(--ink);color:#fff;font-size:14px;padding:11px 18px;border-radius:999px;opacity:0;transition:.2s;z-index:60;pointer-events:none;white-space:nowrap}
+.ask-toast.on{opacity:1;transform:translateX(-50%)}
+
+/* ---------- PC: 2열(본문 700 + 오른쪽 300) ---------- */
+@media (min-width:1024px){
+  .ask-scope{--tab-h:0px}
+  .ask-scope .fab,.ask-scope .mini-ask{display:none}
+  .ask-scope .ask-btn-pc{display:inline-flex;width:auto;padding:0 22px;height:48px}
+  .ask-scope .list-top{display:flex;justify-content:flex-end;margin:0 0 12px}
+  /* 상단 바(Container 1120 + 좌우 32)와 왼쪽 시작선을 맞춘다 → 1280 화면에서 112px */
+  .ask-scope .app{max-width:1120px;padding:16px 32px 60px;display:grid;grid-template-columns:minmax(0,700px) 300px;gap:0 40px;align-items:start}
+  .ask-scope .app > *{grid-column:1}
+  .ask-scope .app > .aside{grid-column:2;grid-row:1/span 40;position:sticky;top:96px;display:grid;gap:14px;align-content:start;margin-top:22px}
+  .ask-scope .cta{position:static;padding:14px 0 0;background:transparent;border:0;max-width:none;margin:0;width:100%}
+  .ask-scope .app.form-page{padding-bottom:60px}
+  .ask-scope .write{position:static}
+  .ask-scope .bhead,.ask-scope .search,.ask-scope .chips,.ask-scope .sub,.ask-scope .why{margin-left:0;margin-right:0;padding-left:0;padding-right:0}
+  .ask-scope .why{padding:18px 20px}
+  .ask-scope .search{padding:0 22px} /* 시안은 PC에서 돋보기가 테두리에 붙어 있어 안쪽 여백만 살렸다 */
+  .ask-scope .bhead h1{font-size:34px}
+  .ask-scope .list,.ask-scope .post,.ask-scope .answer,.ask-scope .thread,.ask-scope .form,.ask-scope .nickbox,.ask-scope .related,.ask-scope .waitbox,.ask-scope .seg,.ask-scope .write{margin-left:0;margin-right:0}
+  .ask-scope .more{margin-left:0;margin-right:0;width:100%}
+  .ask-toast{bottom:60px}
+}
+@media (max-width:1023px){.ask-scope .aside{display:contents}.ask-scope .aside .pc-only{display:none}}
