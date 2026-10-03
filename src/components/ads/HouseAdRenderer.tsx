@@ -17,7 +17,8 @@ import type { AdSlotId } from '@/lib/ads/types';
 // 계산기 홍보 카드 3종 — 실제로 켜져 있는 계산기만 넣는다(준비 중 공정은 안내하지 않음)
 const CALC_PROMOS = [
   { title: '도배 계산기', body: '벽지 롤수와 비용 바로', href: '/calc/wallpaper' },
-  { title: '미장 계산기', body: '레미탈 포대수와 비용 바로', href: '/calc/mortar' },
+  // 2026-10-03 검색 노출: 링크 글자에 "몰탈 계산기"가 들어가게
+  { title: '미장·몰탈 계산기', body: '레미탈 포대수와 비용 바로', href: '/calc/mortar' },
   { title: '바닥재 계산기', body: '바닥재 수량과 비용 바로', href: '/calc/flooring' },
 ] as const;
 

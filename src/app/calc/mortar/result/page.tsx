@@ -35,7 +35,7 @@ import { parseInput, ValidationError } from '@/server/calc/validate/mortar';
 import { isArrayFieldOk, safeCalc } from '../../_components/resultGuard';
 
 export const metadata: Metadata = {
-  title: '레미탈 계산기 결과 — 얼마드나',
+  title: '몰탈(레미탈) 계산기 결과 — 얼마드나',
   alternates: { canonical: 'https://ulmadna.com/calc/mortar' },
   // 2026-09-30 검사관 10차 — 결과 공유 화면은 사람마다 조건이 다 달라(남의 견적 조건)
   // 검색에 안 잡히게 한다.
@@ -210,7 +210,7 @@ export default async function MortarResultPage({ searchParams }: PageProps) {
     return (
       <>
         <TopNav
-          title="레미탈 계산기"
+          title="몰탈(레미탈) 계산기"
           backHref="/calc"
           rightSlot={
             <Link href={backHref} className="text-[16px] font-semibold text-brown">
@@ -241,7 +241,7 @@ export default async function MortarResultPage({ searchParams }: PageProps) {
   return (
     <>
       <TopNav
-        title="레미탈 계산기"
+        title="몰탈(레미탈) 계산기"
         backHref="/calc"
         rightSlot={
           <Link href={backHref} className="text-[16px] font-semibold text-brown">

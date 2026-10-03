@@ -68,7 +68,8 @@ export const CALCULATORS: Record<CalculatorKey, CalculatorInfo> = {
   },
   mortar: {
     key: "mortar",
-    label: "레미탈·몰탈 계산기",
+    // 2026-10-03 검색 노출: 블로그 카드 링크 글자에 "몰탈 계산기"가 그대로 들어가게 이름 순서를 바꿈
+    label: "몰탈 계산기(레미탈)",
     href: "/calc/mortar",
     headline: "레미탈 몇 포, 방통 몰탈 몇 ㎥ 필요할까?",
     sub: "면적·두께만 넣으면 레미탈 포 수와 방통·셀프레벨링 물량이 바로 나옵니다. 로그인·개인정보 없음.",
