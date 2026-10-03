@@ -41,6 +41,11 @@ export interface CalculatorInfo {
   mini: string;
   /** 이 계산기를 붙일 글을 고르는 신호 단어 (제목+태그, 띄어쓰기 무시) */
   keywords: string[];
+  /**
+   * (선택) 신호 단어와 "같이" 있어야 하는 말 — 하나라도 있어야 붙인다.
+   * 신호 단어 하나만으로는 너무 넓을 때 쓴다(예: 타일 — TV 벽걸이·자재 구매 글까지 붙던 문제, 2026-10-03).
+   */
+  requireAny?: string[];
 }
 
 export const CALCULATORS: Record<CalculatorKey, CalculatorInfo> = {
@@ -88,11 +93,11 @@ export const CALCULATORS: Record<CalculatorKey, CalculatorInfo> = {
     headline: "욕실 타일, 몇 박스에 시공비 얼마일까?",
     sub: "공간만 고르면 타일 박스 수와 덧방·철거 시공비 범위가 바로 나옵니다. 줄눈재·압착시멘트까지. 로그인·개인정보 없음.",
     mini: "타일 박스 수·시공비가 바로 나와요",
-    // 2026-10-03: "타일"·"포세린"이 신호 단어. "타일" 단독도 넣는다 — 타일 계산기는 타일이
-    //    스치듯 나와도 수량·비용 계산이 바로 쓸모 있다(몰탈 계산기와 반대 판단).
-    //    ⚠️ "덧방" 단독은 넣지 않는다 — 장판·마루 덧방 글까지 붙는다. "줄눈" 단독도 뺀다 —
-    //    줄눈 시공 글은 줄눈 계산기가 생기면 그쪽으로(설계서 §9-1).
-    keywords: ["타일", "포세린"],
+    // 2026-10-03: 제목·태그에 "타일"이 있고, 아래 requireAny 말 중 하나가 같이 있을 때만 붙인다.
+    //    "타일" 단독으로는 TV 벽걸이·자재 구매·공사 순서 글 등 16편에 붙어 버렸다(검사관 지적).
+    //    ⚠️ "덧방"·"줄눈" 단독은 신호 단어로 쓰지 않는다(장판 덧방·줄눈 시공 글 오탐).
+    keywords: ["타일"],
+    requireAny: ["욕실", "화장실", "바닥", "시공", "덧방", "줄눈", "현관", "베란다", "포세린"],
   },
 };
 
@@ -131,7 +136,10 @@ export function detectCalculator(
     .replace(/수도\s*배관/g, " ");
   const matched: CalculatorKey[] = [];
   for (const info of Object.values(CALCULATORS)) {
-    if (info.keywords.some((k) => hay.includes(k.toLowerCase()))) matched.push(info.key);
+    const hit = info.keywords.some((k) => hay.includes(k.toLowerCase()));
+    // requireAny가 있으면 그 말 중 하나도 같이 있어야 한다(신호 단어가 너무 넓은 계산기용)
+    const withRequired = !info.requireAny || info.requireAny.some((k) => hay.includes(k.toLowerCase()));
+    if (hit && withRequired) matched.push(info.key);
   }
   return matched;
 }

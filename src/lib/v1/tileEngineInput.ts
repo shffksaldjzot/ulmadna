@@ -21,7 +21,7 @@ import {
   TILE_GROUT_MM_MAX,
   TILE_GROUT_MM_MIN,
   TILE_HEIGHT_MM_MAX,
-  TILE_HEIGHT_MM_MIN,
+  heightMinFor,
   TILE_PIECES_MAX,
   TILE_PIECES_MIN,
   TILE_PYEONG_MAX,
@@ -82,7 +82,7 @@ export function roomFields(kind: TileRoomKind): ('widthMm' | 'depthMm' | 'height
 
 /** 치수 칸 하나가 범위 안인지 */
 export function roomFieldOk(kind: TileRoomKind, field: 'widthMm' | 'depthMm' | 'heightMm', v: unknown): boolean {
-  if (field === 'heightMm') return inRange(v, TILE_HEIGHT_MM_MIN, TILE_HEIGHT_MM_MAX);
+  if (field === 'heightMm') return inRange(v, heightMinFor(kind), TILE_HEIGHT_MM_MAX);
   return inRange(v, TILE_ROOM_MM_MIN, roomWidthMax(kind));
 }
 
@@ -94,6 +94,14 @@ export function roomComplete(r: TileRoomForm): boolean {
 /** 정확 모드 "실" 단계 완료 — 카드가 1장 이상이고 전부 치수가 다 찼을 때 */
 export function roomsStepComplete(rooms: TileRoomForm[] | undefined): boolean {
   return !!rooms && rooms.length > 0 && rooms.every(roomComplete);
+}
+
+/**
+ * 정확 모드 "실측 입력 중"인지 — 실 카드 중 치수가 덜 들어간 게 하나라도 있으면 true.
+ * 완성된 실이 있으면 그것만으로 계산하고 "실측 입력 중" 표시를 붙이고, 하나도 없으면 금액을 숨긴다.
+ */
+export function preciseMeasuring(rooms: TileRoomForm[] | undefined): boolean {
+  return (rooms ?? []).some((r) => !roomComplete(r));
 }
 
 /** 벽 타일이 필요한 실이 있는지(욕실·벽면) */
@@ -148,7 +156,10 @@ export function buildTileRequest(form: TileFormState): TileCalcRequest | null {
     return req;
   }
 
-  const rooms = (form.rooms ?? []).slice(0, TILE_ROOMS_MAX);
+  // 치수가 다 들어간 실만 보낸다(바닥재 계산기 정확 모드와 같은 규칙, 2026-10-03 검사관 지적) —
+  // 하나도 없으면 계산하지 않는다(화면은 "실측 입력 중"으로 금액을 숨긴다)
+  const allRooms = (form.rooms ?? []).slice(0, TILE_ROOMS_MAX);
+  const rooms = allRooms.filter(roomComplete);
   if (rooms.length === 0) return null;
   return {
     mode: 'precise',

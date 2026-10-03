@@ -240,6 +240,8 @@ export interface TileCalcResult {
     /** 품 수(맡김일 때만, 셀프면 0) */
     mandays: number;
     byRoom: TileRoomQuantity[];
+    /** 정확 모드에서 치수가 덜 들어가 계산에서 뺀 실 수 */
+    skippedRooms: number;
   };
   cost: {
     min: number;
@@ -384,6 +386,19 @@ function scaledSqm(at34: number, pyeong: number, min: number, max: number): numb
   return r1(Math.min(max, Math.max(min, (at34 * pyeong) / 34)));
 }
 
+/** 정확 모드 실이 하나도 완성되지 않았을 때 던지는 오류(검증 단계가 400으로 먼저 막는다) */
+export class TileIncompleteError extends Error {}
+
+/**
+ * 실 카드 치수가 다 들어갔는지 — 욕실: 가로·세로·높이 / 바닥면: 면적 또는 가로·세로 / 벽면: 면적 또는 길이·높이.
+ * 검증(validate/tile.ts)과 계산이 같은 함수를 쓴다.
+ */
+export function tileRoomComplete(r: TileRoomInput): boolean {
+  if (r.kind === 'bath') return r.widthMm !== undefined && r.depthMm !== undefined && r.heightMm !== undefined;
+  if (r.kind === 'floor') return r.areaSqm !== undefined || (r.widthMm !== undefined && r.depthMm !== undefined);
+  return r.areaSqm !== undefined || (r.widthMm !== undefined && r.heightMm !== undefined);
+}
+
 // ── 본체 ──────────────────────────────────────
 
 /** 타일 계산기 본체 — 입력 한 번으로 면적 → 수량 → 부자재 → 비용까지 */
@@ -408,6 +423,8 @@ export function calcTile(input: TileCalcInput): TileCalcResult {
   // ── 1) 실 목록 ──
   const rooms: ResolvedRoom[] = [];
   let pyeong: number | undefined;
+  /** 정확 모드에서 치수가 덜 들어가 계산에서 뺀 실 수 */
+  let skippedRooms = 0;
   if (isSimple) {
     if (isBathScope(scope)) {
       const list = scope === 'bath2' ? BATH_PRESETS : BATH_PRESETS.filter((b) => b.key === 'common');
@@ -429,19 +446,20 @@ export function calcTile(input: TileCalcInput): TileCalcResult {
   } else {
     const src = input.rooms && input.rooms.length > 0 ? input.rooms : null;
     if (!src) assumed.push('rooms');
-    const list: TileRoomInput[] = src ?? [{ kind: 'bath', name: '욕실1', doors: SIMPLE_BATH_DOORS }];
-    const common = BATH_PRESETS.find((b) => b.key === 'common')!.dims;
-    let dimsAssumed = false;
+    // 치수가 다 들어간 실만 계산에 넣는다(바닥재 계산기 정확 모드와 같은 규칙) —
+    // 덜 들어간 실을 0㎡나 추정 치수로 계산하면 "0만원"처럼 뜻 없는 결과가 나온다(2026-10-03 검사관 지적)
+    const list: TileRoomInput[] = src ? src.filter(tileRoomComplete) : [{ kind: 'bath', name: '욕실1', doors: SIMPLE_BATH_DOORS, ...BATH_PRESETS.find((b) => b.key === 'common')!.dims }];
+    skippedRooms = src ? src.length - list.length : 0;
+    // 실을 보냈는데 하나도 완성 안 됐으면 계산하지 않는다(API는 검증 단계에서 400으로 먼저 막는다)
+    if (list.length === 0) throw new TileIncompleteError('치수를 다 넣은 실이 없습니다');
     list.forEach((r, i) => {
       const key = `room${i + 1}`;
       const name = r.name?.trim() || (r.kind === 'bath' ? `욕실${i + 1}` : r.kind === 'floor' ? `바닥${i + 1}` : `벽${i + 1}`);
       if (r.kind === 'bath') {
-        // 비어 있는 치수는 84타입 공용욕실 추정값으로 채운다(가정 표시)
-        if (r.widthMm === undefined || r.depthMm === undefined || r.heightMm === undefined) dimsAssumed = true;
         const a = bathAreas({
-          widthMm: r.widthMm ?? common.widthMm,
-          depthMm: r.depthMm ?? common.depthMm,
-          heightMm: r.heightMm ?? common.heightMm,
+          widthMm: r.widthMm as number,
+          depthMm: r.depthMm as number,
+          heightMm: r.heightMm as number,
           doors: r.doors ?? SIMPLE_BATH_DOORS,
           windows: r.windows,
           tub: r.tub,
@@ -449,23 +467,16 @@ export function calcTile(input: TileCalcInput): TileCalcResult {
         });
         rooms.push({ key, name, kind: 'bath', wallSqm: a.wallSqm, floorSqm: a.floorSqm, demolishKind: 'bath' });
       } else if (r.kind === 'floor') {
-        let floorSqm = 0;
-        if (r.areaSqm !== undefined) floorSqm = r.areaSqm;
-        else if (r.widthMm !== undefined && r.depthMm !== undefined) floorSqm = (r.widthMm / 1000) * (r.depthMm / 1000);
-        else dimsAssumed = true; // 치수 없는 바닥면은 0㎡ — 계산에서 빠진다
+        const floorSqm = r.areaSqm !== undefined ? r.areaSqm : ((r.widthMm as number) / 1000) * ((r.depthMm as number) / 1000);
         rooms.push({ key, name, kind: 'floor', wallSqm: 0, floorSqm, demolishKind: 'tile' });
       } else {
-        let wallSqm = 0;
-        if (r.areaSqm !== undefined) wallSqm = r.areaSqm;
-        else if (r.widthMm !== undefined && r.heightMm !== undefined) wallSqm = (r.widthMm / 1000) * (r.heightMm / 1000);
-        else dimsAssumed = true;
+        const wallSqm = r.areaSqm !== undefined ? r.areaSqm : ((r.widthMm as number) / 1000) * ((r.heightMm as number) / 1000);
         const doorSqm = (r.doors ?? 0) * DOOR_SIZE_M.widthM * DOOR_SIZE_M.heightM;
         const windowSqm = (r.windows ?? 0) * WINDOW_SIZE_M.widthM * WINDOW_SIZE_M.heightM;
         const custom = (r.openings ?? []).reduce((s, o) => s + (o.widthMm / 1000) * (o.heightMm / 1000) * o.count, 0);
         rooms.push({ key, name, kind: 'wall', wallSqm: Math.max(0, wallSqm - doorSqm - windowSqm - custom), floorSqm: 0, demolishKind: 'tile' });
       }
     });
-    if (dimsAssumed) assumed.push('dims');
   }
 
   // ── 2) 타일 규격 ──
@@ -696,6 +707,7 @@ export function calcTile(input: TileCalcInput): TileCalcResult {
       adhesive: { name: adhesiveName, kg: r1(adhesiveKg), bags: adhesiveBags, bagKg: adhesiveBagKg, grade: isMortarBed ? 'C' : 'B' },
       mandays,
       byRoom,
+      skippedRooms,
     },
     cost: {
       min: roundWon(sumMin),

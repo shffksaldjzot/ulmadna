@@ -22,7 +22,7 @@ import Chip from '@/components/v1/Chip';
 import ChipGroup from '@/components/v1/ChipGroup';
 import NumberField from '@/components/v1/NumberField';
 import { DEFAULT_TILE_FORM, decodeTileForm, type TileFormState } from '@/lib/v1/tileQuery';
-import { sanitizeTileForm, roomsStepComplete, needsWallTile, needsFloorTile } from '@/lib/v1/tileEngineInput';
+import { sanitizeTileForm, roomsStepComplete, needsWallTile, needsFloorTile, preciseMeasuring } from '@/lib/v1/tileEngineInput';
 import { useTileCalc } from '@/lib/v1/useTileCalc';
 import {
   TILE_SCOPES,
@@ -426,7 +426,10 @@ export default function TileCalculator() {
     ),
   });
 
-  const emptyMessage = view === 'simple' ? '공간을 고르면 바로 나와요' : '치수를 넣으면 바로 나와요';
+  // 정확 모드에서 실 카드를 만졌는데 치수가 덜 들어간 실이 있으면 "실측 입력 중" —
+  // 다 넣은 실만 계산하고, 하나도 없으면 금액을 숨긴다(2026-10-03 검사관 지적)
+  const measuring = view === 'precise' && !!touchedMap.rooms && preciseMeasuring(rooms);
+  const emptyMessage = view === 'simple' ? '공간을 고르면 바로 나와요' : measuring ? '실측 입력 중' : '치수를 넣으면 바로 나와요';
   const currentStepTitle = steps[Math.min(activeIndex, steps.length - 1)]?.title ?? '';
 
   // 하단 바 — 맡김이면 금액, 셀프면 박스 수
@@ -481,7 +484,7 @@ export default function TileCalculator() {
           className="scroll-mt-16 flex flex-col gap-4 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto flowFocusScope"
         >
           <AdjustChips visible={!!result} groups={adjustGroups} />
-          <ResultPanel result={result} loading={loading} error={error} stale={stale} allDone={allDone} form={form} emptyMessage={emptyMessage} />
+          <ResultPanel result={result} loading={loading} error={error} stale={stale} allDone={allDone} form={form} emptyMessage={emptyMessage} measuring={measuring} />
         </div>
       </div>
 

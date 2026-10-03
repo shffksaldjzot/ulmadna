@@ -18,7 +18,7 @@ import Chip from '@/components/v1/Chip';
 import ChipGroup from '@/components/v1/ChipGroup';
 import NumberField from '@/components/v1/NumberField';
 import type { TileRoomForm } from '@/lib/v1/tileQuery';
-import { BATH_PRESETS, TILE_ROOMS_MAX, TILE_HEIGHT_MM_MIN, TILE_HEIGHT_MM_MAX, TILE_ROOM_MM_MIN, type TileRoomKind } from '@/lib/v1/tilePresets';
+import { BATH_PRESETS, TILE_ROOMS_MAX, TILE_HEIGHT_MM_MAX, TILE_ROOM_MM_MIN, heightMinFor, type TileRoomKind } from '@/lib/v1/tilePresets';
 import { roomFields, roomWidthMax } from '@/lib/v1/tileEngineInput';
 import { rangeCaption } from '../_components/inputRanges';
 
@@ -138,7 +138,7 @@ export default function TileRooms({ rooms, unit, onRoomsChange, onUnitChange }: 
             {(() => {
               const msgs = fields
                 .map((f) => {
-                  const min = f === 'heightMm' ? TILE_HEIGHT_MM_MIN : TILE_ROOM_MM_MIN;
+                  const min = f === 'heightMm' ? heightMinFor(r.kind) : TILE_ROOM_MM_MIN;
                   const max = f === 'heightMm' ? TILE_HEIGHT_MM_MAX : roomWidthMax(r.kind);
                   const c = rangeCaption(r[f], min, max, 'mm');
                   return c ? `${fieldLabel(r.kind, f)} ${c}` : null;

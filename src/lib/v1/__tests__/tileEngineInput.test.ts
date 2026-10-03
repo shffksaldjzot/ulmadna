@@ -8,7 +8,7 @@
 // ──────────────────────────────────────────────
 
 import { describe, it, expect } from 'vitest';
-import { buildTileRequest, sanitizeTileForm, roomsStepComplete } from '../tileEngineInput';
+import { buildTileRequest, sanitizeTileForm, roomsStepComplete, preciseMeasuring } from '../tileEngineInput';
 import { encodeTileForm, decodeTileForm } from '../tileQuery';
 
 describe('타일 요청 변환', () => {
@@ -27,15 +27,17 @@ describe('타일 요청 변환', () => {
     expect(l?.pyeong).toBe(44);
   });
 
-  it('범위 밖 치수·장 수는 빼고 보낸다', () => {
-    const r = buildTileRequest({
-      view: 'precise',
-      rooms: [{ kind: 'bath', name: '욕실1', widthMm: 1600, depthMm: 50000, heightMm: 2300 }],
-      wallSizeCode: '300x600',
-      wallPieces: 99,
-    });
-    expect(r?.rooms?.[0]).toEqual({ kind: 'bath', name: '욕실1', widthMm: 1600, heightMm: 2300, doors: 1 });
+  it('범위 밖 치수가 있는 실은 미완성으로 빼고, 범위 밖 장 수는 빼고 보낸다', () => {
+    const rooms = [
+      { kind: 'bath' as const, name: '욕실1', widthMm: 1600, depthMm: 50000, heightMm: 2300 },
+      { kind: 'wall' as const, name: '벽2', widthMm: 2400, heightMm: 600 },
+    ];
+    const r = buildTileRequest({ view: 'precise', rooms, wallSizeCode: '300x600', wallPieces: 99 });
+    expect(r?.rooms).toEqual([{ kind: 'wall', name: '벽2', widthMm: 2400, heightMm: 600, doors: 0 }]);
     expect(r?.wallTile).toEqual({ widthMm: 300, lengthMm: 600 });
+    expect(preciseMeasuring(rooms)).toBe(true);
+    // 완성된 실이 하나도 없으면 계산하지 않는다(화면은 "실측 입력 중")
+    expect(buildTileRequest({ view: 'precise', rooms: [{ kind: 'floor', name: '바닥1', widthMm: 2000 }] })).toBeNull();
     expect(roomsStepComplete([{ kind: 'bath', name: 'a', widthMm: 1600, depthMm: 2100, heightMm: 2300 }])).toBe(true);
     expect(roomsStepComplete([{ kind: 'floor', name: 'a', widthMm: 1600 }])).toBe(false);
   });

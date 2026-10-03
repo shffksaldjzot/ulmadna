@@ -206,9 +206,16 @@ export const TILE_ROOMS_MAX = 6;
 export const TILE_ROOM_MM_MIN = 800;
 export const TILE_ROOM_MM_MAX = 10000;
 export const TILE_BATH_MM_MAX = 4000;
-/** 높이(mm) */
+/** 높이(mm) — 욕실은 1800~2800 */
 export const TILE_HEIGHT_MM_MIN = 1800;
 export const TILE_HEIGHT_MM_MAX = 2800;
+/** 벽면 실 높이 하한(mm) — 주방 상판 위 벽(약 600mm)처럼 낮은 벽도 넣을 수 있게 300(2026-10-03 검사관 지적) */
+export const TILE_WALL_HEIGHT_MM_MIN = 300;
+
+/** 실 종류별 높이 하한 — 벽면만 낮게 허용한다(화면 안내·서버 검증이 같이 쓴다) */
+export function heightMinFor(kind: TileRoomKind): number {
+  return kind === 'wall' ? TILE_WALL_HEIGHT_MM_MIN : TILE_HEIGHT_MM_MIN;
+}
 /** 면적으로 직접 넣을 때(㎡) */
 export const TILE_AREA_SQM_MIN = 0.1;
 export const TILE_AREA_SQM_MAX = 300;

@@ -9,13 +9,14 @@
 // ──────────────────────────────────────────────
 
 import type { TileCalcInput, TileOpeningInput, TileRoomInput, TileSpecInput } from '@/server/calc/tile';
+import { tileRoomComplete } from '@/server/calc/tile';
 import {
   TILE_PYEONG_MIN,
   TILE_PYEONG_MAX,
   TILE_ROOMS_MAX,
   TILE_ROOM_MM_MIN,
   TILE_ROOM_MM_MAX,
-  TILE_HEIGHT_MM_MIN,
+  heightMinFor,
   TILE_HEIGHT_MM_MAX,
   TILE_AREA_SQM_MIN,
   TILE_AREA_SQM_MAX,
@@ -104,7 +105,7 @@ function parseRooms(v: unknown): TileRoomInput[] | undefined {
   if (!Array.isArray(v)) throw new ValidationError('rooms 는 배열이어야 합니다');
   if (v.length === 0) return undefined;
   if (v.length > TILE_ROOMS_MAX) throw new ValidationError(`rooms 는 ${TILE_ROOMS_MAX}개까지 넣을 수 있습니다`);
-  return v.map((raw, i) => {
+  const parsed: TileRoomInput[] = v.map((raw, i) => {
     if (!isObject(raw)) throw new ValidationError(`rooms[${i}] 형식이 잘못됐습니다`);
     const kind = oneOf<TileRoomKind>(raw.kind, `rooms[${i}].kind`, ['bath', 'floor', 'wall'] as const);
     if (!kind) throw new ValidationError(`rooms[${i}].kind 값이 필요합니다`);
@@ -114,7 +115,7 @@ function parseRooms(v: unknown): TileRoomInput[] | undefined {
       name: typeof raw.name === 'string' ? raw.name.trim().slice(0, 20) : undefined,
       widthMm: num(raw.widthMm, `${f}.widthMm`, { min: TILE_ROOM_MM_MIN, max: TILE_ROOM_MM_MAX }),
       depthMm: num(raw.depthMm, `${f}.depthMm`, { min: TILE_ROOM_MM_MIN, max: TILE_ROOM_MM_MAX }),
-      heightMm: num(raw.heightMm, `${f}.heightMm`, { min: TILE_HEIGHT_MM_MIN, max: TILE_HEIGHT_MM_MAX }),
+      heightMm: num(raw.heightMm, `${f}.heightMm`, { min: heightMinFor(kind), max: TILE_HEIGHT_MM_MAX }),
       areaSqm: num(raw.areaSqm, `${f}.areaSqm`, { min: TILE_AREA_SQM_MIN, max: TILE_AREA_SQM_MAX }),
       doors: num(raw.doors, `${f}.doors`, { min: 0, max: TILE_OPENING_COUNT_MAX, integer: true }),
       windows: num(raw.windows, `${f}.windows`, { min: 0, max: TILE_OPENING_COUNT_MAX, integer: true }),
@@ -122,6 +123,9 @@ function parseRooms(v: unknown): TileRoomInput[] | undefined {
       openings: parseOpenings(raw.openings, `${f}.openings`),
     };
   });
+  // 치수가 덜 들어간 실은 계산에서 뺀다 — 하나도 완성 안 됐으면 금액을 낼 수 없으니 400(2026-10-03 검사관 지적)
+  if (!parsed.some(tileRoomComplete)) throw new ValidationError('치수를 다 넣은 실이 없습니다');
+  return parsed;
 }
 
 /** 요청 몸통 전체를 계산기 입력으로 바꾼다 */

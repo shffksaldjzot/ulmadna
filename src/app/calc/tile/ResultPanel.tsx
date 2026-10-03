@@ -40,6 +40,8 @@ export interface ResultPanelProps {
   form: TileFormState;
   /** 결과가 없을 때 한 줄(PC에서만, 모바일은 하단 바가 보여 준다) */
   emptyMessage: string;
+  /** 정확 모드 "실측 입력 중"(치수가 덜 들어간 실이 있음) — 다 넣은 실만 계산했다는 표시·공유 숨김 */
+  measuring?: boolean;
 }
 
 /** 비용 층 순서 */
@@ -55,14 +57,15 @@ function formatWonRange(min: number, max: number): string {
   return formatManRange(min, max);
 }
 
-export default function ResultPanel({ result, loading, error, stale, allDone, form, emptyMessage }: ResultPanelProps) {
+export default function ResultPanel({ result, loading, error, stale, allDone, form, emptyMessage, measuring = false }: ResultPanelProps) {
   const [toast, setToast] = useState<string | null>(null);
 
   if (!result) {
     return (
       <>
         {error && <p className="text-[13px] text-danger mb-2">계산하지 못했어요</p>}
-        <div className="hidden lg:block">
+        {/* 실측 입력 중이면 모바일에서도 보여 준다(하단 바엔 금액이 없어서) */}
+        <div className={measuring ? '' : 'hidden lg:block'}>
           <Card>
             <p className="text-[15px] text-v1-text-secondary">{loading ? '계산 중' : emptyMessage}</p>
           </Card>
@@ -74,14 +77,16 @@ export default function ResultPanel({ result, loading, error, stale, allDone, fo
   const dim = loading || stale;
   const self = result.resolved.service === 'self';
   const q = result.quantity;
-  const assumed = assumptionLine(result, form);
+  const assumedBase = assumptionLine(result, form);
+  // 실측 입력 중이면 "다 넣은 실만 계산"을 가정 줄 맨 앞에 붙인다
+  const assumed = measuring ? ['실측 입력 중 — 치수를 다 넣은 실만 계산', assumedBase].filter(Boolean).join(' · ') : assumedBase;
   const checks = checkTexts(result);
   const largeWarn = result.checks.includes('largeOverlay');
   const materialMin = result.cost.breakdown.filter((l) => l.layer === '자재' || l.layer === '부자재').reduce((s, l) => s + l.amountMin, 0);
   const materialMax = result.cost.breakdown.filter((l) => l.layer === '자재' || l.layer === '부자재').reduce((s, l) => s + l.amountMax, 0);
 
   // 공유 — 단계 완료 + 계산 실패 아님 + 치수 가정이 안 남았을 때만
-  const canShare = allDone && !error && !result.assumed.includes('dims') && !result.assumed.includes('rooms');
+  const canShare = allDone && !error && !measuring && !result.assumed.includes('dims') && !result.assumed.includes('rooms');
 
   async function handleShare() {
     const url = `${window.location.origin}/calc/tile/result?d=${encodeTileForm(form)}`;

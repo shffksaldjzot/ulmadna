@@ -18,7 +18,7 @@
 // ──────────────────────────────────────────────
 
 import { describe, it, expect } from 'vitest';
-import { calcTile, bathAreas, livingFloorSqm } from '../tile';
+import { calcTile, bathAreas, livingFloorSqm, TileIncompleteError } from '../tile';
 import { parseInput, ValidationError } from '../validate/tile';
 
 describe('타일 계산기 — 수량', () => {
@@ -170,6 +170,37 @@ describe('타일 계산기 — 비용·확인 항목', () => {
   });
 });
 
+describe('타일 계산기 — 정확 모드 미완성 실(2026-10-03 검사관 지적)', () => {
+  it('치수가 덜 들어간 실은 빼고 완성된 실만 계산한다 — 0원이 나오지 않는다', () => {
+    const r = calcTile({
+      mode: 'precise',
+      rooms: [
+        { kind: 'bath', widthMm: 1600, depthMm: 2100, heightMm: 2300, doors: 1 },
+        { kind: 'floor', widthMm: 2000 }, // 세로가 없다 → 계산에서 뺀다
+      ],
+      wallTile: { widthMm: 300, lengthMm: 600 },
+      floorTile: { widthMm: 300, lengthMm: 300 },
+    });
+    expect(r.quantity.byRoom).toHaveLength(1);
+    expect(r.quantity.skippedRooms).toBe(1);
+    expect(r.quantity.wall?.boxes).toBe(12);
+    expect(r.cost.min).toBeGreaterThan(0);
+    expect(r.assumed).not.toContain('dims');
+  });
+
+  it('완성된 실이 하나도 없으면 API 검증은 400, 엔진도 계산하지 않는다', () => {
+    const body = { mode: 'precise', rooms: [{ kind: 'floor', widthMm: 2000 }, { kind: 'bath', widthMm: 1600, depthMm: 2100 }] };
+    expect(() => parseInput(body)).toThrow(ValidationError);
+    expect(() => calcTile({ mode: 'precise', rooms: [{ kind: 'floor', widthMm: 2000 }] })).toThrow(TileIncompleteError);
+  });
+
+  it('벽면 실은 높이 300mm(주방 상판 위 벽)부터 받는다, 욕실은 1800mm부터', () => {
+    expect(parseInput({ mode: 'precise', rooms: [{ kind: 'wall', widthMm: 2400, heightMm: 600 }] }).rooms?.[0].heightMm).toBe(600);
+    expect(() => parseInput({ mode: 'precise', rooms: [{ kind: 'wall', widthMm: 2400, heightMm: 200 }] })).toThrow(ValidationError);
+    expect(() => parseInput({ mode: 'precise', rooms: [{ kind: 'bath', widthMm: 1600, depthMm: 2100, heightMm: 600 }] })).toThrow(ValidationError);
+  });
+});
+
 describe('타일 계산기 — 입력 검증', () => {
   it('정상 입력은 통과, 간단 모드에 공간이 없으면 거절', () => {
     expect(parseInput({ mode: 'simple', scope: 'bath1' }).scope).toBe('bath1');
@@ -182,7 +213,7 @@ describe('타일 계산기 — 입력 검증', () => {
     expect(() => parseInput({ mode: 'simple', scope: 'bath1', groutMm: 20 })).toThrow(ValidationError);
     expect(() => parseInput({ mode: 'simple', scope: 'bath1', lossRate: 0.5 })).toThrow(ValidationError);
     expect(() => parseInput({ mode: 'simple', scope: 'bath1', wallTile: { widthMm: 50, lengthMm: 600 } })).toThrow(ValidationError);
-    expect(() => parseInput({ mode: 'precise', rooms: [{ kind: 'bath', heightMm: 3500 }] })).toThrow(ValidationError);
+    expect(() => parseInput({ mode: 'precise', rooms: [{ kind: 'bath', widthMm: 1600, depthMm: 2100, heightMm: 3500 }] })).toThrow(ValidationError);
     expect(() => parseInput({ mode: 'precise', rooms: 'abc' })).toThrow(ValidationError);
     expect(() => parseInput({ mode: 'precise', rooms: Array.from({ length: 7 }, () => ({ kind: 'floor', areaSqm: 3 })) })).toThrow(ValidationError);
   });
