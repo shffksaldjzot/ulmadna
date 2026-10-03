@@ -366,7 +366,8 @@ export async function answeredForSitemap(): Promise<{ slug: string; updated_at: 
 
 /**
  * "오늘 기준 빅데이터 견적서" 숫자. 표가 없거나 값이 없으면 null(화면에서 상자를 숨긴다).
- * 표시 수 = display가 있으면 그것, 없으면 real + 1,000 (사장님 확정 규칙)
+ * 칸 이름(집컴 build-stats.mjs 와 동일): real(실제 수) · shown(표시 수) · delta(어제 대비 증감) · updated(갱신일 "2026.10.03")
+ * 표시 수 = shown이 있으면 그것, 없으면 real + 1,000 (사장님 확정 규칙)
  */
 export async function getStats(): Promise<AskStats | null> {
   const sb = adminOrNull();
@@ -376,12 +377,12 @@ export async function getStats(): Promise<AskStats | null> {
     if (error || !data) return null;
     const d = (data.data ?? {}) as Record<string, unknown>;
     const real = typeof d.real === 'number' ? d.real : null;
-    const display = typeof d.display === 'number' ? d.display : real != null ? real + 1000 : null;
-    if (display == null) return null;
+    const shown = typeof d.shown === 'number' ? d.shown : real != null ? real + 1000 : null;
+    if (shown == null) return null;
     return {
-      display,
+      shown,
       delta: typeof d.delta === 'number' ? d.delta : null,
-      date: typeof d.date === 'string' ? d.date : String(data.updated_at ?? '').slice(0, 10) || null,
+      updated: typeof d.updated === 'string' ? d.updated : String(data.updated_at ?? '').slice(0, 10) || null,
     };
   } catch {
     return null;

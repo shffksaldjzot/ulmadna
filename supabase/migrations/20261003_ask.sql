@@ -119,9 +119,10 @@ create index if not exists ask_reports_post_idx on public.ask_reports (post_id);
 
 -- ------------------------------------------------------------
 -- 7. 숫자 표 (집컴이 밤마다 넣는 "오늘 기준 빅데이터 견적서" 숫자)
---    key='global' 한 줄. data 예시:
---    {"real": 471, "display": 1471, "delta": 24, "date": "2026-10-03"}
---    real=실제 수, display=표시 수(실제+1,000), delta=어제 대비 증감, date=갱신일
+--    key='global' 한 줄. 집컴 build-stats.mjs 가 넣는 data 모양(사이트 화면 코드와 칸 이름 동일):
+--    {"real": 470, "shown": 1470, "delta": 24, "updated": "2026.10.03"}
+--    real=실제 견적서 수(화면에 안 보임), shown=표시 수(실제+1,000), delta=어제 대비 증감,
+--    updated=갱신일("2026.10.03" 점 표기). shown이 없으면 화면이 real+1,000으로 계산한다.
 -- ------------------------------------------------------------
 create table if not exists public.ask_stats (
   key        text primary key,
@@ -137,6 +138,39 @@ returns void language sql security definer set search_path = public as $$
   update public.ask_posts set view_count = view_count + 1 where id = p_id;
 $$;
 revoke all on function public.ask_inc_view(bigint) from public, anon, authenticated;
+
+-- ------------------------------------------------------------
+-- 8-2. 자동 맞춤 장치(트리거)
+--   집컴 답변기는 사이트 API를 거치지 않고 DB에 직접 쓴다(AI 댓글·답변 상태 변경).
+--   그래도 숫자·날짜가 어긋나지 않게 DB가 스스로 맞춘다.
+--   (1) 댓글이 생기거나 숨겨지거나 지워지면 → 질문의 comment_count 를 다시 센다
+--   (2) 질문 행이 바뀌면 → updated_at 을 지금 시각으로(사이트맵 "마지막 수정일"에 쓰임)
+-- ------------------------------------------------------------
+create or replace function public.ask_sync_comment_count()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare pid bigint;
+begin
+  pid := coalesce(new.post_id, old.post_id);
+  update public.ask_posts
+     set comment_count = (select count(*) from public.ask_comments c where c.post_id = pid and c.status = 'visible')
+   where id = pid;
+  return null;
+end $$;
+drop trigger if exists ask_comments_count_trg on public.ask_comments;
+create trigger ask_comments_count_trg after insert or update of status or delete on public.ask_comments
+  for each row execute function public.ask_sync_comment_count();
+
+create or replace function public.ask_touch_updated_at()
+returns trigger language plpgsql as $$
+begin
+  new.updated_at := now();
+  return new;
+end $$;
+drop trigger if exists ask_posts_touch_trg on public.ask_posts;
+-- 조회수만 오를 때는 날짜를 안 바꾼다(조회수 1 오를 때마다 "수정됨"이 되면 사이트맵이 의미 없어짐)
+create trigger ask_posts_touch_trg before update on public.ask_posts
+  for each row when (old.* is distinct from new.* and old.view_count = new.view_count)
+  execute function public.ask_touch_updated_at();
 
 -- ------------------------------------------------------------
 -- 9. 행 단위 보안(RLS) — 켜고, 읽기만 공개

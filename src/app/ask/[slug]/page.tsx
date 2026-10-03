@@ -79,8 +79,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title,
     description,
     alternates: { canonical: url },
-    // 숨김(신고 처리된) 글은 검색에 넣지 않는다
-    ...(post.status === 'hidden' ? { robots: { index: false, follow: false } } : {}),
+    // 검색 노출은 답변이 달린 글만(지휘관 결정 2026년 10월 03일).
+    // 답변 전(queued)은 noindex·follow(링크는 따라가게), 숨김(hidden)은 noindex·nofollow.
+    // 답이 달리면 집컴이 /api/ask/revalidate 를 불러 화면이 새로 그려지며 index로 바뀐다.
+    ...(post.status === 'hidden'
+      ? { robots: { index: false, follow: false } }
+      : post.status !== 'answered'
+        ? { robots: { index: false, follow: true } }
+        : {}),
     openGraph: {
       title: post.title,
       description,

@@ -78,11 +78,18 @@ export interface AskListItem {
   summary: string | null; // AI 답변 한 줄(답변 전이면 null)
 }
 
-/** "오늘 기준 빅데이터 견적서" 숫자 묶음 */
+/**
+ * "오늘 기준 빅데이터 견적서" 숫자 묶음 — ask_stats(key='global').data 와 칸 이름이 똑같다.
+ * 집컴 build-stats.mjs 가 밤마다 넣는 모양: {"real": 470, "shown": 1470, "delta": 24, "updated": "2026.10.03"}
+ *   real    = 실제 견적서 수(화면에 안 보임)
+ *   shown   = 화면에 보이는 수(실제 + 1,000, 사장님 확정 규칙)
+ *   delta   = 어제 대비 증감
+ *   updated = 갱신일("2026.10.03" 점 표기)
+ */
 export interface AskStats {
-  display: number; // 화면에 보이는 수(실제 + 1,000)
+  shown: number; // 화면에 보이는 수(실제 + 1,000)
   delta: number | null; // 어제 대비 증감
-  date: string | null; // 갱신일 "2026-10-03"
+  updated: string | null; // 갱신일 "2026.10.03"
 }
 
 /** 근거 묶음(ask_answers.basis) 중 화면이 읽는 칸 */

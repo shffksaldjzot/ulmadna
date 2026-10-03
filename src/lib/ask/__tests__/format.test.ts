@@ -13,6 +13,7 @@ import {
   hasPhoneNumber,
   conditionText,
   fmtDateTime,
+  shortDate,
 } from '../format';
 
 describe('주소 만들기', () => {
@@ -44,6 +45,10 @@ describe('시간 표기', () => {
   });
   it('한국 날짜 0시', () => {
     expect(kstDayStartIso(now)).toBe('2026-10-02T15:00:00.000Z');
+  });
+  it('갱신일 짧게(점·하이픈 둘 다)', () => {
+    expect(shortDate('2026.10.03')).toBe('10.03');
+    expect(shortDate('2026-10-03')).toBe('10.03');
   });
   it('날짜·시각 한국 시간', () => {
     expect(fmtDateTime('2026-10-03T05:12:00Z')).toBe('2026.10.03 14:12');

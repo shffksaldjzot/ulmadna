@@ -60,7 +60,7 @@ export default async function AskListPage() {
           <section className="why" aria-label="오늘 기준 빅데이터">
             <div className="big">
               <small>오늘 기준 빅데이터 견적서</small>
-              <b>{stats.display.toLocaleString()}건</b>
+              <b>{stats.shown.toLocaleString()}건</b>
               {stats.delta != null && stats.delta !== 0 && (
                 <span className="tick">
                   {stats.delta > 0 ? `▲ +${stats.delta.toLocaleString()}` : `▼ ${stats.delta.toLocaleString()}`} <small>어제 대비</small>
@@ -71,7 +71,7 @@ export default async function AskListPage() {
               지어낸 평균이 아니라 <b>비슷한 조건의 실제 견적서 범위</b>로 답해요
             </p>
             <div className="foot">
-              <span>매일 새벽 갱신{stats.date ? ` · ${shortDate(stats.date)}` : ''}</span>
+              <span>매일 새벽 갱신{stats.updated ? ` · ${shortDate(stats.updated)}` : ''}</span>
               <span>
                 실시간 답변이 아니에요 · 자료를 찾아 보느라 <b>5~10분</b>
               </span>

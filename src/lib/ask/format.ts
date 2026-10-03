@@ -85,10 +85,10 @@ export function minutesBetween(a: string, b: string): number | null {
   return Math.max(1, Math.round((y - x) / 60000));
 }
 
-/** "2026-10-03" → "10.03" (갱신일 짧게) */
+/** "2026-10-03" 또는 "2026.10.03" → "10.03" (갱신일 짧게) */
 export function shortDate(d: string | null): string {
   if (!d) return '';
-  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d);
+  const m = /^(\d{4})[-.](\d{2})[-.](\d{2})/.exec(d);
   return m ? `${m[2]}.${m[3]}` : d;
 }
 

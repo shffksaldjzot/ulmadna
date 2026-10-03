@@ -18,7 +18,7 @@ import { askHref } from '@/lib/ask/format';
 import '@/components/ask/ask.css';
 
 interface CtaData {
-  stats: { display: number; delta: number | null } | null;
+  stats: { shown: number; delta: number | null } | null;
   posts: { slug: string; title: string }[];
 }
 
@@ -76,7 +76,7 @@ export default function AskCta({ slug }: { slug: string }) {
         <small>
           {stats ? (
             <>
-              빅데이터 견적서 <b>{stats.display.toLocaleString()}</b>건
+              빅데이터 견적서 <b>{stats.shown.toLocaleString()}</b>건
               {stats.delta != null && stats.delta > 0 && <span className="up"> ▲ +{stats.delta.toLocaleString()}</span>} · 5~10분 걸려요
             </>
           ) : (
