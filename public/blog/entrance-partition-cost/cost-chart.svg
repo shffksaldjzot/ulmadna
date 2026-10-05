@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+  <rect width="800" height="400" fill="#fdfaf7"/>
+  <text x="40" y="44" font-size="22" font-weight="700" fill="#2d2a26">현관 가벽 방식별 실제 금액 (단위: 만원)</text>
+  <text x="40" y="68" font-size="13" fill="#8a8378">실제 견적 빅데이터 기준 · 현장·크기에 따라 달라지는 참고 구간</text>
+
+  <g stroke="#e8e2da" stroke-width="1">
+    <line x1="230" y1="90" x2="230" y2="320"/>
+    <line x1="340" y1="90" x2="340" y2="320"/>
+    <line x1="450" y1="90" x2="450" y2="320"/>
+    <line x1="560" y1="90" x2="560" y2="320"/>
+    <line x1="670" y1="90" x2="670" y2="320"/>
+  </g>
+  <g font-size="12" fill="#a09888" text-anchor="middle">
+    <text x="230" y="342">0</text>
+    <text x="340" y="342">50만</text>
+    <text x="450" y="342">100만</text>
+    <text x="560" y="342">150만</text>
+    <text x="670" y="342">200만</text>
+  </g>
+
+  <!-- x = 230 + 만원*2.2 -->
+  <text x="218" y="118" font-size="14" font-weight="600" fill="#2d2a26" text-anchor="end">목공 가벽 단독(냉장고장 사례)</text>
+  <rect x="230" y="102" width="110" height="22" rx="11" fill="#c96f4a"/>
+  <text x="350" y="118" font-size="13" fill="#6b6459">50만</text>
+
+  <text x="218" y="168" font-size="14" font-weight="600" fill="#2d2a26" text-anchor="end">강화유리 고정 파티션</text>
+  <rect x="318" y="152" width="88" height="22" rx="11" fill="#c96f4a"/>
+  <text x="416" y="168" font-size="13" fill="#6b6459">40만~80만 (샤워 파티션 기준)</text>
+
+  <text x="218" y="218" font-size="14" font-weight="600" fill="#2d2a26" text-anchor="end">일반 3연동 (가벽 없음)</text>
+  <rect x="230" y="202" width="121" height="22" rx="11" fill="#a3624f"/>
+  <text x="361" y="218" font-size="13" fill="#6b6459">55만</text>
+
+  <text x="218" y="268" font-size="14" font-weight="600" fill="#2d2a26" text-anchor="end">ㄱ자 가벽 포함 3연동 세트</text>
+  <rect x="230" y="252" width="209" height="22" rx="11" fill="#7d5346"/>
+  <text x="449" y="268" font-size="13" fill="#6b6459">95만 (가벽분 +40만)</text>
+
+  <text x="218" y="308" font-size="14" font-weight="600" fill="#2d2a26" text-anchor="end">19평 구축 3연동 단독</text>
+  <rect x="230" y="292" width="242" height="22" rx="11" fill="#a3624f"/>
+  <text x="482" y="308" font-size="13" fill="#6b6459">110만</text>
+
+  <text x="40" y="378" font-size="12.5" fill="#8a8378">※ 기본 사이즈(가로 1,300×세로 2,400mm) 초과 시 10cm 구간마다 추가. 철거·폐기물은 별도.</text>
+</svg>
