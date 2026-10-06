@@ -50,6 +50,20 @@ export function kindFromCategory(c: AskCategory): AskKind {
   return c === 'estimate' ? 'estimate' : 'cost';
 }
 
+/**
+ * 화면에 보여줄 "댓글 수" 계산 — 사람이 쓴 댓글(ask_comments, DB가 세어 둔 값) + AI의 첫 답변 1개
+ *
+ * [왜 더하나]
+ *   AI가 처음 다는 답변은 ask_comments 표가 아니라 ask_answers 표에 따로 저장된다.
+ *   그래서 DB 트리거가 세는 comment_count(= ask_comments 행 수)에는 그 답변이 안 잡혀서
+ *   답변만 달리고 사람 댓글이 없는 글은 카드·상세에 "댓글 0"으로 잘못 보였다(2026년 10월 06일 발견).
+ *   글 상태가 answered면(= ask_answers에 답이 있다는 뜻) 화면용 숫자에 1을 더해 맞춘다.
+ * DB 칸(comment_count)은 그대로 두고(사람 댓글만) 화면에 보여줄 때만 이 함수를 거친다.
+ */
+export function commentCountWithAi(rawCount: number, status: string | null | undefined): number {
+  return rawCount + (status === 'answered' ? 1 : 0);
+}
+
 /** 질문하기 화면의 공정 칩 9개 (시안 new.html 그대로) */
 export const TRADES = ['도배', '바닥', '욕실', '주방', '샷시', '전기 · 조명', '목공 · 문', '미장 · 방수', '전체 올수리'] as const;
 

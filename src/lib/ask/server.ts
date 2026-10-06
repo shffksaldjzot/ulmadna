@@ -15,7 +15,7 @@
 import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getSupabaseAdmin } from '@/lib/supabase';
-import { LIMITS, normalizeCategory, type AskBasis, type AskCategory, type AskKind, type AskListItem, type AskPhoto, type AskStats } from './constants';
+import { commentCountWithAi, LIMITS, normalizeCategory, type AskBasis, type AskCategory, type AskKind, type AskListItem, type AskPhoto, type AskStats } from './constants';
 
 /** 서비스 역할 클라이언트를 안전하게 — 환경변수가 없으면 null */
 export function adminOrNull(): SupabaseClient | null {
@@ -130,7 +130,8 @@ function toListItem(r: Record<string, unknown>, summary: string | null): AskList
     title: String(r.title ?? ''),
     trades: Array.isArray(r.trades) ? (r.trades as string[]) : [],
     status: (r.status as AskListItem['status']) ?? 'queued',
-    comment_count: Number(r.comment_count ?? 0),
+    // 댓글 수 = 사람 댓글(DB 값) + AI 답변 1개(있으면) — commentCountWithAi 설명 참고
+    comment_count: commentCountWithAi(Number(r.comment_count ?? 0), r.status as string | undefined),
     view_count: Number(r.view_count ?? 0),
     created_at: String(r.created_at ?? ''),
     photoCount: Array.isArray(r.photos) ? (r.photos as unknown[]).length : 0,
@@ -264,6 +265,8 @@ export async function getPostById(id: number): Promise<AskPost | null> {
       category: categoryOf(data as Record<string, unknown>), // 칸이 없으면 kind로
       trades: Array.isArray(data.trades) ? data.trades : [],
       photos: Array.isArray(data.photos) ? (data.photos as AskPhoto[]) : [],
+      // 댓글 수 = 사람 댓글(DB 값) + AI 답변 1개(있으면) — 상세 화면도 카드와 같은 숫자를 보게
+      comment_count: commentCountWithAi(Number((data as Record<string, unknown>).comment_count ?? 0), (data as Record<string, unknown>).status as string | undefined),
     };
   } catch (e) {
     warn('post', e);
