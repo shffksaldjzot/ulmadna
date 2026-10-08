@@ -249,6 +249,13 @@ export default function ResultBody({ result, dim = false, dimsAssumed = false, o
       <div className="flex flex-col">
         <Collapsible title="시장 견적 비교" onOpen={() => track('calc_detail_open', { process: 'tile', section: 'market' })}>
           <div className="flex flex-col py-1">
+            {/* 견적DB "타일 공사" 묶음은 철거·방수가 따로 적힌 경우가 많아, 같은 범위(철거·방수 빼고)로 견준다 */}
+            {!self && result.marketRef && (
+              <div className="min-h-10 flex items-center justify-between gap-3 border-b border-v1-line-2">
+                <span className="text-[14px] font-semibold text-ink">내 견적 · 철거·방수 빼고</span>
+                <span className="text-[14px] font-semibold text-brown tabular-nums whitespace-nowrap">{formatWonRange(result.cost.tileOnly.min, result.cost.tileOnly.max)}</span>
+              </div>
+            )}
             {result.marketRefs.map((m) => {
               const mine = result.marketRef?.key === m.key;
               return (

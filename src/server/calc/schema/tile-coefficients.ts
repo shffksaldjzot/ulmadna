@@ -179,17 +179,20 @@ export type TileSizeClass = 'S' | 'M' | 'L';
 /**
  * 기공(타일공) 1명이 하루에 붙이는 ㎡ — 넓은 바닥 기준, 공법·크기별 표(형아 확인 필요, C).
  * 근거: 표준품셈 떠붙임/압착 일 시공량 비(7㎡ vs 8㎡)를 넓은 면 현장 속도(10~14㎡)로 늘리고,
- *       견적DB "욕실 1칸 2.5~3.5인"(n=37 인건 줄 수량)과 맞게 욕실 난이도(0.6)로 맞췄다
- *       — 욕실 1칸(벽 압착 15.4㎡ + 바닥 떠붙임 3.4㎡) = 기공 3일.
+ *       욕실 1칸(벽 압착 15.4㎡ + 바닥 떠붙임 3.4㎡) = 기공 2일(욕실 난이도 0.85, 2026-10-09 보정).
  */
 export const PRODUCTIVITY_SQM_PER_DAY: Record<TileSetting, Record<TileSizeClass, number>> = {
   press: { S: 12, M: 13, L: 10 },
   mortar: { S: 10, M: 12, L: 9 },
   bond: { S: 13, M: 14, L: 10 },
 };
-/** 공간 난이도(시공량에 곱함) — 욕실은 모서리·배수구·재단이 많아 0.6, 주방·현관 0.7, 베란다 0.85, 거실 1(C) */
+/**
+ * 공간 난이도(시공량에 곱함) — 욕실은 모서리·배수구·재단이 많아 0.85, 주방·현관 0.7, 베란다 0.85, 거실 1(C).
+ * 2026-10-09 보정: 욕실 0.6 → 0.85 — 욕실 1칸(벽+바닥 18.8㎡) 기공 3일은 견적DB 욕실 타일 공사 중앙값(180만)을
+ * 크게 넘겼다. 0.85면 기공 2일·조공 1.5일(토리 보정안 2.0~2.5일)
+ */
 export const SPACE_DIFFICULTY: Record<'bath' | 'kitchen' | 'entrance' | 'balcony' | 'living' | 'generic', number> = {
-  bath: 0.6,
+  bath: 0.85,
   kitchen: 0.7,
   entrance: 0.7,
   balcony: 0.85,
@@ -204,8 +207,8 @@ export const HELPER_RATIO: Record<TileSetting, number> = { press: 0.5, bond: 0.3
 export const HELPER_RATIO_LARGE_MIN = 1;
 /** 조공을 부르는 최소 일수 — 0.5일 미만(현관 4㎡·주방 벽 같은 작은 일)은 기공 혼자 한다(현장 관행, C) */
 export const HELPER_MIN_DAYS = 0.5;
-/** 품 수 최소(작은 현관도 기공 한 사람 하루) */
-export const MIN_MANDAYS = 1;
+/** 기공 최소 일수 — 반나절(0.5일). 반나절 일에는 소규모 출장 가산(pricing SMALL_JOB_SURCHARGE)이 붙는다(2026-10-09 보정, 예전 1일) */
+export const MIN_MANDAYS = 0.5;
 /** 품 수 올림 단위(0.5일) */
 export const MANDAY_STEP = 0.5;
 /** 패턴별 인건 가산(C) */

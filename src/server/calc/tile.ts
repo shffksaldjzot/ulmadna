@@ -127,6 +127,9 @@ import {
   SILICONE_PRICE,
   MISC_SUBMATERIAL_PER_SQM,
   TILE_OVERHEAD_RATE,
+  TILE_OVERHEAD_CAP,
+  SMALL_JOB_SURCHARGE,
+  gradeSubBand,
   MARKET_REF_BATH,
   MARKET_REF_ENTRANCE,
   MARKET_REF_BALCONY,
@@ -354,6 +357,8 @@ export interface TileCalcResult {
     max: number;
     basisLine: string;
     breakdown: TileCostLine[];
+    /** 철거·방수를 뺀 타일 공사만의 범위(시장 비교 "욕실 타일 공사" 등과 같은 범위로 견주는 값) */
+    tileOnly: { min: number; max: number };
     /** 등급 3단 총액(다른 조건은 그대로) */
     gradeTotals: Record<TileGrade, { min: number; max: number }>;
     /** 바꾸면 줄어드는 금액(큰 것부터) */
@@ -815,6 +820,8 @@ function calcCore(input: TileCalcInput): CoreResult {
   };
   /** 수량 × 단가 범위 */
   const times = (qty: number, band: TilePriceBand, mult = 1) => [qty * band.min * mult, qty * band.max * mult] as const;
+  /** 인건·철거·방수 단가 범위를 등급에 맞는 부분 띠로(보급=아래쪽·중급=가운데·고급=위쪽) */
+  const gb = (band: TilePriceBand) => gradeSubBand(band, grade);
 
   // ① 자재 — 박스 수 × 박스당 ㎡ × 종류·등급별 ㎡당 단가
   if (wall) {
@@ -860,12 +867,12 @@ function calcCore(input: TileCalcInput): CoreResult {
     if (waterproof) {
       const bathCount = rooms.filter((r) => r.isBath).length;
       if (bathCount > 0) {
-        const [a, b] = times(bathCount, BATH_WATERPROOF_PER_ROOM);
+        const [a, b] = times(bathCount, gb(BATH_WATERPROOF_PER_ROOM));
         push({ key: 'waterproof', name: '방수(재료+시공)', qty: bathCount, unit: '칸', layer: '방수', grade: BATH_WATERPROOF_PER_ROOM.grade, note: `${BATH_WATERPROOF_PER_ROOM.basis} · 바닥+벽 하단` }, a, b);
       } else {
         const area = rooms.reduce((s, r) => s + (r.floorSqm > 0 ? r.floorSqm : r.wallSqm), 0);
         if (area > 0) {
-          const [a, b] = times(area, AREA_WATERPROOF_PER_SQM);
+          const [a, b] = times(area, gb(AREA_WATERPROOF_PER_SQM));
           push({ key: 'waterproof', name: '방수(재료+시공)', qty: r1(area), unit: '㎡', layer: '방수', grade: AREA_WATERPROOF_PER_SQM.grade, note: '도막 2회' }, a, b);
         }
       }
@@ -879,7 +886,7 @@ function calcCore(input: TileCalcInput): CoreResult {
       let dGrade: 'A' | 'B' | 'C' = 'B';
       for (const r of rooms) {
         const area = r.wallSqm + r.floorSqm;
-        const band = r.demolishKind === 'bath' ? BATH_DEMOLISH_PER_SQM : r.demolishKind === 'floorFinish' ? FLOOR_DEMOLISH_PER_SQM : TILE_DEMOLISH_PER_SQM;
+        const band = gb(r.demolishKind === 'bath' ? BATH_DEMOLISH_PER_SQM : r.demolishKind === 'floorFinish' ? FLOOR_DEMOLISH_PER_SQM : TILE_DEMOLISH_PER_SQM);
         dMin += area * band.min;
         dMax += area * band.max;
         dSqm += area;
@@ -894,16 +901,21 @@ function calcCore(input: TileCalcInput): CoreResult {
     // ⑤ 인건 — 기공·조공 일수 × 1일 노임(욕실 2칸 할인율, 지금은 0)
     const discount = scope === 'bath2' ? 1 - BATH2_DISCOUNT_RATE : 1;
     if (mandays > 0) {
-      const [a, b] = times(mandays, TILE_LABOR_PER_MANDAY, discount);
+      const [a, b] = times(mandays, gb(TILE_LABOR_PER_MANDAY), discount);
       push({ key: 'labor', name: '기공(타일공)', qty: mandays, unit: '일', layer: '인건', grade: TILE_LABOR_PER_MANDAY.grade, note: TILE_LABOR_PER_MANDAY.basis }, a, b);
     }
     if (helperDays > 0) {
-      const [a, b] = times(helperDays, TILE_HELPER_PER_MANDAY, discount);
+      const [a, b] = times(helperDays, gb(TILE_HELPER_PER_MANDAY), discount);
       push({ key: 'helper', name: '조공', qty: helperDays, unit: '일', layer: '인건', grade: TILE_HELPER_PER_MANDAY.grade, note: '몰탈 비빔·운반·정리' }, a, b);
     }
     if (groutType === 'epoxy' && netTotal > 0) {
-      const [a, b] = times(netTotal, EPOXY_GROUT_LABOR_PER_SQM);
+      const [a, b] = times(netTotal, gb(EPOXY_GROUT_LABOR_PER_SQM));
       push({ key: 'epoxyLabor', name: '에폭시 줄눈 시공', qty: r1(netTotal), unit: '㎡', layer: '인건', grade: EPOXY_GROUT_LABOR_PER_SQM.grade, note: EPOXY_GROUT_LABOR_PER_SQM.basis }, a, b);
+    }
+    // 반나절 이하 작은 일(현관·주방 벽 등) — 기공 하루치 대신 반나절 + 출장 가산(정액)
+    if (mandays > 0 && mandays <= MIN_MANDAYS) {
+      const [a, b] = times(1, gb(SMALL_JOB_SURCHARGE));
+      push({ key: 'smallJob', name: '소규모 출장', qty: 1, unit: '식', layer: '인건', grade: SMALL_JOB_SURCHARGE.grade, note: SMALL_JOB_SURCHARGE.basis }, a, b);
     }
     const totalBoxes = (wall?.boxes ?? 0) + (floor?.boxes ?? 0);
     const totalBags = adhesives.reduce((s, x) => s + x.bags, 0);
@@ -914,8 +926,9 @@ function calcCore(input: TileCalcInput): CoreResult {
     }
 
     // ⑥ 일반경비 — 위 합계에 비율
-    const oMin = sumMin * TILE_OVERHEAD_RATE.min;
-    const oMax = sumMax * TILE_OVERHEAD_RATE.max;
+    // 큰 공사에 과하게 붙지 않게 상한(TILE_OVERHEAD_CAP)
+    const oMin = Math.min(sumMin * TILE_OVERHEAD_RATE.min, TILE_OVERHEAD_CAP);
+    const oMax = Math.min(sumMax * TILE_OVERHEAD_RATE.max, TILE_OVERHEAD_CAP);
     push(
       { key: 'overhead', name: '일반경비', qty: 1, unit: '식', layer: '경비', grade: 'C', note: `합계의 ${Math.round(TILE_OVERHEAD_RATE.min * 100)}~${Math.round(TILE_OVERHEAD_RATE.max * 100)}%` },
       oMin,
@@ -982,12 +995,24 @@ function calcCore(input: TileCalcInput): CoreResult {
       max: roundWon(sumMax),
       basisLine: `${baseMonthLabel()} 기준 · 견적DB 단가`,
       breakdown,
+      tileOnly: tileOnlyOf(breakdown),
     },
     assumed,
     checks,
     marketRef,
     marketRefs: MARKET_REFS,
   };
+}
+
+/** 철거·방수를 뺀 타일 공사 금액 — 경비는 빠진 몫의 비율만큼 줄인다 */
+function tileOnlyOf(lines: TileCostLine[]): { min: number; max: number } {
+  const pick = (k: 'amountMin' | 'amountMax') => {
+    const all = lines.filter((l) => l.layer !== '경비').reduce((s, l) => s + l[k], 0);
+    const keep = lines.filter((l) => l.layer !== '경비' && l.layer !== '철거' && l.layer !== '방수').reduce((s, l) => s + l[k], 0);
+    const oh = lines.filter((l) => l.layer === '경비').reduce((s, l) => s + l[k], 0);
+    return keep + (all > 0 ? (oh * keep) / all : 0);
+  };
+  return { min: roundWon(pick('amountMin')), max: roundWon(pick('amountMax')) };
 }
 
 /** 중간값만 빨리 — 절약 금액 계산용 */

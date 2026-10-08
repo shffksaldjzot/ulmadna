@@ -46,9 +46,9 @@ export const TILE_PRICE_BASE_DATE = '2026년 10월 08일';
  * 종류별 ㎡당 자재 단가(박스 단가 ÷ 1.44㎡).
  *   도기질 = 견적DB 벽타일 박스 n=28(25,000/31,000/37,000원) — 벽타일 표본 대부분이 300×600 도기질(B)
  *   자기질 = 견적DB 바닥타일 박스 n=41(26,000/30,000/32,000원) — 욕실 바닥·현관·베란다(B)
- *   포세린 = 견적DB 현관 바닥타일 박스 상위25% 40,500원(n=20) ÷ 1.44 ≈ 28,100원을 중급 아래 끝으로,
- *            600각 포세린 소매가(1.44㎡ 4만~6만원대) 시장 비교로 위 끝을 잡음(C, 형아 확인 필요)
- *   대형 포세린 = 600×1200 2장(1.44㎡) 소매가 4.5만~9만원대 시장 비교(C, 견적DB 대형 표본 없음)
+ *   포세린 = 견적DB 현관 바닥타일 박스 n=20(26,000/30,000/40,500원) ÷ 1.44 — 중급 위 끝 28,100원,
+ *            고급 위 끝만 600각 포세린 소매가 시장 비교(C, 형아 확인 필요. 2026-10-09 보정: 예전 값이 견적DB보다 높았음)
+ *   대형 포세린 = 600×1200 2장(1.44㎡) 소매가 4만~8.5만원대 시장 비교(C, 견적DB 대형 표본 없음, 2026-10-09 한 단 낮춤)
  * 등급 띠: 보급 = 하위25%~중앙값 · 중급 = 중앙값~상위25% · 고급 = 상위25% 위(윗단 추정).
  */
 export const TILE_KIND_PRICE: Record<TileKind, Record<TileGrade, TilePriceBand>> = {
@@ -63,14 +63,14 @@ export const TILE_KIND_PRICE: Record<TileKind, Record<TileGrade, TilePriceBand>>
     high: { min: 22200, max: 35600, unitLabel: '원/㎡', basis: '견적DB 바닥타일 박스 41건 · 윗단', grade: 'C' },
   },
   porcelain: {
-    basic: { min: 24000, max: 30000, unitLabel: '원/㎡', basis: '견적DB 현관 박스 상위 · 시장 비교', grade: 'C' },
-    mid: { min: 30000, max: 38000, unitLabel: '원/㎡', basis: '견적DB 현관 박스 상위 · 시장 비교', grade: 'C' },
-    high: { min: 38000, max: 55000, unitLabel: '원/㎡', basis: '시장 비교', grade: 'C' },
+    basic: { min: 20800, max: 24000, unitLabel: '원/㎡', basis: '견적DB 현관 박스 20건', grade: 'C' },
+    mid: { min: 24000, max: 28100, unitLabel: '원/㎡', basis: '견적DB 현관 박스 20건', grade: 'C' },
+    high: { min: 28100, max: 42000, unitLabel: '원/㎡', basis: '견적DB 현관 박스 상위 · 시장 비교', grade: 'C' },
   },
   largePorcelain: {
-    basic: { min: 32000, max: 40000, unitLabel: '원/㎡', basis: '600×1200 시장 비교', grade: 'C' },
-    mid: { min: 40000, max: 52000, unitLabel: '원/㎡', basis: '600×1200 시장 비교', grade: 'C' },
-    high: { min: 52000, max: 75000, unitLabel: '원/㎡', basis: '600×1200 시장 비교', grade: 'C' },
+    basic: { min: 28000, max: 34000, unitLabel: '원/㎡', basis: '600×1200 시장 비교', grade: 'C' },
+    mid: { min: 34000, max: 42000, unitLabel: '원/㎡', basis: '600×1200 시장 비교', grade: 'C' },
+    high: { min: 42000, max: 60000, unitLabel: '원/㎡', basis: '600×1200 시장 비교', grade: 'C' },
   },
 };
 
@@ -100,12 +100,16 @@ export const LIFTING_PER_BAG: TilePriceBand = { min: 500, max: 1000, unitLabel: 
 
 // ── 3. 철거 ───────────────────────────────────
 
-/** 욕실 철거(㎡당) — 견적DB 욕실 철거 식 n=36(637,500~1,200,000) ÷ 욕실 1칸 20.1㎡ */
+/**
+ * 욕실 타일 철거(㎡당) — 견적DB 욕실 철거 개소 n=9(251,600 / 650,000 / 850,000)의 하위25%~중앙값 ÷ 1칸 20.1㎡.
+ * 2026-10-09 보정: 예전 값(식 n=36, 63.75만~120만)은 도기·천장·욕실장까지 다 뜯는 전체 철거라
+ * 타일만 계산하는 이 계산기엔 과했다(욕실 1칸 철거만 60만~112만).
+ */
 export const BATH_DEMOLISH_PER_SQM: TilePriceBand = {
-  min: 31700,
-  max: 59700,
+  min: 12500,
+  max: 32300,
   unitLabel: '원/㎡',
-  basis: '견적DB 욕실 철거 36건 · ㎡ 환산',
+  basis: '견적DB 욕실 철거 개소 9건 · 타일만',
   grade: 'C',
 };
 
@@ -191,8 +195,29 @@ export const MISC_SUBMATERIAL_PER_SQM: TilePriceBand = { min: 3000, max: 5000, u
 
 /** 일반경비율 — 도배 계산기 경비율(6~9%) 준용(C) */
 export const TILE_OVERHEAD_RATE = { min: WALLPAPER_OVERHEAD_RATE.min, max: WALLPAPER_OVERHEAD_RATE.max };
+/** 일반경비 상한(원) — 비율만 쓰면 큰 공사에 과하게 붙는다. 견적서 공과잡비 줄이 보통 10만~20만 원대(현장 관행, C, 2026-10-09 보정) */
+export const TILE_OVERHEAD_CAP = 150000;
 
-// ── 7. 견적DB 비교 범위(결과 화면 "시장 견적 비교") ─────────────
+// ── 7. 등급별 부분 띠·소규모 가산(2026-10-09 금액 보정) ─────────────
+
+/**
+ * 인건·철거·방수 단가는 견적DB 하위25%~상위25% 띠 하나뿐이라 등급을 바꿔도 거의 그대로였다.
+ * 등급에 맞춰 띠의 일부만 쓴다 — 보급 = 아래 0~40%, 중급 = 30~70%(중앙값 근처), 고급 = 60~100%.
+ * 근거: 같은 견적DB 분포에서 싼 업체·중간·비싼 업체를 고르는 것과 같은 효과(목표: 보급≈DB 하단·중급≈중앙값·고급≈상단).
+ */
+export function gradeSubBand(band: TilePriceBand, grade: TileGrade): TilePriceBand {
+  const w = band.max - band.min;
+  const [lo, hi] = grade === 'basic' ? [0, 0.4] : grade === 'mid' ? [0.3, 0.7] : [0.6, 1];
+  return { ...band, min: band.min + w * lo, max: band.min + w * hi };
+}
+
+/**
+ * 소규모 출장 가산(식) — 기공이 반나절이면 끝나는 일(현관 4㎡·주방 벽 2.4㎡)은 하루 노임 대신
+ * 반나절 노임 + 출장비 5만~8만 원(현장 관행, C). 견적DB 현관 타일 묶음 n=46(20만~57.5만)에 맞추려는 보정.
+ */
+export const SMALL_JOB_SURCHARGE: TilePriceBand = { min: 50000, max: 80000, unitLabel: '원/식', basis: '반나절 작업 출장비 · 현장 관행', grade: 'C' };
+
+// ── 8. 견적DB 비교 범위(결과 화면 "시장 견적 비교") ─────────────
 // 단가로 쓰지 않는다 — "비슷한 견적서 n건은 이 범위"라는 비교용(설계서 §4-8 주의).
 
 /** 비교 범위 하나 */

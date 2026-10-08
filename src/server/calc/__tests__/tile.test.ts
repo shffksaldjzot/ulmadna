@@ -98,10 +98,10 @@ describe('타일 계산기 — 수량', () => {
     //                  바닥(자기질) 떠붙임: 3.36㎡ × 18kg = 60.5kg → 40kg 포 2개
     expect(r.quantity.adhesives.find((a) => a.key === 'press')?.bags).toBe(5);
     expect(r.quantity.adhesives.find((a) => a.key === 'mortar')?.bags).toBe(2);
-    // 기공: 벽 15.42 ÷ (12×0.6) + 바닥 3.36 ÷ (10×0.6) = 2.14 + 0.56 = 2.70 → 0.5 단위 올림 3일
-    expect(r.quantity.mandays).toBe(3);
-    // 조공: 2.14×0.5(압착) + 0.56×1(떠붙임) = 1.63 → 2일
-    expect(r.quantity.helperDays).toBe(2);
+    // 기공: 벽 15.42 ÷ (12×0.85) + 바닥 3.36 ÷ (10×0.85) = 1.51 + 0.40 = 1.91 → 0.5 단위 올림 2일(2026-10-09 보정)
+    expect(r.quantity.mandays).toBe(2);
+    // 조공: 1.51×0.5(압착) + 0.40×1(떠붙임) = 1.15 → 1.5일
+    expect(r.quantity.helperDays).toBe(1.5);
   });
 });
 
@@ -325,5 +325,41 @@ describe('타일 계산기 — 2026-10-08 개편(정확 모드 공간 하나·�
     const json = JSON.stringify(calcTile({ ...bathWall, tileKind: 'porcelain', groutType: 'epoxy' }));
     expect(json).not.toContain('310000');
     expect(json).not.toMatch(/unitLabel|basis"/);
+  });
+});
+
+describe('타일 계산기 — 2026-10-09 금액 보정(견적DB 범위에 맞춤)', () => {
+  const mid = (x: { min: number; max: number }) => (x.min + x.max) / 2;
+
+  it('철거·방수를 뺀 타일 공사 중간값이 견적DB 하위25%~상위25% 안 — 욕실 1칸·현관·베란다', () => {
+    for (const scope of ['bath1', 'entrance', 'balcony'] as const) {
+      const r = calcTile({ mode: 'simple', scope, grade: 'mid' });
+      const ref = r.marketRef!;
+      expect(mid(r.cost.tileOnly)).toBeGreaterThanOrEqual(ref.p25);
+      expect(mid(r.cost.tileOnly)).toBeLessThanOrEqual(ref.p75);
+      // 철거·방수 포함 총액이 타일 공사만보다 크거나 같다
+      expect(r.cost.max).toBeGreaterThanOrEqual(r.cost.tileOnly.max);
+    }
+  });
+
+  it('등급이 오르면 인건·철거 띠도 위로 — 총액 중간값 보급 < 중급 < 고급', () => {
+    const t = calcTile({ mode: 'simple', scope: 'bath1' }).cost.gradeTotals;
+    expect(mid(t.basic)).toBeLessThan(mid(t.mid));
+    expect(mid(t.mid)).toBeLessThan(mid(t.high));
+  });
+
+  it('반나절 작은 일(현관 4㎡)은 기공 0.5일 + 소규모 출장 가산, 조공 없음', () => {
+    const r = calcTile({ mode: 'simple', scope: 'entrance' });
+    expect(r.quantity.mandays).toBe(0.5);
+    expect(r.quantity.helperDays).toBe(0);
+    expect(r.cost.breakdown.some((l) => l.key === 'smallJob')).toBe(true);
+    // 욕실처럼 하루 넘는 일엔 출장 가산이 없다
+    expect(calcTile({ mode: 'simple', scope: 'bath1' }).cost.breakdown.some((l) => l.key === 'smallJob')).toBe(false);
+  });
+
+  it('일반경비는 15만 원을 넘지 않는다(큰 공사 상한)', () => {
+    const r = calcTile({ mode: 'simple', scope: 'living', pyeong: 44, grade: 'high' });
+    const oh = r.cost.breakdown.find((l) => l.key === 'overhead')!;
+    expect(oh.amountMax).toBeLessThanOrEqual(150000);
   });
 });

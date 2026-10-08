@@ -109,6 +109,8 @@ export interface TileCalcResultDTO {
     max: number;
     basisLine: string;
     breakdown: TileCostLineDTO[];
+    /** 철거·방수를 뺀 타일 공사만의 범위(시장 비교와 같은 범위로 견주는 값) */
+    tileOnly: { min: number; max: number };
     gradeTotals: Record<TileGrade, { min: number; max: number }>;
     savings: { key: TileSavingKey; amount: number }[];
   };
