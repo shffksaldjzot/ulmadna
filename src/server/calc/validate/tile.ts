@@ -6,10 +6,11 @@
 // 범위를 벗어나거나 형식이 틀리면 ValidationError(→ 400)를 던진다.
 //
 // 작성일: 2026년 10월 03일
+// 개편(정확 모드 공간 하나·종류·공법·시공 조건 검증): 2026년 10월 08일
 // ──────────────────────────────────────────────
 
-import type { TileCalcInput, TileOpeningInput, TileRoomInput, TileSpecInput } from '@/server/calc/tile';
-import { tileRoomComplete } from '@/server/calc/tile';
+import type { TileCalcInput, TileOpeningInput, TileRoomInput, TileSpaceDims, TileSpecInput } from '@/server/calc/tile';
+import { tileRoomComplete, spaceDimsComplete } from '@/server/calc/tile';
 import {
   TILE_PYEONG_MIN,
   TILE_PYEONG_MAX,
@@ -28,7 +29,12 @@ import {
   TILE_GROUT_MM_MAX,
   TILE_LOSS_MAX,
   TILE_OPENING_COUNT_MAX,
+  spaceDimFields,
+  spaceDimRange,
   type TileGrade,
+  type TileGroutType,
+  type TileKind,
+  type TileSpace,
   type TileMethod,
   type TilePattern,
   type TileRoomKind,
@@ -128,14 +134,41 @@ function parseRooms(v: unknown): TileRoomInput[] | undefined {
   return parsed;
 }
 
+/**
+ * 정확 모드 공간 치수(새 흐름) — 공간마다 필요한 칸이 다 있어야 하고 범위 안이어야 한다.
+ * 범위는 tilePresets.spaceDimRange(화면 안내와 같은 값).
+ */
+function parseDims(v: unknown, space: TileSpace): TileSpaceDims {
+  if (!isObject(v)) throw new ValidationError('dims 값이 필요합니다');
+  const field = (f: 'widthMm' | 'depthMm' | 'heightMm') => {
+    const need = spaceDimFields(space).includes(f);
+    const range = spaceDimRange(space, f);
+    return need ? num(v[f], `dims.${f}`, { min: range.min, max: range.max }) : undefined;
+  };
+  const dims: TileSpaceDims = {
+    widthMm: field('widthMm'),
+    depthMm: field('depthMm'),
+    heightMm: field('heightMm'),
+    doors: num(v.doors, 'dims.doors', { min: 0, max: TILE_OPENING_COUNT_MAX, integer: true }),
+    windows: num(v.windows, 'dims.windows', { min: 0, max: TILE_OPENING_COUNT_MAX, integer: true }),
+    tub: bool(v.tub, 'dims.tub'),
+  };
+  // 치수가 다 안 들어오면 금액을 낼 수 없으니 400
+  if (!spaceDimsComplete(space, dims)) throw new ValidationError('치수를 다 넣어 주세요');
+  return dims;
+}
+
 /** 요청 몸통 전체를 계산기 입력으로 바꾼다 */
 export function parseInput(body: unknown): TileCalcInput {
   if (!isObject(body)) throw new ValidationError('요청 형식이 잘못됐습니다');
   const mode = oneOf<'simple' | 'precise'>(body.mode, 'mode', ['simple', 'precise'] as const);
   if (!mode) throw new ValidationError('mode 는 simple / precise 중 하나여야 합니다');
 
-  const scope = oneOf<TileScope>(body.scope, 'scope', ['bath1', 'bath2', 'living', 'entrance', 'balcony'] as const);
+  const scope = oneOf<TileScope>(body.scope, 'scope', ['bath1', 'bath2', 'kitchen', 'living', 'entrance', 'balcony'] as const);
   if (mode === 'simple' && !scope) throw new ValidationError('scope 값이 필요합니다');
+  // 정확 모드 새 흐름(공간 하나) — space가 오면 dims가 필수, 옛 rooms는 무시
+  const space = mode === 'precise' ? oneOf<TileSpace>(body.space, 'space', ['bathWall', 'bathFloor', 'kitchenWall', 'entrance', 'balcony', 'livingFloor'] as const) : undefined;
+  const dims = space ? parseDims(body.dims, space) : undefined;
 
   return {
     mode,
@@ -147,9 +180,17 @@ export function parseInput(body: unknown): TileCalcInput {
     pattern: oneOf<TilePattern>(body.pattern, 'pattern', ['straight', 'offset', 'diagonal', 'herringbone'] as const),
     grade: oneOf<TileGrade>(body.grade, 'grade', ['basic', 'mid', 'high'] as const),
     groutMm: num(body.groutMm, 'groutMm', { min: TILE_GROUT_MM_MIN, max: TILE_GROUT_MM_MAX }),
-    setting: oneOf<TileSetting>(body.setting, 'setting', ['press', 'mortar'] as const),
+    setting: oneOf<TileSetting>(body.setting, 'setting', ['press', 'mortar', 'bond'] as const),
+    tileKind: oneOf<TileKind>(body.tileKind, 'tileKind', ['earthenware', 'stoneware', 'porcelain', 'largePorcelain'] as const),
+    groutType: oneOf<TileGroutType>(body.groutType, 'groutType', ['cement', 'color', 'epoxy'] as const),
+    waterproof: bool(body.waterproof, 'waterproof'),
+    heated: bool(body.heated, 'heated'),
+    cornerBead: bool(body.cornerBead, 'cornerBead'),
+    silicone: bool(body.silicone, 'silicone'),
     lossRate: num(body.lossRate, 'lossRate', { min: 0, max: TILE_LOSS_MAX }),
-    rooms: mode === 'precise' ? parseRooms(body.rooms) : undefined,
+    space,
+    dims,
+    rooms: mode === 'precise' && !space ? parseRooms(body.rooms) : undefined,
     wallTile: parseSpec(body.wallTile, 'wallTile'),
     floorTile: parseSpec(body.floorTile, 'floorTile'),
   };

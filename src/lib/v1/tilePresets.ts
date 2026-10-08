@@ -12,8 +12,8 @@
 // 작성일: 2026년 10월 03일
 // ──────────────────────────────────────────────
 
-/** 간단 모드 공간 — 욕실 1칸 / 욕실 2칸 / 거실(+주방) / 현관 / 베란다 */
-export type TileScope = 'bath1' | 'bath2' | 'living' | 'entrance' | 'balcony';
+/** 간단 모드 공간 — 욕실 1칸 / 욕실 2칸 / 주방 벽 / 거실(+주방) / 현관 / 베란다 */
+export type TileScope = 'bath1' | 'bath2' | 'kitchen' | 'living' | 'entrance' | 'balcony';
 /** 공법 — 덧방(기존 타일 위에 붙임) / 철거 후 새로 / 철거 없음(거실 바닥에서 기존 바닥 그대로) */
 export type TileMethod = 'overlay' | 'demolish' | 'none';
 /** 시공 — 맡김(시공까지) / 셀프(자재만) */
@@ -22,19 +22,253 @@ export type TileService = 'pro' | 'self';
 export type TilePattern = 'straight' | 'offset' | 'diagonal' | 'herringbone';
 /** 자재 등급 — 보급 / 중급 / 고급 */
 export type TileGrade = 'basic' | 'mid' | 'high';
-/** 붙임 공법 — 압착(압착시멘트) / 떠붙임(몰탈) */
-export type TileSetting = 'press' | 'mortar';
-/** 정확 모드 실 종류 — 욕실(벽+바닥) / 바닥면 / 벽면 */
+/** 붙임 공법 — 압착(압착시멘트) / 떠붙임(몰탈) / 본드(타일 접착제) */
+export type TileSetting = 'press' | 'mortar' | 'bond';
+/** 정확 모드 실 종류(옛 공유 링크 호환용) — 욕실(벽+바닥) / 바닥면 / 벽면 */
 export type TileRoomKind = 'bath' | 'floor' | 'wall';
+
+/**
+ * 타일 종류 — 도기질(흙으로 구운 벽 전용, 물 먹음) / 자기질(단단한 바닥용) /
+ * 포세린(자기질보다 더 단단·흡수율 낮음) / 대형 포세린(600×1200 같은 큰 판)
+ */
+export type TileKind = 'earthenware' | 'stoneware' | 'porcelain' | 'largePorcelain';
+
+/** 정확 모드 공간 — 한 번에 한 면만 계산한다(욕실 벽 / 욕실 바닥 / 주방 벽 / 현관 / 베란다 / 거실·방 바닥) */
+export type TileSpace = 'bathWall' | 'bathFloor' | 'kitchenWall' | 'entrance' | 'balcony' | 'livingFloor';
+
+/** 줄눈 종류 — 기본(시멘트계 흰색·회색) / 컬러(시멘트계 색) / 에폭시(물·때에 강함) */
+export type TileGroutType = 'cement' | 'color' | 'epoxy';
+
+/** 붙이는 면 — 벽 / 바닥 / 욕실처럼 둘 다 */
+export type TileSurface = 'wall' | 'floor' | 'both';
 
 /** 공간 칩 순서와 이름 */
 export const TILE_SCOPES: { value: TileScope; label: string }[] = [
   { value: 'bath1', label: '욕실 1칸' },
   { value: 'bath2', label: '욕실 2칸' },
+  { value: 'kitchen', label: '주방 벽' },
   { value: 'living', label: '거실 바닥' },
   { value: 'entrance', label: '현관' },
   { value: 'balcony', label: '베란다' },
 ];
+
+/** 정확 모드 공간 칩 */
+export const TILE_SPACES: { value: TileSpace; label: string }[] = [
+  { value: 'bathWall', label: '욕실 벽' },
+  { value: 'bathFloor', label: '욕실 바닥' },
+  { value: 'kitchenWall', label: '주방 벽' },
+  { value: 'entrance', label: '현관' },
+  { value: 'balcony', label: '베란다' },
+  { value: 'livingFloor', label: '거실·방 바닥' },
+];
+
+/** 타일 종류 칩 이름 */
+export const TILE_KINDS: { value: TileKind; label: string }[] = [
+  { value: 'earthenware', label: '도기질' },
+  { value: 'stoneware', label: '자기질' },
+  { value: 'porcelain', label: '포세린' },
+  { value: 'largePorcelain', label: '대형 포세린' },
+];
+
+/** 종류 칩 아래 1줄 캡션 */
+export function kindCaption(kind: TileKind): string {
+  switch (kind) {
+    case 'earthenware':
+      return '벽 전용 · 가볍고 자르기 쉬움';
+    case 'stoneware':
+      return '바닥 기본 · 단단함';
+    case 'porcelain':
+      return '물 거의 안 먹음 · 벽·바닥 둘 다';
+    default:
+      return '600×1200 · 줄눈 적음';
+  }
+}
+
+/** 종류 이름 */
+export function kindLabel(kind: TileKind): string {
+  return TILE_KINDS.find((k) => k.value === kind)?.label ?? '';
+}
+
+/** 정확 모드 공간 → 붙이는 면 */
+export function spaceSurface(space: TileSpace): 'wall' | 'floor' {
+  return space === 'bathWall' || space === 'kitchenWall' ? 'wall' : 'floor';
+}
+
+/** 간단 모드 공간 → 붙이는 면(욕실은 벽+바닥, 종류·규격은 벽 기준으로 고른다) */
+export function scopeSurface(scope: TileScope): TileSurface {
+  if (scope === 'bath1' || scope === 'bath2') return 'both';
+  return scope === 'kitchen' ? 'wall' : 'floor';
+}
+
+/** 공간이 욕실인지(정확 모드) */
+export function isBathSpace(space: TileSpace | undefined): boolean {
+  return space === 'bathWall' || space === 'bathFloor';
+}
+
+/**
+ * 고를 수 있는 종류 — 바닥에는 도기질을 안 쓴다(물을 먹고 약해서). 벽(욕실 포함)은 네 가지 다.
+ */
+export function kindOptionsFor(surface: TileSurface): TileKind[] {
+  return surface === 'floor' ? ['stoneware', 'porcelain', 'largePorcelain'] : ['earthenware', 'stoneware', 'porcelain', 'largePorcelain'];
+}
+
+/**
+ * 공간별 기본(추천) 종류 — 형아 확인 필요(§10-6 임시 확정):
+ * 벽 = 도기질, 욕실 바닥·베란다 = 자기질, 현관 = 포세린, 거실 = 대형 포세린.
+ */
+export function defaultKindFor(surface: TileSurface, place: TileScope | TileSpace | undefined): TileKind {
+  if (surface !== 'floor') return 'earthenware';
+  if (place === 'entrance') return 'porcelain';
+  if (place === 'living' || place === 'livingFloor') return 'largePorcelain';
+  return 'stoneware';
+}
+
+/** 종류마다 고를 수 있는 규격 */
+export function sizeOptionsForKind(kind: TileKind): string[] {
+  switch (kind) {
+    case 'earthenware':
+      return ['300x300', '300x600'];
+    case 'stoneware':
+      return ['300x300', '300x600', '600x600'];
+    case 'porcelain':
+      return ['300x600', '600x600', '600x1200'];
+    default:
+      return ['600x1200', '800x800'];
+  }
+}
+
+/** 종류·면별 기본 규격 — 도기질 300×600, 자기질 바닥 300각·벽 300×600, 포세린 600각, 대형 600×1200 */
+export function defaultSizeForKind(kind: TileKind, surface: TileSurface): string {
+  switch (kind) {
+    case 'earthenware':
+      return '300x600';
+    case 'stoneware':
+      return surface === 'floor' ? '300x300' : '300x600';
+    case 'porcelain':
+      return '600x600';
+    default:
+      return '600x1200';
+  }
+}
+
+/** 규격만 아는 옛 요청 → 종류 추정(긴 변 800 이상 대형 포세린, 600각 포세린, 그 아래는 벽 도기질·바닥 자기질) */
+export function kindFromSize(widthMm: number, lengthMm: number, surface: 'wall' | 'floor'): TileKind {
+  const long = Math.max(widthMm, lengthMm);
+  const short = Math.min(widthMm, lengthMm);
+  if (long >= 800) return 'largePorcelain';
+  if (short >= 600) return 'porcelain';
+  return surface === 'wall' ? 'earthenware' : 'stoneware';
+}
+
+/** 욕실(간단) 바닥 종류 — 벽이 도기질·자기질이면 바닥 자기질, 포세린·대형이면 바닥 포세린 */
+export function bathFloorKindFor(wallKind: TileKind): TileKind {
+  return wallKind === 'porcelain' || wallKind === 'largePorcelain' ? 'porcelain' : 'stoneware';
+}
+
+/** 붙임 공법 칩 이름 */
+export const TILE_SETTINGS: { value: TileSetting; label: string }[] = [
+  { value: 'press', label: '압착' },
+  { value: 'mortar', label: '떠붙임' },
+  { value: 'bond', label: '본드' },
+];
+
+/** 붙임 공법 이름 */
+export function settingLabel(s: TileSetting): string {
+  return TILE_SETTINGS.find((o) => o.value === s)?.label ?? '';
+}
+
+/**
+ * 공법 자동 추천 + 이유 1줄(형아 확인 필요 §10-11 임시 확정, 현장 관행):
+ *   벽 도기질·자기질 = 압착 / 벽 포세린·대형 = 본드 / 바닥 = 떠붙임(물매·수평을 몰탈로 잡는다)
+ */
+export function recommendSetting(surface: 'wall' | 'floor', kind: TileKind): { setting: TileSetting; reason: string } {
+  if (surface === 'floor') {
+    return kind === 'largePorcelain'
+      ? { setting: 'mortar', reason: '대형 바닥은 몰탈로 수평을 잡아야 들뜨지 않아요' }
+      : { setting: 'mortar', reason: '바닥은 몰탈로 물매·수평을 잡아요' };
+  }
+  if (kind === 'porcelain' || kind === 'largePorcelain') return { setting: 'bond', reason: '포세린 벽은 본드가 잘 붙고 처짐이 적어요' };
+  return { setting: 'press', reason: '도기질 벽은 압착이 표준이에요' };
+}
+
+/** 줄눈 종류 칩 */
+export const TILE_GROUT_TYPES: { value: TileGroutType; label: string }[] = [
+  { value: 'cement', label: '기본' },
+  { value: 'color', label: '컬러' },
+  { value: 'epoxy', label: '에폭시' },
+];
+
+/** 치수 프리셋(정확 모드) — 미터 단위 가로·세로(또는 길이)·높이. 화면에 "추정"으로 보이는 관례값 */
+export interface TileDimPreset {
+  label: string;
+  widthMm: number;
+  depthMm?: number;
+  heightMm?: number;
+}
+
+/** 공간별 치수 프리셋 — 욕실 1.5×2·현관 1.2×1.5 등(84타입 관례, 형아 확인 필요 §10-7) */
+export function dimPresetsFor(space: TileSpace): TileDimPreset[] {
+  switch (space) {
+    case 'bathWall':
+    case 'bathFloor':
+      return [
+        { label: '1.5×2.0', widthMm: 1500, depthMm: 2000, heightMm: 2300 },
+        { label: '공용 1.6×2.1', widthMm: 1600, depthMm: 2100, heightMm: 2300 },
+        { label: '안방 1.7×2.4', widthMm: 1700, depthMm: 2400, heightMm: 2300 },
+      ];
+    case 'kitchenWall':
+      return [
+        { label: '2.4×0.6', widthMm: 2400, heightMm: 600 },
+        { label: '3.0×0.6', widthMm: 3000, heightMm: 600 },
+        { label: '3.0×1.2', widthMm: 3000, heightMm: 1200 },
+      ];
+    case 'entrance':
+      return [
+        { label: '1.2×1.5', widthMm: 1200, depthMm: 1500 },
+        { label: '1.5×2.0', widthMm: 1500, depthMm: 2000 },
+      ];
+    case 'balcony':
+      return [
+        { label: '1.5×3.0', widthMm: 1500, depthMm: 3000 },
+        { label: '1.8×4.5', widthMm: 1800, depthMm: 4500 },
+      ];
+    default:
+      return [
+        { label: '방 3.0×3.6', widthMm: 3000, depthMm: 3600 },
+        { label: '거실 4.0×6.0', widthMm: 4000, depthMm: 6000 },
+      ];
+  }
+}
+
+/**
+ * 치수를 다 넣기 전에 즉답용으로 쓰는 기본 치수 — 욕실은 공용 1.6×2.1, 거실·방은 거실 4.0×6.0, 나머지는 첫 프리셋.
+ * 화면에는 "기본 치수로 계산 중"이라고 가정 표시를 붙인다.
+ */
+export function defaultDimPresetFor(space: TileSpace): TileDimPreset {
+  const list = dimPresetsFor(space);
+  return isBathSpace(space) || space === 'livingFloor' ? list[1] : list[0];
+}
+
+/** 공간별로 채워야 하는 치수 칸 —욕실 벽: 가로·세로·높이 / 주방 벽: 길이·높이 / 바닥: 가로·세로 */
+export function spaceDimFields(space: TileSpace): ('widthMm' | 'depthMm' | 'heightMm')[] {
+  if (space === 'bathWall') return ['widthMm', 'depthMm', 'heightMm'];
+  if (space === 'kitchenWall') return ['widthMm', 'heightMm'];
+  return ['widthMm', 'depthMm'];
+}
+
+/** 치수 칸 범위(mm) — 화면 안내와 서버 검증이 같이 쓴다 */
+export function spaceDimRange(space: TileSpace, field: 'widthMm' | 'depthMm' | 'heightMm'): { min: number; max: number } {
+  if (field === 'heightMm') return space === 'kitchenWall' ? { min: 300, max: 2800 } : { min: 1800, max: 2800 };
+  if (isBathSpace(space)) return { min: 800, max: 4000 };
+  return { min: 800, max: 10000 };
+}
+
+/** 치수 칸 이름 — 주방 벽 가로는 "길이" */
+export function spaceDimLabel(space: TileSpace, field: 'widthMm' | 'depthMm' | 'heightMm'): string {
+  if (field === 'heightMm') return '높이';
+  if (field === 'depthMm') return '세로';
+  return space === 'kitchenWall' ? '길이' : '가로';
+}
 
 /** 공간이 욕실인지 */
 export function isBathScope(scope: TileScope | undefined): boolean {
@@ -125,6 +359,8 @@ export function sizeChipsFor(scope: TileScope | undefined): string[] {
       return ['300x300', '600x600', '600x1200'];
     case 'balcony':
       return ['300x300', '300x600', '600x600'];
+    case 'kitchen':
+      return ['300x600', '600x600', '600x1200'];
     default:
       return ['300x600', '600x600', '600x1200'];
   }
@@ -161,6 +397,7 @@ export function defaultSizeCodeFor(scope: TileScope | undefined): string {
     case 'balcony':
       return '300x300';
     default:
+      // 욕실·주방 벽
       return '300x600';
   }
 }

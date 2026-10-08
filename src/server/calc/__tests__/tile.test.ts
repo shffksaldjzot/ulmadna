@@ -94,10 +94,14 @@ describe('타일 계산기 — 수량', () => {
     // 줄눈: 벽 15.42×0.1272 + 바닥 3.36×0.1695 = 2.53kg × 1.2 = 3.04kg → 2kg 포 2개
     expect(r.quantity.grout.kg).toBeCloseTo(3.0, 1);
     expect(r.quantity.grout.bags).toBe(2);
-    // 압착시멘트: 18.78㎡ × 5.5kg = 103.3kg → 20kg 포 6개
-    expect(r.quantity.adhesive.bags).toBe(6);
-    // 품: 15.42/7 + 3.36/7 = 2.68 → 0.5 단위 올림 3품
-    expect(r.quantity.mandays).toBe(3);
+    // 공법 자동 추천 — 벽(도기질) 압착: 15.42㎡ × 5.5kg = 84.8kg → 20kg 포 5개
+    //                  바닥(자기질) 떠붙임: 3.36㎡ × 18kg = 60.5kg → 40kg 포 2개
+    expect(r.quantity.adhesives.find((a) => a.key === 'press')?.bags).toBe(5);
+    expect(r.quantity.adhesives.find((a) => a.key === 'mortar')?.bags).toBe(2);
+    // 기공: 벽 15.42 ÷ (12×0.85) + 바닥 3.36 ÷ (10×0.85) = 1.51 + 0.40 = 1.91 → 0.5 단위 올림 2일(2026-10-09 보정)
+    expect(r.quantity.mandays).toBe(2);
+    // 조공: 1.51×0.5(압착) + 0.40×1(떠붙임) = 1.15 → 1.5일
+    expect(r.quantity.helperDays).toBe(1.5);
   });
 });
 
@@ -106,6 +110,8 @@ describe('타일 계산기 — 비용·확인 항목', () => {
     const r = calcTile({ mode: 'simple', scope: 'bath1', method: 'demolish' });
     const layers = new Set(r.cost.breakdown.map((l) => l.layer));
     for (const l of ['자재', '부자재', '철거', '방수', '인건', '경비'] as const) expect(layers.has(l)).toBe(true);
+    // 인건 = 기공·조공·양중
+    expect(r.cost.breakdown.filter((l) => l.layer === '인건').map((l) => l.key)).toEqual(['labor', 'helper', 'lifting']);
     const sumMin = r.cost.breakdown.reduce((s, l) => s + l.amountMin, 0);
     const sumMax = r.cost.breakdown.reduce((s, l) => s + l.amountMax, 0);
     expect(Math.abs(r.cost.min - sumMin)).toBeLessThanOrEqual(500);
@@ -144,7 +150,7 @@ describe('타일 계산기 — 비용·확인 항목', () => {
 
   it('안 고른 값은 가정 목록에 남는다 — 거실은 덧방이 철거 없음으로 바뀐다', () => {
     const r = calcTile({ mode: 'simple', scope: 'bath1' });
-    expect(r.assumed).toEqual(expect.arrayContaining(['method', 'size', 'pattern', 'grade']));
+    expect(r.assumed).toEqual(expect.arrayContaining(['method', 'size', 'kind', 'setting', 'pattern', 'grade']));
     const living = calcTile({ mode: 'simple', scope: 'living', method: 'overlay' });
     expect(living.assumed).toContain('pyeong');
     expect(living.resolved.method).toBe('none');
@@ -216,5 +222,144 @@ describe('타일 계산기 — 입력 검증', () => {
     expect(() => parseInput({ mode: 'precise', rooms: [{ kind: 'bath', widthMm: 1600, depthMm: 2100, heightMm: 3500 }] })).toThrow(ValidationError);
     expect(() => parseInput({ mode: 'precise', rooms: 'abc' })).toThrow(ValidationError);
     expect(() => parseInput({ mode: 'precise', rooms: Array.from({ length: 7 }, () => ({ kind: 'floor', areaSqm: 3 })) })).toThrow(ValidationError);
+  });
+});
+
+describe('타일 계산기 — 2026-10-08 개편(정확 모드 공간 하나·종류·공법 추천·시공 조건)', () => {
+  const bathWall = { mode: 'precise' as const, space: 'bathWall' as const, dims: { widthMm: 1600, depthMm: 2100, heightMm: 2300 } };
+
+  it('정확 모드 욕실 벽 — 벽만 계산, 도기질·압착 추천, 문 1개 기본 차감', () => {
+    const r = calcTile(bathWall);
+    expect(r.quantity.floor).toBeNull();
+    expect(r.quantity.wall?.netSqm).toBe(15.4);
+    expect(r.resolved.tileKind).toBe('earthenware');
+    expect(r.resolved.setting).toBe('press');
+    expect(r.resolved.settingRecommended).toBe(true);
+    // 욕실 + 철거 후 새로(기본) → 방수 켬
+    expect(r.resolved.waterproof).toBe(true);
+    expect(r.cost.breakdown.some((l) => l.key === 'waterproof')).toBe(true);
+  });
+
+  it('공법 추천 — 포세린 벽은 본드, 바닥은 떠붙임 / 고르면 그 값', () => {
+    const wallP = calcTile({ ...bathWall, tileKind: 'porcelain', wallTile: { widthMm: 600, lengthMm: 600 } });
+    expect(wallP.resolved.setting).toBe('bond');
+    expect(wallP.quantity.adhesives.map((a) => a.key)).toEqual(['bond']);
+    const floor = calcTile({ mode: 'precise', space: 'entrance', dims: { widthMm: 1200, depthMm: 1500 } });
+    expect(floor.resolved.tileKind).toBe('porcelain');
+    expect(floor.resolved.setting).toBe('mortar');
+    const picked = calcTile({ mode: 'precise', space: 'entrance', dims: { widthMm: 1200, depthMm: 1500 }, setting: 'press' });
+    expect(picked.resolved.setting).toBe('press');
+    expect(picked.resolved.settingRecommended).toBe(false);
+    expect(picked.assumed).not.toContain('setting');
+  });
+
+  it('대형 타일(600×1200)은 정배열 벽도 로스 10% 이상', () => {
+    const r = calcTile({ ...bathWall, tileKind: 'largePorcelain', wallTile: { widthMm: 600, lengthMm: 1200 } });
+    expect(r.quantity.wall?.lossPct).toBe(10);
+    // 헤링본(20%)은 하한보다 크니 그대로
+    expect(calcTile({ ...bathWall, tileKind: 'largePorcelain', wallTile: { widthMm: 600, lengthMm: 1200 }, pattern: 'herringbone' }).quantity.wall?.lossPct).toBe(20);
+  });
+
+  it('종류가 비쌀수록 자재비가 오른다(자기질 < 포세린 < 대형 포세린)', () => {
+    const mat = (tileKind: 'stoneware' | 'porcelain' | 'largePorcelain') =>
+      calcTile({ mode: 'precise', space: 'livingFloor', dims: { widthMm: 4000, depthMm: 6000 }, tileKind })
+        .cost.breakdown.filter((l) => l.layer === '자재')
+        .reduce((s, l) => s + l.amountMax, 0);
+    expect(mat('stoneware')).toBeLessThan(mat('porcelain'));
+    expect(mat('porcelain')).toBeLessThan(mat('largePorcelain'));
+  });
+
+  it('등급 3단 총액 — 보급 < 고급, 고른 등급은 본 금액과 같다', () => {
+    const r = calcTile({ mode: 'simple', scope: 'bath1', grade: 'mid' });
+    const g = r.cost.gradeTotals;
+    expect(g.basic.max).toBeLessThan(g.high.max);
+    expect(g.basic.min).toBeLessThanOrEqual(g.mid.min);
+    expect(g.mid).toEqual({ min: r.cost.min, max: r.cost.max });
+  });
+
+  it('절약 금액 — 철거 욕실은 덧방, 에폭시는 기본 줄눈으로 바꾸면 줄어든다(큰 것부터)', () => {
+    const r = calcTile({ mode: 'simple', scope: 'bath1', method: 'demolish', groutType: 'epoxy' });
+    const keys = r.cost.savings.map((s) => s.key);
+    expect(keys).toContain('overlay');
+    expect(keys).toContain('cementGrout');
+    expect(keys).toContain('basicGrade');
+    for (let i = 1; i < r.cost.savings.length; i += 1) expect(r.cost.savings[i - 1].amount).toBeGreaterThanOrEqual(r.cost.savings[i].amount);
+    // 에폭시는 시공 줄이 따로 붙는다
+    expect(r.cost.breakdown.some((l) => l.key === 'epoxyLabor')).toBe(true);
+  });
+
+  it('시공 조건 — 방수 끄면 줄이 빠지고 경고, 난방 위면 인건이 오른다, 코너비드·실리콘 끄면 0개', () => {
+    const off = calcTile({ ...bathWall, waterproof: false });
+    expect(off.cost.breakdown.some((l) => l.key === 'waterproof')).toBe(false);
+    expect(off.checks).toContain('noWaterproof');
+    const floor = { mode: 'precise' as const, space: 'livingFloor' as const, dims: { widthMm: 6000, depthMm: 8000 } };
+    const cold = calcTile(floor);
+    const warm = calcTile({ ...floor, heated: true });
+    expect(warm.quantity.mandays).toBeGreaterThanOrEqual(cold.quantity.mandays);
+    expect(warm.cost.max).toBeGreaterThan(cold.cost.max);
+    expect(warm.checks).toContain('heatedFloor');
+    const bare = calcTile({ ...bathWall, cornerBead: false, silicone: false });
+    expect(bare.quantity.cornerBeads).toBe(0);
+    expect(bare.quantity.siliconeTubes).toBe(0);
+    expect(calcTile(bathWall).quantity.cornerBeads).toBe(4);
+  });
+
+  it('간단 주방 벽 — 기본 덧방(철거·방수 없음), 34평 2.4㎡', () => {
+    const r = calcTile({ mode: 'simple', scope: 'kitchen' });
+    expect(r.resolved.method).toBe('overlay');
+    expect(r.quantity.wall?.netSqm).toBe(2.4);
+    expect(r.cost.breakdown.some((l) => l.layer === '철거' || l.layer === '방수')).toBe(false);
+  });
+
+  it('검증 — 공간만 오고 치수가 없거나 범위 밖이면 400, 주방 벽은 높이 600 허용', () => {
+    expect(() => parseInput({ mode: 'precise', space: 'bathWall' })).toThrow(ValidationError);
+    expect(() => parseInput({ mode: 'precise', space: 'bathWall', dims: { widthMm: 1600, depthMm: 2100 } })).toThrow(ValidationError);
+    expect(() => parseInput({ mode: 'precise', space: 'bathWall', dims: { widthMm: 1600, depthMm: 2100, heightMm: 3000 } })).toThrow(ValidationError);
+    expect(() => parseInput({ mode: 'precise', space: 'entrance', dims: { widthMm: 0, depthMm: 1500 } })).toThrow(ValidationError);
+    expect(parseInput({ mode: 'precise', space: 'kitchenWall', dims: { widthMm: 2400, heightMm: 600 } }).dims?.heightMm).toBe(600);
+    expect(() => parseInput({ mode: 'simple', scope: 'bath1', tileKind: 'marble' })).toThrow(ValidationError);
+    expect(parseInput({ mode: 'simple', scope: 'bath1', setting: 'bond' }).setting).toBe('bond');
+  });
+
+  it('응답에 단가표 원본이 없다(새 단가 포함)', () => {
+    const json = JSON.stringify(calcTile({ ...bathWall, tileKind: 'porcelain', groutType: 'epoxy' }));
+    expect(json).not.toContain('310000');
+    expect(json).not.toMatch(/unitLabel|basis"/);
+  });
+});
+
+describe('타일 계산기 — 2026-10-09 금액 보정(견적DB 범위에 맞춤)', () => {
+  const mid = (x: { min: number; max: number }) => (x.min + x.max) / 2;
+
+  it('철거·방수를 뺀 타일 공사 중간값이 견적DB 하위25%~상위25% 안 — 욕실 1칸·현관·베란다', () => {
+    for (const scope of ['bath1', 'entrance', 'balcony'] as const) {
+      const r = calcTile({ mode: 'simple', scope, grade: 'mid' });
+      const ref = r.marketRef!;
+      expect(mid(r.cost.tileOnly)).toBeGreaterThanOrEqual(ref.p25);
+      expect(mid(r.cost.tileOnly)).toBeLessThanOrEqual(ref.p75);
+      // 철거·방수 포함 총액이 타일 공사만보다 크거나 같다
+      expect(r.cost.max).toBeGreaterThanOrEqual(r.cost.tileOnly.max);
+    }
+  });
+
+  it('등급이 오르면 인건·철거 띠도 위로 — 총액 중간값 보급 < 중급 < 고급', () => {
+    const t = calcTile({ mode: 'simple', scope: 'bath1' }).cost.gradeTotals;
+    expect(mid(t.basic)).toBeLessThan(mid(t.mid));
+    expect(mid(t.mid)).toBeLessThan(mid(t.high));
+  });
+
+  it('반나절 작은 일(현관 4㎡)은 기공 0.5일 + 소규모 출장 가산, 조공 없음', () => {
+    const r = calcTile({ mode: 'simple', scope: 'entrance' });
+    expect(r.quantity.mandays).toBe(0.5);
+    expect(r.quantity.helperDays).toBe(0);
+    expect(r.cost.breakdown.some((l) => l.key === 'smallJob')).toBe(true);
+    // 욕실처럼 하루 넘는 일엔 출장 가산이 없다
+    expect(calcTile({ mode: 'simple', scope: 'bath1' }).cost.breakdown.some((l) => l.key === 'smallJob')).toBe(false);
+  });
+
+  it('일반경비는 15만 원을 넘지 않는다(큰 공사 상한)', () => {
+    const r = calcTile({ mode: 'simple', scope: 'living', pyeong: 44, grade: 'high' });
+    const oh = r.cost.breakdown.find((l) => l.key === 'overhead')!;
+    expect(oh.amountMax).toBeLessThanOrEqual(150000);
   });
 });
