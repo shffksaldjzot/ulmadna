@@ -14,7 +14,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import Card from '@/components/v1/Card';
 import Button from '@/components/v1/Button';
 import Disclaimer from '@/components/v1/Disclaimer';
@@ -40,9 +40,11 @@ export interface ResultPanelProps {
   dimsAssumed: boolean;
   /** 등급 카드 누름 */
   onGradeChange: (g: TileGrade) => void;
+  /** 총액 카드 아래에 넣을 조정 칩(시공 조건) */
+  adjust?: ReactNode;
 }
 
-export default function ResultPanel({ result, loading, error, stale, allDone, form, emptyMessage, dimsAssumed, onGradeChange }: ResultPanelProps) {
+export default function ResultPanel({ result, loading, error, stale, allDone, form, emptyMessage, dimsAssumed, onGradeChange, adjust }: ResultPanelProps) {
   const [toast, setToast] = useState<string | null>(null);
 
   // GA4 — 결과 카드가 새로 생길 때마다 1번(도배 계산기와 같은 방식)
@@ -94,6 +96,7 @@ export default function ResultPanel({ result, loading, error, stale, allDone, fo
         dim={loading || stale}
         dimsAssumed={dimsAssumed}
         onGradeChange={onGradeChange}
+        afterTotal={adjust}
         actions={
           <div className="flex flex-col gap-4">
             {canShare && (

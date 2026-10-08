@@ -6,7 +6,7 @@
 //   간단 — [공간 → 타일 종류 → 규격] 3단 (붙임 공법은 자동 추천)
 //   정확 — [공간 → 치수 → 타일 종류 → 크기 → 공법(자동 추천·바꿀 수 있음)] 5단
 //          공간만 골라도 공간 기본 치수로 즉답하고 "치수 미입력 — 기본 치수 가정"을 붙인다
-//   시공 조건(철거·방수·바닥 난방·줄눈 색/에폭시·코너비드·실리콘·패턴·맡김/셀프)은 결과 위 조정 칩
+//   시공 조건(철거·방수·바닥 난방·줄눈 색/에폭시·코너비드·실리콘·패턴·맡김/셀프)은 총액 카드 바로 아래 조정 칩
 //   — 기본값이 이미 좋은 값이라 "좁히기" 자리에 둔다(도배·바닥재와 같은 규칙)
 //   등급(보급·중급·고급)은 결과 카드 맨 위 3단 칸을 눌러 바꾼다
 //
@@ -570,7 +570,6 @@ export default function TileCalculator() {
           ref={resultRef}
           className="scroll-mt-28 flex flex-col gap-4 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto flowFocusScope"
         >
-          <AdjustChips visible={!!result} groups={adjustGroups} />
           <ResultPanel
             result={result}
             loading={loading}
@@ -581,6 +580,7 @@ export default function TileCalculator() {
             emptyMessage={emptyMessage}
             dimsAssumed={dimsAssumed}
             onGradeChange={changeGrade}
+            adjust={<AdjustChips visible={!!result} groups={adjustGroups} />}
           />
         </div>
       </div>

@@ -89,16 +89,19 @@ export default function TileDims({ space, form, onChange, onUnitChange }: TileDi
       </div>
 
       <div className={`grid gap-2 ${fields.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+        {/* 칸 이름은 칸 위에 — 320px에서 3칸이면 칸 안 글자(이름+단위)가 겹쳐서(QA 1회차) */}
         {fields.map((f) => (
-          <NumberField
-            key={f}
-            value={toDisplay(form[f], unit)}
-            onChange={(v) => onChange({ [f]: fromDisplay(v, unit) })}
-            suffix={unit}
-            placeholder={spaceDimLabel(space, f)}
-            aria-label={spaceDimLabel(space, f)}
-            className="min-w-0 !px-[10px]"
-          />
+          <div key={f} className="flex flex-col gap-1 min-w-0">
+            <span className="t-sub text-ink-2" aria-hidden="true">
+              {spaceDimLabel(space, f)} ({unit})
+            </span>
+            <NumberField
+              value={toDisplay(form[f], unit)}
+              onChange={(v) => onChange({ [f]: fromDisplay(v, unit) })}
+              aria-label={spaceDimLabel(space, f)}
+              className="min-w-0 !px-[10px]"
+            />
+          </div>
         ))}
       </div>
       {msgs.length > 0 && <p className="t-sub text-danger">{msgs.join(' · ')}</p>}

@@ -55,6 +55,8 @@ export interface ResultBodyProps {
   onGradeChange?: (g: TileGrade) => void;
   /** ⑨ 공유·문의 버튼 자리 */
   actions?: ReactNode;
+  /** ① 총액 카드 바로 아래 자리 — 계산기 화면의 조정 칩(시공 조건). 금액을 먼저 보고 좁히게 */
+  afterTotal?: ReactNode;
 }
 
 /** 작은 "추정" 표식 */
@@ -98,7 +100,7 @@ const BAR_TONE: Record<string, string> = {
   overhead: 'bg-brown/15',
 };
 
-export default function ResultBody({ result, dim = false, dimsAssumed = false, onGradeChange, actions }: ResultBodyProps) {
+export default function ResultBody({ result, dim = false, dimsAssumed = false, onGradeChange, actions, afterTotal }: ResultBodyProps) {
   const self = result.resolved.service === 'self';
   const q = result.quantity;
   const assumed = assumptionLine(result, dimsAssumed);
@@ -138,8 +140,10 @@ export default function ResultBody({ result, dim = false, dimsAssumed = false, o
               const inner = (
                 <>
                   <span className={`block text-[13px] ${on ? 'font-semibold text-ink' : 'text-ink-2'}`}>{GRADE_LABEL[g]}</span>
-                  <span className={`block text-[13px] tabular-nums whitespace-nowrap ${on ? 'font-semibold text-brown' : 'text-ink-2'}`}>
-                    {toMan(t.min).toLocaleString('ko-KR')}~{toMan(t.max).toLocaleString('ko-KR')}만
+                  <span className={`block text-[12px] min-[360px]:text-[13px] tabular-nums break-keep ${on ? 'font-semibold text-brown' : 'text-ink-2'}`}>
+                    {/* 320px에선 칸이 좁아 "~" 뒤에서 줄을 바꿀 수 있게(QA 1회차: 잘림) */}
+                    {toMan(t.min).toLocaleString('ko-KR')}~<wbr />
+                    {toMan(t.max).toLocaleString('ko-KR')}만
                   </span>
                 </>
               );
@@ -170,6 +174,8 @@ export default function ResultBody({ result, dim = false, dimsAssumed = false, o
           {warning && <p className="t-sub text-danger">{warning}</p>}
         </div>
       </Card>
+
+      {afterTotal}
 
       {/* ②③④ 구성 — 자재 / 인건 / 철거 */}
       <Card>
