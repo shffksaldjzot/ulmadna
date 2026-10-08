@@ -38,7 +38,10 @@ function LiveNow() {
       }
     };
     ping();
-    const t = setInterval(ping, 15000);
+    // 2026-10-08: 15초 간격이 Upstash 무료 월간 요청 한도(50만 건)를 다 써버려
+    // 실접속자 수가 통째로 안 보이는 원인이 됐다(같은 계정이 레이트리밋도 같이 씀).
+    // 한도가 풀릴 때까지/다음 달까지 더 오래가도록 60초로 늘려 호출량을 4분의 1로 줄인다.
+    const t = setInterval(ping, 60000);
     return () => clearInterval(t);
   }, []);
 
