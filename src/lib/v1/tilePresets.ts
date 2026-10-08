@@ -240,7 +240,16 @@ export function dimPresetsFor(space: TileSpace): TileDimPreset[] {
   }
 }
 
-/** 공간별로 채워야 하는 치수 칸 — 욕실 벽: 가로·세로·높이 / 주방 벽: 길이·높이 / 바닥: 가로·세로 */
+/**
+ * 치수를 다 넣기 전에 즉답용으로 쓰는 기본 치수 — 욕실은 공용 1.6×2.1, 거실·방은 거실 4.0×6.0, 나머지는 첫 프리셋.
+ * 화면에는 "기본 치수로 계산 중"이라고 가정 표시를 붙인다.
+ */
+export function defaultDimPresetFor(space: TileSpace): TileDimPreset {
+  const list = dimPresetsFor(space);
+  return isBathSpace(space) || space === 'livingFloor' ? list[1] : list[0];
+}
+
+/** 공간별로 채워야 하는 치수 칸 —욕실 벽: 가로·세로·높이 / 주방 벽: 길이·높이 / 바닥: 가로·세로 */
 export function spaceDimFields(space: TileSpace): ('widthMm' | 'depthMm' | 'heightMm')[] {
   if (space === 'bathWall') return ['widthMm', 'depthMm', 'heightMm'];
   if (space === 'kitchenWall') return ['widthMm', 'heightMm'];

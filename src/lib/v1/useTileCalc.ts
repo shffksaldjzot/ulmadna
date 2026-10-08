@@ -8,14 +8,15 @@
 //    (실제 서버 타입: src/server/calc/tile.ts TileCalcResult — 바뀌면 같이 고칠 것)
 //
 // 작성일: 2026년 10월 03일
+// 개편(응답 모양: 종류·공법·조공·등급 3단·절약 금액·시장 비교 4종): 2026년 10월 08일
 // ──────────────────────────────────────────────
 
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { TileFormState } from './tileQuery';
-import { buildTileRequest, tileRequestKey, type TileCalcRequest } from './tileEngineInput';
-import type { TileGrade, TileMethod, TilePattern, TileScope, TileService, TileSetting } from './tilePresets';
+import { buildTileRequestFull, tileRequestKey, type TileCalcRequest } from './tileEngineInput';
+import type { TileGrade, TileGroutType, TileKind, TileMethod, TilePattern, TileScope, TileService, TileSetting, TileSpace, TileSurface } from './tilePresets';
 import { track } from '@/lib/analytics';
 
 // ── 서버 응답 모양 ──
@@ -23,6 +24,10 @@ import { track } from '@/lib/analytics';
 /** 벽 또는 바닥 수량 */
 export interface TileSurfaceQuantityDTO {
   sizeLabel: string;
+  kind: TileKind;
+  kindLabel: string;
+  setting: TileSetting;
+  settingLabel: string;
   netSqm: number;
   lossPct: number;
   grossSqm: number;
@@ -33,7 +38,7 @@ export interface TileSurfaceQuantityDTO {
 }
 
 /** 비용 층 */
-export type TileCostLayer = '자재' | '부자재' | '철거' | '방수' | '인건' | '경비';
+export type TileCostLayer = '자재' | '부자재' | '방수' | '철거' | '인건' | '경비';
 
 /** 비용 한 줄(단가 칸 없음 — 금액 범위만) */
 export interface TileCostLineDTO {
@@ -49,36 +54,68 @@ export interface TileCostLineDTO {
 }
 
 /** 가정 종류 */
-export type TileAssumption = 'method' | 'size' | 'pyeong' | 'pattern' | 'grade' | 'dims' | 'rooms';
+export type TileAssumption = 'method' | 'size' | 'kind' | 'setting' | 'pyeong' | 'pattern' | 'grade' | 'dims' | 'rooms';
 /** 현장 확인 키 */
-export type TileCheck = 'overlayConditions' | 'largeOverlay' | 'lot';
+export type TileCheck = 'overlayConditions' | 'largeOverlay' | 'lot' | 'heatedFloor' | 'noWaterproof';
+/** 절약 금액 키 */
+export type TileSavingKey = 'overlay' | 'basicGrade' | 'smallerTile' | 'cementGrout' | 'straightPattern';
+/** 시장 비교 범위 하나 */
+export interface TileMarketRefDTO {
+  key: 'bath' | 'entrance' | 'balcony' | 'box';
+  label: string;
+  n: number;
+  p25: number;
+  p75: number;
+}
 
 /** 타일 계산 결과(서버 응답과 같은 모양) */
 export interface TileCalcResultDTO {
   resolved: {
     mode: 'simple' | 'precise';
     scope?: TileScope;
+    space?: TileSpace;
+    surface: TileSurface;
     method: TileMethod;
     methodLabel: string;
     service: TileService;
     pattern: TilePattern;
     grade: TileGrade;
     groutMm: number;
+    groutType: TileGroutType;
+    tileKind: TileKind;
     setting: TileSetting;
+    settingRecommended: boolean;
+    waterproof: boolean;
+    heated: boolean;
+    cornerBead: boolean;
+    silicone: boolean;
     pyeong?: number;
   };
   quantity: {
     wall: TileSurfaceQuantityDTO | null;
     floor: TileSurfaceQuantityDTO | null;
-    grout: { lengthM: number; kg: number; bags: number; bagKg: number; grade: 'A' | 'B' | 'C' };
-    adhesive: { name: string; kg: number; bags: number; bagKg: number; grade: 'A' | 'B' | 'C' };
+    grout: { lengthM: number; kg: number; bags: number; bagKg: number; type: TileGroutType; grade: 'A' | 'B' | 'C' };
+    adhesives: { key: 'press' | 'mortar' | 'bond'; name: string; kg: number; bags: number; bagKg: number; bagUnit: string }[];
+    cornerBeads: number;
+    siliconeTubes: number;
     mandays: number;
+    helperDays: number;
     byRoom: { key: string; name: string; wallSqm: number; floorSqm: number; wallBoxes: number; floorBoxes: number }[];
+    skippedRooms: number;
   };
-  cost: { min: number; mid: number; max: number; basisLine: string; breakdown: TileCostLineDTO[] };
+  cost: {
+    min: number;
+    mid: number;
+    max: number;
+    basisLine: string;
+    breakdown: TileCostLineDTO[];
+    gradeTotals: Record<TileGrade, { min: number; max: number }>;
+    savings: { key: TileSavingKey; amount: number }[];
+  };
   assumed: TileAssumption[];
   checks: TileCheck[];
-  marketRef: { label: string; n: number; p25: number; p75: number } | null;
+  marketRef: TileMarketRefDTO | null;
+  marketRefs: TileMarketRefDTO[];
 }
 
 /** 훅이 돌려주는 값 */
@@ -88,6 +125,8 @@ export interface UseTileCalcResult {
   error: string | null;
   /** 지금 입력과 보이는 결과의 입력이 다르면 true(옛 값을 흐리게 보여 준다) */
   stale: boolean;
+  /** 정확 모드에서 치수가 덜 들어가 공간 기본 치수로 즉답 중인지 */
+  dimsAssumed: boolean;
 }
 
 /** POST /api/calc/tile 한 번 */
@@ -119,7 +158,8 @@ export function useTileCalc(form: TileFormState): UseTileCalcResult {
   // 폼을 문자열로 비교해야 배열 안쪽(실 카드) 변화도 잡힌다
   const formKey = JSON.stringify(form);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const request = useMemo(() => buildTileRequest(form), [formKey]);
+  const built = useMemo(() => buildTileRequestFull(form), [formKey]);
+  const request = built?.request ?? null;
   const requestKey = request ? tileRequestKey(request) : null;
 
   useEffect(() => {
@@ -154,7 +194,7 @@ export function useTileCalc(form: TileFormState): UseTileCalcResult {
           setResult(r);
           setShownKey(requestKey);
           // GA4: 계산이 실제로 성공했을 때 1번(입력 원문 없이 모드·공간만)
-          track('calc_run', { process: 'tile', mode: request.mode === 'precise' ? 'precise' : 'quick', tile_scope: request.scope ?? 'rooms' });
+          track('calc_run', { process: 'tile', mode: request.mode === 'precise' ? 'precise' : 'quick', tile_scope: request.scope ?? request.space ?? 'na' });
         })
         .catch((e: unknown) => {
           if (e instanceof DOMException && e.name === 'AbortError') return;
@@ -173,5 +213,5 @@ export function useTileCalc(form: TileFormState): UseTileCalcResult {
   // 화면을 떠나면 진행 중 요청 취소
   useEffect(() => () => abortRef.current?.abort(), []);
 
-  return { result, loading, error, stale: !!result && shownKey !== requestKey };
+  return { result, loading, error, stale: !!result && shownKey !== requestKey, dimsAssumed: !!built?.dimsAssumed };
 }
