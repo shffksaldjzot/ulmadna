@@ -38,6 +38,10 @@ export async function GET(req: Request) {
   }
 
   const res = await listPosts({ cursor, kind, category, trade });
+  // 읽기 실패(연결 끊김 등)는 캐시하지 않는다 — 빈 목록이 60초 동안 박제되면 화면이 "질문이 없어요"로 보인다
+  if (res.failed) {
+    return NextResponse.json({ items: [], next: null, failed: true }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
+  }
   // 공개 목록은 짧게(60초) 캐시해도 된다 — 목록 화면도 60초마다 새로 그린다
   return NextResponse.json(res, { headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' } });
 }
