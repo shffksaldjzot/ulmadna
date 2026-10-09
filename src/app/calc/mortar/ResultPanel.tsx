@@ -32,13 +32,15 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Card from '@/components/v1/Card';
 import Collapsible from '@/components/v1/Collapsible';
 import Button from '@/components/v1/Button';
 import Disclaimer from '@/components/v1/Disclaimer';
 import Toast, { showToast } from '@/components/v1/Toast';
 import CalcContactCta from '../_components/CalcContactCta';
+// GA4 — 결과 노출/구성 보기 펼침/공유 버튼 클릭 이벤트(타일·도배·바닥재 계산기와 같은 이름)
+import { track } from '@/lib/analytics';
 import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
 import { type MortarFormState, encodeMortarForm } from '@/lib/v1/mortarQuery';
 import { trimFormForShare, describeAreaPair, type MortarAssumption } from '@/lib/v1/mortarEngineInput';
@@ -155,6 +157,12 @@ export default function ResultPanel({
 }: ResultPanelProps) {
   const [toast, setToast] = useState<string | null>(null);
 
+  // GA4 — 비용(서버 응답)이 실제로 화면에 보였을 때(result가 새로 생길 때마다) 1번 기록
+  // (타일·도배·바닥재 계산기와 같은 방식 — quick은 즉답이라 여기서는 안 본다)
+  useEffect(() => {
+    if (result) track('calc_result_view', { process: 'mortar' });
+  }, [result]);
+
   // quick조차 없으면(1단계 용도를 아직 안 골랐다) 보여줄 물량이 아예 없다 — 모바일은
   // 하단 고정 바가 이미 같은 문구를 보여주므로 PC(lg 이상)에서만 그린다.
   if (!quick) {
@@ -172,6 +180,7 @@ export default function ResultPanel({
   const dim = loading || stale;
 
   async function handleShare() {
+    track('calc_cta_click', { process: 'mortar', target: 'share' });
     const url = `${window.location.origin}/calc/mortar/result?d=${encodeMortarForm(trimFormForShare(form))}`;
     const nav = navigator as Navigator & { share?: (data: ShareData) => Promise<void> };
     if (nav.share) {
@@ -308,7 +317,7 @@ export default function ResultPanel({
             (이름·안내문은 굵기 400 그대로, 금액류만 500). 글자 크기·굵기·색만 바뀌고 구조·
             문구·순서는 그대로다. */}
         {quick.altMix && (
-          <Collapsible title="현장 배합 대안">
+          <Collapsible title="현장 배합 대안" onOpen={() => track('calc_detail_open', { process: 'mortar', section: 'altMix' })}>
             <p className="text-[14px] text-ink-2 py-2 tabular-nums">
               시멘트 40kg × {formatNum(quick.altMix.cementBags)}포 + 모래 {quick.altMix.sandM3}㎥
             </p>
@@ -318,7 +327,7 @@ export default function ResultPanel({
 
         {/* 구역별 보기는 서버가 실별로 배분한 값이라 result가 와야 나온다(2개 이상일 때만) */}
         {result && result.quantity.byRoom.length > 1 && (
-          <Collapsible title="구역별 보기">
+          <Collapsible title="구역별 보기" onOpen={() => track('calc_detail_open', { process: 'mortar', section: 'byRoom' })}>
             <div className="flex flex-col">
               {result.quantity.byRoom.map((r, i) => (
                 <div
@@ -366,7 +375,7 @@ export default function ResultPanel({
             여기도 result를 직접 검사해 타입을 좁힌다 */}
         {result && (
           <div className={`transition-opacity ${dim ? 'opacity-60' : ''}`} style={dimTransitionStyle(dim)}>
-            <Collapsible title="구성 보기" defaultOpen>
+            <Collapsible title="구성 보기" defaultOpen onOpen={() => track('calc_detail_open', { process: 'mortar', section: 'breakdown' })}>
               <div className="flex flex-col">
                 {groupByLayer(result.cost.breakdown).map((group) => (
                   <div key={group.layer} className="py-[10px] border-b border-v1-line-2">
