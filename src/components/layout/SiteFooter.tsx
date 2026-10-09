@@ -23,14 +23,11 @@ function LiveNow() {
   const [count, setCount] = useState<number | null>(null);
 
   useEffect(() => {
-    let id = sessionStorage.getItem('ulm_sid');
-    if (!id) {
-      id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2);
-      sessionStorage.setItem('ulm_sid', id);
-    }
+    // 2026-10-10: 전에는 방문자마다 고유 id를 만들어 Upstash에 핑(ZADD)을 쌓았지만,
+    // 이제 서버가 GA4 실시간 활성 사용자 수를 대신 세어주므로 그냥 물어보기만 하면 된다.
     const ping = async () => {
       try {
-        const r = await fetch(`/api/presence?id=${id}`, { cache: 'no-store' });
+        const r = await fetch('/api/presence', { cache: 'no-store' });
         const d = await r.json();
         setCount(typeof d.count === 'number' ? d.count : null);
       } catch {
@@ -38,9 +35,7 @@ function LiveNow() {
       }
     };
     ping();
-    // 2026-10-08: 15초 간격이 Upstash 무료 월간 요청 한도(50만 건)를 다 써버려
-    // 실접속자 수가 통째로 안 보이는 원인이 됐다(같은 계정이 레이트리밋도 같이 씀).
-    // 한도가 풀릴 때까지/다음 달까지 더 오래가도록 60초로 늘려 호출량을 4분의 1로 줄인다.
+    // 서버가 GA4 쿼리를 60초 캐시로 묶어두므로, 클라이언트도 60초마다만 다시 물어본다
     const t = setInterval(ping, 60000);
     return () => clearInterval(t);
   }, []);
