@@ -172,9 +172,11 @@ export interface ListQuery {
  * 질문 목록(최신순). 숨김 글은 뺀다(내 질문 보기일 땐 내 글은 상태와 무관하게 보인다).
  * 돌려주는 값: items + 다음 쪽 커서(더 없으면 null)
  */
-export async function listPosts(q: ListQuery = {}): Promise<{ items: AskListItem[]; next: number | null }> {
+// failed: 읽기에 실패해서 빈 목록을 돌려준 경우 true (진짜 0건과 구분하려고 붙인다).
+//   목록 화면은 이 표시가 있으면 빈 목록을 믿지 않고 브라우저에서 한 번 더 읽어 온다.
+export async function listPosts(q: ListQuery = {}): Promise<{ items: AskListItem[]; next: number | null; failed?: true }> {
   const sb = adminOrNull();
-  if (!sb) return { items: [], next: null };
+  if (!sb) return { items: [], next: null, failed: true };
   const limit = Math.min(50, q.limit ?? LIMITS.pageSize);
   try {
     const { data, error } = await withCategoryFallback<Record<string, unknown>[]>((cols, hasCat) => {
@@ -194,7 +196,7 @@ export async function listPosts(q: ListQuery = {}): Promise<{ items: AskListItem
     });
     if (error) {
       warn('list', error);
-      return { items: [], next: null };
+      return { items: [], next: null, failed: true };
     }
     const rows = (data ?? []) as Record<string, unknown>[];
     const page = rows.slice(0, limit);
@@ -204,7 +206,7 @@ export async function listPosts(q: ListQuery = {}): Promise<{ items: AskListItem
     return { items, next };
   } catch (e) {
     warn('list', e);
-    return { items: [], next: null };
+    return { items: [], next: null, failed: true };
   }
 }
 
