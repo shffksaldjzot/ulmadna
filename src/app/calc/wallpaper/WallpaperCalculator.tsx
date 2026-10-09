@@ -345,12 +345,16 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
         }
       : form;
 
+  // 단계 이름+유효성 — useFlowSteps에 넘기는 값과 아래 떠날 때 추적(calc_step_leave)에
+  // 쓰는 값을 하나로 합친다(타일 계산기와 같은 방식, 따로 두 번 적지 않는다)
+  const stepDefs = [
+    { key: 'paperType', valid: step0Valid },
+    { key: 'product', valid: step1Valid },
+    { key: areaStepKey, valid: step2Valid },
+  ];
+
   const { activeIndex, allDone, completeFlags, touchedMap, touch, resetTouched } = useFlowSteps({
-    steps: [
-      { key: 'paperType', valid: step0Valid },
-      { key: 'product', valid: step1Valid },
-      { key: areaStepKey, valid: step2Valid },
-    ],
+    steps: stepDefs,
     allTouched: hasSharedLink,
     initialTouched: restored?.touched,
   });
@@ -426,6 +430,38 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
   const assumed = preciseFilteredDueToRange && !assumedFromEngine.includes('measuring')
     ? [...assumedFromEngine, 'measuring' as const]
     : assumedFromEngine;
+
+  // 떠날 때(탭 닫기·다른 페이지로 이동) 어느 단계에 있었는지 1번 — 어디서 많이 그만두는지
+  // 보려고(타일 계산기와 같은 이름·파라미터)
+  const stepCount = stepDefs.length;
+  const leaveRef = useRef({ mode: 'picker', step: '', stepNo: 0, done: false, hasResult: false });
+  const leaveStep = stepDefs[Math.min(activeIndex, stepDefs.length - 1)]?.key ?? '';
+  const leaveMode = !modeChosen ? 'picker' : view === 'precise' ? 'precise' : 'quick';
+  const hasResult = !!result;
+  // 최신 단계를 기억만 해 둔다(그릴 때가 아니라 그린 뒤에 적는다)
+  useEffect(() => {
+    leaveRef.current = { mode: leaveMode, step: leaveStep, stepNo: Math.min(activeIndex + 1, stepCount), done: allDone, hasResult };
+  }, [leaveMode, leaveStep, activeIndex, stepCount, allDone, hasResult]);
+  useEffect(() => {
+    let sent = false;
+    const send = () => {
+      if (sent) return;
+      sent = true;
+      const s = leaveRef.current;
+      track('calc_step_leave', { process: 'wallpaper', mode: s.mode, step: s.step, step_no: s.stepNo, done: s.done, has_result: s.hasResult });
+    };
+    const onHide = () => {
+      if (document.visibilityState === 'hidden') send();
+    };
+    window.addEventListener('pagehide', send);
+    document.addEventListener('visibilitychange', onHide);
+    return () => {
+      window.removeEventListener('pagehide', send);
+      document.removeEventListener('visibilitychange', onHide);
+      // 같은 사이트 안에서 다른 화면으로 넘어갈 때(화면이 사라질 때)도 1번
+      send();
+    };
+  }, []);
 
   /** 폼 상태를 바꾸면서 동시에 "지금 모드의 면적/실측 단계를 손댔다"고 표시하는 도우미(3단계 전용) */
   function patchAreaStep(p: Partial<WallpaperFormState>) {
