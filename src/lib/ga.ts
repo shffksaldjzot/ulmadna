@@ -75,9 +75,10 @@ async function getAccessToken(clientEmail: string, privateKey: string): Promise<
  * Vercel 로그로 왜 null이 나왔는지 바로 알 수 있게 한다.
  */
 export async function fetchActiveUsersNow(): Promise<number | null> {
-  const clientEmail = process.env.GA_SA_CLIENT_EMAIL;
-  const rawKey = process.env.GA_SA_PRIVATE_KEY;
-  const propertyId = process.env.GA_PROPERTY_ID;
+  // 환경변수는 앞뒤 공백·줄바꿈을 잘라 씀 — CLI로 넣을 때 끝에 \r\n 이 붙어 "account not found"(JWT iss 불일치)가 나던 것(2026-10-10)
+  const clientEmail = process.env.GA_SA_CLIENT_EMAIL?.trim();
+  const rawKey = process.env.GA_SA_PRIVATE_KEY?.trim();
+  const propertyId = process.env.GA_PROPERTY_ID?.trim();
 
   if (!clientEmail || !rawKey || !propertyId) {
     // 환경변수 자체가 비어있는 경우 — 값은 찍지 않고 "있다/없다"만 남긴다
