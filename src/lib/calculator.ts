@@ -46,6 +46,14 @@ function findDefaultGradeKey(options: DBOption[], uiGrade: Grade): string {
   return options[Math.floor(options.length / 2)]?.grade || 'mid';
 }
 
+// presets 구조(basic/mid/high 키)에서 UI 등급에 맞는 키 고르기
+function presetKeyForGrade(presets: Record<string, unknown>, uiGrade: Grade): string {
+  const keys = Object.keys(presets);
+  const want = uiGrade === 'premium' ? 'high' : uiGrade; // UI premium = 정본 high
+  if (keys.includes(want)) return want;
+  return keys[Math.floor(keys.length / 2)] || 'mid';
+}
+
 // 옵션 배열에서 grade key로 찾기
 function findOptionByGrade(options: DBOption[], gradeKey: string): DBOption | null {
   return options.find(o => o.grade === gradeKey) || options[0] || null;
@@ -62,9 +70,10 @@ const HOUSING_COEFFICIENTS: Record<string, number> = {
 function getDefaultCount(processId: string, area: number, _housingType: string): number {
   const counts: Record<string, number> = {
     bathroom: 2,
-    door: area >= 39 ? 6 : area >= 30 ? 5 : 4,
+    // 면적(area)은 공급평 기준. 기존 전용평 기준 임계값(30/39)을 공급평으로 환산(84타입=34평→4개 유지)
+    door: area >= 45 ? 6 : area >= 39 ? 5 : 4,
     entrance_door: 1,
-    aircon: area >= 39 ? 5 : area >= 30 ? 4 : 3,
+    aircon: area >= 45 ? 5 : area >= 39 ? 4 : 3,
     lighting: 1,
     electrical: 1,
     painting: 1,
@@ -86,7 +95,8 @@ function getDefaultEnabled(processId: string, housingType: string): boolean {
   const ten20Off = ['expansion', 'ceiling_work'];
   if (housingType === 'ten20' && ten20Off.includes(processId)) return false;
 
-  const defaultOff = ['expansion', 'art_wall', 'ceiling_work'];
+  // 시스템에어컨은 실제 올수리 포함률 24%라 기본 꺼짐(형아 승인 2026년 10월 28일)
+  const defaultOff = ['expansion', 'art_wall', 'ceiling_work', 'aircon'];
   if (defaultOff.includes(processId)) return false;
 
   return true;
@@ -111,6 +121,11 @@ function createItemDefaults(process: DBProcess, uiGrade: Grade): {
     itemSelections['__process__'] = findDefaultGradeKey(process.options, uiGrade);
   }
 
+  // 필름처럼 옵션 대신 presets(등급별 묶음 금액) 구조인 공정: UI 등급 → presets 키
+  if (process.presets) {
+    itemSelections['__process__'] = presetKeyForGrade(process.presets, uiGrade);
+  }
+
   // Waste disposal
   if (process.waste_disposal?.options) {
     itemSelections['__waste__'] = findDefaultGradeKey(process.waste_disposal.options, uiGrade);
@@ -122,8 +137,14 @@ function createItemDefaults(process: DBProcess, uiGrade: Grade): {
       if (item.options && item.options.length > 0) {
         // Item with options -> dropdown
         itemSelections[item.id] = findDefaultGradeKey(item.options, uiGrade);
+      } else if (process.id === 'plumbing' && item.id === 'distributor') {
+        // 분배기+가지관 교체(430만)는 근거가 견적 1건뿐이라 기본 꺼짐(형아 승인 2026년 10월 28일)
+        itemToggles[item.id] = false;
       } else if (item.price !== undefined && !item.unit) {
         // Single price item with no unit -> toggle ON by default
+        itemToggles[item.id] = true;
+      } else if (item.price === undefined && item.price_per_pyeong !== undefined) {
+        // 평당 단가만 있는 항목(입주청소): 기본 ON
         itemToggles[item.id] = true;
       } else if (item.price !== undefined && item.unit) {
         // Item with unit -> toggle ON, count based on unit
@@ -193,6 +214,17 @@ function calculateProcess(
           total += option.price;
           breakdown.push({ label: option.name, amount: option.price });
         }
+      }
+    }
+
+    // 필름: 정본이 presets(등급별 묶음 금액) 구조 — 선택 등급의 total을 그대로 더함(단가 숫자 변경 없음)
+    if (process.presets) {
+      const key = ps.itemSelections['__process__'] || 'mid';
+      const preset = process.presets[key] || process.presets.mid;
+      if (preset?.total) {
+        optionNames.push(preset.name);
+        total += preset.total;
+        breakdown.push({ label: preset.name, amount: preset.total });
       }
     }
 
@@ -302,6 +334,16 @@ function calculateProcess(
             }
             total += amt;
           }
+        } else if (item.price === undefined && item.price_per_pyeong !== undefined) {
+          // 평당 단가만 있는 항목(입주청소 1.5만/평): 평당 단가 × 평수(공급평)
+          const isToggled = ps.itemToggles[item.id] !== false;
+          if (!isToggled) continue;
+          const amt = item.price_per_pyeong * area;
+          breakdown.push({
+            label: `${item.name} (${(item.price_per_pyeong / 10000).toFixed(1)}만/평 × ${area}평)`,
+            amount: amt,
+          });
+          total += amt;
         } else if (item.price !== undefined) {
           // Fixed price item
           const isToggled = ps.itemToggles[item.id] !== false; // default on unless explicitly off

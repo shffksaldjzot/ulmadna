@@ -9,6 +9,8 @@ import ExcelDownload from './actions/ExcelDownload';
 import KakaoShare from './actions/KakaoShare';
 import SaveEstimate from './actions/SaveEstimate';
 import ContingencySelector from './results/ContingencySelector';
+import RealRangeBar from './results/RealRangeBar';
+import MissingChecklist from './results/MissingChecklist';
 import AdSlot from '@/components/ads/AdSlot';
 
 interface ResultPanelProps {
@@ -85,6 +87,9 @@ export default function ResultPanel({ input, output, dispatch }: ResultPanelProp
           평당 {formatPerPyeong(output.perPyeong)}
         </p>
 
+        {/* 실제 견적 범위 속 내 위치 (20·30평대 올수리일 때만) */}
+        <RealRangeBar input={input} total={output.total} />
+
         {/* 예비비 조정 */}
         <div className="mt-3">
           <ContingencySelector
@@ -129,6 +134,9 @@ export default function ResultPanel({ input, output, dispatch }: ResultPanelProp
           </div>
         </div>
       )}
+
+      {/* 견적서에 빠지기 쉬운 항목 체크리스트(접힘) */}
+      {!isEmpty && <MissingChecklist />}
 
       {/* AD-R: 공정별 비용 비중 카드 바깥, 결과 버튼 그리드 직전 (v2 명세 §4)
           - 그래프 "더보기" 펼침/접힘과 무관 (카드 형제이므로 카드 안 들어감) */}

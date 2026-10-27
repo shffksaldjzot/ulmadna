@@ -2,14 +2,15 @@
 
 import { useState, useRef, useEffect } from 'react';
 
+// 평형 버튼: 사람들이 말하는 공급평 표기 + 전용 타입 병기.
+// 정본 평당 단가가 공급평 기준이라 선택한 평수를 그대로 곱한다(전용평으로 곱하면 20~30% 낮게 나옴).
 const PRESET_AREAS = [
-  { pyeong: 18, sqm: 59, label: '18평', sub: '59㎡', badge: null },
-  { pyeong: 24, sqm: 79, label: '24평', sub: '79㎡', badge: null },
-  { pyeong: 25, sqm: 84, label: '25평', sub: '84㎡', badge: '국평' },
-  { pyeong: 30, sqm: 99, label: '30평', sub: '99㎡', badge: null },
-  { pyeong: 34, sqm: 114, label: '34평', sub: '114㎡', badge: null },
-  { pyeong: 40, sqm: 132, label: '40평', sub: '132㎡', badge: null },
-  { pyeong: 45, sqm: 151, label: '45평', sub: '151㎡', badge: null },
+  { pyeong: 18, label: '18평', sub: '소형', badge: null },
+  { pyeong: 24, label: '24평', sub: '59타입', badge: null },
+  { pyeong: 30, label: '30평', sub: '74타입', badge: null },
+  { pyeong: 34, label: '34평', sub: '84타입', badge: '국평' },
+  { pyeong: 40, label: '40평', sub: '99타입', badge: null },
+  { pyeong: 45, label: '45평', sub: '114타입', badge: null },
 ];
 
 interface AreaSelectorProps {
@@ -96,7 +97,7 @@ export default function AreaSelector({ value, onChange }: AreaSelectorProps) {
           >
             <div className="text-sm font-medium">{showCustom ? `${value}평` : '직접입력'}</div>
             {showCustom && (
-              <div className="text-[10px] text-cream/70">≈{(value * 3.306).toFixed(0)}㎡</div>
+              <div className="text-[10px] text-cream/70">공급평</div>
             )}
           </button>
         )}
