@@ -17,6 +17,8 @@
 // ──────────────────────────────────────────────
 
 import Link from 'next/link';
+// 결과 화면 조회·공유 유입 집계 (2026-10-27)
+import { recordResultView } from '@/server/metrics/resultView';
 import TopNav from '@/components/v1/TopNav';
 import Card from '@/components/v1/Card';
 import Collapsible from '@/components/v1/Collapsible';
@@ -123,11 +125,13 @@ function buildSummary(state: FlooringFormState): string {
 }
 
 interface PageProps {
-  searchParams: Promise<{ d?: string }>;
+  searchParams: Promise<{ d?: string; ref?: string }>; // ref = 공유 유입 표식(2026-10-27)
 }
 
 export default async function FlooringResultPage({ searchParams }: PageProps) {
-  const { d } = await searchParams;
+  const { d, ref } = await searchParams;
+  // 결과 화면 조회 +1 (공유 링크로 들어왔는지 같이 셈 — 응답 뒤 실행, 실패해도 무시)
+  await recordResultView('flooring', ref);
   // 공유 링크 자체가 없거나(d 없음) 깨진(디코드 실패) 경우를 조용히 기본값으로 채우지 않는다
   const state = decodeFlooringForm(d);
   const products = toFlooringProductOptions(FLOORING_PRODUCTS);

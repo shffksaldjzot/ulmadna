@@ -112,7 +112,7 @@ export default function ResultPanel({
   /** "결과 공유" — 모바일은 공유 시트가 있으면 그것부터, 아니면 링크 복사 */
   async function handleShare() {
     track('calc_cta_click', { process: 'flooring', target: 'share' });
-    const url = `${window.location.origin}/calc/flooring/result?d=${encodeFlooringForm(trimFormForShare(form))}`;
+    const url = `${window.location.origin}/calc/flooring/result?d=${encodeFlooringForm(trimFormForShare(form))}&ref=share&c=flooring`; // 2026-10-27: 공유 유입 표식(ref=share, c=공정) — 받은 사람이 열면 '공유로 들어옴'으로 센다
     const nav = navigator as Navigator & { share?: (data: ShareData) => Promise<void> };
     if (nav.share) {
       try {
