@@ -21,6 +21,8 @@ export interface PngExportOptions {
   title: string;
   /** 그림 아래 요약 글줄들 */
   lines: string[];
+  /** 요약 글줄 아래에 붙일 목록표(이름·수량·금액) — 마지막 줄은 합계처럼 굵게 그리고 싶으면 bold 표시 */
+  table?: { title: string; rows: { cols: [string, string, string]; bold?: boolean }[] };
   /** 그림 폭(px) — 기본 1200 */
   width?: number;
 }
@@ -56,7 +58,9 @@ export async function exportPlanPng(svg: SVGSVGElement | null, opt: PngExportOpt
     const font = 'Pretendard, -apple-system, "Malgun Gothic", sans-serif';
     const lineH = 34;
     const top = 70;
-    const bottom = 30 + opt.lines.length * lineH + 40;
+    const tableRows = opt.table?.rows ?? [];
+    const tableH = opt.table && tableRows.length > 0 ? (tableRows.length + 1) * lineH + 24 : 0;
+    const bottom = 30 + opt.lines.length * lineH + tableH + 40;
     const canvas = document.createElement('canvas');
     canvas.width = W * scale;
     canvas.height = (top + drawH + bottom) * scale;
@@ -71,6 +75,29 @@ export async function exportPlanPng(svg: SVGSVGElement | null, opt: PngExportOpt
     ctx.drawImage(img, 0, top, W, drawH);
     ctx.font = `400 24px ${font}`;
     opt.lines.forEach((t, i) => ctx.fillText(t, 32, top + drawH + 30 + (i + 1) * lineH));
+    // 자재 목록표 — 이름(왼쪽) · 수량(가운데 오른쪽 맞춤) · 금액(오른쪽 맞춤)
+    if (opt.table && tableRows.length > 0) {
+      let y = top + drawH + 30 + opt.lines.length * lineH + 24;
+      ctx.font = `700 24px ${font}`;
+      ctx.textAlign = 'left';
+      ctx.fillText(opt.table.title, 32, y + 10);
+      y += lineH;
+      ctx.strokeStyle = '#E4DDD5';
+      ctx.beginPath();
+      ctx.moveTo(32, y - 22);
+      ctx.lineTo(W - 32, y - 22);
+      ctx.stroke();
+      tableRows.forEach((r) => {
+        ctx.font = `${r.bold ? 700 : 400} 24px ${font}`;
+        ctx.textAlign = 'left';
+        ctx.fillText(r.cols[0], 32, y + 10);
+        ctx.textAlign = 'right';
+        ctx.fillText(r.cols[1], W * 0.66, y + 10);
+        ctx.fillText(r.cols[2], W - 32, y + 10);
+        y += lineH;
+      });
+      ctx.textAlign = 'left';
+    }
     ctx.fillStyle = '#A79C90';
     ctx.font = `400 18px ${font}`;
     ctx.fillText('ulmadna.com/calc/tile-pro', 32, top + drawH + bottom - 16);

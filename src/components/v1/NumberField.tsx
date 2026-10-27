@@ -109,6 +109,8 @@ interface NumberFieldProps {
   onEnterComplete?: () => void;
   /** true면 초점이 없을 때만 천 단위 쉼표를 넣어 보여준다(입력 중엔 숫자만). 기본 false */
   showCommas?: boolean;
+  /** 숫자 키패드 종류 — 기본 decimal, 정수만 받는 칸(금액 등)은 numeric */
+  inputMode?: 'decimal' | 'numeric';
 }
 
 export default function NumberField({
@@ -121,6 +123,7 @@ export default function NumberField({
   max,
   onEnterComplete,
   showCommas = false,
+  inputMode = 'decimal',
   ...rest
 }: NumberFieldProps) {
   // 입력칸에 실제로 보이는 글자. 사용자가 치는 그대로 들고 있는다("3." 같은 중간 상태 포함)
@@ -156,7 +159,7 @@ export default function NumberField({
       <input
         ref={inputRef}
         type="text"
-        inputMode="decimal"
+        inputMode={inputMode}
         value={text}
         placeholder={placeholder}
         min={min}
