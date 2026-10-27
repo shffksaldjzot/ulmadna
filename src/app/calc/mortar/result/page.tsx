@@ -11,6 +11,8 @@
 // ──────────────────────────────────────────────
 
 import Link from 'next/link';
+// 결과 화면 조회·공유 유입 집계 (2026-10-27)
+import { recordResultView } from '@/server/metrics/resultView';
 import type { Metadata } from 'next';
 import TopNav from '@/components/v1/TopNav';
 import Card from '@/components/v1/Card';
@@ -161,11 +163,13 @@ function formatCostLineAmount(line: {
 }
 
 interface PageProps {
-  searchParams: Promise<{ d?: string }>;
+  searchParams: Promise<{ d?: string; ref?: string }>; // ref = 공유 유입 표식(2026-10-27)
 }
 
 export default async function MortarResultPage({ searchParams }: PageProps) {
-  const { d } = await searchParams;
+  const { d, ref } = await searchParams;
+  // 결과 화면 조회 +1 (공유 링크로 들어왔는지 같이 셈 — 응답 뒤 실행, 실패해도 무시)
+  await recordResultView('mortar', ref);
   // 2026-09-15 검사관 지적: ?d=에 비정상 값(예: 1e22)이 들어오면 계산 입력(toEngineInput)은
   // 클램프되지만, 요약줄(buildSummary)이 원본 state를 그대로 읽으면 "1e+22" 같은 지수
   // 표기가 그대로 노출된다 — decode 직후 sanitizeMortarFormState로 한 번 걸러서, 이후

@@ -62,7 +62,15 @@ export function ResultFab({ shareText }: ResultFabProps) {
   }
 
   async function handleShare() {
-    const url = window.location.href;
+    // 2026-10-27: 결과 화면에서 다시 공유해도 "공유 유입" 표식(ref=share, c=공정)이 붙게 한다.
+    // 이미 붙어 있으면 그대로, 없으면 주소(/calc/<공정>/result)에서 공정 이름을 뽑아 붙인다.
+    const u = new URL(window.location.href);
+    if (u.searchParams.get('ref') !== 'share') {
+      u.searchParams.set('ref', 'share');
+      const proc = u.pathname.split('/')[2];
+      if (proc) u.searchParams.set('c', proc);
+    }
+    const url = u.toString();
     try {
       await navigator.clipboard.writeText(url);
       showToast(setToast, '링크를 복사했어요');

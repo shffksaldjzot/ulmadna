@@ -9,6 +9,7 @@
 // 문제가 생기면 그냥 400/500을 돌려줄 뿐 서버가 죽지 않는다(호출하는 쪽도 실패를 무시함).
 //
 // 작성일: 2026년 09월 16일
+// 2026년 10월 27일: 집계가 Upstash → Supabase(contact_clicks_daily)로, 화면·지역 칸 추가
 // ──────────────────────────────────────────────
 
 import { NextResponse } from "next/server";
@@ -36,9 +37,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "channel 은 phone 또는 kakao 여야 합니다" }, { status: 400 });
   }
 
-  // service·place 값은 지금은 서버 집계에 쓰지 않는다(채널별 총량만 센다) — 굳이 검증하지 않고 무시한다.
-  // 나중에 서비스별·위치별 집계가 필요해지면 여기서 값을 더 읽어 recordContactClick에 넘기면 된다.
-  recordContactClick(channel);
+  // service·place 값은 지금은 서버 집계에 쓰지 않는다 — 굳이 검증하지 않고 무시한다.
+  // 2026-10-27: 요청 머리글을 넘겨서 "누른 화면(Referer 경로)·지역"까지 센다. 봇은 안에서 걸러짐.
+  recordContactClick(channel, request.headers);
 
   return NextResponse.json({ ok: true });
 }

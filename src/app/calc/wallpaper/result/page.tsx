@@ -18,6 +18,8 @@
 // ──────────────────────────────────────────────
 
 import Link from 'next/link';
+// 결과 화면 조회·공유 유입 집계 (2026-10-27)
+import { recordResultView } from '@/server/metrics/resultView';
 import TopNav from '@/components/v1/TopNav';
 import Card from '@/components/v1/Card';
 import Collapsible from '@/components/v1/Collapsible';
@@ -153,11 +155,13 @@ function buildSummary(state: WallpaperFormState): string {
 // 즉답 화면(ResultPanel.tsx)이 쓰던 것과 완전히 같은 함수라 여기서 따로 만들지 않는다.
 
 interface PageProps {
-  searchParams: Promise<{ d?: string }>;
+  searchParams: Promise<{ d?: string; ref?: string }>; // ref = 공유 유입 표식(2026-10-27)
 }
 
 export default async function WallpaperResultPage({ searchParams }: PageProps) {
-  const { d } = await searchParams;
+  const { d, ref } = await searchParams;
+  // 결과 화면 조회 +1 (공유 링크로 들어왔는지 같이 셈 — 응답 뒤 실행, 실패해도 무시)
+  await recordResultView('wallpaper', ref);
   // 공유 링크 자체가 없거나(d 없음) 깨진(디코드 실패) 경우를 조용히 기본값으로 채우지 않는다
   // — 그러면 "입력이 빈 경우"(아래 !result 분기)를 거치지 못하고 항상 뭔가 계산돼 버린다.
   // 디코드 실패도 그대로 null로 두고, "빈 상태"를 한 곳(!state || !result)에서만 처리한다.

@@ -12,6 +12,8 @@
 // ──────────────────────────────────────────────
 
 import Link from 'next/link';
+// 결과 화면 조회·공유 유입 집계 (2026-10-27)
+import { recordResultView } from '@/server/metrics/resultView';
 import type { Metadata } from 'next';
 import TopNav from '@/components/v1/TopNav';
 import Card from '@/components/v1/Card';
@@ -49,11 +51,13 @@ function calcFromState(raw: Record<string, unknown>): Outcome {
 }
 
 interface PageProps {
-  searchParams: Promise<{ d?: string }>;
+  searchParams: Promise<{ d?: string; ref?: string }>; // ref = 공유 유입 표식(2026-10-27)
 }
 
 export default async function TileResultPage({ searchParams }: PageProps) {
-  const { d } = await searchParams;
+  const { d, ref } = await searchParams;
+  // 결과 화면 조회 +1 (공유 링크로 들어왔는지 같이 셈 — 응답 뒤 실행, 실패해도 무시)
+  await recordResultView('tile', ref);
   const decoded = decodeTileForm(d);
   const outcome: Outcome = decoded
     ? safeCalc(

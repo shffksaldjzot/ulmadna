@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     // 계산이 실제로 성공했을 때만 1건 기록한다. 응답을 늦추지 않는다(fire-and-forget).
     // 미장은 도배(mode: '평형'/'실측') 같은 명시적 모드 칸이 없어서, 정밀 모드 실별 면적
     // (rooms)이 왔는지로 quick/precise를 가른다 — 화면의 view==='precise'와 같은 조건이다.
-    recordCalcRun('mortar', input.rooms && input.rooms.length > 0 ? 'precise' : 'quick');
+    recordCalcRun('mortar', input.rooms && input.rooms.length > 0 ? 'precise' : 'quick', undefined, request.headers); // 머리글 = 지역·기기·유입·봇 판정용
     return NextResponse.json(result, { status: 200 });
   } catch (e) {
     console.error('[calc/mortar] 계산 실패', e);

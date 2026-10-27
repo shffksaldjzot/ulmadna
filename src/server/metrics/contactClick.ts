@@ -3,69 +3,35 @@
 //
 // 왜 필요한가:
 //   GA4는 광고 차단기를 쓰는 사람에게는 아예 안 잡힌다. "문의 버튼을 실제로 눌렀는지"는
-//   서버가 직접 세는 게 안전해서, 계산기 실행 횟수(calcCounter.ts)와 똑같은 방식으로
-//   Upstash Redis에 INCR(숫자 1 증가) 키를 쌓는다. 개인정보는 전혀 담지 않는다 —
-//   그날 채널별(전화/카톡) 총 클릭 수뿐이다.
+//   서버가 직접 세는 게 안전하다.
 //
-//   키 이름 규칙: contact:click:{channel}:{YYYY-MM-DD}
-//   (channel = phone | kakao)
+// 어디에 쌓나 (2026-10-27 바뀜):
+//   예전엔 Upstash Redis 키 contact:click:{채널}:{날짜} (40일 뒤 삭제).
+//   이제 Supabase 표 contact_clicks_daily 한 칸(날짜 × 종류 × 누른 화면 × 지역)에 +1, 영구 보관.
+//   "누른 화면"은 요청의 Referer(직전 주소)에서 경로만 뽑는다(쿼리의 견적 조건 등은 버림).
 //
-// 안전장치: calcCounter.ts와 동일 — 응답을 늦추지 않고(after() 사용), 자격증명이 없거나
-//   네트워크가 실패해도 절대 예외를 던지지 않는다.
+// 안전장치: 봇 제외, 응답 지연 0(after), 실패해도 예외 없음.
 //
 // 작성일: 2026년 09월 16일
+// 2026년 10월 27일: Upstash → Supabase(contact_clicks_daily), 화면·지역 칸 추가, 봇 제외
 // ──────────────────────────────────────────────
 
-import { after } from "next/server";
-
-const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
-const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
-
-// 40일 뒤 자동 만료 — calcCounter.ts와 같은 값(월간 집계가 월말에 깨지지 않도록 31일+여유)
-const TTL_SEC = 60 * 60 * 24 * 40;
-
-/** 지금 이 순간을 한국시간(KST) "YYYY-MM-DD" 문자열로 바꾼다 */
-function kstDateStr(): string {
-  const d = new Date(Date.now() + 9 * 60 * 60 * 1000);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
-}
-
-/** 키 하나를 Upstash Redis 파이프라인으로 INCR + EXPIRE 한다 (실패해도 조용히 삼킨다) */
-async function incrKey(key: string): Promise<void> {
-  if (!UPSTASH_URL || !UPSTASH_TOKEN) return; // 자격증명이 없으면(로컬 개발 등) 조용히 건너뜀
-  try {
-    await fetch(`${UPSTASH_URL}/pipeline`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${UPSTASH_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify([
-        ["INCR", key],
-        ["EXPIRE", key, TTL_SEC],
-      ]),
-      cache: "no-store",
-    });
-  } catch {
-    // 집계 실패가 문의 기능에 영향을 주면 안 되므로 조용히 무시
-  }
-}
+import { bumpContactClick } from './metricsStore';
+import { isBotUA, pageFromReferer, regionFromHeaders } from './requestInfo';
 
 /**
  * 문의 버튼 클릭 1건을 기록한다. API 라우트(/api/contact-click)가 요청을 받을 때마다 부른다.
  * 응답을 늦추지 않도록 항상 백그라운드로 실행되고, 절대 예외를 던지지 않는다.
  *
  * @param channel 'phone'(전화) | 'kakao'(카톡)
+ * @param headers 요청 머리글 — 지역·누른 화면(Referer)·봇 판정용
  */
-export function recordContactClick(channel: "phone" | "kakao"): void {
-  const key = `contact:click:${channel}:${kstDateStr()}`;
-
-  // after()는 "응답을 다 보낸 뒤" 실행되는 Next.js 훅이라 응답 지연이 0이다.
-  // 요청 컨텍스트 밖에서 부르면 after()가 예외를 던질 수 있어 그때는 바로 실행한다.
+export function recordContactClick(channel: 'phone' | 'kakao', headers?: Headers): void {
   try {
-    after(() => incrKey(key));
+    if (headers && isBotUA(headers.get('user-agent'))) return; // 봇은 세지 않음
+    const page = pageFromReferer(headers?.get('referer'), headers?.get('host'));
+    bumpContactClick(channel, page, regionFromHeaders(headers));
   } catch {
-    void incrKey(key);
+    // 집계 실패가 문의 기능에 영향을 주면 안 되므로 조용히 무시
   }
 }

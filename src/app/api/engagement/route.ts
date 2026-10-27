@@ -1,57 +1,62 @@
-// 블로그 조회수 + 좋아요 — Upstash Redis(무료)
-//   GET  ?slug=X        → {views, likes} (읽기만)
-//   GET  ?slug=X&hit=1  → 조회수 +1 후 {views, likes}  (글 볼 때 1회)
-//   POST ?slug=X        → 좋아요 +1 후 {likes}          (로그인 없이, 브라우저당 1회는 클라가 제어)
-// 환경변수(UPSTASH_REDIS_REST_URL/TOKEN) 없으면 null 반환 → UI 자동 숨김
-import { NextRequest, NextResponse } from "next/server";
+// ──────────────────────────────────────────────
+// 블로그 글 조회수 +1 / 읽기 API — Supabase 자체 집계 (2026-10-27 Upstash에서 옮김)
+//   POST ?slug=X        → 조회수 +1 (글 볼 때 1회). 응답은 {ok:true} 뿐 — 숫자는 글 화면이
+//                          서버에서 미리 넣어 두므로(60초 캐시) 여기서 다시 읽지 않는다.
+//                          → 글 1회 열람 = DB 호출 1번.
+//   GET  ?slug=X        → {views, likes} (60초 캐시 값 읽기만, 관리·확인용)
+//   GET  ?slug=X&hit=1  → 옛 화면 호환: 조회수 +1 후 캐시 값 {views, likes}
+//
+// 세지 않는 경우: 봇(검색 수집기 등), 실제로 없는 글 slug(아무 이름으로 칸을 늘리는 장난 방지).
+// 같이 세는 것: 지역(시도)·기기(휴대폰/태블릿/PC)·유입 경로(직접/검색/공유/그 밖).
+// 개인정보(IP·브라우저 정보 원문)는 저장하지 않는다.
+//
+// 2026-09-15부터 좋아요는 /api/blog/like 가 맡는다. 아래 옛 POST 좋아요(?like=1)는 남아 있는
+//   외부 호출 호환용으로만 둔다.
+// ──────────────────────────────────────────────
+import { NextRequest, NextResponse } from 'next/server';
+import { getAllSlugs } from '@/lib/blog';
+import { bumpPageView } from '@/server/metrics/metricsStore';
+import { cleanSlug, getCachedPostTotals, toggleBlogLike } from '@/server/metrics/blogLike';
+import { deviceFromUA, isBotUA, regionFromHeaders, sourceFromCookie, SRC_COOKIE } from '@/server/metrics/requestInfo';
 
-const URL = process.env.UPSTASH_REDIS_REST_URL;
-const TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+/** 매번 새로 처리 (캐시 금지) */
+export const dynamic = 'force-dynamic';
 
-async function pipeline(cmds: unknown[][]) {
-  const res = await fetch(`${URL}/pipeline`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${TOKEN}`, "Content-Type": "application/json" },
-    body: JSON.stringify(cmds),
-    cache: "no-store",
-  });
-  return res.json();
+/** 실제 존재하는 글 slug 인지 (content/blog/*.md) */
+function realSlug(raw: string | null): string {
+  const s = cleanSlug(raw ?? '');
+  return s && getAllSlugs().includes(s) ? s : '';
 }
 
-// slug 검증 (Redis 키 인젝션 방지)
-function clean(slug: string | null) {
-  return (slug || "").replace(/[^a-z0-9-]/gi, "").slice(0, 80);
-}
-const num = (v: unknown) => (typeof v === "number" ? v : Number(v) || 0);
-
-export async function GET(req: NextRequest) {
-  if (!URL || !TOKEN) return NextResponse.json({ views: null, likes: null });
-  const slug = clean(req.nextUrl.searchParams.get("slug"));
-  if (!slug) return NextResponse.json({ views: null, likes: null });
-  const hit = req.nextUrl.searchParams.get("hit") === "1";
-  try {
-    const r = hit
-      ? await pipeline([["INCR", `views:${slug}`], ["GET", `likes:${slug}`]])
-      : await pipeline([["GET", `views:${slug}`], ["GET", `likes:${slug}`]]);
-    return NextResponse.json({ views: num(r?.[0]?.result), likes: num(r?.[1]?.result) });
-  } catch {
-    return NextResponse.json({ views: null, likes: null });
-  }
+/** 조회수 +1 을 응답 뒤로 예약한다 (봇이면 아무것도 안 함) */
+function countView(req: NextRequest, slug: string): void {
+  const ua = req.headers.get('user-agent');
+  if (isBotUA(ua)) return; // 봇은 세지 않는다
+  bumpPageView(
+    slug,
+    regionFromHeaders(req.headers),
+    deviceFromUA(ua),
+    sourceFromCookie(req.cookies.get(SRC_COOKIE)?.value),
+  );
 }
 
-// 2026-09-15부터 화면(UI)에서는 이 POST를 더 이상 안 부른다 — 좋아요 버튼이
-// PostActions(src/components/blog/PostActions.tsx) + /api/blog/like 로 옮겨갔다.
-// 다만 같은 Redis 키(likes:{slug})를 그대로 이어 쓰므로(누적 숫자 단절 방지),
-// 이 라우트를 지우지 않고 그대로 남겨둔다 — 혹시 남아있는 캐시된 페이지나 외부 호출이
-// 있어도 숫자가 깨지지 않는다.
+/** 새 화면이 부르는 조회수 +1. ?like=1 이면 옛 좋아요 +1(호환) */
 export async function POST(req: NextRequest) {
-  if (!URL || !TOKEN) return NextResponse.json({ likes: null });
-  const slug = clean(req.nextUrl.searchParams.get("slug"));
-  if (!slug) return NextResponse.json({ likes: null });
-  try {
-    const r = await pipeline([["INCR", `likes:${slug}`]]);
-    return NextResponse.json({ likes: num(r?.[0]?.result) });
-  } catch {
-    return NextResponse.json({ likes: null });
+  const slug = realSlug(req.nextUrl.searchParams.get('slug'));
+  if (!slug) return NextResponse.json({ ok: false }, { status: 404 });
+  if (req.nextUrl.searchParams.get('like') === '1') {
+    const likes = await toggleBlogLike(slug, true);
+    return NextResponse.json({ likes });
   }
+  countView(req, slug);
+  return NextResponse.json({ ok: true });
+}
+
+/** 읽기(캐시 값) — hit=1 이면 옛 화면 호환으로 +1 도 같이 */
+export async function GET(req: NextRequest) {
+  const slug = realSlug(req.nextUrl.searchParams.get('slug'));
+  if (!slug) return NextResponse.json({ views: null, likes: null });
+  if (req.nextUrl.searchParams.get('hit') === '1') countView(req, slug);
+  const t = await getCachedPostTotals(slug);
+  return NextResponse.json({ views: t?.views ?? null, likes: t?.likes ?? null });
 }

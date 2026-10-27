@@ -41,7 +41,7 @@ export async function POST(request: Request) {
   try {
     const result = calcTile(input);
     // 계산이 성공했을 때만 1건 기록(응답을 늦추지 않는다)
-    recordCalcRun('tile', input.mode === 'precise' ? 'precise' : 'quick', input.pyeong);
+    recordCalcRun('tile', input.mode === 'precise' ? 'precise' : 'quick', input.pyeong, request.headers); // 머리글 = 지역·기기·유입·봇 판정용
     return NextResponse.json(result, { status: 200 });
   } catch (e) {
     console.error('[calc/tile] 계산 실패', e);
