@@ -17,7 +17,8 @@
 --
 -- [권한]
 --   표 4개 모두 RLS(행 보안) 켜고 공개 정책 없음 → 공개 열쇠(anon)로는 읽기·쓰기 전부 막힌다.
---   쓰기는 더하기 함수(security definer)로만. 함수 안에서 입력값을 허용 목록·정규식으로 검사한다.
+--   쓰기는 더하기 함수(security definer)로만, 그것도 서비스 역할 열쇠(사이트 서버)로만 부를 수 있다.
+--   함수 안에서 입력값을 허용 목록·정규식으로 한 번 더 검사한다.
 --   읽기는 서버의 서비스 역할 열쇠(관리자·리포트 봇)로만.
 -- ============================================================
 
@@ -244,18 +245,20 @@ $$;
 
 -- ------------------------------------------------------------
 -- 9. 함수 실행 권한
---   더하기 함수: 공개 열쇠(anon)·로그인 열쇠·서비스 열쇠 모두 호출 가능(입력은 함수 안에서 검사).
+--   더하기 함수: 서비스 열쇠(사이트 서버)만. 공개 열쇠(anon)·로그인 열쇠로는 못 부른다
+--                (2026-10-27 수정: 브라우저에 있는 공개 열쇠로 직접 불러 숫자를 부풀리는 것을 막음.
+--                 사이트 서버가 봇 거르기·실제 글 확인을 한 뒤 서비스 열쇠로만 부른다).
 --   읽기 함수:   서비스 열쇠만.
 --   도우미 함수: 더하기 함수 안에서만 쓰므로 바깥 호출 막음.
 -- ------------------------------------------------------------
-revoke all on function public.metrics_bump_view(text, text, text, text)               from public;
-revoke all on function public.metrics_bump_calc(text, text, text, text, text, text)   from public;
-revoke all on function public.metrics_bump_contact(text, text, text)                  from public;
-revoke all on function public.metrics_bump_like(text, int)                            from public;
-grant execute on function public.metrics_bump_view(text, text, text, text)             to anon, authenticated, service_role;
-grant execute on function public.metrics_bump_calc(text, text, text, text, text, text) to anon, authenticated, service_role;
-grant execute on function public.metrics_bump_contact(text, text, text)                to anon, authenticated, service_role;
-grant execute on function public.metrics_bump_like(text, int)                          to anon, authenticated, service_role;
+revoke all on function public.metrics_bump_view(text, text, text, text)               from public, anon, authenticated;
+revoke all on function public.metrics_bump_calc(text, text, text, text, text, text)   from public, anon, authenticated;
+revoke all on function public.metrics_bump_contact(text, text, text)                  from public, anon, authenticated;
+revoke all on function public.metrics_bump_like(text, int)                            from public, anon, authenticated;
+grant execute on function public.metrics_bump_view(text, text, text, text)             to service_role;
+grant execute on function public.metrics_bump_calc(text, text, text, text, text, text) to service_role;
+grant execute on function public.metrics_bump_contact(text, text, text)                to service_role;
+grant execute on function public.metrics_bump_like(text, int)                          to service_role;
 
 revoke all on function public.metrics_post_totals(text)  from public, anon, authenticated;
 revoke all on function public.metrics_report(date, date) from public, anon, authenticated;
