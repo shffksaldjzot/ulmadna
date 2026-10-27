@@ -1,3 +1,4 @@
+import { isKakaoBlocked } from '@/lib/members/server'; // 차단 확인
 import NextAuth from 'next-auth';
 import Kakao from 'next-auth/providers/kakao';
 import Credentials from 'next-auth/providers/credentials';
@@ -84,6 +85,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     // 로그인 순간(trigger 'signIn')에만 회원 명부에 한 줄 기록(첫 로그인=새 줄, 다음부터=시각·횟수만).
     // 기록이 실패하거나 2.5초 넘게 걸려도 로그인은 그대로 진행된다(onJwt 안에서 오류·지연을 삼킴).
     // 기록에 성공하면 명부의 회원 번호를 token.mid 에 담아 둔다.
+    // 차단된 카카오 회원은 로그인 자체를 막는다(관리자 회원 화면의 차단 단추, 2026-10-28). 아이디 회원은 위 authorize 에서 이미 막힘.
+    async signIn({ account }) {
+      if (account?.provider === 'kakao' && (await isKakaoBlocked(account.providerAccountId))) return false;
+      return true;
+    },
     async jwt(params) {
       // 2026-10-28 버그 수리: 카카오는 로그인마다 무작위 번호가 sub 에 들어가 다시 로그인하면 닉네임·저장 견적·내 글을 못 찾았다.
       // 바뀌지 않는 카카오 회원 번호(providerAccountId)로 고정한다. 아이디 회원은 원래대로.

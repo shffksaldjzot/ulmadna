@@ -218,3 +218,20 @@ async function countAskWriters(): Promise<number> {
   }
   return writers.size;
 }
+
+/**
+ * 카카오 회원이 관리자 화면에서 "차단"됐는지 확인(2026-10-28 추가).
+ * - 로그인 순간(auth.ts 의 signIn 콜백)에 불러 true 면 로그인을 막는다.
+ * - 열쇠·DB 오류가 나면 false(막지 않음) — 차단 확인 실패로 정상 회원이 못 들어오는 일을 막기 위해.
+ */
+export async function isKakaoBlocked(kakaoId: string | null | undefined): Promise<boolean> {
+  try {
+    const key = memberKeyOf(kakaoId ?? null, process.env.MEMBER_HASH_SECRET ?? null); // 카카오 번호 → 명부 판별값
+    const sb = adminOrNull();
+    if (!key || !sb) return false;
+    const { data } = await sb.from('members').select('status').eq('member_key', key).maybeSingle();
+    return data?.status === 'blocked';
+  } catch {
+    return false;
+  }
+}
