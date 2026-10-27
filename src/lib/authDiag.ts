@@ -9,22 +9,15 @@
 //   (3) 우리 코드가 터진 건지 구분이 안 된다.
 //
 //   그래서 진짜 원인(카카오가 보내준 오류코드 KOE0xx 등)을
-//   Upstash Redis에 짧게 남겨두고 운영자가 나중에 꺼내볼 수 있게 한다.
+//   Supabase(auth_diag_log 표)에 짧게 남겨두고 운영자가 나중에 꺼내볼 수 있게 한다.
 //
 // 안전장치:
 //   - 실패해도 절대 로그인 흐름을 막지 않는다 (try/catch로 전부 삼킴)
-//   - 최근 20건만 보관, 7일 뒤 자동 삭제
+//   - 최근 50건만 보관(DB 함수가 넘치면 오래된 것 삭제)
 //   - 인증코드/토큰처럼 민감한 값은 지우고 저장
 // ─────────────────────────────────────────────────────────────
 
-const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
-const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
-
-// Redis에 쌓이는 목록 이름
-const KEY = 'authdiag:errors';
-// 보관 개수 / 보관 기간(초) = 7일
-const KEEP = 20;
-const TTL_SEC = 60 * 60 * 24 * 7;
+import { getSupabaseAdmin } from '@/lib/supabase';
 
 // 이번 요청에서 붙잡은 오류를 잠깐 담아두는 상자
 // (NextAuth의 logger는 "기다려주지 않기" 때문에, 여기 담아뒀다가
@@ -89,26 +82,13 @@ export function captureAuthError(error: unknown): void {
   }
 }
 
-/** 요청이 끝나기 직전 호출 — 담아둔 오류가 있으면 Upstash에 확실히 저장 */
+/** 요청이 끝나기 직전 호출 — 담아둔 오류가 있으면 Supabase에 확실히 저장 */
 export async function flushAuthError(): Promise<void> {
   const item = pending;
   pending = null;
-  if (!item || !UPSTASH_URL || !UPSTASH_TOKEN) return;
+  if (!item) return;
   try {
-    await fetch(`${UPSTASH_URL}/pipeline`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${UPSTASH_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      // 최신 항목을 맨 앞에 넣고(LPUSH), 20건만 남기고(LTRIM), 7일 뒤 삭제(EXPIRE)
-      body: JSON.stringify([
-        ['LPUSH', KEY, JSON.stringify(item)],
-        ['LTRIM', KEY, 0, KEEP - 1],
-        ['EXPIRE', KEY, TTL_SEC],
-      ]),
-      cache: 'no-store',
-    });
+    await getSupabaseAdmin().rpc('auth_diag_push', { p_item: item });
   } catch {
     // 저장 실패해도 로그인 흐름에는 영향 없음
   }

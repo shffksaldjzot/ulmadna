@@ -22,7 +22,7 @@
 //   Supabase가 활동으로 인식하는 가장 가벼운 방법이라 이걸 씀.
 //
 // [기록]
-//   성공/실패와 시각을 Upstash Redis에 "supabase:keepalive:last"라는
+//   성공/실패와 시각을 Supabase app_kv 표에 "supabase:keepalive:last"라는
 //   이름으로 남긴다 → /api/admin/health 에서 이 값을 읽어 "마지막으로
 //   언제 확인됐는지" 보여줄 수 있음.
 //
@@ -53,22 +53,30 @@ async function notifyTelegram(text: string): Promise<void> {
   }
 }
 
-// ── 마지막 실행 결과를 Upstash Redis에 기록 (읽기는 /api/admin/health 에서) ──
+// ── 마지막 실행 결과를 Supabase app_kv 표에 기록 (읽기는 /api/admin/health 에서) ──
 async function recordKeepaliveResult(ok: boolean, detail: string): Promise<void> {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) return; // Upstash 미설정이면 기록만 생략(크론 실패로 치지 않음)
-  const value = JSON.stringify({ at: new Date().toISOString(), ok, detail });
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return; // 미설정이면 기록만 생략(크론 실패로 치지 않음)
   try {
-    await fetch(`${url}/pipeline`, {
+    // 이름 하나를 계속 덮어씀(upsert) — "마지막 상태"만 필요하기 때문
+    await fetch(`${url}/rest/v1/app_kv?on_conflict=name`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      // 다른 기록 없이 키 하나만 계속 덮어씀 — "마지막 상태"만 필요하기 때문
-      body: JSON.stringify([['SET', 'supabase:keepalive:last', value]]),
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates',
+      },
+      body: JSON.stringify({
+        name: 'supabase:keepalive:last',
+        value: { at: new Date().toISOString(), ok, detail },
+        updated_at: new Date().toISOString(),
+      }),
       cache: 'no-store',
     });
   } catch {
-    // Upstash 기록 실패해도 킵얼라이브 본연의 목적(Supabase 깨우기)은 이미 끝난 상태라 무시
+    // 기록 실패해도 킵얼라이브 본연의 목적(Supabase 깨우기)은 이미 끝난 상태라 무시
   }
 }
 

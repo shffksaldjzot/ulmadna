@@ -49,19 +49,16 @@ export async function GET(req: Request) {
     }
   }
 
-  // ── 2) 킵얼라이브 크론이 Upstash에 남겨둔 "마지막 실행 기록" 읽기 ──
+  // ── 2) 킵얼라이브 크론이 Supabase app_kv 표에 남겨둔 "마지막 실행 기록" 읽기 ──
   let keepaliveLast: unknown = null;
-  const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
-  const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (upstashUrl && upstashToken) {
+  if (supabaseUrl && serviceKey) {
     try {
-      const r = await fetch(`${upstashUrl}/get/supabase:keepalive:last`, {
-        headers: { Authorization: `Bearer ${upstashToken}` },
-        cache: 'no-store',
-      });
-      const json = await r.json();
-      // Upstash에는 문자열(JSON.stringify한 값) 그대로 저장돼 있어서 한 번 더 파싱 필요
-      keepaliveLast = json?.result ? JSON.parse(json.result) : null;
+      const r = await fetch(
+        `${supabaseUrl}/rest/v1/app_kv?name=eq.supabase:keepalive:last&select=value&limit=1`,
+        { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` }, cache: 'no-store' },
+      );
+      const rows = (await r.json()) as { value?: unknown }[];
+      keepaliveLast = Array.isArray(rows) && rows[0]?.value ? rows[0].value : null;
     } catch {
       keepaliveLast = null;
     }
