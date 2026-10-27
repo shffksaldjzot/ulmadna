@@ -160,4 +160,5 @@ export function commonMistakes(r: TileCalcResultDTO): string[] {
 }
 
 /** 등급 이름 */
-export const GRADE_LABEL: Record<'basic' | 'mid' | 'high', string> = { basic: '보급', mid: '중급', high: '고급' };
+// 등급 이름을 단계 칩(가성비·중급·고급)과 같게 맞춤(2026-10-28)
+export const GRADE_LABEL: Record<'basic' | 'mid' | 'high', string> = { basic: '가성비', mid: '중급', high: '고급' };
