@@ -132,7 +132,7 @@ export function savingTips(r: TileCalcResultDTO): string[] {
   for (const s of r.cost.savings) {
     const won = manText(s.amount);
     if (s.key === 'overlay') out.push(`기존 타일이 멀쩡하면 덧방으로 ${won} 줄어요`);
-    else if (s.key === 'basicGrade') out.push(`보급 등급이면 ${won} 줄어요`);
+    else if (s.key === 'basicGrade') out.push(`가성비 등급이면 ${won} 줄어요`);
     else if (s.key === 'smallerTile') out.push(`600각 포세린이면 ${won} 줄어요`);
     else if (s.key === 'cementGrout') out.push(`줄눈을 기본으로 하면 ${won} 줄어요 — 에폭시는 나중에도 돼요`);
     else if (s.key === 'straightPattern') out.push(`정배열이면 로스·품이 줄어 ${won} 줄어요`);
