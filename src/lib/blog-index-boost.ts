@@ -64,7 +64,6 @@ export const INDEX_BOOST_SLUGS: string[] = [
   "outlet-add-embedded-vs-exposed-cost",
   "partial-jangpan-repair-cost",
   "system-aircon-electricity-bill",
-  "system-aircon-vs-wall-aircon-cost",
   "tile-selection-guide",
   "tv-wall-mount-wall-type-cost",
   "window-construction-period",

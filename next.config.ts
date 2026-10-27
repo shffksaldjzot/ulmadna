@@ -17,6 +17,11 @@ const nextConfig: NextConfig = {
   // 그래서 /v1/calc/wallpaper?d=abc → /calc/wallpaper?d=abc 로 쿼리까지 그대로 넘어간다.
   async redirects() {
     return [
+      // 블로그 중복 글 합치기(2026-10-28): 없앤 글의 옛 주소 → 남긴 글 (영구 이동)
+      { source: "/blog/same-size-price-gap-reason", destination: "/blog/interior-cost-difference", permanent: true },
+      { source: "/blog/exposed-vs-embedded-wiring-cost", destination: "/blog/outlet-add-embedded-vs-exposed-cost", permanent: true },
+      { source: "/blog/system-aircon-vs-wall-aircon-cost", destination: "/blog/system-aircon-vs-wall-stand-comparison", permanent: true },
+      { source: "/blog/electrical-panel-breaker-capacity-upgrade-cost", destination: "/blog/electrical-panel-breaker-upgrade-cost", permanent: true },
       {
         // 옛 허브 홈 (정확히 /v1 인 경우만)
         source: "/v1",

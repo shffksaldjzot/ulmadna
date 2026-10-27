@@ -57,7 +57,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // 블로그 글 각각
     // lastModified = 시세를 갱신한 날(updated)이 있으면 그 날, 없으면 처음 발행한 날
     // (구글에 "이 글은 최근에 손봤다"고 알려서 다시 훑어가게 하려는 것)
-    ...posts.map((p) => ({
+    // 검색 제외(noindex) 글은 사이트맵에서 뺀다
+    ...posts.filter((p) => !p.noindex).map((p) => ({
       url: `${SITE}/blog/${p.slug}`,
       lastModified: p.updated ? new Date(p.updated) : p.date ? new Date(p.date) : new Date(),
       changeFrequency: 'weekly' as const,
