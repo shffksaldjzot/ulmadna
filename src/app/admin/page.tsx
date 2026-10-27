@@ -11,34 +11,11 @@ import { getMemberStats } from '@/lib/members/server';
 import { getAskDash, getTrafficDash } from '@/server/metrics/adminDash';
 import { getAllPostMeta } from '@/lib/blog';
 import LegacyStats from './LegacyStats';
+import Link from 'next/link';
+import { Card, PageHead, Stat, fmt } from './_ui';
 
 // 매번 새 숫자를 읽는다(캐시 금지)
 export const dynamic = 'force-dynamic';
-
-/** 숫자 → 천 단위 쉼표. 못 읽었으면 "-" */
-function fmt(n: number | null | undefined): string {
-  return typeof n === 'number' ? n.toLocaleString('ko-KR') : '-';
-}
-
-/** 카드 한 장 틀 */
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="bg-white rounded-xl p-4 sm:p-5 border border-gray-100">
-      <h3 className="text-sm font-semibold text-gray-700 mb-3">{title}</h3>
-      {children}
-    </section>
-  );
-}
-
-/** 큰 숫자 + 이름 한 칸 */
-function Stat({ label, value }: { label: string; value: number | null | undefined }) {
-  return (
-    <div>
-      <p className="text-[11px] text-gray-400">{label}</p>
-      <p className="text-xl font-bold text-brown tabular-nums">{fmt(value)}</p>
-    </div>
-  );
-}
 
 export default async function AdminDashboard() {
   const [members, traffic, ask] = await Promise.all([getMemberStats(), getTrafficDash(), getAskDash()]);
@@ -58,11 +35,10 @@ export default async function AdminDashboard() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-800 mb-1">대시보드</h2>
-      <p className="text-xs text-gray-400 mb-5">조회수·계산기 집계는 2026-10-27부터 쌓임</p>
+      <PageHead title="대시보드" note="조회수·계산기 집계는 2026-10-27부터 쌓임" />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <Card title="회원">
+        <Card title="회원" right={<Link href="/admin/members" className="text-xs text-gray-400 hover:text-gray-700">자세히 →</Link>}>
           <div className="grid grid-cols-3 gap-3">
             <Stat label="전체" value={members?.total} />
             <Stat label="새 회원 7일" value={members?.new7} />
@@ -73,7 +49,7 @@ export default async function AdminDashboard() {
           </p>
         </Card>
 
-        <Card title="물어보기">
+        <Card title="물어보기" right={<Link href="/admin/ask" className="text-xs text-gray-400 hover:text-gray-700">자세히 →</Link>}>
           <div className="grid grid-cols-3 gap-3">
             <Stat label="전체 글" value={ask?.posts} />
             <Stat label="답변 단 글" value={ask?.answered} />
@@ -84,14 +60,14 @@ export default async function AdminDashboard() {
           </p>
         </Card>
 
-        <Card title="조회수">
+        <Card title="조회수" right={<Link href="/admin/posts" className="text-xs text-gray-400 hover:text-gray-700">자세히 →</Link>}>
           <div className="grid grid-cols-2 gap-3">
             <Stat label="오늘" value={traffic?.viewsToday} />
             <Stat label="7일" value={traffic?.views7} />
           </div>
         </Card>
 
-        <Card title="최근 7일 활동">
+        <Card title="최근 7일 활동" right={<Link href="/admin/calc" className="text-xs text-gray-400 hover:text-gray-700">자세히 →</Link>}>
           <div className="grid grid-cols-4 gap-2">
             {calcNames.map(([k, name]) => (
               <Stat key={k} label={`${name} 계산`} value={traffic?.calc7[k]} />

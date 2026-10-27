@@ -1,113 +1,74 @@
 'use client';
-
-import { useState, useCallback } from 'react';
+// ──────────────────────────────────────────────
+// 관리자 공통 틀 — 상단 탭 방식 (2026-10-28 개편)
+//
+// [무슨 기능인가]
+//   화면 맨 위에 탭이 가로로 놓이고, 눌러서 화면을 옮긴다. 모바일에선 탭 줄이 옆으로 밀린다.
+//   앞쪽 7개가 새 관리 화면, 뒤쪽 5개는 옛 자료(옛 견적 DB·샘플 화면)라 흐리게 따로 둔다.
+// ──────────────────────────────────────────────
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
-const NAV_ITEMS = [
-  { href: '/admin', label: '대시보드', icon: '📊' },
-  { href: '/admin/users', label: '사용자 관리', icon: '👤' },
-  { href: '/admin/pricing', label: '단가 관리', icon: '💰' },
-  { href: '/admin/banners', label: '배너 광고', icon: '🖼' },
-  { href: '/admin/partners', label: '파트너 관리', icon: '🤝' },
-  { href: '/admin/settings', label: '사이트 설정', icon: '⚙' },
+/** 새 관리 화면 탭 */
+const MAIN_TABS = [
+  { href: '/admin', label: '대시보드' },
+  { href: '/admin/ga', label: 'GA' },
+  { href: '/admin/calc', label: '계산기' },
+  { href: '/admin/posts', label: '글 조회수' },
+  { href: '/admin/ask', label: '물어보기' },
+  { href: '/admin/members', label: '회원' },
+  { href: '/admin/ads', label: '광고 자리' },
+];
+
+/** 옛 자료 탭(그대로 유지) */
+const OLD_TABS = [
+  { href: '/admin/users', label: '견적 사용자' },
+  { href: '/admin/pricing', label: '단가' },
+  { href: '/admin/banners', label: '배너' },
+  { href: '/admin/partners', label: '파트너' },
+  { href: '/admin/settings', label: '설정' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // 현재 화면의 탭인지(대시보드는 정확히 /admin 일 때만)
+  const isActive = (href: string) => (href === '/admin' ? pathname === '/admin' : pathname === href || pathname.startsWith(href + '/'));
 
-  const closeSidebar = useCallback(() => setSidebarOpen(false), []);
+  const tab = (t: { href: string; label: string }, old = false) => (
+    <Link
+      key={t.href}
+      href={t.href}
+      className={`shrink-0 px-3 py-2.5 text-sm border-b-2 transition-colors ${
+        isActive(t.href)
+          ? 'border-[var(--accent)] text-[var(--accent)] font-semibold'
+          : `border-transparent hover:text-gray-800 ${old ? 'text-gray-300' : 'text-gray-500'}`
+      }`}
+    >
+      {t.label}
+    </Link>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* 모바일 오버레이 */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
-          onClick={closeSidebar}
-        />
-      )}
-
-      {/* 사이드바 */}
-      <aside
-        className={`
-          fixed lg:static inset-y-0 left-0 z-50
-          w-56 bg-brown text-cream min-h-screen flex-shrink-0
-          transform transition-transform duration-200 ease-in-out
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        `}
-      >
-        <div className="p-5 flex items-center justify-between">
-          <Link href="/admin" className="flex items-center gap-3" onClick={closeSidebar}>
-            <Image
-              src="/ulmadna_icon.png"
-              alt="얼마드나"
-              width={36}
-              height={36}
-              className="rounded-lg"
-            />
-            <div>
-              <h1 className="text-lg font-bold">얼마드나</h1>
-              <p className="text-[10px] text-cream/50">관리자</p>
-            </div>
+    <div className="min-h-screen bg-gray-50">
+      <header className="sticky top-0 z-30 bg-white border-b border-gray-100">
+        <div className="flex items-center gap-3 px-4 sm:px-6 pt-3">
+          <Link href="/admin" className="flex items-center gap-2 shrink-0">
+            <Image src="/ulmadna_icon.png" alt="얼마드나" width={28} height={28} className="rounded-md" />
+            <span className="text-sm font-bold text-gray-800">얼마드나 관리자</span>
           </Link>
-          {/* 모바일 닫기 버튼 */}
-          <button
-            onClick={closeSidebar}
-            className="lg:hidden text-cream/60 hover:text-cream text-xl p-1"
-            aria-label="사이드바 닫기"
-          >
-            ✕
-          </button>
+          <Link href="/" className="ml-auto text-xs text-gray-400 hover:text-gray-700 shrink-0">
+            사이트로 →
+          </Link>
         </div>
-        <nav className="mt-4">
-          {NAV_ITEMS.map(item => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={closeSidebar}
-              className={`flex items-center gap-3 px-5 py-3 text-sm transition-colors ${
-                pathname === item.href
-                  ? 'bg-cream/10 text-gold font-medium'
-                  : 'text-cream/60 hover:bg-cream/5 hover:text-cream'
-              }`}
-            >
-              <span>{item.icon}</span>
-              <span>{item.label}</span>
-            </Link>
-          ))}
+        {/* 탭 줄: 좁은 화면에선 옆으로 밀어서 본다 */}
+        <nav className="flex overflow-x-auto px-2 sm:px-4 mt-1" aria-label="관리자 메뉴">
+          {MAIN_TABS.map((t) => tab(t))}
+          <span className="shrink-0 w-px bg-gray-200 my-2 mx-2" aria-hidden />
+          {OLD_TABS.map((t) => tab(t, true))}
         </nav>
-        <div className="absolute bottom-0 w-56 p-4 border-t border-cream/10">
-          <Link href="/" className="text-xs text-cream/40 hover:text-cream transition-colors">
-            ← 사이트로 돌아가기
-          </Link>
-        </div>
-      </aside>
-
-      {/* 메인 컨텐츠 */}
-      <main className="flex-1 min-w-0">
-        {/* 모바일 헤더 */}
-        <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-            aria-label="메뉴 열기"
-          >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-gray-600">
-              <path d="M3 5h14M3 10h14M3 15h14" strokeLinecap="round" />
-            </svg>
-          </button>
-          <span className="text-sm font-semibold text-gray-700">
-            {NAV_ITEMS.find(item => item.href === pathname)?.label || '관리자'}
-          </span>
-        </div>
-
-        <div className="p-4 sm:p-6 lg:p-8">
-          {children}
-        </div>
-      </main>
+      </header>
+      <main className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto min-w-0">{children}</main>
     </div>
   );
 }

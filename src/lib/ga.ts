@@ -123,3 +123,80 @@ export async function fetchActiveUsersNow(): Promise<number | null> {
     return null;
   }
 }
+
+// ──────────────────────────────────────────────
+// 아래부터 2026-10-28 추가: 관리자 "GA 상세" 화면용 기간 보고서(runReport)
+//
+// [무슨 기능인가]
+//   위의 실시간 조회와 같은 서비스 계정 열쇠(환경변수 3종)로, 기간을 정해 방문·유입·지역·기기·인기 페이지를
+//   GA4 Data API 의 runReport 로 읽어 온다. 서버(관리자 화면)에서만 호출한다.
+//   열쇠가 없거나 구글이 거절하면 { ok:false, reason } 으로 돌려줘서 화면이 "GA 연결 필요"를 띄운다.
+// ──────────────────────────────────────────────
+
+/** GA 환경변수를 읽어 쓸 수 있는 형태로 돌려준다. 하나라도 없으면 null */
+export function readGaCredentials(): { clientEmail: string; privateKey: string; propertyId: string } | null {
+  const clientEmail = process.env.GA_SA_CLIENT_EMAIL?.trim();
+  const rawKey = process.env.GA_SA_PRIVATE_KEY?.trim();
+  const propertyId = process.env.GA_PROPERTY_ID?.trim();
+  if (!clientEmail || !rawKey || !propertyId) return null;
+  const privateKey = rawKey.includes('\n') ? rawKey.replace(/\n/g, '\n') : rawKey;
+  if (!privateKey.includes('BEGIN PRIVATE KEY')) return null;
+  return { clientEmail, privateKey, propertyId };
+}
+
+/** runReport 요청 본문 중 우리가 쓰는 칸만 */
+export interface GaReportRequest {
+  dateRanges: { startDate: string; endDate: string }[];
+  dimensions?: { name: string }[];
+  metrics: { name: string }[];
+  dimensionFilter?: unknown;
+  orderBys?: unknown[];
+  limit?: number;
+}
+
+/** 보고서 한 줄: 차원 값들과 지표 값들(문자열 → 숫자로 바꿔 둠) */
+export interface GaRow {
+  dims: string[];
+  vals: number[];
+}
+
+export type GaReportResult = { ok: true; rows: GaRow[] } | { ok: false; reason: 'no-env' | 'error'; detail?: string };
+
+/** 토큰은 50분 동안 재사용(관리자 화면 한 번에 보고서 5개를 부르므로 매번 발급하지 않게) */
+let tokenCache: { token: string; exp: number } | null = null;
+
+/**
+ * GA4 기간 보고서를 한 번 읽는다. 실패해도 예외를 던지지 않고 이유를 돌려준다.
+ * (키 값은 절대 로그에 찍지 않는다)
+ */
+export async function runGaReport(req: GaReportRequest): Promise<GaReportResult> {
+  const cred = readGaCredentials();
+  if (!cred) return { ok: false, reason: 'no-env' };
+  try {
+    if (!tokenCache || tokenCache.exp < Date.now()) {
+      tokenCache = { token: await getAccessToken(cred.clientEmail, cred.privateKey), exp: Date.now() + 50 * 60 * 1000 };
+    }
+    const res = await fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${cred.propertyId}:runReport`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenCache.token}` },
+      body: JSON.stringify(req),
+      cache: 'no-store',
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      if (res.status === 401) tokenCache = null; // 만료된 토큰이면 다음에 새로 발급
+      return { ok: false, reason: 'error', detail: `GA ${res.status}: ${body.slice(0, 160)}` };
+    }
+    const data = (await res.json()) as {
+      rows?: { dimensionValues?: { value?: string }[]; metricValues?: { value?: string }[] }[];
+    };
+    const rows: GaRow[] = (data.rows ?? []).map((r) => ({
+      dims: (r.dimensionValues ?? []).map((d) => d.value ?? ''),
+      vals: (r.metricValues ?? []).map((m) => Number(m.value) || 0),
+    }));
+    return { ok: true, rows };
+  } catch (e) {
+    tokenCache = null;
+    return { ok: false, reason: 'error', detail: e instanceof Error ? e.message : String(e) };
+  }
+}

@@ -55,7 +55,7 @@ export interface AskDash {
 }
 
 /** 표 한 곳을 1000줄씩 나눠 끝까지 읽는다(실패하면 throw) */
-async function readAll<T>(
+export async function readAll<T>(
   build: (from: number, to: number) => PromiseLike<{ data: unknown; error: unknown }>,
 ): Promise<T[]> {
   const PAGE = 1000;
