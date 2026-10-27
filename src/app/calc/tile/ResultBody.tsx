@@ -38,6 +38,7 @@ import {
   GRADE_LABEL,
   lineDetail,
   lineQty,
+  placeLabel,
   savingTips,
   shareBars,
   summaryLine,
@@ -57,6 +58,8 @@ export interface ResultBodyProps {
   actions?: ReactNode;
   /** ① 총액 카드 바로 아래 자리 — 계산기 화면의 조정 칩(시공 조건). 금액을 먼저 보고 좁히게 */
   afterTotal?: ReactNode;
+  /** 간단 모드 결과 — 큰 숫자 위에 "세트" 이름, 아래에 ㎡·박스 보조 줄(2026-10-28) */
+  simple?: boolean;
 }
 
 /** 작은 "추정" 표식 */
@@ -100,7 +103,7 @@ const BAR_TONE: Record<string, string> = {
   overhead: 'bg-brown/15',
 };
 
-export default function ResultBody({ result, dim = false, dimsAssumed = false, onGradeChange, actions, afterTotal }: ResultBodyProps) {
+export default function ResultBody({ result, dim = false, dimsAssumed = false, onGradeChange, actions, afterTotal, simple = false }: ResultBodyProps) {
   const self = result.resolved.service === 'self';
   const q = result.quantity;
   const assumed = assumptionLine(result, dimsAssumed);
@@ -110,6 +113,14 @@ export default function ResultBody({ result, dim = false, dimsAssumed = false, o
   const tips = savingTips(result);
   const mistakes = commonMistakes(result);
   const boxesText = [q.wall ? `벽 ${formatNum(q.wall.boxes)}` : null, q.floor ? `바닥 ${formatNum(q.floor.boxes)}` : null].filter(Boolean).join(' · ');
+  // 간단 모드 머리글 — 욕실 전체는 "욕실 1칸 세트"(철거·방수·타일·줄눈 등 합), 그 밖은 "시공 총액"
+  const place = placeLabel(result);
+  const bathAll = result.resolved.scope === 'bath1' || result.resolved.scope === 'bath2';
+  const simpleTitle = bathAll ? `${place} 세트` : `${place} 시공 총액`;
+  // 보조 줄 — 면적(㎡)과 박스 수
+  const simpleSub = [q.wall ? `벽 ${formatNum(q.wall.netSqm)}㎡ · ${formatNum(q.wall.boxes)}박스` : null, q.floor ? `바닥 ${formatNum(q.floor.netSqm)}㎡ · ${formatNum(q.floor.boxes)}박스` : null]
+    .filter(Boolean)
+    .join(' · ');
   const fade = { className: `transition-opacity ${dim ? 'opacity-60' : ''}`, style: dimTransitionStyle(dim) };
 
   return (
@@ -117,7 +128,7 @@ export default function ResultBody({ result, dim = false, dimsAssumed = false, o
       {/* ① 총액 + 등급 3단 */}
       <Card>
         <div {...fade} className={`flex flex-col gap-2 ${fade.className}`}>
-          <p className="t-sub text-ink-2">{summaryLine(result)}</p>
+          <p className="t-sub text-ink-2">{simple && !self ? simpleTitle : summaryLine(result)}</p>
           {self ? (
             <div className="flex items-baseline gap-1 flex-wrap">
               <span className="text-[34px] font-extrabold text-brown tabular-nums leading-[1.15] tracking-[-0.02em] whitespace-nowrap">{boxesText}</span>
@@ -131,6 +142,9 @@ export default function ResultBody({ result, dim = false, dimsAssumed = false, o
               <span className="text-[13px] font-semibold text-brown bg-v1-badge-gold-bg border border-gold rounded-[4px] px-[8px] py-[1px] whitespace-nowrap">추정</span>
             </div>
           )}
+
+          {simple && !self && simpleSub && <p className="text-[15px] font-semibold text-ink tabular-nums">{simpleSub}</p>}
+          {simple && !self && <p className="t-sub text-ink-2">{summaryLine(result)}</p>}
 
           {/* 등급 3단 — 셀프면 자재비, 맡김이면 총액 */}
           <div className="grid grid-cols-3 gap-2 pt-1" role={onGradeChange ? 'radiogroup' : undefined} aria-label="자재 등급">

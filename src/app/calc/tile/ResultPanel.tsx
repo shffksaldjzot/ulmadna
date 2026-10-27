@@ -95,6 +95,7 @@ export default function ResultPanel({ result, loading, error, stale, allDone, fo
         result={result}
         dim={loading || stale}
         dimsAssumed={dimsAssumed}
+        simple={(form.view ?? 'simple') === 'simple'}
         onGradeChange={onGradeChange}
         afterTotal={adjust}
         actions={

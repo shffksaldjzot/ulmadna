@@ -469,3 +469,77 @@ export const TILE_GROUT_MM_MAX = 10;
 export const TILE_LOSS_MAX = 0.3;
 /** 빼는 면적 개수(문·창) 상한 */
 export const TILE_OPENING_COUNT_MAX = 10;
+
+// ── 간단 모드: 범위(전체·바닥만·벽만) + 등급별 기본 타일 (2026-10-28 정리) ──
+
+/** 간단 모드 범위 — 공간 전체 / 바닥만 / 벽만 */
+export type TileRange = 'all' | 'floor' | 'wall';
+
+/** 범위 칩 이름 */
+export const TILE_RANGE_LABEL: Record<TileRange, string> = { all: '전체', floor: '바닥만', wall: '벽만' };
+
+/**
+ * 공간마다 고를 수 있는 범위 — 공간에 맞는 것만.
+ * 욕실 1칸만 셋 다 된다(욕실 2칸은 전체뿐), 주방은 벽만, 거실·현관·베란다는 바닥만.
+ */
+export function rangeOptionsFor(scope: TileScope | undefined): TileRange[] {
+  switch (scope) {
+    case 'bath1':
+      return ['all', 'floor', 'wall'];
+    case 'bath2':
+      return ['all'];
+    case 'kitchen':
+      return ['wall'];
+    case undefined:
+      return [];
+    default:
+      return ['floor'];
+  }
+}
+
+/** 등급 칩 이름(간단 모드 — 맨 앞 등급은 "가성비") */
+export const SIMPLE_GRADE_LABEL: Record<TileGrade, string> = { basic: '가성비', mid: '중급', high: '고급' };
+
+/**
+ * 등급별 기본 타일(종류·규격) — 새 숫자 없이 기존 종류·규격 목록에서 고른다. 중급 = 옛 공간 기본값.
+ *   area: 'wall'(욕실 전체·벽, 주방 벽) / 'bathFloor'(욕실 바닥만) / 거실·현관·베란다 바닥
+ */
+export function gradeTileDefault(grade: TileGrade, area: 'wall' | 'bathFloor' | 'living' | 'entrance' | 'balcony'): { kind: TileKind; size: string } {
+  const table: Record<typeof area, Record<TileGrade, { kind: TileKind; size: string }>> = {
+    wall: {
+      basic: { kind: 'earthenware', size: '300x300' },
+      mid: { kind: 'earthenware', size: '300x600' },
+      high: { kind: 'porcelain', size: '600x600' },
+    },
+    bathFloor: {
+      basic: { kind: 'stoneware', size: '300x300' },
+      mid: { kind: 'stoneware', size: '300x300' },
+      high: { kind: 'porcelain', size: '600x600' },
+    },
+    living: {
+      basic: { kind: 'stoneware', size: '600x600' },
+      mid: { kind: 'largePorcelain', size: '600x1200' },
+      high: { kind: 'largePorcelain', size: '800x800' },
+    },
+    entrance: {
+      basic: { kind: 'stoneware', size: '300x300' },
+      mid: { kind: 'porcelain', size: '600x600' },
+      high: { kind: 'porcelain', size: '600x1200' },
+    },
+    balcony: {
+      basic: { kind: 'stoneware', size: '300x300' },
+      mid: { kind: 'stoneware', size: '300x300' },
+      high: { kind: 'porcelain', size: '600x600' },
+    },
+  };
+  return table[area][grade];
+}
+
+/** 간단 모드 공간·범위 → 등급 기본 타일을 찾는 구분 */
+export function gradeAreaOf(scope: TileScope, range: TileRange | undefined): 'wall' | 'bathFloor' | 'living' | 'entrance' | 'balcony' {
+  if (scope === 'living') return 'living';
+  if (scope === 'entrance') return 'entrance';
+  if (scope === 'balcony') return 'balcony';
+  if (isBathScope(scope) && range === 'floor') return 'bathFloor';
+  return 'wall';
+}

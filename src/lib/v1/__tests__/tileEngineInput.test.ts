@@ -15,31 +15,42 @@ import { buildTileRequest, buildTileRequestFull, sanitizeTileForm, dimsComplete 
 import { encodeTileForm, decodeTileForm } from '../tileQuery';
 
 describe('타일 요청 변환', () => {
-  it('공간 전엔 null, 공간만 골라도 요청', () => {
+  it('공간 전엔 null, 공간만 골라도 요청(중급 기본 타일)', () => {
     expect(buildTileRequest({ view: 'simple' })).toBeNull();
-    expect(buildTileRequest({ view: 'simple', scope: 'bath1' })).toEqual({ mode: 'simple', scope: 'bath1' });
+    expect(buildTileRequest({ view: 'simple', scope: 'bath1' })).toMatchObject({ mode: 'simple', scope: 'bath1', tileKind: 'earthenware', wallTile: { widthMm: 300, lengthMm: 600 } });
     expect(buildTileRequest({ view: 'precise' })).toBeNull();
   });
 
-  it('욕실 규격 칩 300×600 → 벽 300×600 · 바닥 300×300, 거실은 바닥만, 주방은 벽만', () => {
-    const b = buildTileRequest({ view: 'simple', scope: 'bath2', tileKind: 'earthenware', sizeCode: '300x600' });
-    expect(b?.wallTile).toEqual({ widthMm: 300, lengthMm: 600 });
+  it('간단 모드 — 등급별 기본 타일(욕실은 벽 규격에 바닥이 따라감), 거실은 바닥만, 주방은 벽만', () => {
+    const b = buildTileRequest({ view: 'simple', scope: 'bath2', grade: 'basic' });
+    expect(b?.wallTile).toEqual({ widthMm: 300, lengthMm: 300 });
     expect(b?.floorTile).toEqual({ widthMm: 300, lengthMm: 300 });
-    expect(b?.tileKind).toBe('earthenware');
-    const l = buildTileRequest({ view: 'simple', scope: 'living', sizeCode: '600x1200', pyeong: 44 });
+    expect(b?.grade).toBe('basic');
+    const l = buildTileRequest({ view: 'simple', scope: 'living', grade: 'high', pyeong: 44 });
     expect(l?.wallTile).toBeUndefined();
-    expect(l?.floorTile).toEqual({ widthMm: 600, lengthMm: 1200 });
+    expect(l?.floorTile).toEqual({ widthMm: 800, lengthMm: 800 });
     expect(l?.pyeong).toBe(44);
-    const k = buildTileRequest({ view: 'simple', scope: 'kitchen', sizeCode: '300x600' });
+    const k = buildTileRequest({ view: 'simple', scope: 'kitchen' });
     expect(k?.wallTile).toEqual({ widthMm: 300, lengthMm: 600 });
     expect(k?.floorTile).toBeUndefined();
   });
 
-  it('종류와 안 맞는 규격, 바닥의 도기질은 보내지 않는다', () => {
-    const r = buildTileRequest({ view: 'simple', scope: 'bath1', tileKind: 'earthenware', sizeCode: '600x1200' });
+  it('간단 모드 — 욕실 1칸 바닥만/벽만은 욕실 바닥·벽 요청으로 바뀐다, 맞지 않는 범위는 무시', () => {
+    const f = buildTileRequestFull({ view: 'simple', scope: 'bath1', range: 'floor', grade: 'mid' });
+    expect(f?.request.space).toBe('bathFloor');
+    expect(f?.request.tileKind).toBe('stoneware');
+    expect(f?.dimsAssumed).toBe(false);
+    const w = buildTileRequestFull({ view: 'simple', scope: 'bath1', range: 'wall' });
+    expect(w?.request.space).toBe('bathWall');
+    // 주방은 벽만뿐이라 바닥만을 보내도 소용없다
+    expect(buildTileRequest({ view: 'simple', scope: 'kitchen', range: 'floor' })?.scope).toBe('kitchen');
+  });
+
+  it('정확 모드 — 종류와 안 맞는 규격, 바닥의 도기질은 보내지 않는다', () => {
+    const r = buildTileRequest({ view: 'precise', space: 'bathWall', tileKind: 'earthenware', sizeCode: '600x1200' });
     expect(r?.tileKind).toBe('earthenware');
     expect(r?.wallTile).toBeUndefined();
-    const f = buildTileRequest({ view: 'simple', scope: 'entrance', tileKind: 'earthenware', sizeCode: '300x300' });
+    const f = buildTileRequest({ view: 'precise', space: 'entrance', tileKind: 'earthenware', sizeCode: '300x300' });
     expect(f?.tileKind).toBeUndefined();
     expect(f?.floorTile).toBeUndefined();
   });
