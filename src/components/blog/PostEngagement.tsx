@@ -1,22 +1,22 @@
 "use client";
-// 글 조회수 표시(자동 +1)
+// 글 조회수 표시 + 조회수 +1 신호
 // 2026-09-15: 좋아요 버튼은 PostActions(저장 아이콘과 함께 글 위·끝에 반복 배치)로 옮겼다.
-// 여기서 조회수 API(/api/engagement)는 그대로 재사용한다 — 좋아요와 조회수가 같은 파이프라인에
-// 얹혀 있던 것뿐이라 조회수 쪽만 남겨도 문제없다.
-import { useEffect, useState } from "react";
+// 2026-10-27: Upstash → Supabase 이전. 숫자는 글 화면이 서버에서 미리 넣어 준 값(initialViews,
+//   60초 캐시)을 쓰고, 여기서는 "봤다"는 신호(POST /api/engagement)만 1번 보낸다.
+//   응답을 기다리지 않으므로 화면이 느려지지 않는다. 내가 본 1회는 화면에서 바로 +1 해 보여준다.
+import { useEffect } from "react";
 
-export function PostEngagement({ slug }: { slug: string }) {
-  const [views, setViews] = useState<number | null>(null);
+export function PostEngagement({ slug, initialViews }: { slug: string; initialViews: number | null }) {
+  // 서버 숫자를 못 읽었으면(null) 조회수 줄을 아예 숨긴다.
+  // 방금 내가 본 1회를 화면 숫자에 더해 보여준다(서버 숫자는 60초 캐시라 아직 안 들어가 있음).
+  const views = initialViews == null ? null : initialViews + 1;
 
   useEffect(() => {
-    // 조회수 +1 (글 볼 때 1회)
-    fetch(`/api/engagement?slug=${slug}&hit=1`, { cache: "no-store" })
-      .then((r) => r.json())
-      .then((d) => setViews(typeof d.views === "number" ? d.views : null))
-      .catch(() => {});
+    // 조회수 +1 신호 — keepalive 로 바로 다른 글로 넘어가도 요청이 살아남게
+    fetch(`/api/engagement?slug=${encodeURIComponent(slug)}`, { method: "POST", keepalive: true }).catch(() => {});
   }, [slug]);
 
-  if (views == null) return null; // Upstash 미설정 등이면 조용히 숨김
+  if (views == null) return null;
 
   return (
     <div className="post-engage">

@@ -49,7 +49,7 @@ export async function POST(request: Request) {
   try {
     const result = calcFlooring(input);
     // 계산이 실제로 성공했을 때만 1건 기록한다. 응답을 늦추지 않는다(fire-and-forget).
-    recordCalcRun('flooring', input.mode === '평형' ? 'quick' : 'precise', input.pyeong);
+    recordCalcRun('flooring', input.mode === '평형' ? 'quick' : 'precise', input.pyeong, request.headers); // 머리글 = 지역·기기·유입·봇 판정용
     return NextResponse.json(result, { status: 200 });
   } catch (e) {
     // 계산 중 문제는 서버 문제로 본다. 내부 메시지는 그대로 흘리지 않는다.

@@ -18,6 +18,8 @@ import { ShareButtons } from "@/components/blog/ShareButtons";
 import { Breadcrumbs } from "@/components/blog/Breadcrumbs";
 import { PostTocSide } from "@/components/blog/PostTocSide";
 import { PostActions } from "@/components/blog/PostActions";
+// 누적 조회수·좋아요 숫자를 서버에서 한 번 읽어 넣는다(60초 캐시, 2026-10-27 Supabase 이전)
+import { getCachedPostTotals } from "@/server/metrics/blogLike";
 import { ViewTracker } from "@/components/blog/ViewTracker";
 import { ReadMoreAtEnd, type ReadMoreCandidate } from "@/components/blog/ReadMoreAtEnd";
 import { AdsenseUnit } from "@/components/ads/AdsenseUnit";
@@ -83,6 +85,11 @@ export default async function BlogPost({
   const { slug } = await params;
   const post = await getPost(slug);
   if (!post) notFound();
+
+  // 누적 조회수·좋아요 — 서버가 그릴 때 1번만 읽는다(60초 캐시). 글 위·글 끝 PostActions 2개와
+  // 조회수 표시가 이 값을 같이 받아 써서, 브라우저가 숫자를 따로 묻는 호출이 없다.
+  // 실패하면 null → 조회수는 숨기고 좋아요는 0에서 시작.
+  const totals = await getCachedPostTotals(post.slug).catch(() => null);
 
   const allPosts = getAllPostMeta();
 
@@ -263,7 +270,7 @@ export default async function BlogPost({
                 <span className="blog-readtime-badge">⏱ 읽는 데 {post.readingTime}분</span>
               </p>
               {/* 저장(북마크) / 좋아요 — 제목 아래, 글 끝에도 같은 줄이 한 번 더 나옴 */}
-              <PostActions slug={post.slug} category={primaryCat?.id} />
+              <PostActions slug={post.slug} category={primaryCat?.id} initialLikes={totals?.likes ?? 0} />
             </header>
 
             {post.thumbnail && (
@@ -318,11 +325,11 @@ export default async function BlogPost({
               </div>
             )}
 
-            <PostEngagement slug={post.slug} />
+            <PostEngagement slug={post.slug} initialViews={totals?.views ?? null} />
 
             {/* 글 끝 — 위와 같은 저장/좋아요 액션을 한 번 더 (다 읽고 나서도 바로 누를 수 있게) */}
             <div className="blog-actions-end">
-              <PostActions slug={post.slug} category={primaryCat?.id} />
+              <PostActions slug={post.slug} category={primaryCat?.id} initialLikes={totals?.likes ?? 0} />
             </div>
 
             <ShareButtons
