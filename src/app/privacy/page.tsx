@@ -21,7 +21,9 @@ export default function PrivacyPage() {
               <p>얼마드나는 최소한의 개인정보만 수집합니다.</p>
               <ul className="list-disc pl-5 mt-2 space-y-1">
                 <li><strong>비회원:</strong> 개인정보를 일절 수집하지 않습니다. 견적 계산, PDF/엑셀 다운로드, 카카오톡 공유 모두 개인정보 없이 이용 가능합니다.</li>
-                <li><strong>카카오 로그인 회원:</strong> 카카오 계정 닉네임, 카카오 고유 ID만 수집합니다. 이메일, 전화번호, 주소 등은 수집하지 않습니다.</li>
+                <li><strong>카카오 로그인 회원:</strong> 카카오 계정 닉네임(이름), 카카오 고유 ID만 수집합니다. 이메일, 전화번호, 주소 등은 수집하지 않습니다.</li>
+                {/* 2026-10-28 회원 명부 도입에 따라 추가 — 로그인 기록 보관 */}
+                <li><strong>로그인 기록(공통):</strong> 사이트 닉네임, 카카오 닉네임(이름), 첫·마지막 로그인 시각, 로그인 횟수, 로그인 수단을 보관합니다. 카카오 고유 ID는 원래 값 대신 되돌릴 수 없게 변환한 값으로 보관합니다.</li>
                 {/* 2026년 10월 03일: 아이디 회원가입(익명 가입) 추가에 따른 항목 */}
                 <li><strong>아이디 가입 회원:</strong> 아이디, 비밀번호(암호화하여 저장 — 원문은 저장하지 않음), 비밀번호 힌트, 닉네임을 수집합니다. 이메일은 비밀번호 찾기용으로 본인이 선택한 경우에만 수집합니다. 실명·전화번호는 받지 않습니다. 탈퇴 시 즉시 삭제됩니다.</li>
               </ul>
@@ -33,12 +35,13 @@ export default function PrivacyPage() {
                 <li>견적 저장 및 불러오기 기능 제공</li>
                 <li>저장된 견적 비교 기능 제공</li>
                 <li>물어보기 게시판 질문·댓글 작성, 로그인 및 비밀번호 찾기(아이디 가입 회원)</li>
+                <li>회원 수 집계, 부정 이용(도배·광고성 글 등) 방지를 위한 이용 제한, 회원 문의 대응</li>
               </ul>
             </section>
 
             <section>
               <h2 className="t-section text-ink mb-2">3. 보유 및 이용 기간</h2>
-              <p>회원 탈퇴 시 즉시 삭제됩니다. 저장된 견적 데이터도 함께 삭제됩니다.</p>
+              <p>회원 탈퇴 시 즉시 삭제됩니다. 저장된 견적 데이터도 함께 삭제됩니다. 로그인 기록은 닉네임·이름·변환된 고유 ID를 탈퇴 즉시 지우고, 누구인지 알 수 없는 가입·탈퇴 시각만 회원 수 통계용으로 남깁니다.</p>
             </section>
 
             <section>
@@ -57,7 +60,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="t-section text-ink mb-2">6. 이용자의 권리</h2>
               <ul className="list-disc pl-5 space-y-1">
-                <li>카카오 로그인 연결 해제 시 저장된 모든 데이터가 삭제됩니다.</li>
+                <li>사이트의 회원 탈퇴 기능으로 탈퇴하면 저장된 모든 데이터가 삭제됩니다.</li>
                 <li>개인정보 관련 문의: cs870@naver.com</li>
               </ul>
             </section>
@@ -67,7 +70,7 @@ export default function PrivacyPage() {
               <p>성명: 김지환<br/>이메일: cs870@naver.com</p>
             </section>
 
-            <p className="t-sub text-ink-2/70 pt-4 border-t border-line">시행일: 2026년 4월 6일 · 얼마드나 (사업자등록번호 565-58-00717)</p>
+            <p className="t-sub text-ink-2/70 pt-4 border-t border-line">시행일: 2026년 10월 28일 (개정, 이전 2026년 4월 6일) · 얼마드나 (사업자등록번호 565-58-00717)</p>
           </div>
         </div>
       </Container>
