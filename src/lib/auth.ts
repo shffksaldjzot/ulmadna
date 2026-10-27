@@ -7,6 +7,9 @@ import { adminOrNull } from './ask/server';
 import { checkPassword, findUserByLogin, sessionIdOf } from './account/users';
 import { clear, hit, peek, sleep } from './account/rateLimit';
 import { normalizeEmail, normalizeUsername } from './account/validate';
+// 회원 명부(members 표) — 로그인 성공 때 한 번 기록 (2026년 10월 27일 추가)
+import { memberIdFromToken, onJwt } from './members/callbacks';
+import { recordLogin } from './members/server';
 
 // 로그인 실패 제한: 같은 아이디(또는 이메일)로 10분 동안 5번 틀리면 잠시 막는다
 const LOGIN_FAIL_LIMIT = 5;
@@ -78,9 +81,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     debug() {},
   },
   callbacks: {
+    // 로그인 순간(trigger 'signIn')에만 회원 명부에 한 줄 기록(첫 로그인=새 줄, 다음부터=시각·횟수만).
+    // 기록이 실패하거나 2.5초 넘게 걸려도 로그인은 그대로 진행된다(onJwt 안에서 오류·지연을 삼킴).
+    // 기록에 성공하면 명부의 회원 번호를 token.mid 에 담아 둔다.
+    async jwt(params) {
+      return (await onJwt(params, recordLogin)) as typeof params.token;
+    },
     session({ session, token }) {
       if (session.user && token.sub) {
         session.user.id = token.sub;
+      }
+      // 명부 회원 번호(의미 없는 무작위 번호) — 닉네임 정하기·탈퇴 때 명부 줄을 찾는 데 쓴다
+      const memberId = memberIdFromToken(token);
+      if (session.user && memberId) {
+        (session.user as { memberId?: string }).memberId = memberId;
       }
       return session;
     },

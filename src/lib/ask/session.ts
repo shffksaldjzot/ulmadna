@@ -19,6 +19,21 @@ export async function currentUserId(): Promise<string | null> {
   }
 }
 
+/**
+ * 회원 명부(members)의 회원 번호 — 로그인할 때 세션에 담아 둔 값, 없으면 null
+ * (명부 기능 배포 전에 로그인해 둔 세션이나, 명부 기록이 실패한 로그인이면 없다)
+ * 2026년 10월 27일 추가
+ */
+export async function currentMemberId(): Promise<string | null> {
+  try {
+    const session = await auth();
+    const v = (session?.user as { memberId?: unknown } | undefined)?.memberId;
+    return typeof v === 'string' ? v : null;
+  } catch {
+    return null;
+  }
+}
+
 /** 공통 오류 응답 — 화면에 그대로 보여 줄 한글 문장을 담는다 */
 export function fail(status: number, message: string, extra: Record<string, unknown> = {}) {
   return NextResponse.json({ error: message, ...extra }, { status });
