@@ -70,6 +70,9 @@ revoke all on public.members from anon, authenticated;
 --   - 닉네임: 물어보기 닉네임을 이미 만든 회원이면 그 이름을 지킨다(카카오 닉네임으로 덮지 않음).
 --   - p_has_profile 이 null 이면 "모름" → 기존 값을 그대로 둔다.
 --   돌려주는 값: 회원 번호(uuid)
+-- 2026-10-28 형아 결정: 카카오 이름(본명일 수 있음)도 따로 기록한다 — 사이트 닉네임(nickname)과 별개 칸
+alter table public.members add column if not exists real_name text null check (real_name is null or char_length(real_name) between 1 and 40);
+
 -- ------------------------------------------------------------
 create or replace function public.members_touch(
   p_key text, p_provider text, p_nickname text default null,
@@ -87,9 +90,10 @@ begin
     raise exception 'members: 잘못된 provider %', p_provider using errcode = '22023';
   end if;
 
-  insert into public.members as m (member_key, provider, nickname, ask_user_id, has_ask_profile)
-  values (p_key, p_provider, v_nick, p_ask_user_id, coalesce(p_has_profile, false))
+  insert into public.members as m (member_key, provider, nickname, real_name, ask_user_id, has_ask_profile)
+  values (p_key, p_provider, v_nick, v_nick, p_ask_user_id, coalesce(p_has_profile, false))
   on conflict (member_key) do update set
+    real_name       = coalesce(excluded.real_name, m.real_name), -- 로그인 때 받은 카카오 이름(본명일 수 있음)은 매번 최신으로
     last_login_at   = now(),
     login_count     = m.login_count + 1,
     nickname        = case when m.has_ask_profile then coalesce(m.nickname, excluded.nickname)

@@ -130,6 +130,7 @@ export async function withdrawMember(sessionId: string, memberId: string | null)
         withdrawn_at: new Date().toISOString(),
         member_key: null,
         nickname: null,
+        real_name: null, // 탈퇴하면 카카오 이름도 지움
         ask_user_id: null,
         has_ask_profile: false,
       })

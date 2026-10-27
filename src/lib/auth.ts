@@ -85,6 +85,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     // 기록이 실패하거나 2.5초 넘게 걸려도 로그인은 그대로 진행된다(onJwt 안에서 오류·지연을 삼킴).
     // 기록에 성공하면 명부의 회원 번호를 token.mid 에 담아 둔다.
     async jwt(params) {
+      // 2026-10-28 버그 수리: 카카오는 로그인마다 무작위 번호가 sub 에 들어가 다시 로그인하면 닉네임·저장 견적·내 글을 못 찾았다.
+      // 바뀌지 않는 카카오 회원 번호(providerAccountId)로 고정한다. 아이디 회원은 원래대로.
+      if (params.account?.provider === 'kakao' && params.account.providerAccountId) {
+        params.token.sub = `kakao:${params.account.providerAccountId}`;
+      }
       return (await onJwt(params, recordLogin)) as typeof params.token;
     },
     session({ session, token }) {
