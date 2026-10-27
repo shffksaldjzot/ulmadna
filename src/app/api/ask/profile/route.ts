@@ -8,7 +8,8 @@
 // 작성일: 2026년 10월 03일
 // ──────────────────────────────────────────────
 import { NextResponse } from 'next/server';
-import { currentUserId, fail } from '@/lib/ask/session';
+import { currentMemberId, currentUserId, fail } from '@/lib/ask/session';
+import { markAskProfile } from '@/lib/members/server';
 import { adminOrNull, getNickname } from '@/lib/ask/server';
 import { nicknameProblem } from '@/lib/ask/format';
 
@@ -66,5 +67,7 @@ export async function PUT(req: Request) {
   if (uid.startsWith('user:')) {
     await sb.from('ask_users').update({ nickname }).eq('id', uid.slice(5));
   }
+  // 회원 명부에도 "물어보기 닉네임 있음"과 그 닉네임을 적는다(실패해도 이름 정하기는 성공으로) — 2026년 10월 27일
+  await markAskProfile(uid, await currentMemberId(), nickname);
   return NextResponse.json({ ok: true, nickname });
 }
