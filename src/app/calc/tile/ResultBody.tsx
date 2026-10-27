@@ -296,6 +296,15 @@ export default function ResultBody({ result, dim = false, dimsAssumed = false, o
         </Collapsible>
       </div>
 
+      {/* 2026-10-28 전문가용 물량 계산기로 가는 작은 링크 — 금액 말고 장 수·컷만 정확히 보려는 사람용 */}
+      <Link
+        href="/calc/tile-pro"
+        className="self-start min-h-10 flex items-center t-sub text-ink-2 underline underline-offset-2 hover:text-brown"
+        onClick={() => track('calc_cta_click', { process: 'tile', target: 'tile_pro' })}
+      >
+        물량만 정확히 뽑기 (배치도·컷 장 수) →
+      </Link>
+
       {/* ⑨ 블로그 글 · 공유 · 문의 */}
       <section aria-label="관련 글" className="flex flex-col gap-1">
         <h2 className="text-[13px] font-semibold text-v1-text-label">더 읽기</h2>
