@@ -9,6 +9,11 @@
 //
 // IntersectionObserver로 "화면에 들어왔는지"만 감지하고, 한 번 나타나면 다시 숨기지 않는다.
 //
+// [2026년 10월 27일 개편 — 조회수 확대 전략 E]
+// 후보는 이제 "같은 공정의 비용 글"이 먼저 온다(lib/blog-recommend.ts). 그리고 계산기가 매치되지
+// 않은 글이면 마지막 칸에 계산기 1개(calc)를 붙인다 — 글 2~3개 + 계산기 1개 고정 구성.
+// 계산기가 매치된 글은 바로 아래 큰 계산기 카드(CalculatorCta)가 그 역할을 하므로 calc 를 안 받는다.
+//
 // [검사관 지적 반영 — 2026-09-15]
 // 1) 조기 노출 버그: 예전엔 "picks가 비었고 calculatorCard도 없을 때만" 빈 자리를 그렸는데,
 //    calculatorCard가 있으면 스크롤 전(visible=false)에도 섹션이 그대로 그려져 버렸다(정적
@@ -31,7 +36,17 @@ export interface ReadMoreCandidate {
   category: string; // GA 이벤트용(카테고리 이름만, slug는 안 보냄)
 }
 
-export function ReadMoreAtEnd({ candidates }: { candidates: ReadMoreCandidate[] }) {
+/**
+ * 글 끝 추천에 같이 붙는 계산기 1개(2026년 10월 27일, 조회수 확대 전략 E).
+ * 글에 이미 계산기 카드(CalculatorCta)가 붙는 글은 바로 아래 그 카드가 계산기 자리를 맡으므로
+ * 페이지가 이 값을 안 넘긴다 — 같은 계산기 안내가 두 번 연속 나오지 않게(2026-09-15 검사관 지적).
+ */
+export interface ReadMoreCalc {
+  label: string;
+  href: string;
+}
+
+export function ReadMoreAtEnd({ candidates, calc }: { candidates: ReadMoreCandidate[]; calc?: ReadMoreCalc }) {
   // 관찰 대상 엘리먼트에 붙이는 ref. "안 보이는 동안"과 "보인 뒤"가 같은 위치를 가리켜야
   // 스크롤 위치가 안 튀므로, 바깥 컨테이너 자체에 항상 이 ref를 붙인다.
   const ref = useRef<HTMLDivElement>(null);
@@ -62,13 +77,14 @@ export function ReadMoreAtEnd({ candidates }: { candidates: ReadMoreCandidate[] 
     setPicks(candidates.filter((c) => !viewedSlugs.has(c.slug)).slice(0, 3));
   }, [visible, candidates]);
 
-  const onClickCard = (category: string) => {
-    track("blog_readmore_click", { category: category || "none" });
+  // position = 어느 자리에서 눌렸나(end=글 끝 글 카드, calc=글 끝 계산기, inline=본문 중간)
+  const onClickCard = (category: string, position: "end" | "calc" = "end") => {
+    track("blog_readmore_click", { category: category || "none", position });
   };
 
-  // 아직 스크롤이 안 닿았거나(visible=false), 닿았는데 보여줄 후보가 하나도 없으면
+  // 아직 스크롤이 안 닿았거나(visible=false), 닿았는데 보여줄 글도 계산기도 없으면
   // 관찰용 빈 자리만 남긴다(레이아웃엔 영향 없음, 서버가 만드는 정적 HTML엔 이 자리만 있음)
-  if (!visible || picks.length === 0) {
+  if (!visible || (picks.length === 0 && !calc)) {
     return <div ref={ref} aria-hidden="true" />;
   }
 
@@ -92,6 +108,17 @@ export function ReadMoreAtEnd({ candidates }: { candidates: ReadMoreCandidate[] 
             <span>{p.title}</span>
           </Link>
         ))}
+        {/* 같은 공정 계산기 1개 — 글 카드들 뒤 마지막 칸(설명 없이 이름만) */}
+        {calc && (
+          <Link
+            href={calc.href}
+            className="blog-readmore-card blog-readmore-calc"
+            onClick={() => onClickCard(picks[0]?.category ?? "", "calc")}
+          >
+            <span className="blog-readmore-calc-badge">계산기</span>
+            <span>{calc.label} →</span>
+          </Link>
+        )}
       </div>
     </section>
   );

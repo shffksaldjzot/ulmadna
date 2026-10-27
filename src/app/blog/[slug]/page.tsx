@@ -21,7 +21,10 @@ import { PostActions } from "@/components/blog/PostActions";
 // 누적 조회수·좋아요 숫자를 서버에서 한 번 읽어 넣는다(60초 캐시, 2026-10-27 Supabase 이전)
 import { getCachedPostTotals } from "@/server/metrics/blogLike";
 import { ViewTracker } from "@/components/blog/ViewTracker";
-import { ReadMoreAtEnd, type ReadMoreCandidate } from "@/components/blog/ReadMoreAtEnd";
+import { ReadMoreAtEnd, type ReadMoreCandidate, type ReadMoreCalc } from "@/components/blog/ReadMoreAtEnd";
+// 같은 공정 비용 글 추천 + 본문 중간 관련 글 1개(2026년 10월 27일, 조회수 확대 전략 E)
+import { pickSameProcessCostPosts, pickInlineRelated, insertInlineRelated } from "@/lib/blog-recommend";
+import { InlineRelatedTracker } from "@/components/blog/InlineRelatedTracker";
 import { AdsenseUnit } from "@/components/ads/AdsenseUnit";
 import { ADSENSE_SLOTS } from "@/lib/ads/adsense";
 import "../blog.css";
@@ -163,24 +166,54 @@ export default async function BlogPost({
   }
 
   // ──────────────────────────────────────────────
-  // "이어서 볼 만한 글" 후보 — 위 관련 글(related) 4편과 절대 안 겹치게, 점수 순으로 최대 8편
-  // 실제 화면에 나올 3편은 클라이언트(ReadMoreAtEnd)가 "이미 본 글"을 뺀 뒤에 고른다
-  // (viewed 목록은 브라우저에만 있어서 서버는 알 수 없다)
+  // "이어서 볼 만한 글" 후보 — 2026년 10월 27일 개편(조회수 확대 전략 E)
+  //   같은 공정의 비용 글을 먼저(lib/blog-recommend.ts), 모자라면 같은 공정의 다른 글,
+  //   그래도 모자라면 예전 점수 순(태그·카테고리·최신) 글로 채워 최대 8편.
+  //   위 관련 글(related) 4편과는 겹치지 않게 한다.
+  //   실제 화면에 나올 3편은 클라이언트(ReadMoreAtEnd)가 "이미 본 글"을 뺀 뒤에 고른다
+  //   (viewed 목록은 브라우저에만 있어서 서버는 알 수 없다)
   // ──────────────────────────────────────────────
   const relatedSlugs = new Set(related.map((r) => r.slug));
-  const readMoreCandidates: ReadMoreCandidate[] = scoredAll
-    .filter((x) => !relatedSlugs.has(x.p.slug))
-    .slice(0, 8)
-    .map((x) => ({
-      slug: x.p.slug,
-      title: x.p.title,
-      thumbnail: x.p.thumbnail,
-      category: x.cats.length > 0 ? getCategory(x.cats[0])?.label ?? "" : "",
-    }));
+  const toCandidate = (p: (typeof allPosts)[number], cats: string[]): ReadMoreCandidate => ({
+    slug: p.slug,
+    title: p.title,
+    thumbnail: p.thumbnail,
+    category: cats.length > 0 ? getCategory(cats[0])?.label ?? "" : "",
+  });
+  // 본문 중간 관련 글 1개 — 같은 공정 글 중 최근 28일 조회수 1위(관련 글 4편과는 겹치지 않게).
+  // 글 끝 추천보다 먼저 골라서, 글 끝 추천에서는 이 글을 뺀다(같은 글이 두 번 나오지 않게).
+  // 글 파일(md)은 그대로 두고 화면을 만들 때만 가운데 소제목 앞에 끼워 넣는다.
+  const inlinePick = pickInlineRelated(post, allPosts, relatedSlugs);
+  const bodyHtml = inlinePick
+    ? insertInlineRelated(post.html, post.headings.length, inlinePick, primaryCat?.label ?? "")
+    : post.html;
 
-  // 계산기 카드는 "이어서 볼 만한 글"에 안 넣는다 — 바로 아래 CalculatorCta(variant="card")가
-  // 이 글에 매치된 계산기를 이미 보여주고 있어서, 여기 또 넣으면 같은 계산기 CTA가 2번 연속으로
-  // 나온다(검사관 지적, 2026-09-15).
+  const endExclude = new Set(relatedSlugs);
+  if (inlinePick) endExclude.add(inlinePick.slug);
+  const sameProcess = pickSameProcessCostPosts(post, allPosts, endExclude, 8);
+  const readMoreCandidates: ReadMoreCandidate[] = sameProcess.map((m) => toCandidate(m.p, m.cats));
+  for (const x of scoredAll) {
+    if (readMoreCandidates.length >= 8) break;
+    if (endExclude.has(x.p.slug) || readMoreCandidates.some((c) => c.slug === x.p.slug)) continue;
+    readMoreCandidates.push(toCandidate(x.p, x.cats));
+  }
+
+  // 글 끝 추천의 계산기 1칸 — 이 글에 계산기가 이미 매치돼 있으면 바로 아래 큰 카드(CalculatorCta)가
+  // 그 자리를 맡으므로 넘기지 않는다(같은 계산기 안내 두 번 연속 방지). 매치가 없으면
+  //   욕실·화장실 글 → 타일 계산기, 그 밖 → 공정별 계산기 모음(/calc)
+  const readMoreCalc: ReadMoreCalc | undefined =
+    post.calculator.length > 0
+      ? undefined
+      : myCats.includes("bath")
+        ? { label: CALCULATORS.tile.label, href: CALCULATORS.tile.href }
+        : { label: "공정별 계산기", href: "/calc" };
+
+  // 본문 안에 "자주 묻는 질문" 소제목이 이미 있으면(2026년 10월 27일 발행 틀 개편 이후 글),
+  // 글 아래쪽 FAQ 펼침 목록은 같은 질문을 두 번 보여주게 되므로 숨긴다(구조화 데이터는 그대로 유지).
+  const bodyHasFaq = post.headings.some((h) => h.text.includes("자주 묻는 질문"));
+
+  // (계산기가 매치된 글은 "이어서 볼 만한 글"에 계산기를 안 넣는다 — 바로 아래 CalculatorCta(variant="card")가
+  //  이미 보여주고 있어서 같은 계산기 CTA가 2번 연속으로 나온다(검사관 지적, 2026-09-15). 위 readMoreCalc 참고)
 
   const articleLd = {
     "@context": "https://schema.org",
@@ -300,7 +333,9 @@ export default async function BlogPost({
               <CalculatorCta key={key} calculator={key} variant="mini" />
             ))}
 
-            <div className="blog-body" dangerouslySetInnerHTML={{ __html: post.html }} />
+            <div className="blog-body" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+            {/* 본문 중간 관련 글 링크 클릭 추적(화면엔 안 그림) */}
+            <InlineRelatedTracker />
             {/* 스포일러 캔버스 효과(점진적 향상) — .blog-spoiler 강화 */}
             <BlogSpoilerInk />
 
@@ -309,7 +344,7 @@ export default async function BlogPost({
             <AskCta slug={post.slug} />
 
             {/* 본문(글 자체)이 끝나는 지점 — 스크롤이 여기 들어오면 "이어서 볼 만한 글"이 뜸 */}
-            <ReadMoreAtEnd candidates={readMoreCandidates} />
+            <ReadMoreAtEnd candidates={readMoreCandidates} calc={readMoreCalc} />
 
             {/* 본문 끝 — 다 읽은 사람에게 "그래서 우리 집은?" 계산기 카드 (계산기별로 하나씩) */}
             {post.calculator.map((key) => (
@@ -339,7 +374,7 @@ export default async function BlogPost({
               image={post.thumbnail ? `${SITE}${post.thumbnail}` : undefined}
             />
 
-            {post.faq.length > 0 && (
+            {post.faq.length > 0 && !bodyHasFaq && (
               <section className="blog-faq">
                 <h2>자주 묻는 질문</h2>
                 {post.faq.map((f, i) => (
