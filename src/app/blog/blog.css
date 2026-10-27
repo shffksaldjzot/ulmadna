@@ -614,3 +614,12 @@
   .blog-toc-side li.on>a{color:var(--accent);font-weight:800;background:#F6E7DD;
     border-left-color:var(--accent);}
 }
+
+/* ---- 본문 중간 관련 글 1개 (2026년 10월 27일, 조회수 확대 전략 E) ----
+   글 html 안에 렌더 때 끼워 넣는 링크 한 줄. 설명 없이 제목만, 강조색은 왼쪽 선 하나. */
+.blog-body .blog-inline-related{margin:28px 0 8px;padding:12px 14px;border-left:3px solid var(--accent);
+  background:var(--beige-50);border-radius:0 10px 10px 0;}
+.blog-body .blog-inline-related a{display:block;font-size:15px;font-weight:700;line-height:1.45;color:var(--ink);
+  text-decoration:none;word-break:keep-all;}
+.blog-body .blog-inline-related a::after{content:" →";color:var(--accent);}
+.blog-body .blog-inline-related a:hover{color:var(--accent);}
