@@ -14,7 +14,10 @@
 // 입력값은 주소(?d=)에 늘 담아 둔다(history.replaceState) — "링크 복사"는 지금 주소를 그대로 복사.
 //
 // 추적(GA4, 다른 계산기와 같은 이름): calc_view(들어옴 1번) · calc_run(입력이 멈추고 1.5초 뒤 1번씩)
-//   · calc_cta_click(png·share)
+//   · calc_cta_click(png·share) · calc_cost_input(자재비 첫 입력 때 1번)
+//
+// 자재비(2026-10-28 추가): 물량표 아래 CostPanel. 단가는 사용자가 직접 넣고(기본 비어 있음),
+//   기기(localStorage)에 기억해 다음 방에도 채운다. 링크(?c=)에는 "단가 포함"을 켠 때만 단가를 담는다.
 //
 // 작성일: 2026년 10월 28일
 // ──────────────────────────────────────────────
@@ -48,7 +51,12 @@ import {
 } from '@/lib/tilepro/form';
 import { computeTilePro } from '@/lib/tilepro/quantity';
 import { track } from '@/lib/analytics';
+import CostPanel from './CostPanel';
+import { DEFAULT_COST, buildCostRows, decodeCost, encodeCost, summarizeCost, type CostState } from '@/lib/tilepro/cost';
 import TileLayer, { TILE_COLORS } from './TileLayer';
+
+/** 단가 기억 저장 이름(기기 안) */
+const PRICE_STORE_KEY = 'tilepro_prices_v1';
 
 /** 숫자 → "1,234" */
 const n0 = (v: number) => Math.round(v).toLocaleString('ko-KR');
@@ -74,6 +82,53 @@ export default function TileProCalculator() {
   /** 일부 값만 바꾸기 */
   const set = (patch: Partial<TileProForm>) => setForm((f) => ({ ...f, ...patch }));
 
+  // ── 자재비 상태 ──
+  const [cost, setCost] = useState<CostState>(() => decodeCost(searchParams.get('c')) ?? DEFAULT_COST);
+  const setCostPatch = (patch: Partial<CostState>) => setCost((c) => ({ ...c, ...patch }));
+  // 링크에 단가를 담을지(기본 아니오 — 업체가 노출 방지)
+  const [shareWithPrices, setShareWithPrices] = useState(false);
+  // 기기에 기억한 단가 불러오기 — 처음 한 번, 링크로 받은 단가가 있으면 그것이 우선
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(PRICE_STORE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as Record<string, unknown>;
+      const prices: Record<string, number> = {};
+      Object.entries(saved).forEach(([k, v]) => {
+        if (/^[a-z_]{1,20}$/.test(k) && typeof v === 'number' && Number.isFinite(v) && v > 0) prices[k] = v;
+      });
+      setCost((c) => ({ ...c, prices: { ...prices, ...c.prices } }));
+    } catch {
+      /* 저장소를 못 읽어도 화면은 그대로 */
+    }
+  }, []);
+  /** 단가 바꾸기 + 기기에 기억(직접 고친 때만 저장 — 링크로 받은 남의 단가가 내 기억을 덮지 않게) */
+  const setPrice = (key: string, v: number) => {
+    if (!key) return;
+    setCost((c) => {
+      const prices = { ...c.prices };
+      if (v > 0) prices[key] = v;
+      else delete prices[key];
+      try {
+        const raw = window.localStorage.getItem(PRICE_STORE_KEY);
+        const saved = raw ? (JSON.parse(raw) as Record<string, number>) : {};
+        if (v > 0) saved[key] = v;
+        else delete saved[key];
+        window.localStorage.setItem(PRICE_STORE_KEY, JSON.stringify(saved));
+      } catch {
+        /* 저장 실패는 무시 */
+      }
+      return { ...c, prices };
+    });
+  };
+  // 자재비 첫 입력 때 1번만 추적
+  const costTouched = useRef(false);
+  const onCostTouch = () => {
+    if (costTouched.current) return;
+    costTouched.current = true;
+    track('calc_cost_input', { process: 'tile_pro', mode: form.surface });
+  };
+
   // 벽 전개도에서 지금 보고 있는 벽(-1 = 평면 보기, -2 = 자동: 첫 시공 벽)
   const [viewWall, setViewWall] = useState<number>(-2);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -82,6 +137,8 @@ export default function TileProCalculator() {
   // ── 계산(순수 함수) ──
   const room = useMemo(() => buildRoom(form.shape), [form.shape]);
   const result = useMemo(() => computeTilePro(form), [form]);
+  const costRows = useMemo(() => buildCostRows(form, result, cost), [form, result, cost]);
+  const costSummary = useMemo(() => summarizeCost(costRows, cost.vat), [costRows, cost.vat]);
   const tile = useMemo(() => ({ w: form.tileW, h: form.tileH, joint: form.joint }), [form.tileW, form.tileH, form.joint]);
 
   // 벽 모드에서 고른 벽이 빠졌거나 사라졌으면 첫 시공 벽으로
@@ -101,10 +158,11 @@ export default function TileProCalculator() {
     const t = setTimeout(() => {
       const url = new URL(window.location.href);
       url.searchParams.set('d', encodeTileProForm(form));
+      url.searchParams.set('c', encodeCost(cost, shareWithPrices));
       window.history.replaceState(window.history.state, '', url.toString());
     }, 400);
     return () => clearTimeout(t);
-  }, [form]);
+  }, [form, cost, shareWithPrices]);
 
   // ── 추적 ──
   useEffect(() => {
@@ -137,11 +195,25 @@ export default function TileProCalculator() {
     `줄눈재 ${n1(result.grout.kg)}kg · ${ADHESIVE_OPTIONS.find((a) => a.value === form.adhesive)?.label} ${n0(result.adhesive.kg)}kg (${result.adhesive.packKg}kg ${result.adhesive.packs}${form.adhesive === 'bond' ? '통' : '포'})`,
   ];
 
+  /** PNG 아래 자재 목록표 — 단가를 넣은 줄은 금액까지, 합계는 단가가 하나라도 있을 때만 */
+  const costTable = () => {
+    const rows: { cols: [string, string, string]; bold?: boolean }[] = costRows
+      .filter((r) => r.qty > 0)
+      .map((r) => ({
+        cols: [r.name, `${n1(r.qty)} ${r.unit}`, r.price > 0 ? `${n0(r.amount)}원` : ''] as [string, string, string],
+      }));
+    if (costSummary.hasPrice) {
+      if (cost.vat) rows.push({ cols: ['부가세 10%', '', `${n0(costSummary.vat)}원`] });
+      rows.push({ cols: [cost.vat ? '합계(부가세 포함)' : '합계', '', `${n0(costSummary.total)}원`], bold: true });
+    }
+    return { title: '자재 목록', rows };
+  };
+
   /** PNG 저장 */
   const onPng = async () => {
     track('calc_cta_click', { process: 'tile_pro', target: 'png' });
     const title = form.surface === 'floor' ? '타일 배치도 — 바닥' : `타일 배치도 — ${shownRegion ? shownRegion.label : '평면'}`;
-    const ok = await exportPlanPng(svgRef.current, { fileName: `타일물량_${form.tileW}x${form.tileH}`, title, lines: summaryLines() });
+    const ok = await exportPlanPng(svgRef.current, { fileName: `타일물량_${form.tileW}x${form.tileH}`, title, lines: summaryLines(), table: costTable() });
     if (!ok) flash('그림 저장에 실패했어요');
   };
 
@@ -150,6 +222,7 @@ export default function TileProCalculator() {
     track('calc_cta_click', { process: 'tile_pro', target: 'share' });
     const url = new URL(window.location.href);
     url.searchParams.set('d', encodeTileProForm(form));
+    url.searchParams.set('c', encodeCost(cost, shareWithPrices));
     try {
       await navigator.clipboard.writeText(url.toString());
       flash('링크를 복사했어요');
@@ -447,23 +520,31 @@ export default function TileProCalculator() {
               {result.truncated && <p className="t-sub text-danger">타일이 너무 많아 일부만 셌어요. 규격을 확인하세요.</p>}
               <p className="t-sub text-v1-text-disabled">줄눈재·접착제는 표준 소요량 기준 대략값</p>
 
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={onPng}
-                  className="h-12 rounded-[12px] bg-accent active:bg-accent-press text-white text-[15px] font-semibold"
-                >
-                  도면 PNG 저장
-                </button>
-                <button
-                  type="button"
-                  onClick={onShare}
-                  className="h-12 rounded-[12px] border border-v1-line-3 bg-white text-[15px] text-ink font-semibold active:bg-v1-card-soft"
-                >
-                  링크 복사
-                </button>
-              </div>
             </section>
+
+            <CostPanel form={form} cost={cost} rows={costRows} summary={costSummary} onTouch={onCostTouch} onChange={setCostPatch} onPrice={setPrice} />
+
+            <div className="flex flex-col gap-3">
+              <Chip size="sm" className="self-start" selected={shareWithPrices} onClick={() => setShareWithPrices((v) => !v)}>
+                링크에 단가 포함
+              </Chip>
+              <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={onPng}
+                className="h-12 rounded-[12px] bg-accent active:bg-accent-press text-white text-[15px] font-semibold"
+              >
+                도면 PNG 저장
+              </button>
+              <button
+                type="button"
+                onClick={onShare}
+                className="h-12 rounded-[12px] border border-v1-line-3 bg-white text-[15px] text-ink font-semibold active:bg-v1-card-soft"
+              >
+                링크 복사
+              </button>
+            </div>
+            </div>
           </div>
         </div>
       </Container>
