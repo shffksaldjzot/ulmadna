@@ -77,7 +77,7 @@ cta: "fridge-cabinet"
 3. 전선 굵기는 **전기 기술자가 확인**(벽 속이라 눈으로 못 봅니다)
 4. 회로가 부족하면 **차단기 증설이나 회로 분리**로 해결
 
-분전반 전체 용량 자체가 부족한 집은 [분전반 차단기 용량 증설 비용](/blog/electrical-panel-breaker-capacity-upgrade-cost)을 같이 보세요.
+분전반 전체 용량 자체가 부족한 집은 [분전반 차단기 용량 증설 비용](/blog/electrical-panel-breaker-upgrade-cost)을 같이 보세요.
 
 ## 분전반에서 냉장고 회로 찾는 법
 

@@ -49,7 +49,7 @@ export async function generateMetadata({
     description: post.description,
     // 비공개(draft) 글은 검색엔진이 수집하지 않도록 막습니다.
     // 주소를 아는 사람은 그대로 볼 수 있지만, 구글 검색 결과에는 안 뜹니다.
-    ...(post.draft ? { robots: { index: false, follow: false } } : {}),
+    ...(post.draft || post.noindex ? { robots: { index: false, follow: false } } : {}),
     alternates: {
       canonical: `${SITE}/blog/${post.slug}`,
       // 글 페이지에서도 RSS 구독 주소를 알림 (layout.tsx 설정이 덮어써지므로 여기도 명시)

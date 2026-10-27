@@ -81,7 +81,7 @@ faq:
 - "새로 들일 가전을 다 켰을 때 총 용량이 괜찮은가요?"
 - "분전반에 남는 회로 자리가 몇 개인가요?"
 
-차단기가 이미 자주 떨어지는 집이라면 원인 진단이 먼저입니다. [차단기 자꾸 떨어짐 원인과 비용](/blog/electrical-panel-breaker-capacity-upgrade-cost)을 참고하세요.
+차단기가 이미 자주 떨어지는 집이라면 원인 진단이 먼저입니다. [차단기 자꾸 떨어짐 원인과 비용](/blog/electrical-panel-breaker-upgrade-cost)을 참고하세요.
 
 ## 후회 ④ 콘센트 증설을 "하나만 더"로 쪼갰다
 

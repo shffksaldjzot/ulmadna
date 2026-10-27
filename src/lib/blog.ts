@@ -42,6 +42,8 @@ export interface PostMeta {
   //        대신 주소(URL)를 직접 아는 사람은 그대로 볼 수 있어요 — 검토용 링크 공유가 목적입니다.
   // 프런트매터에 draft가 없는 기존 글은 전부 false(=평소대로 공개)라 아무 영향이 없습니다.
   draft: boolean;
+  // 검색 제외 글 여부 — 프런트매터에 `noindex: true`. 글은 공개 유지, 검색 수집 금지 표시 + 사이트맵 제외.
+  noindex: boolean;
   // 이 글에 붙일 공정 물량 계산기들 (예: ["wallpaper"] = 도배 물량 계산기). 없으면 빈 배열.
   // 매치되는 계산기가 여럿이면(도배+바닥재 글 등) 전부 담긴다.
   // 프런트매터 `calculator:` 로 직접 정하거나, 없으면 제목·태그 신호 단어로 자동 판정한다.
@@ -113,6 +115,7 @@ function readMeta(file: string): PostMeta {
     tags: Array.isArray(data.tags) ? data.tags : [],
     readingTime: calcReadingTime(content),
     draft: data.draft === true, // 프런트매터에 draft: true 라고 적힌 글만 비공개 처리
+    noindex: data.noindex === true, // 공개 유지 + 검색 제외
     calculator: detectCalculator(data.title ?? slug, Array.isArray(data.tags) ? data.tags : [], data.calculator),
     cta: detectServiceCta(data.title ?? slug, Array.isArray(data.tags) ? data.tags : [], data.cta),
   };
@@ -324,6 +327,7 @@ export async function getPost(slug: string): Promise<Post | null> {
     thumbnail: data.thumbnail ?? null,
     tags: Array.isArray(data.tags) ? data.tags : [],
     draft: data.draft === true, // 비공개(검토용) 글이면 상세 페이지에서 noindex 처리
+    noindex: data.noindex === true, // 공개 유지 + 검색 제외
     calculator: detectCalculator(data.title ?? slug, Array.isArray(data.tags) ? data.tags : [], data.calculator),
     cta: detectServiceCta(data.title ?? slug, Array.isArray(data.tags) ? data.tags : [], data.cta),
     html,
