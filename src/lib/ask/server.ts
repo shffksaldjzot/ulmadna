@@ -65,6 +65,10 @@ export interface AskAnswer {
   basis: AskBasis;
   model: string | null;
   created_at: string;
+  // 글쓴이 읽음·평가(SQL 20261028 실행 전에는 없을 수 있음)
+  author_read_at?: string | null;
+  helpful?: boolean | null;
+  helpful_at?: string | null;
 }
 
 export interface AskComment {
@@ -297,6 +301,20 @@ export async function getLatestAnswer(postId: number): Promise<AskAnswer | null>
   } catch (e) {
     warn('answer', e);
     return null;
+  }
+}
+
+/**
+ * 글쓴이가 답변을 처음 읽은 시각 기록. 이미 적혀 있으면 안 바꾼다(is null 조건).
+ * 칸이 아직 없거나 실패해도 화면엔 영향 없게 조용히 넘어간다.
+ */
+export async function markAuthorRead(answerId: number): Promise<void> {
+  const sb = adminOrNull();
+  if (!sb) return;
+  try {
+    await sb.from('ask_answers').update({ author_read_at: new Date().toISOString() }).eq('id', answerId).is('author_read_at', null);
+  } catch (e) {
+    warn('author_read', e);
   }
 }
 

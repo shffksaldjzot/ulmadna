@@ -16,10 +16,12 @@ import { notFound, permanentRedirect } from 'next/navigation';
 import AskShell from '@/components/ask/AskShell';
 import AskPostActions from '@/components/ask/AskPostActions';
 import AskFeedback from '@/components/ask/AskFeedback';
+import AskAuthorHelpful from '@/components/ask/AskAuthorHelpful';
+import { currentUserId } from '@/lib/ask/session';
 import AskCommentForm from '@/components/ask/AskCommentForm';
 import AskViewPing from '@/components/ask/AskViewPing';
 import { IcBack } from '@/components/ask/icons';
-import { getComments, getLatestAnswer, getPostById, helpfulCount, maskedPhotoUrl, similarPosts } from '@/lib/ask/server';
+import { getComments, getLatestAnswer, getPostById, helpfulCount, markAuthorRead, maskedPhotoUrl, similarPosts } from '@/lib/ask/server';
 import { renderAnswerMarkdown } from '@/lib/ask/markdown';
 import { blogPostRef, blogPostsForTrades } from '@/lib/ask/blogref';
 import { TRADE_CALC, categoryLabel, titleWithCategory } from '@/lib/ask/constants';
@@ -105,6 +107,10 @@ export default async function AskPostPage({ params }: { params: Promise<{ slug: 
   if (slug !== post.slug) permanentRedirect(askHref(post.slug));
 
   const answer = await loadAnswer(post.id);
+  // 글쓴이 본인(로그인) 여부: 본인이 답변 있는 글을 열면 읽은 시각을 서버에 기록(화면 변화 없음)
+  const uid = await currentUserId().catch(() => null);
+  const isAuthor = !!uid && uid === post.user_id;
+  if (isAuthor && answer && !answer.author_read_at) await markAuthorRead(answer.id);
   const [comments, similar, helpful, answerHtml] = await Promise.all([
     getComments(post.id),
     similarPosts(post, 5),
@@ -269,6 +275,8 @@ export default async function AskPostPage({ params }: { params: Promise<{ slug: 
                 </div>
               )}
               <AskFeedback answerId={answer.id} helpful={helpful} />
+              {/* 글쓴이 본인에게만 보이는 도움됐어요/아쉬워요 */}
+              {isAuthor && <AskAuthorHelpful answerId={answer.id} initial={answer.helpful ?? null} />}
             </div>
           </section>
         ) : (
