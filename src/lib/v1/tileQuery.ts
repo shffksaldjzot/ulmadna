@@ -17,6 +17,7 @@ import type {
   TileKind,
   TileMethod,
   TilePattern,
+  TileRange,
   TileScope,
   TileService,
   TileSetting,
@@ -30,6 +31,8 @@ export interface TileFormState {
 
   // ── 간단 모드 첫 단계 ──
   scope?: TileScope;
+  /** 간단 모드 범위(전체·바닥만·벽만) — 욕실 1칸만 셋 중 고른다, 다른 공간은 하나뿐 */
+  range?: TileRange;
 
   // ── 정확 모드 첫 두 단계(공간·치수 — 치수는 항상 mm로 저장) ──
   space?: TileSpace;

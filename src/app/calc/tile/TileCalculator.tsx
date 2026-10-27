@@ -10,6 +10,11 @@
 //   — 기본값이 이미 좋은 값이라 "좁히기" 자리에 둔다(도배·바닥재와 같은 규칙)
 //   등급(보급·중급·고급)은 결과 카드 맨 위 3단 칸을 눌러 바꾼다
 //
+// 2026-10-28 정리(형아 승인): "일반인이 모르는 걸 묻는다" 문제 해결 —
+//   간단 — [공간 → 범위(전체·바닥만·벽만, 공간에 맞는 것만) → 등급(가성비·중급·고급)] 3단, 고르면 바로 결과.
+//          타일 종류·크기는 등급별 기본값(tilePresets.gradeTileDefault)으로 정한다.
+//   정확 — [공간 → 치수 → 타일(종류+크기)] 3단. 전문 칩(공법·시공·기존·패턴·줄눈·방수 등)은 맨 뒤 "세부 조정"에 접는다(기본 접힘).
+//
 // 모바일에선 입력하는 동안 금액 범위를 화면 위(제목줄 아래)에 고정해 보여 준다.
 // 매인 관계: 공간을 바꾸면 그 면에 못 쓰는 종류·규격·공법은 값과 손댐 표시를 함께 되돌린다.
 //
@@ -27,12 +32,18 @@ import { useSearchParams } from 'next/navigation';
 import TopNav from '@/components/v1/TopNav';
 import Segment from '@/components/v1/Segment';
 import Chip from '@/components/v1/Chip';
+import Collapsible from '@/components/v1/Collapsible';
 import ChipGroup from '@/components/v1/ChipGroup';
 import { DEFAULT_TILE_FORM, decodeTileForm, type TileFormState } from '@/lib/v1/tileQuery';
-import { sanitizeTileForm, dimsComplete, kindAllowed, sizeAllowed, surfaceOf } from '@/lib/v1/tileEngineInput';
+import { sanitizeTileForm, dimsComplete, kindAllowed, sizeAllowed, surfaceOf, simpleRangeOf } from '@/lib/v1/tileEngineInput';
 import { useTileCalc } from '@/lib/v1/useTileCalc';
 import {
   TILE_SCOPES,
+  TILE_RANGE_LABEL,
+  SIMPLE_GRADE_LABEL,
+  rangeOptionsFor,
+  gradeAreaOf,
+  gradeTileDefault,
   TILE_SPACES,
   TILE_PATTERNS,
   TILE_PYEONG_CHIPS,
@@ -71,9 +82,9 @@ import ModePicker, { type CalcViewMode } from '../_components/ModePicker';
 import TileDims from './TileDims';
 import ResultPanel from './ResultPanel';
 
-/** 새로 고침 복원 열쇠·판 번호(2026-10-08 폼 모양이 바뀌어 2로 올림 — 옛 저장값은 버린다) */
+/** 새로 고침 복원 열쇠·판 번호(2026-10-28 간단 단계가 바뀌어 3으로 올림 — 옛 저장값은 버린다) */
 const SESSION_KEY = 'calc:tile:v1';
-const SESSION_VERSION = 2;
+const SESSION_VERSION = 3;
 /** 뒤로 가기 스택에서 이 계산기 몫을 구분하는 값 */
 const CALC_ID = 'tile';
 
@@ -145,19 +156,19 @@ export default function TileCalculator() {
   const rec = recommendSetting(mainSurface, effectiveKind);
 
   // ── 단계 완료 판정(값 검증만 — 손댐은 useFlowSteps가 따로 본다) ──
+  const rangeOpts = rangeOptionsFor(form.scope);
+  const tileValid = kindAllowed(form) && sizeAllowed(form);
   const stepDefs =
     view === 'simple'
       ? [
           { key: 'space', valid: !!form.scope },
-          { key: 'kind', valid: kindAllowed(form) },
-          { key: 'size', valid: sizeAllowed(form) },
+          { key: 'range', valid: !!form.scope && !!form.range && rangeOpts.includes(form.range) },
+          { key: 'grade', valid: !!form.grade },
         ]
       : [
           { key: 'pspace', valid: !!form.space },
           { key: 'dims', valid: dimsComplete(form) },
-          { key: 'kind', valid: kindAllowed(form) },
-          { key: 'size', valid: sizeAllowed(form) },
-          { key: 'setting', valid: !!form.setting },
+          { key: 'tile', valid: tileValid },
         ];
 
   const { activeIndex, allDone, completeFlags, touchedMap, touch, resetTouched } = useFlowSteps({
@@ -189,7 +200,7 @@ export default function TileCalculator() {
   }, []);
 
   // 떠날 때(탭 닫기·다른 페이지) 어느 단계에 있었는지 1번 — 어디서 많이 그만두는지 보려고
-  const steps = view === 'simple' ? 3 : 5;
+  const steps = 3;
   const leaveRef = useRef({ mode: 'picker', step: '', stepNo: 0, done: false, hasResult: false });
   const leaveStep = stepDefs[Math.min(activeIndex, stepDefs.length - 1)]?.key ?? '';
   const leaveMode = !modeChosen ? 'picker' : view === 'precise' ? 'precise' : 'quick';
@@ -220,19 +231,29 @@ export default function TileCalculator() {
   }, []);
 
   // ── 손잡이 ──
-  /** 간단 공간 고르기 — 면이 바뀌어 못 쓰는 종류·규격이 되면 되돌린다, 공법(철거/덧방)은 공간 기본값으로 */
+  /** 간단 공간 고르기 — 범위는 그 공간에 맞게 되돌린다(선택지가 하나뿐이면 자동으로 고른다), 공법은 공간 기본값으로 */
   function selectScope(s: TileScope) {
     if (s !== form.scope) {
+      const opts = rangeOptionsFor(s);
       const next: Partial<TileFormState> = { scope: s, method: undefined };
-      const allowed = kindOptionsFor(scopeSurface(s));
-      if (form.tileKind && !allowed.includes(form.tileKind)) {
-        next.tileKind = undefined;
-        next.sizeCode = undefined;
-        resetTouched(['kind', 'size']);
+      if (opts.length === 1) {
+        next.range = opts[0];
+        touch('range');
+      } else {
+        next.range = undefined;
+        resetTouched(['range']);
       }
       patch(next);
     }
     touch('space');
+  }
+  function selectRange(r: 'all' | 'floor' | 'wall') {
+    patch({ range: r, method: undefined });
+    touch('range');
+  }
+  function selectGrade(g: TileGrade) {
+    patch({ grade: g });
+    touch('grade');
   }
   /** 정확 공간 고르기 — 면이 바뀌면 종류(못 쓰면)·공법을 되돌린다 */
   function selectSpace(s: TileSpace) {
@@ -243,12 +264,9 @@ export default function TileCalculator() {
       if (form.tileKind && !kindOptionsFor(newSurface).includes(form.tileKind)) {
         next.tileKind = undefined;
         next.sizeCode = undefined;
-        resetTouched(['kind', 'size']);
+        resetTouched(['tile']);
       }
-      if (oldSurface !== newSurface && form.setting) {
-        next.setting = undefined;
-        resetTouched(['setting']);
-      }
+      if (oldSurface !== newSurface && form.setting) next.setting = undefined;
       patch(next);
     }
     touch('pspace');
@@ -258,18 +276,16 @@ export default function TileCalculator() {
     const next: Partial<TileFormState> = { tileKind: k };
     if (form.sizeCode && !sizeOptionsForKind(k).includes(form.sizeCode)) {
       next.sizeCode = undefined;
-      resetTouched(['size']);
     }
     patch(next);
-    touch('kind');
+    touch('tile');
   }
   function selectSize(code: string) {
     patch({ sizeCode: code });
-    touch('size');
+    touch('tile');
   }
   function selectSetting(s: TileSetting) {
     patch({ setting: s });
-    touch('setting');
   }
   function changeGrade(g: TileGrade) {
     patch({ grade: g });
@@ -291,12 +307,7 @@ export default function TileCalculator() {
   );
 
   /** 규격 칩 + 캡션 1줄(욕실 간단은 바닥 규격도) */
-  const sizeCaptionText = (() => {
-    const code = sizeAllowed(form) ? form.sizeCode : undefined;
-    if (!code) return null;
-    const base = sizeCaption(code);
-    return view === 'simple' && isBathScope(form.scope) ? `${base} · 바닥 ${findTileSize(bathFloorCodeFor(code))?.label}` : base;
-  })();
+  const sizeCaptionText = sizeAllowed(form) && form.sizeCode ? sizeCaption(form.sizeCode) : null;
   const sizeStep = (
     <div className="flex flex-col gap-2">
       <ChipGroup role="radiogroup" ariaLabel="타일 크기" className="flex flex-wrap gap-2">
@@ -309,6 +320,14 @@ export default function TileCalculator() {
       {sizeCaptionText && <p className="t-sub text-ink-2">{sizeCaptionText}</p>}
     </div>
   );
+
+  // 등급 기본 타일 한 줄 설명(예: "도기질 300×600") — 고른 등급이 어떤 타일인지만 보여 준다
+  const gradeArea = form.scope ? gradeAreaOf(form.scope, simpleRangeOf(form)) : null;
+  const gradeCaption = (g: TileGrade) => {
+    if (!gradeArea) return '';
+    const t = gradeTileDefault(g, gradeArea);
+    return `${kindLabel(t.kind)} ${findTileSize(t.size)?.label ?? ''}`;
+  };
 
   const simpleSteps: FlowStepDef[] = [
     {
@@ -325,8 +344,39 @@ export default function TileCalculator() {
         </ChipGroup>
       ),
     },
-    { key: 'kind', title: '타일 종류', valid: kindAllowed(form), content: kindStep },
-    { key: 'size', title: '규격', valid: sizeAllowed(form), content: sizeStep },
+    {
+      key: 'range',
+      title: '범위',
+      valid: !!form.scope && !!form.range && rangeOpts.includes(form.range),
+      content: !form.scope ? (
+        <p className="t-sub text-ink-2">공간을 먼저 골라 주세요</p>
+      ) : (
+        <ChipGroup role="radiogroup" ariaLabel="범위" className="flex flex-wrap gap-2">
+          {rangeOpts.map((r) => (
+            <Chip key={r} asRadio selected={simpleRangeOf(form) === r && !!form.range} onClick={() => selectRange(r)}>
+              {TILE_RANGE_LABEL[r]}
+            </Chip>
+          ))}
+        </ChipGroup>
+      ),
+    },
+    {
+      key: 'grade',
+      title: '등급',
+      valid: !!form.grade,
+      content: (
+        <div className="flex flex-col gap-2">
+          <ChipGroup role="radiogroup" ariaLabel="등급" className="flex flex-wrap gap-2">
+            {(['basic', 'mid', 'high'] as const).map((g) => (
+              <Chip key={g} asRadio selected={form.grade === g} onClick={() => selectGrade(g)}>
+                {SIMPLE_GRADE_LABEL[g]}
+              </Chip>
+            ))}
+          </ChipGroup>
+          {form.grade && <p className="t-sub text-ink-2">{gradeCaption(form.grade)}</p>}
+        </div>
+      ),
+    },
   ];
 
   const preciseSteps: FlowStepDef[] = [
@@ -362,23 +412,14 @@ export default function TileCalculator() {
         <p className="t-sub text-ink-2">공간을 먼저 골라 주세요</p>
       ),
     },
-    { key: 'kind', title: '타일 종류', valid: kindAllowed(form), content: kindStep },
-    { key: 'size', title: '크기', valid: sizeAllowed(form), content: sizeStep },
     {
-      key: 'setting',
-      title: '공법',
-      valid: !!form.setting,
+      key: 'tile',
+      title: '타일',
+      valid: tileValid,
       content: (
-        <div className="flex flex-col gap-2">
-          <ChipGroup role="radiogroup" ariaLabel="붙임 공법" className="flex flex-wrap gap-2">
-            {TILE_SETTINGS.map((o) => (
-              <Chip key={o.value} asRadio selected={form.setting === o.value} onClick={() => selectSetting(o.value)}>
-                {o.label}
-                {o.value === rec.setting && <span className="ml-1 text-[12px] font-normal opacity-80">추천</span>}
-              </Chip>
-            ))}
-          </ChipGroup>
-          <p className="t-sub text-ink-2">{rec.reason}</p>
+        <div className="flex flex-col gap-3">
+          {kindStep}
+          {sizeStep}
         </div>
       ),
     },
@@ -406,6 +447,23 @@ export default function TileCalculator() {
       ),
     },
   ];
+  // 붙임 공법 — 정확 모드에서 예전엔 단계였지만 추천값이 이미 좋아 세부 조정으로 옮겼다
+  if (view === 'precise') {
+    adjustGroups.unshift({
+      key: 'setting',
+      label: '공법',
+      children: (
+        <>
+          {TILE_SETTINGS.map((o) => (
+            <Chip key={o.value} shape="square" asRadio selected={(form.setting ?? rec.setting) === o.value} onClick={() => selectSetting(o.value)}>
+              {o.label}
+              {o.value === rec.setting && <span className="ml-1 text-[12px] font-normal opacity-80">추천</span>}
+            </Chip>
+          ))}
+        </>
+      ),
+    });
+  }
   if (service === 'pro') {
     adjustGroups.push({
       key: 'method',
@@ -502,7 +560,7 @@ export default function TileCalculator() {
     });
   }
 
-  const emptyMessage = '공간을 고르면 바로 나와요';
+  const emptyMessage = view === 'simple' ? '공간·범위·등급을 고르면 바로 나와요' : '공간을 고르면 바로 나와요';
   const currentStepTitle = flowSteps[Math.min(activeIndex, flowSteps.length - 1)]?.title ?? '';
 
   // 금액 한 줄 — 맡김이면 총액, 셀프면 박스 수
@@ -580,7 +638,16 @@ export default function TileCalculator() {
             emptyMessage={emptyMessage}
             dimsAssumed={dimsAssumed}
             onGradeChange={changeGrade}
-            adjust={<AdjustChips visible={!!result} groups={adjustGroups} />}
+            adjust={
+              result ? (
+                // 전문 칩은 한 칸에 접어 둔다(기본 접힘) — 펼침은 calc_detail_open으로 센다
+                <Collapsible title="세부 조정" onOpen={() => track('calc_detail_open', { process: 'tile', section: 'adjust' })}>
+                  <div className="pt-2 pb-1">
+                    <AdjustChips visible groups={adjustGroups} />
+                  </div>
+                </Collapsible>
+              ) : null
+            }
           />
         </div>
       </div>

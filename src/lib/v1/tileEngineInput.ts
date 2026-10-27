@@ -20,7 +20,10 @@ import {
   bathFloorCodeFor,
   defaultDimPresetFor,
   findTileSize,
+  gradeAreaOf,
+  gradeTileDefault,
   isBathScope,
+  rangeOptionsFor,
   kindOptionsFor,
   scopeSurface,
   sizeOptionsForKind,
@@ -40,6 +43,7 @@ import {
   type TileGroutType,
   type TileKind,
   type TileMethod,
+  type TileRange,
   type TilePattern,
   type TileScope,
   type TileService,
@@ -107,6 +111,13 @@ export function sizeAllowed(form: TileFormState): boolean {
   return form.tileKind ? sizeOptionsForKind(form.tileKind).includes(form.sizeCode) : true;
 }
 
+/** 간단 모드 범위 — 저장된 값이 그 공간에 맞으면 그대로, 아니면 공간의 첫 범위 */
+export function simpleRangeOf(form: TileFormState): TileRange | undefined {
+  const opts = rangeOptionsFor(form.scope);
+  if (opts.length === 0) return undefined;
+  return form.range && opts.includes(form.range) ? form.range : opts[0];
+}
+
 /** 규격 코드 → 요청 타일 */
 function tileOf(code: string | undefined) {
   const s = findTileSize(code);
@@ -148,24 +159,40 @@ export function buildTileRequestFull(form: TileFormState): BuiltTileRequest | nu
 
   if ((form.view ?? 'simple') === 'simple') {
     if (!form.scope) return null;
+    const range = simpleRangeOf(form);
+    // 2026-10-28 간단 모드 개편: 타일 종류·규격은 묻지 않고 등급(기본 중급)별 기본값으로 정한다
+    const gradeTile = gradeTileDefault(form.grade ?? 'mid', gradeAreaOf(form.scope, range));
+    // 욕실 1칸 "바닥만/벽만" — 계산 공식은 그대로, 정확 모드의 욕실 바닥/벽(기본 치수) 요청을 쓴다
+    if (form.scope === 'bath1' && range !== 'all') {
+      const sub = buildTileRequestFull({
+        ...form,
+        view: 'precise',
+        space: range === 'floor' ? 'bathFloor' : 'bathWall',
+        widthMm: undefined,
+        depthMm: undefined,
+        heightMm: undefined,
+        setting: undefined,
+        tileKind: gradeTile.kind,
+        sizeCode: gradeTile.size,
+      });
+      return sub ? { request: sub.request, dimsAssumed: false } : null;
+    }
     const surface = scopeSurface(form.scope);
     const bath = isBathScope(form.scope);
     const req: TileCalcRequest = {
       mode: 'simple',
       scope: form.scope,
       ...conditionsOf(form, surface),
-      ...(kind ? { tileKind: kind } : {}),
+      tileKind: gradeTile.kind,
       ...(!bath && inRange(form.pyeong, TILE_PYEONG_MIN, TILE_PYEONG_MAX) ? { pyeong: form.pyeong } : {}),
     };
-    if (size) {
-      if (bath) {
-        req.wallTile = tileOf(size);
-        req.floorTile = tileOf(bathFloorCodeFor(size));
-      } else if (surface === 'wall') {
-        req.wallTile = tileOf(size);
-      } else {
-        req.floorTile = tileOf(size);
-      }
+    if (bath) {
+      req.wallTile = tileOf(gradeTile.size);
+      req.floorTile = tileOf(bathFloorCodeFor(gradeTile.size));
+    } else if (surface === 'wall') {
+      req.wallTile = tileOf(gradeTile.size);
+    } else {
+      req.floorTile = tileOf(gradeTile.size);
     }
     return { request: req, dimsAssumed: false };
   }
@@ -261,6 +288,7 @@ export function sanitizeTileForm(raw: unknown): TileFormState {
   return {
     view,
     scope: pick<TileScope>(f.scope, SCOPES),
+    range: pick<TileRange>(f.range, ['all', 'floor', 'wall']),
     space: pick<TileSpace>(f.space, SPACES) ?? legacy.space,
     widthMm: finite(f.widthMm, 100000) ?? legacy.widthMm,
     depthMm: finite(f.depthMm, 100000) ?? legacy.depthMm,
