@@ -53,7 +53,29 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(mkdir -p \"/c/Users/addmim/Desktop/도토리스튜디오/4.인테리어/ulmadna/.claude/skills\")",
-      "Bash(curl -sL \"https://raw.githubusercontent.com/Leonxlnx/taste-skill/main/skills/taste-skill/SKILL.md\" -o \"/c/Users/addmim/Desktop/도토리스튜디오/4.인테리어/ulmadna/.claude/skills/taste-skill.md\")"
+      "Bash(curl -sL \"https://raw.githubusercontent.com/Leonxlnx/taste-skill/main/skills/taste-skill/SKILL.md\" -o \"/c/Users/addmim/Desktop/도토리스튜디오/4.인테리어/ulmadna/.claude/skills/taste-skill.md\")",
+      "WebFetch(domain:www.jkiaebs.org)",
+      "Bash(pip install:*)",
+      "Bash(python3 -c ':*)",
+      "Bash(python -c ':*)",
+      "Bash(npm list:*)",
+      "Bash(npx pdf-parse:*)",
+      "WebFetch(domain:www.hyundailivart.co.kr)",
+      "WebFetch(domain:blog.daum.net)",
+      "WebFetch(domain:sashlab.co.kr)",
+      "WebFetch(domain:ykenc.com)",
+      "WebFetch(domain:outputf.com)",
+      "WebFetch(domain:casalight.co.kr)",
+      "WebFetch(domain:sigongplus.com)",
+      "WebFetch(domain:m.ppomppu.co.kr)",
+      "WebFetch(domain:www.theliving.co.kr)",
+      "WebFetch(domain:www.manzlab.com)",
+      "WebFetch(domain:www.kccworld.co.kr)",
+      "WebFetch(domain:mahru.co.kr)",
+      "WebFetch(domain:www.drcody.kr)",
+      "Bash(curl -s http://localhost:3333/v3)",
+      "Bash(npx tsx -e ':*)",
+      "Bash(npx tsx:*)"
     ]
   }
 }

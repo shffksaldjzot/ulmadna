@@ -113,10 +113,10 @@ export default function ResultBody({ result, dim = false, dimsAssumed = false, o
   const tips = savingTips(result);
   const mistakes = commonMistakes(result);
   const boxesText = [q.wall ? `벽 ${formatNum(q.wall.boxes)}` : null, q.floor ? `바닥 ${formatNum(q.floor.boxes)}` : null].filter(Boolean).join(' · ');
-  // 간단 모드 머리글 — 욕실 전체는 "욕실 1칸 세트"(철거·방수·타일·줄눈 등 합), 그 밖은 "시공 총액"
+  // 간단 모드 머리글 — 욕실 전체는 "욕실 1칸 타일 공사"(도기·설비 제외 — 세트로 쓰면 욕실 전체 공사로 오해, 2026-10-28 실제 견적 대조 뒤 변경)(철거·방수·타일·줄눈 등 합), 그 밖은 "시공 총액"
   const place = placeLabel(result);
   const bathAll = result.resolved.scope === 'bath1' || result.resolved.scope === 'bath2';
-  const simpleTitle = bathAll ? `${place} 세트` : `${place} 시공 총액`;
+  const simpleTitle = bathAll ? `${place} 타일 공사` : `${place} 시공 총액`;
   // 보조 줄 — 면적(㎡)과 박스 수
   const simpleSub = [q.wall ? `벽 ${formatNum(q.wall.netSqm)}㎡ · ${formatNum(q.wall.boxes)}박스` : null, q.floor ? `바닥 ${formatNum(q.floor.netSqm)}㎡ · ${formatNum(q.floor.boxes)}박스` : null]
     .filter(Boolean)
