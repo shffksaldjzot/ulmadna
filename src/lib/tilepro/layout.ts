@@ -62,6 +62,11 @@ export interface PlacedTile {
   ratio: number;
   /** 잘라야 하는 타일이면 true */
   cut: boolean;
+  /**
+   * 컷 조각이 반듯한 직사각형이면 그 가로·세로(mm). 같은 치수 자투리 재사용 계산에 쓴다.
+   * 대각 패턴·ㄱ자 안쪽 모서리처럼 모양이 꺾인 조각은 없음(undefined) — 새 타일 1장으로 센다.
+   */
+  piece?: { w: number; h: number };
 }
 
 /** 배치 계산 결과 */
@@ -150,13 +155,15 @@ export function layoutTiles(input: LayoutInput): LayoutResult {
       if (x + tile.w <= rb.x || x >= rb.x + rb.w) continue;
       // 4) 이 타일과 구역이 겹치는 넓이 − 구멍과 겹치는 넓이
       const tp = rectToPts({ x, y, w: tile.w, h: tile.h });
-      let covered = polygonArea(clipPolygon(region, tp));
+      const inRegion = clipPolygon(region, tp);
+      let covered = polygonArea(inRegion);
       if (covered <= 0) continue;
       for (const hp of holesRot) covered -= polygonArea(clipPolygon(hp, tp));
       const ratio = Math.min(covered / tileArea, 1);
       if (ratio < MIN_RATIO) continue;
       const isCut = ratio < FULL_RATIO;
-      tiles.push({ x, y, ratio, cut: isCut });
+      const piece = isCut && angle === 0 ? rectPiece(inRegion, holes, covered) : undefined;
+      tiles.push(piece ? { x, y, ratio, cut: isCut, piece } : { x, y, ratio, cut: isCut });
       if (isCut) cut++;
       else full++;
       if (tiles.length >= MAX_TILES) {
@@ -170,7 +177,80 @@ export function layoutTiles(input: LayoutInput): LayoutResult {
 }
 
 /**
- * 컷 장을 만들려면 타일이 몇 장 필요한지.
+ * 컷 조각이 반듯한 직사각형인지 보고, 맞으면 가로·세로를 돌려준다(대각이 아닐 때만 부른다).
+ *   1) 타일 ∩ 구역이 직사각형인지(넓이 = 감싸는 사각형 넓이)
+ *   2) 문·창 구멍이 걸치면, 구멍이 조각의 한쪽 끝을 통째로(가로 전체 또는 세로 전체) 잘라 낼 때만
+ *      남는 부분이 직사각형이다 — 문틀 옆 세로 띠 같은 경우. 그 밖에는 꺾인 조각으로 본다.
+ */
+function rectPiece(inRegion: Pt[], holes: Rect[], covered: number): { w: number; h: number } | undefined {
+  const b = bbox(inRegion);
+  if (Math.abs(polygonArea(inRegion) - b.w * b.h) > b.w * b.h * 0.002) return undefined;
+  let r = { ...b };
+  const E = 0.5; // mm 오차 허용
+  for (const h of holes) {
+    // 구멍과 조각 사각형이 겹치는 사각형
+    const ix = Math.max(r.x, h.x);
+    const iy = Math.max(r.y, h.y);
+    const iw = Math.min(r.x + r.w, h.x + h.w) - ix;
+    const ih = Math.min(r.y + r.h, h.y + h.h) - iy;
+    if (iw <= E || ih <= E) continue;
+    if (ih >= r.h - E && ix <= r.x + E) r = { x: ix + iw, y: r.y, w: r.w - iw, h: r.h }; // 왼쪽 띠를 잘라 냄
+    else if (ih >= r.h - E && ix + iw >= r.x + r.w - E) r = { ...r, w: r.w - iw }; // 오른쪽 띠
+    else if (iw >= r.w - E && iy <= r.y + E) r = { x: r.x, y: iy + ih, w: r.w, h: r.h - ih }; // 위쪽 띠
+    else if (iw >= r.w - E && iy + ih >= r.y + r.h - E) r = { ...r, h: r.h - ih }; // 아래쪽 띠
+    else return undefined; // 구멍이 가운데를 파먹음 — 꺾인 조각
+  }
+  if (Math.abs(r.w * r.h - covered) > Math.max(r.w * r.h * 0.002, 1)) return undefined;
+  return { w: r.w, h: r.h };
+}
+
+/** 자투리 재사용 방식 — 안 씀 / 같은 치수(실제로 들어맞을 때만) / 넓이 기준(낙관) */
+export type ReuseMode = 'off' | 'fit' | 'area';
+
+/** 자를 때 날아가는 몫(mm) — 타일 커터·그라인더 날 두께 */
+export const KERF_MM = 3;
+
+/**
+ * 같은 치수 자투리 재사용 — 컷 조각을 실제 가로·세로로 맞춰 본다(회전 없이, 무늬 방향 유지).
+ * 타일 한 장에서 조각을 자르면 남는 띠(같은 높이면 가로로 남고, 같은 폭이면 세로로 남음)를
+ * 보관해 두었다가, 다음 조각이 그 띠 안에 들어가면 새 타일 대신 그 띠에서 자른다.
+ * 예: 양끝 가장자리 띠 2개(각 294×300)는 600×300 한 장에서 나온다(294+3+294 ≤ 600).
+ * 모양이 꺾인 조각(piece 없음)은 늘 새 타일 1장.
+ * 큰 조각부터 채운다(먼저 큰 자리를 잡아야 남는 띠를 잘 쓴다).
+ */
+export function tilesForCutsFit(pieces: ({ w: number; h: number } | undefined)[], tile: { w: number; h: number }): number {
+  const odd = pieces.filter((p) => !p).length; // 꺾인 조각 수
+  const rects = pieces.filter((p): p is { w: number; h: number } => !!p).sort((a, b) => b.w * b.h - a.w * a.h);
+  const left: { w: number; h: number }[] = []; // 보관 중인 남은 띠
+  let used = 0;
+  /** 사각형 s 에서 조각 p 를 잘라 내고 남는 쓸 만한 띠(없으면 null) */
+  const remainder = (s: { w: number; h: number }, p: { w: number; h: number }) => {
+    const E = 0.5;
+    if (p.h >= s.h - E) return s.w - p.w - KERF_MM > 10 ? { w: s.w - p.w - KERF_MM, h: s.h } : null; // 높이 같음 → 가로로 남음
+    if (p.w >= s.w - E) return s.h - p.h - KERF_MM > 10 ? { w: s.w, h: s.h - p.h - KERF_MM } : null; // 폭 같음 → 세로로 남음
+    // 두 번 잘라야 하는 모서리 조각 — 더 큰 쪽 띠 하나만 남긴다
+    const a = { w: s.w - p.w - KERF_MM, h: s.h };
+    const b = { w: s.w, h: s.h - p.h - KERF_MM };
+    const best = a.w * a.h >= b.w * b.h ? a : b;
+    return best.w > 10 && best.h > 10 ? best : null;
+  };
+  for (const p of rects) {
+    const i = left.findIndex((s) => s.w >= p.w - 0.5 && s.h >= p.h - 0.5);
+    if (i >= 0) {
+      const rest = remainder(left[i], p);
+      if (rest) left[i] = rest;
+      else left.splice(i, 1);
+    } else {
+      used++;
+      const rest = remainder(tile, p);
+      if (rest) left.push(rest);
+    }
+  }
+  return used + odd;
+}
+
+/**
+ * (넓이 기준) 컷 장을 만들려면 타일이 몇 장 필요한지.
  * reuse=false — 컷 자리마다 새 타일 1장(가장 넉넉한 셈).
  * reuse=true  — 자르고 남은 조각이 다른 컷 자리에 들어갈 만큼 크면 그 조각을 쓴다
  *               (큰 조각부터 채우는 방식, 칼날 여유로 조각마다 1%를 더 잡는다).

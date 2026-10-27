@@ -9,7 +9,7 @@
 // ──────────────────────────────────────────────
 
 import { DEFAULT_SHAPE, MAX_SIDE_MM, clampMm, type FreeWall, type NotchCorner, type Opening, type ShapeInput } from '@/components/plan/geometry';
-import type { TileOrigin, TilePattern } from './layout';
+import type { ReuseMode, TileOrigin, TilePattern } from './layout';
 
 /** 바닥 / 벽 */
 export type TileSurface = 'floor' | 'wall';
@@ -36,8 +36,8 @@ export interface TileProForm {
   perBox: number;
   pattern: TilePattern;
   origin: TileOrigin;
-  /** 자투리 재사용 */
-  reuse: boolean;
+  /** 자투리 재사용 — 안 씀 / 같은 치수(기본) / 넓이 기준 */
+  reuse: ReuseMode;
   /** 파손 여유(%) */
   spare: number;
   adhesive: AdhesiveKind;
@@ -56,9 +56,10 @@ export const DEFAULT_TILE_PRO: TileProForm = {
   thick: 9,
   perBox: 8,
   pattern: 'straight',
-  origin: 'center',
-  // 자투리 재사용은 기본 끔 — 주문이 모자라는 쪽이 남는 쪽보다 현장에서 더 곤란해서(켜면 넓이로만 맞춰 보는 낙관값)
-  reuse: false,
+  // 2026-10-28 검수: 가운데 시작은 양쪽 끝이 다 잘려 기본 예시 로스가 98%로 보였다 → 기본은 모서리
+  origin: 'corner',
+  // 자투리는 "같은 치수"(조각이 실제로 들어맞을 때만)가 기본. 넓이로만 맞춰 보는 낙관값은 골라야 켜진다
+  reuse: 'fit',
   spare: 3,
   adhesive: 'cement',
 };
@@ -87,6 +88,13 @@ export const PATTERN_OPTIONS: { value: TilePattern; label: string }[] = [
 export const ORIGIN_OPTIONS: { value: TileOrigin; label: string }[] = [
   { value: 'center', label: '가운데' },
   { value: 'corner', label: '모서리' }, // 바닥=왼쪽 위, 벽=왼쪽 아래(바닥선)
+];
+
+/** 자투리 칩 */
+export const REUSE_OPTIONS: { value: ReuseMode; label: string }[] = [
+  { value: 'off', label: '안 씀' },
+  { value: 'fit', label: '같은 치수' },
+  { value: 'area', label: '넓이 기준' },
 ];
 
 /** 접착 방식 칩 */
@@ -160,7 +168,8 @@ export function sanitizeTileProForm(v: unknown): TileProForm {
     perBox: clampMm(o.perBox, 1, 200, d.perBox),
     pattern: pick(o.pattern, ['straight', 'half', 'third', 'diagonal'] as const, d.pattern),
     origin: pick(o.origin, ['center', 'corner'] as const, d.origin),
-    reuse: typeof o.reuse === 'boolean' ? o.reuse : d.reuse,
+    // 예전 켬/끔(true/false) 값도 받아 준다
+    reuse: o.reuse === true ? 'area' : o.reuse === false ? 'off' : pick(o.reuse, ['off', 'fit', 'area'] as const, d.reuse),
     spare: clampHalf(o.spare, 0, 30, d.spare),
     adhesive: pick(o.adhesive, ['cement', 'bond', 'mortar'] as const, d.adhesive),
   };

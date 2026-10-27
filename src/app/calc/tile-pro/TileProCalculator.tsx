@@ -41,6 +41,7 @@ import {
   ORIGIN_OPTIONS,
   PATTERN_OPTIONS,
   PRO_TILE_SIZES,
+  REUSE_OPTIONS,
   decodeTileProForm,
   encodeTileProForm,
   type TileProForm,
@@ -207,8 +208,8 @@ export default function TileProCalculator() {
                 { value: 'wall' as const, label: '벽' },
               ]}
               value={form.surface}
-              // 면을 바꾸면 시작 기준도 현장 관행으로 — 바닥은 가운데, 벽은 바닥선 모서리
-              onChange={(surface) => set({ surface, origin: surface === 'wall' ? 'corner' : 'center' })}
+              // 벽으로 바꾸면 시작 기준은 바닥선 모서리(현장 관행)로 맞춘다. 바닥은 고른 값 그대로
+              onChange={(surface) => set(surface === 'wall' ? { surface, origin: 'corner' } : { surface })}
             />
 
             {/* 벽 모드: 평면 / 벽 N 고르기 */}
@@ -362,11 +363,16 @@ export default function TileProCalculator() {
                 </ChipGroup>
               </div>
 
-              <ChipGroup role="group" ariaLabel="자투리" className="flex">
-                <Chip size="sm" selected={form.reuse} onClick={() => set({ reuse: !form.reuse })}>
-                  자투리 재사용 {form.reuse ? '켬' : '끔'}
-                </Chip>
-              </ChipGroup>
+              <div className="flex flex-col gap-2">
+                <span className="t-sub text-ink-2">자투리 재사용</span>
+                <ChipGroup role="radiogroup" ariaLabel="자투리 재사용" className="flex gap-2 flex-wrap">
+                  {REUSE_OPTIONS.map((o) => (
+                    <Chip key={o.value} size="sm" asRadio selected={form.reuse === o.value} onClick={() => set({ reuse: o.value })}>
+                      {o.label}
+                    </Chip>
+                  ))}
+                </ChipGroup>
+              </div>
             </Section>
 
             {/* ── 물량표(결과 카드 하나) ── */}
@@ -382,7 +388,7 @@ export default function TileProCalculator() {
                   {[
                     ['시공 면적', `${n2(result.netSqm)}㎡`],
                     ['온장', `${n0(result.full)}장`],
-                    ['컷 자리', `${n0(result.cut)}곳 → 타일 ${n0(result.cutTiles)}장${form.reuse ? ' (자투리 재사용)' : ''}`],
+                    ['컷 자리', `${n0(result.cut)}곳 → 타일 ${n0(result.cutTiles)}장${form.reuse !== 'off' ? ` (자투리 ${REUSE_OPTIONS.find((o) => o.value === form.reuse)?.label})` : ''}`],
                     ['파손 여유', `${n0(result.spareTiles)}장 (${form.spare}%)`],
                     ['로스율', `${n1(result.lossPct)}%`],
                     ['박스', `${n0(result.boxes)}박스 (박스당 ${form.perBox}장)`],
@@ -426,6 +432,18 @@ export default function TileProCalculator() {
                 </table>
               )}
 
+              {/* 로스율 정의 — 기술자가 자기 셈과 맞춰 볼 수 있게 식을 그대로 적는다 */}
+              <p className="t-sub text-v1-text-disabled -mt-2">로스율 = (필요 장 수 × 타일 면적 − 시공 면적) ÷ 시공 면적</p>
+              {/* 로스가 이상하게 크면(40% 넘음) 이유 한 줄 */}
+              {result.lossPct > 40 && (
+                <p className="t-sub text-accent">
+                  {form.origin === 'center'
+                    ? '가운데 시작이라 가장자리 컷이 많아요 — 모서리 시작을 추천'
+                    : form.reuse === 'off'
+                      ? '컷 조각을 전부 새 타일로 셌어요 — 자투리 "같은 치수"를 켜 보세요'
+                      : '방에 비해 타일이 커서 컷이 많아요'}
+                </p>
+              )}
               {result.truncated && <p className="t-sub text-danger">타일이 너무 많아 일부만 셌어요. 규격을 확인하세요.</p>}
               <p className="t-sub text-v1-text-disabled">줄눈재·접착제는 표준 소요량 기준 대략값</p>
 

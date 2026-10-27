@@ -8,7 +8,7 @@
 // ──────────────────────────────────────────────
 import { describe, expect, it } from 'vitest';
 import { buildRoom, polygonArea, perimeter } from '@/components/plan/geometry';
-import { layoutTiles, tilesForCuts } from '../layout';
+import { layoutTiles, tilesForCuts, tilesForCutsFit } from '../layout';
 import { computeTilePro, regionsOf } from '../quantity';
 import { DEFAULT_TILE_PRO, decodeTileProForm, encodeTileProForm, type TileProForm } from '../form';
 
@@ -103,7 +103,7 @@ describe('패턴별 로스', () => {
   // 타일 배수로 딱 떨어지는 방(2400×1800, 600×300, 줄눈 0, 모서리 시작) — 일자는 로스 0 이어야 한다
   const base: TileProForm = {
     ...DEFAULT_TILE_PRO,
-    reuse: false,
+    reuse: 'off',
     spare: 0,
     joint: 0,
     origin: 'corner',
@@ -167,5 +167,48 @@ describe('주소 공유', () => {
     const back = decodeTileProForm(bad)!;
     expect(back.tileW).toBe(50);
     expect(back.joint).toBe(20);
+  });
+});
+
+describe('기본 예시 방(바닥 2100×1600, 600×300, 줄눈 2, 파손 3%) — 검수 고정값', () => {
+  it('고치기 전: 가운데 시작·자투리 안 씀 → 컷 20곳, 37장, 로스 98.2%', () => {
+    const r = computeTilePro({ ...DEFAULT_TILE_PRO, origin: 'center', reuse: 'off' });
+    expect(r.full).toBe(15);
+    expect(r.cut).toBe(20);
+    expect(r.total).toBe(37);
+    expect(r.lossPct).toBeCloseTo(98.2, 1);
+  });
+  it('고친 뒤 기본값: 모서리 시작·같은 치수 자투리 → 컷 9곳을 타일 4장으로, 20장·3박스, 로스 7.1%', () => {
+    expect(DEFAULT_TILE_PRO.origin).toBe('corner');
+    expect(DEFAULT_TILE_PRO.reuse).toBe('fit');
+    const r = computeTilePro(DEFAULT_TILE_PRO);
+    expect(r.full).toBe(15);
+    expect(r.cut).toBe(9);
+    expect(r.cutTiles).toBe(4);
+    expect(r.total).toBe(20);
+    expect(r.boxes).toBe(3);
+    expect(r.lossPct).toBeCloseTo(7.1, 1);
+  });
+});
+
+describe('같은 치수 자투리', () => {
+  const T = { w: 600, h: 300 };
+  it('양끝 가장자리 띠 두 개(294×300)는 타일 1장', () => {
+    expect(tilesForCutsFit([{ w: 294, h: 300 }, { w: 294, h: 300 }], T)).toBe(1);
+  });
+  it('칼날 몫 때문에 안 들어가면 2장(300+3+300 > 600)', () => {
+    expect(tilesForCutsFit([{ w: 300, h: 300 }, { w: 300, h: 300 }], T)).toBe(2);
+  });
+  it('모양이 꺾인 조각(치수 없음)은 늘 새 타일', () => {
+    expect(tilesForCutsFit([undefined, undefined], T)).toBe(2);
+  });
+  it('대각 패턴 조각은 같은 치수 재사용을 하지 않는다(전부 꺾인 조각)', () => {
+    const r = layoutTiles({ outline: sq(1200, 1200), holes: [], tile: T300, pattern: 'diagonal', origin: 'corner' });
+    expect(r.tiles.filter((t) => t.cut).every((t) => !t.piece)).toBe(true);
+  });
+  it('문틀 옆 세로 띠는 직사각형 조각으로 본다', () => {
+    const r = layoutTiles({ outline: sq(1200, 1200), holes: [{ x: 400, y: 0, w: 500, h: 1200 }], tile: T300, pattern: 'straight', origin: 'corner' });
+    const p = r.tiles.find((t) => t.cut && t.x === 300 && t.y === 0)?.piece;
+    expect(p).toEqual({ w: 100, h: 300 });
   });
 });

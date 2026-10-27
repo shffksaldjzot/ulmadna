@@ -16,7 +16,7 @@
 // ──────────────────────────────────────────────
 
 import { buildRoom, fitOpening, signedArea, wallOf, type Pt, type Rect } from '@/components/plan/geometry';
-import { layoutTiles, tilesForCuts, type LayoutResult } from './layout';
+import { layoutTiles, tilesForCuts, tilesForCutsFit, type LayoutResult } from './layout';
 import type { TileProForm } from './form';
 
 // ── 부자재 계수(소비자용 tile-coefficients.ts 와 같은 값) ──
@@ -59,7 +59,7 @@ export interface TileProResult {
   total: number;
   /** 박스 수 */
   boxes: number;
-  /** 로스율(%) — (필요 장 수 × 장당 면적 − 실면적) ÷ 실면적 */
+  /** 로스율(%) — (필요 장 수 × 타일 면적 − 시공 면적) ÷ 시공 면적 */
   lossPct: number;
   /** 줄눈재 */
   grout: { kg: number; packs: number; packKg: number };
@@ -123,8 +123,12 @@ export function computeTilePro(form: TileProForm): TileProResult {
   const full = regions.reduce((s, r) => s + r.layout.full, 0);
   const cut = regions.reduce((s, r) => s + r.layout.cut, 0);
   // 컷 조각은 모든 구역을 합쳐 자투리를 맞춰 본다(같은 타일이니까)
-  const cutRatios = regions.flatMap((r) => r.layout.tiles.filter((t) => t.cut).map((t) => t.ratio));
-  const cutTiles = tilesForCuts(cutRatios, form.reuse);
+  const cutList = regions.flatMap((r) => r.layout.tiles.filter((t) => t.cut));
+  // 같은 치수: 조각 가로·세로가 실제로 들어맞을 때만 / 넓이 기준: 넓이로만 / 안 씀: 컷마다 새 타일
+  const cutTiles =
+    form.reuse === 'fit'
+      ? tilesForCutsFit(cutList.map((t) => t.piece), tile)
+      : tilesForCuts(cutList.map((t) => t.ratio), form.reuse === 'area');
   const base = full + cutTiles;
   const total = base > 0 ? Math.ceil(base * (1 + form.spare / 100)) : 0;
   const spareTiles = total - base;
