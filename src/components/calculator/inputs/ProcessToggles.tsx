@@ -253,6 +253,15 @@ function ItemRenderer({ item, ps, processId, dispatch }: {
     );
   }
 
+  // 평당 단가만 있는 아이템(입주청소) → 토글
+  if (item.price_per_pyeong !== undefined) {
+    const on = ps.itemToggles[item.id] !== false;
+    return (
+      <Toggle checked={on} label={item.name} price={`${fmtPrice(item.price_per_pyeong)}/평`}
+        onChange={v => dispatch({ type: 'SET_ITEM_TOGGLE', payload: { processId, itemId: item.id, enabled: v } })} />
+    );
+  }
+
   return null;
 }
 
