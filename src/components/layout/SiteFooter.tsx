@@ -12,6 +12,7 @@
 // ──────────────────────────────────────────────
 
 'use client';
+// 2026-10-28: 메뉴 링크는 prefetch={false} — 페이지마다 메뉴 대상 페이지를 미리 불러와 CDN 요청이 크게 불어났음
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -26,6 +27,8 @@ function LiveNow() {
     // 2026-10-10: 전에는 방문자마다 고유 id를 만들어 Upstash에 핑(ZADD)을 쌓았지만,
     // 이제 서버가 GA4 실시간 활성 사용자 수를 대신 세어주므로 그냥 물어보기만 하면 된다.
     const ping = async () => {
+      // 2026-10-28: 탭이 숨겨져 있으면(다른 탭 보는 중) 묻지 않는다 — Vercel CDN 요청 1위가 이 신호였음
+      if (typeof document !== 'undefined' && document.hidden) return;
       try {
         const r = await fetch('/api/presence', { cache: 'no-store' });
         const d = await r.json();
@@ -35,8 +38,8 @@ function LiveNow() {
       }
     };
     ping();
-    // 서버가 GA4 쿼리를 60초 캐시로 묶어두므로, 클라이언트도 60초마다만 다시 물어본다
-    const t = setInterval(ping, 60000);
+    // 2026-10-28: 60초 → 5분. 숫자는 대략값이면 충분하고, 요청 수(무료 한도)를 5분의 1로 줄인다
+    const t = setInterval(ping, 5 * 60 * 1000);
     return () => clearInterval(t);
   }, []);
 
@@ -56,12 +59,12 @@ export default function SiteFooter() {
         <Container className="pt-8 pb-24 lg:pb-8 flex flex-col items-center gap-3 text-center">
           <LiveNow />
           <nav aria-label="바닥글 메뉴" className="flex flex-wrap justify-center gap-x-4 gap-y-2">
-            <Link href="/calc" className="t-sub font-semibold text-ink-2 hover:text-accent">계산기</Link>
-            <Link href="/blog" className="t-sub font-semibold text-ink-2 hover:text-accent">블로그</Link>
-            <Link href="/about" className="t-sub font-semibold text-ink-2 hover:text-accent">소개</Link>
-            <Link href="/contact" className="t-sub font-semibold text-ink-2 hover:text-accent">문의</Link>
-            <Link href="/terms" className="t-sub font-semibold text-ink-2 hover:text-accent">이용약관</Link>
-            <Link href="/privacy" className="t-sub font-semibold text-ink-2 hover:text-accent">개인정보처리방침</Link>
+            <Link prefetch={false} href="/calc" className="t-sub font-semibold text-ink-2 hover:text-accent">계산기</Link>
+            <Link prefetch={false} href="/blog" className="t-sub font-semibold text-ink-2 hover:text-accent">블로그</Link>
+            <Link prefetch={false} href="/about" className="t-sub font-semibold text-ink-2 hover:text-accent">소개</Link>
+            <Link prefetch={false} href="/contact" className="t-sub font-semibold text-ink-2 hover:text-accent">문의</Link>
+            <Link prefetch={false} href="/terms" className="t-sub font-semibold text-ink-2 hover:text-accent">이용약관</Link>
+            <Link prefetch={false} href="/privacy" className="t-sub font-semibold text-ink-2 hover:text-accent">개인정보처리방침</Link>
             <a href="/feed.xml" aria-label="RSS 구독" className="inline-flex items-center gap-1 t-sub font-semibold text-ink-2 hover:text-accent">
               <svg viewBox="0 0 24 24" aria-hidden="true" className="w-3 h-3 fill-current">
                 <circle cx="5" cy="19" r="2.6" />

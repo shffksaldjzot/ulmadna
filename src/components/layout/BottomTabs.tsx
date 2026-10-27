@@ -14,6 +14,7 @@
 // ──────────────────────────────────────────────
 
 'use client';
+// 2026-10-28: 메뉴 링크는 prefetch={false} — 페이지마다 메뉴 대상 페이지를 미리 불러와 CDN 요청이 크게 불어났음
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -46,7 +47,7 @@ export default function BottomTabs() {
       {TABS.map(({ href, label, Icon, match }) => {
         const active = match(pathname);
         return (
-          <Link
+          <Link prefetch={false}
             key={href}
             href={href}
             className={`flex-1 flex flex-col items-center justify-center gap-1 h-14 ${

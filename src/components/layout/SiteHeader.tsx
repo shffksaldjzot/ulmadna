@@ -15,6 +15,7 @@
 // ──────────────────────────────────────────────
 
 'use client';
+// 2026-10-28: 메뉴 링크는 prefetch={false} — 페이지마다 메뉴 대상 페이지를 미리 불러와 CDN 요청이 크게 불어났음
 
 import Link from 'next/link';
 import Image from 'next/image';
@@ -48,7 +49,7 @@ export default function SiteHeader() {
       <Container as="div" className="h-14 lg:h-16 flex items-center justify-between gap-4">
         {/* 좌측: 로고 + 무료 배지(데스크톱 전용, 여기 한 번만) */}
         <div className="flex items-center gap-3 min-w-0">
-          <Link href="/" aria-label="얼마드나 홈" className="flex-none flex items-center">
+          <Link prefetch={false} href="/" aria-label="얼마드나 홈" className="flex-none flex items-center">
             {/* 2026-09-15 형아 지시(2차): 로고가 여전히 작다 → 원인은 원본 PNG(355×204)의 글자 영역이
                 세로 34%뿐이라 44px 박스에 넣어도 글자는 15px밖에 안 됐던 것.
                 글자 영역만 잘라낸 ulmadna_logo_tight.png(315×82)를 쓰고, 높이를 로그인 알약과
@@ -77,7 +78,7 @@ export default function SiteHeader() {
           {NAV_ITEMS.map((item) => {
             const active = item.match(pathname);
             return (
-              <Link
+              <Link prefetch={false}
                 key={item.href}
                 href={item.href}
                 className={`t-body font-semibold transition-colors ${
@@ -102,7 +103,7 @@ export default function SiteHeader() {
           </button>
           {session?.user ? (
             <>
-              <Link href="/my-estimates" className="hidden lg:inline t-sub font-semibold text-ink-2 hover:text-ink">
+              <Link prefetch={false} href="/my-estimates" className="hidden lg:inline t-sub font-semibold text-ink-2 hover:text-ink">
                 내 견적서
               </Link>
               <button
@@ -115,7 +116,7 @@ export default function SiteHeader() {
               <span className="hidden sm:inline t-sub font-semibold text-accent">{session.user.name}님</span>
             </>
           ) : (
-            <Link
+            <Link prefetch={false}
               href="/login"
               className="t-sub font-semibold text-ink-2 border border-line rounded-chip h-10 px-4 inline-flex items-center hover:border-accent hover:text-accent transition-colors"
             >
