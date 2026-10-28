@@ -10,6 +10,7 @@
 //   - 주소에 ?ad_preview=<주문번호> 가 있으면 시험용 미리보기로 그 주문 배너를 보여 준다.
 // ─────────────────────────────────────────────────────────────
 import { useEffect, useState } from 'react';
+import { ADS_ENABLED } from './config';
 
 export interface ServedBanner {
   id: number;
@@ -58,7 +59,9 @@ async function flush() {
 }
 
 /** 자리 키: AD-H / AD-R / AD-F, 공정 스폰서는 AD-P:공정이름 */
-export function useServedAd(slot: string, process?: string, enabled = true): ServedBanner | null {
+export function useServedAd(slot: string, process?: string, enabledIn = true): ServedBanner | null {
+  // 광고 전역 스위치(ADS_ENABLED, config.ts 상수)가 꺼져 있으면 미리보기(?ad_preview=)일 때만 서버에 묻는다 → 평소 요청 0
+  const enabled = enabledIn && (ADS_ENABLED || (typeof window !== 'undefined' && previewId() !== null));
   const key = slot === 'AD-P' ? `AD-P:${process ?? ''}` : slot;
   const [banner, setBanner] = useState<ServedBanner | null>(() => done.get(key) ?? null);
 

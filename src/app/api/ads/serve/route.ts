@@ -14,6 +14,7 @@
 import { NextResponse } from 'next/server';
 import { regionFromHeaders, isBotUA } from '@/server/metrics/requestInfo';
 import { serveAd, type ServedAd } from '@/server/ads/store';
+import { isAdminRequest } from '@/lib/adminAuth';
 import { SLOT_KINDS, type SlotKind } from '@/lib/ads/pricing';
 
 export const dynamic = 'force-dynamic';
@@ -36,7 +37,8 @@ export async function GET(req: Request) {
   if (!wants.length) return NextResponse.json({ ads }, { headers: HEADERS });
 
   const previewRaw = u.searchParams.get('preview');
-  const preview = previewRaw && /^\d{1,9}$/.test(previewRaw) ? Number(previewRaw) : null;
+  // 미리보기는 관리자 로그인 쿠키가 있을 때만 동작(없으면 값을 무시하고 일반 방문자로 처리)
+  const preview = previewRaw && /^\d{1,9}$/.test(previewRaw) && isAdminRequest(req) ? Number(previewRaw) : null;
 
   if (preview) {
     // 미리보기: 같은 주문이 맞는 자리 종류에만 나온다
