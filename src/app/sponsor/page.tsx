@@ -1,6 +1,15 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import BusinessInfo from '@/components/layout/BusinessInfo';
+import { getBoard, remaining } from '@/server/ads/store';
+import { SIDO_CODES, REGION_NAMES } from '@/server/admin/format';
+import { SLOT_INFO, type SlotKind } from '@/lib/ads/pricing';
+
+// 남은 자리 숫자를 5분마다 새로 읽는다(광고 표가 비어 있으면 전부 3/3)
+export const revalidate = 300;
+
+// 남은 자리 표에 보일 자리(견적서 추천은 개수 제한이 없어 뺌, 공정 스폰서는 공정별이라 따로 안내)
+const LEFT_KINDS: SlotKind[] = ['AD-H', 'AD-R', 'AD-F'];
 
 export const metadata = {
   title: '얼마드나 — 광고/제휴 안내 | 인테리어 견적 계산기 스폰서',
@@ -98,7 +107,9 @@ const STATS = [
   { value: '₩2만~', label: '30일 최소 광고비(부가세 별도)' },
 ];
 
-export default function SponsorPage() {
+export default async function SponsorPage() {
+  // 실제 광고 표에서 오늘 기준 사용 수를 읽는다(읽기 실패·표 없음이면 빈 판 = 3/3)
+  const board = await getBoard();
   return (
     <div className="min-h-screen bg-white">
       {/* 헤더 */}
@@ -300,10 +311,46 @@ export default function SponsorPage() {
             </table>
           </div>
           <ul className="text-xs text-gray-500 text-center mt-4 space-y-1">
-            <li>모든 금액은 부가세 별도이며, 30일 단위 일시불 카드 결제입니다. 기간은 30일의 배수로 원하는 만큼 정할 수 있습니다.</li>
+            <li>모든 금액은 부가세 별도이며, 30일 단위 일시불이며, 결제는 계좌이체·세금계산서로 받습니다(카드 결제 준비 중). 기간은 30일의 배수로 원하는 만큼 정할 수 있습니다.</li>
             <li>한 자리를 혼자 쓰고 싶다면 3개 구좌를 모두 구매하시면 됩니다(예: 헤더 3구좌 = 300,000원/30일).</li>
             <li>트래픽 성장에 따라 단가가 조정될 수 있습니다. 환불은 <Link href="/refund" className="underline">환불 규정</Link>에 따릅니다.</li>
           </ul>
+        </div>
+      </section>
+
+      {/* 지역별 남은 자리 — 실제 광고 주문 표에서 읽는다(2026-10-29). 시도당 3개 업체 */}
+      <section id="left" className="pb-16 px-4">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-2xl font-bold text-brown text-center mb-2">지역별 남은 자리</h2>
+          <p className="text-xs text-gray-400 text-center mb-6">오늘 기준 · 한 지역 자리마다 최대 3개 업체가 돌아가며 보입니다</p>
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-cream text-xs text-gray-500">
+                <tr>
+                  <th className="text-left px-5 py-3">지역</th>
+                  {LEFT_KINDS.map((k) => (
+                    <th key={k} className="text-center px-3 py-3 whitespace-nowrap">{SLOT_INFO[k].name}<br /><span className="text-gray-300">{k}</span></th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {SIDO_CODES.map((c) => (
+                  <tr key={c} className="border-t border-gray-50">
+                    <td className="px-5 py-2 text-gray-700">{REGION_NAMES[c]}</td>
+                    {LEFT_KINDS.map((k) => {
+                      const left = remaining(board[c]?.[k], k) ?? 3;
+                      return (
+                        <td key={k} className={`px-3 py-2 text-center tabular-nums ${left === 0 ? 'text-gray-300' : 'text-brown font-medium'}`}>
+                          {left === 0 ? '마감' : `${left}/3`}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-gray-400 text-center mt-3">공정 스폰서는 시도 × 공정마다 3개 업체입니다. 공정별 자리는 문의 시 안내해 드립니다.</p>
         </div>
       </section>
 

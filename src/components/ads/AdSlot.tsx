@@ -11,8 +11,10 @@
 
 'use client';
 
-import type { AdSlotId } from '@/lib/ads/types';
+import type { AdSlotId, ResolvedAdContent } from '@/lib/ads/types';
+import { useServedAd } from '@/lib/ads/useServedAd';
 import {
+  AD_P_MAX_PER_PAGE,
   AD_SLOT_SIZES,
   SHOW_SPONSORED_LABEL_FOR,
   resolveAdContent,
@@ -55,8 +57,16 @@ export default function AdSlot({
       ? { id: 'AD-P' as const, processGroup: processGroup ?? '' }
       : { id };
 
-  // provider에 노출 캡 컨텍스트 전달
-  const content = resolveAdContent(key, { adPPageIndex });
+  // 유료 배너 조회(2026년 10월 29일): 방문자 시도와 맞는 게재 중 배너가 있으면 그것을 우선 보여 준다.
+  //  - AD-P 는 페이지 노출 한도(AD_P_MAX_PER_PAGE) 밖이면 아예 묻지 않는다.
+  //  - 배너가 없으면(대부분) 아래 기존 폴백(House Ad/접힘)이 그대로 동작해 화면 변화가 없다.
+  const capped = id === 'AD-P' && adPPageIndex !== undefined && adPPageIndex >= AD_P_MAX_PER_PAGE;
+  const served = useServedAd(id, processGroup, !capped);
+
+  // provider에 노출 캡 컨텍스트 전달 — 유료 배너가 있으면 banner 로 바꿔 끼운다
+  const content: ResolvedAdContent = served
+    ? { kind: 'banner', bannerImageUrl: served.imageUrl, bannerLinkUrl: served.href, bannerAdvertiserName: served.name }
+    : resolveAdContent(key, { adPPageIndex });
 
   // collapse — DOM에서 완전히 제거 (v2 명세 §5.3)
   if (content.kind === 'collapse') {
@@ -89,8 +99,9 @@ export default function AdSlot({
       {content.kind === 'banner' && content.bannerImageUrl && (
         <a
           href={content.bannerLinkUrl ?? '#'}
-          target={content.bannerLinkUrl ? '_blank' : undefined}
-          rel="noopener noreferrer"
+          // 미리보기('#')는 새 창을 열지 않는다. 실제 배너는 서버 경유 주소(/api/ad-click)로 클릭을 센다
+          target={content.bannerLinkUrl && content.bannerLinkUrl !== '#' ? '_blank' : undefined}
+          rel="sponsored noopener noreferrer"
           className="block w-full h-full"
           aria-label={content.bannerAdvertiserName ?? '광고'}
         >

@@ -50,8 +50,8 @@ export default function AdsTermsPage() {
               <h2 className="t-section text-ink mb-2">제4조 (요금과 결제)</h2>
               <ol className="list-decimal pl-5 space-y-2">
                 <li>요금은 30일 기준이며 부가세 별도입니다.</li>
-                <li>결제는 신청한 전체 기간 요금을 한 번에 내는 일시불 카드 결제입니다.</li>
-                <li>결제는 판매자가 지정한 결제대행사(PG)의 결제창에서 이루어지며, 카드 매출전표가 증빙이 됩니다.</li>
+                <li>결제는 신청한 전체 기간 요금을 한 번에 내는 일시불이며, 계좌이체 또는 카드 결제로 할 수 있습니다(카드 결제는 준비되는 대로 제공).</li>
+                <li>카드 결제는 판매자가 지정한 결제대행사(PG)의 결제창에서 이루어지며 카드 매출전표가 증빙이 됩니다. 계좌이체는 세금계산서를 발행합니다.</li>
                 <li>환불은 <Link href="/refund" className="text-accent hover:text-ink">환불 규정</Link>에 따릅니다.</li>
               </ol>
             </section>
