@@ -16,7 +16,10 @@ export function isAdminRequest(req: Request): boolean {
     .split(';')
     .map((c) => c.trim())
     .find((c) => c.startsWith('admin-auth='));
-  const value = cookie?.slice('admin-auth='.length);
+  // 2026-10-29: 쿠키 값은 저장될 때 특수문자가 %인코딩되므로 풀어서 비교한다(미들웨어 request.cookies.get 과 같은 결과).
+  const raw = cookie?.slice('admin-auth='.length);
+  let value = raw;
+  try { value = raw ? decodeURIComponent(raw) : raw; } catch { /* 잘못된 인코딩이면 원래 값 그대로 */ }
   if (!value) return false;
   const a = crypto.createHash('sha256').update(value).digest();
   const b = crypto.createHash('sha256').update(token).digest();
