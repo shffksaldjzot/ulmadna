@@ -5,6 +5,7 @@
 import SiteHeader from '@/components/layout/SiteHeader';
 import SiteFooter from '@/components/layout/SiteFooter';
 import Container from '@/components/layout/Container';
+import BusinessInfo from '@/components/layout/BusinessInfo';
 
 export default function PrivacyPage() {
   return (
@@ -70,7 +71,10 @@ export default function PrivacyPage() {
               <p>성명: 김지환<br/>이메일: cs870@naver.com</p>
             </section>
 
-            <p className="t-sub text-ink-2/70 pt-4 border-t border-line">시행일: 2026년 10월 28일 (개정, 이전 2026년 4월 6일) · 얼마드나 (사업자등록번호 565-58-00717)</p>
+            <div className="pt-4 border-t border-line space-y-2">
+              <p className="t-sub text-ink-2/70">시행일: 2026년 10월 28일 (개정, 이전 2026년 4월 6일)</p>
+              <BusinessInfo />
+            </div>
           </div>
         </div>
       </Container>

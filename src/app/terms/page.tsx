@@ -5,6 +5,7 @@
 import SiteHeader from '@/components/layout/SiteHeader';
 import SiteFooter from '@/components/layout/SiteFooter';
 import Container from '@/components/layout/Container';
+import BusinessInfo from '@/components/layout/BusinessInfo';
 
 export default function TermsPage() {
   return (
@@ -51,7 +52,10 @@ export default function TermsPage() {
               <p>이 약관은 서비스 운영상 필요한 경우 변경될 수 있으며, 변경 시 서비스 내 공지합니다.</p>
             </section>
 
-            <p className="t-sub text-ink-2/70 pt-4 border-t border-line">시행일: 2026년 4월 6일 · 얼마드나 (사업자등록번호 565-58-00717)</p>
+            <div className="pt-4 border-t border-line space-y-2">
+              <p className="t-sub text-ink-2/70">시행일: 2026년 4월 6일 (광고 서비스는 별도 <a href="/ads-terms" className="underline">광고 서비스 이용약관</a>·<a href="/refund" className="underline">환불 규정</a> 적용)</p>
+              <BusinessInfo />
+            </div>
           </div>
         </div>
       </Container>
