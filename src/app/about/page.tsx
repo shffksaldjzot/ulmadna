@@ -10,6 +10,7 @@ import Link from 'next/link';
 import SiteHeader from '@/components/layout/SiteHeader';
 import SiteFooter from '@/components/layout/SiteFooter';
 import Container from '@/components/layout/Container';
+import BusinessInfo from '@/components/layout/BusinessInfo';
 
 // 검색엔진/애드센스 크롤러용 메타데이터
 export const metadata: Metadata = {
@@ -84,14 +85,11 @@ export default function AboutPage() {
             <section>
               <h2 className="t-section text-ink mb-2">운영 정보</h2>
               <p>
-                얼마드나는 인테리어 견적 데이터를 다루는 사업자가 직접 운영합니다. 광고(배너·애드센스)와 스폰서 제휴로
+                얼마드나는 도토리 스튜디오가 운영하는 인테리어 견적 서비스입니다. 광고(배너·애드센스)와 스폰서 제휴로
                 서비스를 무료로 유지하며, 광고는 콘텐츠와 명확히 구분해 표시합니다.
               </p>
-              <p className="mt-3 t-sub text-ink-2 leading-relaxed">
-                상호: 얼마드나 · 대표: 김지환<br />
-                사업자등록번호: 565-58-00717<br />
-                문의: <a href="mailto:cs870@naver.com" className="text-accent hover:text-ink">cs870@naver.com</a>
-              </p>
+              {/* 사업자 정보는 src/lib/business.ts 정본에서 읽는다 */}
+              <BusinessInfo className="mt-3" />
             </section>
 
             {/* 관련 링크 */}

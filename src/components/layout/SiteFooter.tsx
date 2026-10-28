@@ -18,6 +18,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import Container from './Container';
 import BottomTabs from './BottomTabs';
+import BusinessInfo from './BusinessInfo';
 
 /** 지금 보고 있는 사람 수 — blog.css에 기대지 않고 이 컴포넌트 안에서 직접 그린다 */
 function LiveNow() {
@@ -65,6 +66,9 @@ export default function SiteFooter() {
             <Link prefetch={false} href="/contact" className="t-sub font-semibold text-ink-2 hover:text-accent">문의</Link>
             <Link prefetch={false} href="/terms" className="t-sub font-semibold text-ink-2 hover:text-accent">이용약관</Link>
             <Link prefetch={false} href="/privacy" className="t-sub font-semibold text-ink-2 hover:text-accent">개인정보처리방침</Link>
+            <Link prefetch={false} href="/ads-terms" className="t-sub font-semibold text-ink-2 hover:text-accent">광고 약관</Link>
+            <Link prefetch={false} href="/refund" className="t-sub font-semibold text-ink-2 hover:text-accent">환불 규정</Link>
+            <Link prefetch={false} href="/sponsor" className="t-sub font-semibold text-ink-2 hover:text-accent">광고 안내</Link>
             <a href="/feed.xml" aria-label="RSS 구독" className="inline-flex items-center gap-1 t-sub font-semibold text-ink-2 hover:text-accent">
               <svg viewBox="0 0 24 24" aria-hidden="true" className="w-3 h-3 fill-current">
                 <circle cx="5" cy="19" r="2.6" />
@@ -79,7 +83,9 @@ export default function SiteFooter() {
           <p className="t-sub text-ink-2 max-w-[460px] leading-relaxed">
             얼마드나의 견적은 참고용 예상 금액입니다. 시공 전 업체의 사업자·건설업 등록 여부를 꼭 확인하세요.
           </p>
-          <p className="t-sub text-ink-2/70">© 2026 얼마드나</p>
+          {/* 사업자 정보(결제사 심사 대비) — 정본은 src/lib/business.ts */}
+          <BusinessInfo className="max-w-[560px] text-[12px]" />
+          <p className="t-sub text-ink-2/70">© 2026 도토리 스튜디오 · 얼마드나</p>
         </Container>
       </footer>
       <BottomTabs />

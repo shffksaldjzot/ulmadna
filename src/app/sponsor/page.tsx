@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import BusinessInfo from '@/components/layout/BusinessInfo';
 
 export const metadata = {
   title: '얼마드나 — 광고/제휴 안내 | 인테리어 견적 계산기 스폰서',
@@ -13,7 +14,7 @@ const AD_SLOTS = [
     size: '728×90',
     position: '페이지 최상단',
     target: '지역권 타겟',
-    price: '3~8만원/월 (지역별)',
+    price: '30일 10만원 (시도당 3개 업체, 부가세 별도)',
     desc: '사용자가 가장 먼저 보는 위치. IP 기반으로 해당 지역 업체만 노출됩니다.',
     mockup: (
       <div className="border border-dashed border-brown/20 rounded-lg p-3 bg-cream/50 text-center">
@@ -35,7 +36,7 @@ const AD_SLOTS = [
     size: '468×60',
     position: '입력 패널 공정 사이',
     target: '공정별 브랜드 스폰서',
-    price: '5~15만원/월 (공정별)',
+    price: '30일 5만원 (시도·공정당 3개 업체, 부가세 별도)',
     desc: '사용자가 해당 공정을 선택할 때 자연스럽게 노출. 창호 옆에 KCC, 욕실 옆에 대림 등.',
     mockup: (
       <div className="border border-dashed border-brown/20 rounded-lg p-2 bg-cream/50">
@@ -54,7 +55,7 @@ const AD_SLOTS = [
     size: '300×250',
     position: '견적 결과 영역',
     target: '지역권 타겟',
-    price: '3~8만원/월 (지역별)',
+    price: '30일 10만원 (시도당 3개 업체, 부가세 별도)',
     desc: '견적 결과를 확인하는 사용자에게 노출. 가장 구매 의향이 높은 시점입니다.',
     mockup: (
       <div className="border border-dashed border-brown/20 rounded-lg p-3 bg-cream/50 w-48 mx-auto">
@@ -74,7 +75,7 @@ const AD_SLOTS = [
     size: '견적서 하단',
     position: '다운로드 견적서',
     target: '지역권 추천업체',
-    price: '1~3만원/월 (지역별)',
+    price: '30일 2만원 (여러 업체가 함께 실림, 부가세 별도)',
     desc: '사용자가 다운받아 저장·공유하는 견적서 하단에 지역 추천업체 리스트가 포함됩니다. 엑셀은 별도 시트로 제공.',
     mockup: (
       <div className="border border-dashed border-brown/20 rounded-lg p-3 bg-cream/50 text-[10px]">
@@ -94,7 +95,7 @@ const STATS = [
   { value: '24', label: '공정 카테고리' },
   { value: '51+', label: '지역권 타겟 가능' },
   { value: '12', label: '광고 슬롯 (PC+모바일+PDF)' },
-  { value: '₩1만~', label: '월 최소 광고비' },
+  { value: '₩2만~', label: '30일 최소 광고비(부가세 별도)' },
 ];
 
 export default function SponsorPage() {
@@ -267,41 +268,42 @@ export default function SponsorPage() {
         </div>
       </section>
 
-      {/* 가격표 */}
-      <section className="py-16 px-4">
+      {/* 가격표 — 2026-10-27 형아 확정(계획안 7-9). 30일 단위 일시불 카드 결제 */}
+      <section id="price" className="py-16 px-4">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl font-bold text-brown text-center mb-8">가격표</h2>
-          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <h2 className="text-2xl font-bold text-brown text-center mb-8">가격표 (30일 단위)</h2>
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-cream text-xs text-gray-500">
                 <tr>
                   <th className="text-left px-5 py-3">상품</th>
                   <th className="text-left px-5 py-3">슬롯</th>
-                  <th className="text-left px-5 py-3">타겟</th>
-                  <th className="text-right px-5 py-3">월 단가</th>
+                  <th className="text-left px-5 py-3">게재 범위</th>
+                  <th className="text-right px-5 py-3">30일 요금</th>
                 </tr>
               </thead>
               <tbody>
                 {[
-                  ['전국 리더보드', 'AD-H', '전국', '20~50만원'],
-                  ['지역권 리더보드', 'AD-H', '1개 지역', '3~8만원'],
-                  ['공정별 스폰서', 'AD-P', '1개 공정', '5~15만원'],
-                  ['지역권 렉탱글', 'AD-R', '1개 지역', '3~8만원'],
-                  ['모바일 지역권', 'AD-M', '1개 지역', '2~5만원'],
-                  ['PDF 추천업체', 'AD-PDF', '1개 지역', '1~3만원'],
-                  ['PDF 상단 로고', 'AD-PDF-H', '전국', '10~30만원'],
+                  ['헤더 하단 리더보드', 'AD-H', '시도당 3개 업체', '100,000원'],
+                  ['결과 옆 렉탱글', 'AD-R', '시도당 3개 업체', '100,000원'],
+                  ['공정 스폰서', 'AD-P', '시도 × 공정당 3개 업체', '50,000원'],
+                  ['견적서 추천 업체', 'AD-PDF', '견적서 안 공정마다 여러 업체', '20,000원'],
                 ].map(([name, slot, target, price], i) => (
                   <tr key={i} className="border-t border-gray-50">
                     <td className="px-5 py-3 font-medium text-gray-700">{name}</td>
                     <td className="px-5 py-3 text-gray-400">{slot}</td>
                     <td className="px-5 py-3 text-gray-400">{target}</td>
-                    <td className="px-5 py-3 text-right font-semibold text-gold">{price}</td>
+                    <td className="px-5 py-3 text-right font-semibold text-gold whitespace-nowrap">{price}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <p className="text-xs text-gray-300 text-center mt-3">트래픽 성장에 따라 단가가 조정될 수 있습니다</p>
+          <ul className="text-xs text-gray-500 text-center mt-4 space-y-1">
+            <li>모든 금액은 부가세 별도이며, 30일 단위 일시불 카드 결제입니다. 기간은 30일의 배수로 원하는 만큼 정할 수 있습니다.</li>
+            <li>한 자리를 혼자 쓰고 싶다면 3개 구좌를 모두 구매하시면 됩니다(예: 헤더 3구좌 = 300,000원/30일).</li>
+            <li>트래픽 성장에 따라 단가가 조정될 수 있습니다. 환불은 <Link href="/refund" className="underline">환불 규정</Link>에 따릅니다.</li>
+          </ul>
         </div>
       </section>
 
@@ -347,15 +349,19 @@ export default function SponsorPage() {
         <p className="text-xs text-gray-300 mt-4">제출 항목: 배너 이미지 + 클릭 URL + 업체명 + 광고 지역 + 희망 슬롯 + 게재 기간</p>
       </section>
 
-      {/* 푸터 */}
-      <footer className="bg-brown text-cream/60 py-8 px-4">
-        <div className="max-w-5xl mx-auto text-center text-xs space-y-2">
-          <p>© 2026 얼마드나 · ulmadna.com</p>
+      {/* 푸터 — 판매자 정보(결제사 심사 대비, 정본은 src/lib/business.ts) */}
+      <footer className="bg-brown text-cream/70 py-8 px-4">
+        <div className="max-w-5xl mx-auto text-center text-xs space-y-3">
           <p>
+            <Link href="/ads-terms" className="hover:text-cream">광고 서비스 이용약관</Link> ·{' '}
+            <Link href="/refund" className="hover:text-cream">환불 규정</Link> ·{' '}
             <Link href="/terms" className="hover:text-cream">이용약관</Link> ·{' '}
             <Link href="/privacy" className="hover:text-cream">개인정보처리방침</Link> ·{' '}
             <Link href="/" className="hover:text-cream">견적 계산기</Link>
           </p>
+          <p className="font-semibold">판매자 정보</p>
+          <BusinessInfo className="text-cream/70" />
+          <p>© 2026 도토리 스튜디오 · 얼마드나 · ulmadna.com</p>
         </div>
       </footer>
     </div>

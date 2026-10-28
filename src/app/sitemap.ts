@@ -35,6 +35,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // 직접 제작·시공 서비스 카탈로그 (2026-09-16 신설)
     { url: `${SITE}/service`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${SITE}/terms`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
+    // 광고 약관·환불 규정·광고 안내 (2026-10-28 결제사 심사 대비)
+    { url: `${SITE}/ads-terms`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${SITE}/refund`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${SITE}/sponsor`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.4 },
     { url: `${SITE}/privacy`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
     // calc 허브 + 공정별 계산기 (2026-09-10: 바닥재 계산기 U 지시서 — 지금까지 사이트맵에 아예
     // 빠져 있었다. 도배·바닥재 계산기 페이지도 검색에 잡히게 여기서 함께 추가한다)
