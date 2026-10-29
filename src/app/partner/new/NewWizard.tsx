@@ -27,7 +27,7 @@ const STEPS = ['자리', '지역·기간', '배너', '결제'];
 const pickCls = (on: boolean) =>
   `w-full min-h-11 rounded-xl border px-4 py-3 text-left ${on ? 'border-accent bg-accent/5' : 'border-line bg-surface'}`;
 
-export default function NewWizard({ pay, region, email }: { pay: PayCfg | null; region: string; email: string }) {
+export default function NewWizard({ pay, region, email, name = '' }: { pay: PayCfg | null; region: string; email: string; name?: string }) {
   const [step, setStep] = useState(0);
   const [kind, setKind] = useState<SlotKind | null>(null);
   const [process, setProcess] = useState('');
@@ -48,7 +48,7 @@ export default function NewWizard({ pay, region, email }: { pay: PayCfg | null; 
   const okStep = [
     !!kind && (kind !== 'AD-P' || !!process),
     !!sido && units > 0,
-    !!file && !fileErr && isHttpsUrl(clickUrl),
+    !!file && !fileErr && isHttpsUrl(clickUrl) && phone.replace(/\D/g, '').length >= 10, // 전화는 이니시스 결제창 필수
     true,
   ][step];
 
@@ -88,7 +88,7 @@ export default function NewWizard({ pay, region, email }: { pay: PayCfg | null; 
       setBusy(false);
       return;
     }
-    const r = await openCheckout(pay, p.data, email);
+    const r = await openCheckout(pay, p.data, email, phone, name);
     if (r.kind === 'done') {
       location.href = '/partner';
       return;
@@ -186,7 +186,7 @@ export default function NewWizard({ pay, region, email }: { pay: PayCfg | null; 
             <input className={inputCls} inputMode="url" value={clickUrl} onChange={(e) => setClickUrl(e.target.value)} placeholder="https://" />
           </label>
           <label className="mt-4 block">
-            <span className="mb-1.5 block text-[15px] font-semibold text-ink">전화 번호 <span className="font-normal text-ink-2">(선택)</span></span>
+            <span className="mb-1.5 block text-[15px] font-semibold text-ink">전화 번호 <span className="font-normal text-ink-2">(결제·연락용)</span></span>
             <input className={inputCls} inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="010-0000-0000" />
           </label>
         </section>

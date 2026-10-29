@@ -19,6 +19,7 @@ export default async function PartnerNew() {
         pay={cfg.ready ? { storeId: cfg.storeId, channelKey: cfg.channelKey } : null}
         region={s.state === 'ok' ? s.partner.region : ''}
         email={s.state === 'ok' ? s.partner.email : ''}
+        name={s.state === 'ok' ? s.partner.name : ''}
       />
     </PartnerShell>
   );

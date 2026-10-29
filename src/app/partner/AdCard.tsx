@@ -21,7 +21,7 @@ const BADGE_CLS: Record<BadgeKind, string> = {
   refunded: 'bg-danger/10 text-danger',
 };
 
-export default function AdCard({ order: o, today, pay, email }: { order: MyOrder; today: string; pay: PayCfg | null; email: string }) {
+export default function AdCard({ order: o, today, pay, email, name = '' }: { order: MyOrder; today: string; pay: PayCfg | null; email: string; name?: string }) {
   const b = badgeOf(o, today);
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
@@ -43,7 +43,7 @@ export default function AdCard({ order: o, today, pay, email }: { order: MyOrder
       setBusy(false);
       return;
     }
-    const r = await openCheckout(pay, p.data, email);
+    const r = await openCheckout(pay, p.data, email, (o as { phone?: string | null }).phone ?? undefined, name); // 이니시스 결제창 필수(전화·이름)
     if (r.kind === 'done') location.reload();
     else if (r.kind === 'fail') setMsg(r.error);
     setBusy(false);

@@ -44,7 +44,8 @@ export async function confirmPay(paymentId: string): Promise<PayResult> {
 }
 
 /** 포트원 결제창 열기 → 성공이면 서버 확인까지 */
-export async function openCheckout(cfg: PayCfg, p: PreparedPay, email?: string): Promise<PayResult> {
+// 2026-10-29: 이니시스 V2 일반결제는 구매자 휴대폰 번호가 필수(없으면 "결제 창 호출에 실패") → phone 을 받아 customer 에 넣는다
+export async function openCheckout(cfg: PayCfg, p: PreparedPay, email?: string, phone?: string, fullName?: string): Promise<PayResult> {
   try {
     const PortOne = await import('@portone/browser-sdk/v2');
     const response = await PortOne.requestPayment({
@@ -56,14 +57,20 @@ export async function openCheckout(cfg: PayCfg, p: PreparedPay, email?: string):
       currency: 'CURRENCY_KRW',
       payMethod: 'CARD',
       redirectUrl: `${location.origin}/partner/pay/return`,
-      customer: email ? { email } : undefined,
+      customer: {
+        ...(email ? { email } : {}),
+        ...(phone ? { phoneNumber: phone.replace(/\D/g, '') } : {}),
+        ...(fullName ? { fullName: fullName.slice(0, 40) } : {}), // 이니시스 V2 는 구매자 이름도 필수 → 광고주 상호
+      },
     });
     // 돌아오는 값이 없으면 결제사 화면으로 넘어간 것(돌아오는 화면이 확인을 이어서 한다)
     if (!response) return { kind: 'redirect' };
     if (response.code !== undefined) return { kind: 'fail', error: response.message || '결제를 마치지 못했어요' };
     return confirmPay(response.paymentId);
-  } catch {
-    return { kind: 'fail', error: '결제창을 열지 못했어요' };
+  } catch (e) {
+    // 2026-10-29: 포트원 SDK 가 던진 이유(채널 키 불일치·상점 ID 오류 등)를 같이 보여 준다 — 처음 켤 때 원인을 바로 알 수 있게
+    const why = e instanceof Error && e.message ? ` · ${e.message.slice(0, 120)}` : '';
+    return { kind: 'fail', error: `결제창을 열지 못했어요${why}` };
   }
 }
 

@@ -63,7 +63,7 @@ export default async function PartnerHome() {
           ) : (
             <div className="space-y-3">
               {data.orders.map((o) => (
-                <AdCard key={o.id} order={o} today={today} pay={cfg.ready ? { storeId: cfg.storeId, channelKey: cfg.channelKey } : null} email={s.state === 'ok' ? s.partner.email : ''} />
+                <AdCard key={o.id} order={o} today={today} pay={cfg.ready ? { storeId: cfg.storeId, channelKey: cfg.channelKey } : null} email={s.state === 'ok' ? s.partner.email : ''} name={s.state === 'ok' ? s.partner.name : ''} />
               ))}
             </div>
           )}
