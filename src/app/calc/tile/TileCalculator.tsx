@@ -606,7 +606,8 @@ export default function TileCalculator() {
   if (!modeChosen) {
     return (
       <>
-        <TopNav title="타일 견적 계산기" backHref="/calc" as="p" />
+        {/* 2026-10-29: 화면 제목을 허브 카드 이름(타일)과 같게 "타일 계산기"로 — 검색용 h1은 page.tsx 그대로 */}
+        <TopNav title="타일 계산기" backHref="/calc" as="p" />
         {/* 표시 모드(관리자)에서만 — 결과 전이라 일반 방문자에겐 자리가 없다 */}
         <CalcAdSlot id="AD-H" show={false} desktopOnly />
         <div className="px-5 lg:px-8 max-w-[1120px] mx-auto">
@@ -627,7 +628,7 @@ export default function TileCalculator() {
   return (
     <>
       <TopNav
-        title="타일 견적 계산기"
+        title="타일 계산기"
         backHref="/calc"
         as="p"
         rightSlot={<Segment size="sm" options={VIEW_OPTIONS} value={view} onChange={(v) => patch({ view: v })} className="w-[136px]" ariaLabel="계산 모드" />}

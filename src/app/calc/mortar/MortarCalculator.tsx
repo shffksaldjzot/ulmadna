@@ -655,7 +655,8 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
   if (!modeChosen) {
     return (
       <>
-        <TopNav title="몰탈(레미탈) 계산기" backHref="/calc" as="p" />
+      {/* 2026-10-29: 화면 제목을 허브 카드 이름(미장)과 같게 "미장 계산기"로 — 검색용 h1은 page.tsx 그대로 */}
+        <TopNav title="미장 계산기" backHref="/calc" as="p" />
         {/* 표시 모드(관리자)에서만 — 결과 전이라 일반 방문자에겐 자리가 없다 */}
         <CalcAdSlot id="AD-H" show={false} desktopOnly />
         <div className="px-5 lg:px-8 max-w-[1120px] mx-auto">
@@ -675,7 +676,7 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
   return (
     <>
       <TopNav
-        title="몰탈(레미탈) 계산기"
+        title="미장 계산기"
         backHref="/calc"
         as="p"
         rightSlot={
