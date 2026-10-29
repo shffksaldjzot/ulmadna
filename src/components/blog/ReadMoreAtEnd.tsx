@@ -64,7 +64,9 @@ export function ReadMoreAtEnd({ candidates, calc }: { candidates: ReadMoreCandid
           io.disconnect();
         }
       },
-      { threshold: 0.01 }
+      // 화면 아래 800px 앞에서 미리 그려 둔다 — 화면 안에서 갑자기 생겨 아래 칸들을
+      // 밀어내는 흔들림(CLS)을 막기 위해(2026년 10월 29일). 정적 HTML 에 안 나오는 건 그대로.
+      { threshold: 0, rootMargin: "0px 0px 800px 0px" }
     );
     io.observe(el);
     return () => io.disconnect();

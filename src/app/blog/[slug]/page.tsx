@@ -25,6 +25,9 @@ import { ReadMoreAtEnd, type ReadMoreCandidate, type ReadMoreCalc } from "@/comp
 // 같은 공정 비용 글 추천 + 본문 중간 관련 글 1개(2026년 10월 27일, 조회수 확대 전략 E)
 import { pickSameProcessCostPosts, pickInlineRelated, insertInlineRelated } from "@/lib/blog-recommend";
 import { InlineRelatedTracker } from "@/components/blog/InlineRelatedTracker";
+// 대표 이미지(크기 고정) + 본문 그림 크기 붙이기(2026년 10월 29일, 화면 흔들림 줄이기)
+import { BlogCover } from "@/components/blog/BlogCover";
+import { addImgDims, imageSize } from "@/lib/blog-image";
 import { AdsenseUnit } from "@/components/ads/AdsenseUnit";
 import { ADSENSE_SLOTS } from "@/lib/ads/adsense";
 import "../blog.css";
@@ -184,9 +187,14 @@ export default async function BlogPost({
   // 글 끝 추천보다 먼저 골라서, 글 끝 추천에서는 이 글을 뺀다(같은 글이 두 번 나오지 않게).
   // 글 파일(md)은 그대로 두고 화면을 만들 때만 가운데 소제목 앞에 끼워 넣는다.
   const inlinePick = pickInlineRelated(post, allPosts, relatedSlugs);
-  const bodyHtml = inlinePick
-    ? insertInlineRelated(post.html, post.headings.length, inlinePick, primaryCat?.label ?? "")
-    : post.html;
+  // 본문 <img> 에 원래 크기(width/height)·지연 로딩을 붙여, 그림이 뜰 때 글이 밀리지 않게 한다(2026년 10월 29일)
+  const bodyHtml = addImgDims(
+    inlinePick
+      ? insertInlineRelated(post.html, post.headings.length, inlinePick, primaryCat?.label ?? "")
+      : post.html
+  );
+  // 대표 이미지 원본 크기(모르면 undefined → 예전처럼 크기 없이 그림)
+  const coverSize = post.thumbnail ? imageSize(post.thumbnail) : null;
 
   const endExclude = new Set(relatedSlugs);
   if (inlinePick) endExclude.add(inlinePick.slug);
@@ -306,11 +314,14 @@ export default async function BlogPost({
               <PostActions slug={post.slug} category={primaryCat?.id} initialLikes={totals?.likes ?? 0} />
             </header>
 
+            {/* 대표 이미지 — 원본 크기(가로·세로)를 미리 알려 줘서 그림이 뜰 때 본문이 안 밀리게(2026년 10월 29일) */}
             {post.thumbnail && (
-              <div className="blog-post-cover">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={post.thumbnail} alt={post.title} />
-              </div>
+              <BlogCover
+                src={post.thumbnail}
+                alt={post.title}
+                width={coverSize?.width}
+                height={coverSize?.height}
+              />
             )}
 
             {/* 모바일 목차 — 본문 위, 기본은 접힘(자리를 안 잡아먹게) */}
