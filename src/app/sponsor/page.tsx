@@ -16,14 +16,20 @@ export const metadata = {
   description: '월 방문자 타겟 광고로 인테리어 고객에게 직접 도달하세요. 지역권 타겟, 공정별 스폰서, PDF 견적서 내 광고.',
 };
 
+/** 30일 요금 "n만원" 표기 — 가격 정본(SLOT_INFO)에서 읽어 와 화면과 주문 금액이 어긋나지 않게 한다 */
+const man = (k: SlotKind) => `${(SLOT_INFO[k].price / 10000).toLocaleString('ko-KR')}만원`;
+/** 30일 요금 "100,000원" 표기(가격표용) */
+const won = (k: SlotKind) => `${SLOT_INFO[k].price.toLocaleString('ko-KR')}원`;
+
 const AD_SLOTS = [
   {
     id: 'AD-H',
     name: '헤더 하단 리더보드',
-    size: '728×90',
+    // 2026-10-29: 실제 규격 — 휴대폰 320×100, PC 728×90
+    size: '휴대폰 320×100 · PC 728×90',
     position: '페이지 최상단',
     target: '지역권 타겟',
-    price: '30일 10만원 (시도당 3개 업체, 부가세 별도)',
+    price: `30일 ${man('AD-H')} (시도당 3개 업체, 부가세 별도)`,
     desc: '사용자가 가장 먼저 보는 위치. IP 기반으로 해당 지역 업체만 노출됩니다.',
     mockup: (
       <div className="border border-dashed border-brown/20 rounded-lg p-3 bg-cream/50 text-center">
@@ -42,10 +48,11 @@ const AD_SLOTS = [
   {
     id: 'AD-P',
     name: '공정별 스폰서 배너',
-    size: '468×60',
-    position: '입력 패널 공정 사이',
+    // 2026-10-29: 실제 규격 320×50, 노출 3곳, 7만원(형아 결정)
+    size: '320×50',
+    position: '홈 공정 목록 · 그 공정 계산기 · 그 공정 블로그 글 (3곳)',
     target: '공정별 브랜드 스폰서',
-    price: '30일 5만원 (시도·공정당 3개 업체, 부가세 별도)',
+    price: `30일 ${man('AD-P')} (시도·공정당 3개 업체, 부가세 별도)`,
     desc: '사용자가 해당 공정을 선택할 때 자연스럽게 노출. 창호 옆에 KCC, 욕실 옆에 대림 등.',
     mockup: (
       <div className="border border-dashed border-brown/20 rounded-lg p-2 bg-cream/50">
@@ -64,7 +71,7 @@ const AD_SLOTS = [
     size: '300×250',
     position: '견적 결과 영역',
     target: '지역권 타겟',
-    price: '30일 10만원 (시도당 3개 업체, 부가세 별도)',
+    price: `30일 ${man('AD-R')} (시도당 3개 업체, 부가세 별도)`,
     desc: '견적 결과를 확인하는 사용자에게 노출. 가장 구매 의향이 높은 시점입니다.',
     mockup: (
       <div className="border border-dashed border-brown/20 rounded-lg p-3 bg-cream/50 w-48 mx-auto">
@@ -84,7 +91,7 @@ const AD_SLOTS = [
     size: '견적서 하단',
     position: '다운로드 견적서',
     target: '지역권 추천업체',
-    price: '30일 2만원 (여러 업체가 함께 실림, 부가세 별도)',
+    price: `30일 ${man('AD-PDF')} (여러 업체가 함께 실림, 부가세 별도)`,
     desc: '사용자가 다운받아 저장·공유하는 견적서 하단에 지역 추천업체 리스트가 포함됩니다. 엑셀은 별도 시트로 제공.',
     mockup: (
       <div className="border border-dashed border-brown/20 rounded-lg p-3 bg-cream/50 text-[10px]">
@@ -242,13 +249,13 @@ export default async function SponsorPage() {
             <div className="bg-white rounded-2xl p-5 border border-gray-100">
               <p className="text-xs font-bold text-brown mb-3">데스크톱 (6개 슬롯)</p>
               <div className="space-y-2 text-[10px]">
-                <div className="bg-gold/10 border border-gold/20 rounded p-2 text-center text-gold">AD-H · 728×90 · 헤더 하단</div>
+                <div className="bg-gold/10 border border-gold/20 rounded p-2 text-center text-gold">AD-H · 728×90(휴대폰 320×100) · 헤더 하단</div>
                 <div className="flex gap-2">
                   <div className="flex-[6] space-y-2">
                     <div className="bg-gray-50 rounded p-2 text-gray-400 text-center">입력 패널</div>
-                    <div className="bg-gold/10 border border-gold/20 rounded p-1.5 text-center text-gold">AD-P1 · 468×60</div>
+                    <div className="bg-gold/10 border border-gold/20 rounded p-1.5 text-center text-gold">AD-P · 320×50</div>
                     <div className="bg-gray-50 rounded p-2 text-gray-400 text-center">공정 리스트</div>
-                    <div className="bg-gold/10 border border-gold/20 rounded p-1.5 text-center text-gold">AD-P2 · 468×60</div>
+                    <div className="bg-gold/10 border border-gold/20 rounded p-1.5 text-center text-gold">AD-P · 320×50</div>
                   </div>
                   <div className="flex-[4] space-y-2">
                     <div className="bg-gray-50 rounded p-2 text-gray-400 text-center">결과 패널</div>
@@ -256,7 +263,7 @@ export default async function SponsorPage() {
                     <div className="bg-gold/10 border border-gold/20 rounded p-3 text-center text-gold">AD-R2<br/>300×250</div>
                   </div>
                 </div>
-                <div className="bg-gold/10 border border-gold/20 rounded p-2 text-center text-gold">AD-F · 728×90 · 푸터 상단</div>
+                <div className="bg-gold/10 border border-gold/20 rounded p-2 text-center text-gold">AD-F · 728×90(휴대폰 320×50) · 푸터 상단</div>
               </div>
             </div>
 
@@ -266,13 +273,13 @@ export default async function SponsorPage() {
               <div className="max-w-[200px] mx-auto space-y-2 text-[10px]">
                 <div className="bg-gray-50 rounded p-2 text-gray-400 text-center">헤더 + 기본조건</div>
                 <div className="bg-gray-50 rounded p-1.5 text-gray-400 text-center">총 금액</div>
-                <div className="bg-gold/10 border border-gold/20 rounded p-1.5 text-center text-gold">AD-M1 · 320×100</div>
+                <div className="bg-gold/10 border border-gold/20 rounded p-1.5 text-center text-gold">AD-H · 320×100</div>
                 <div className="bg-gray-50 rounded p-2 text-gray-400 text-center">공정 리스트</div>
-                <div className="bg-gold/10 border border-gold/20 rounded p-1.5 text-center text-gold">AD-M2 · 320×100</div>
+                <div className="bg-gold/10 border border-gold/20 rounded p-1.5 text-center text-gold">AD-P · 320×50</div>
                 <div className="bg-gray-50 rounded p-2 text-gray-400 text-center">공정 리스트</div>
-                <div className="bg-gold/10 border border-gold/20 rounded p-1.5 text-center text-gold">AD-M3 · 320×100</div>
+                <div className="bg-gold/10 border border-gold/20 rounded p-1.5 text-center text-gold">AD-R · 300×250</div>
                 <div className="bg-gray-50 rounded p-1.5 text-gray-400 text-center">결과 + PDF</div>
-                <div className="bg-gold/10 border border-gold/20 rounded p-1 text-center text-gold">AD-M4 · 320×50</div>
+                <div className="bg-gold/10 border border-gold/20 rounded p-1 text-center text-gold">AD-F · 320×50</div>
               </div>
             </div>
           </div>
@@ -295,10 +302,11 @@ export default async function SponsorPage() {
               </thead>
               <tbody>
                 {[
-                  ['헤더 하단 리더보드', 'AD-H', '시도당 3개 업체', '100,000원'],
-                  ['결과 옆 렉탱글', 'AD-R', '시도당 3개 업체', '100,000원'],
-                  ['공정 스폰서', 'AD-P', '시도 × 공정당 3개 업체', '50,000원'],
-                  ['견적서 추천 업체', 'AD-PDF', '견적서 안 공정마다 여러 업체', '20,000원'],
+                  // 금액은 가격 정본(SLOT_INFO)에서 읽는다(2026-10-29 공정 스폰서 7만원)
+                  ['헤더 하단 리더보드', 'AD-H', '시도당 3개 업체', won('AD-H')],
+                  ['결과 옆 렉탱글', 'AD-R', '시도당 3개 업체', won('AD-R')],
+                  ['공정 스폰서', 'AD-P', '시도 × 공정당 3개 업체 · 노출 3곳', won('AD-P')],
+                  ['견적서 추천 업체', 'AD-PDF', '견적서 안 공정마다 여러 업체', won('AD-PDF')],
                 ].map(([name, slot, target, price], i) => (
                   <tr key={i} className="border-t border-gray-50">
                     <td className="px-5 py-3 font-medium text-gray-700">{name}</td>

@@ -13,6 +13,8 @@ import { SLOT_INFO, expiringSoon, kstToday, daysLeft, type SlotKind } from '@/li
 import { getBoard, listAdvertisers, listOrders, remaining } from '@/server/ads/store';
 import { Card, PageHead, fmt } from '../_ui';
 import { AdvertiserForm, OrderActions, OrderForm } from './AdsForms';
+// 도배 결과 화면 예시 링크 만들기용(34평 실크 기본 조건)
+import { DEFAULT_CALC_FORM, encodeWallpaperForm } from '@/lib/v1/wallpaperQuery';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,14 +47,19 @@ export default async function AdsPage() {
       <Card title="광고 자리 보기">
         <div className="flex flex-wrap gap-2">
           {[
-            ['첫 화면', '/'],
+            ['첫 화면(공정 목록)', '/'],
             ['계산기 허브', '/calc'],
-            ['도배 결과', '/calc/wallpaper'],
-            ['견적 계산기(공정 목록)', '/'],
+            ['도배 계산기', '/calc/wallpaper'],
+            ['바닥재 계산기', '/calc/flooring'],
+            ['타일 계산기', '/calc/tile'],
+            ['미장 계산기', '/calc/mortar'],
+            ['타일 물량', '/calc/tile-pro'],
+            // 결과 화면은 공유 링크(?d=)가 있어야 결과가 보인다 — 34평 실크 기본 조건 예시를 붙인다
+            ['도배 결과 화면', `/calc/wallpaper/result?d=${encodeWallpaperForm({ ...DEFAULT_CALC_FORM, paperType: '실크' })}`],
           ].map(([label, href]) => (
             <a
               key={label}
-              href={`${href}?ad_preview=all`}
+              href={`${href}${href.includes('?') ? '&' : '?'}ad_preview=all`}
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-md border border-orange-300 bg-orange-50 px-3 py-1.5 text-sm font-medium text-orange-700"

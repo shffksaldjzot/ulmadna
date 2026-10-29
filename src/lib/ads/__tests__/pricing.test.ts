@@ -20,7 +20,7 @@ describe('주문 계산', () => {
     expect(r.vat).toBe(10000);
   });
   it('3단위와 금액 직접 지정(무료 체험)', () => {
-    expect(calcOrder('AD-P', '2026-11-01', 3).amount).toBe(150000);
+    expect(calcOrder('AD-P', '2026-11-01', 3).amount).toBe(210000);
     const free = calcOrder('AD-P', '2026-11-01', 1, 0);
     expect(free.amount).toBe(0);
     expect(free.vat).toBe(0);

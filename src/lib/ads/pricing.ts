@@ -21,7 +21,8 @@ export const SLOT_KINDS: SlotKind[] = ['AD-H', 'AD-R', 'AD-P', 'AD-F', 'AD-PDF']
 export const SLOT_INFO: Record<SlotKind, { name: string; width: number; height: number; price: number; capacity: number | null; maxKB: number; desktop?: { width: number; height: number } }> = {
   'AD-H': { name: '헤더 가로', width: 320, height: 100, price: 100000, capacity: 3, maxKB: 300, desktop: { width: 728, height: 90 } },
   'AD-R': { name: '결과 옆 네모', width: 300, height: 250, price: 100000, capacity: 3, maxKB: 400 },
-  'AD-P': { name: '공정 스폰서', width: 320, height: 50, price: 50000, capacity: 3, maxKB: 200 },
+  // 공정 스폰서: 2026-10-29 형아 결정으로 5만 → 7만 원/30일 (노출 3곳: 홈 공정 목록 + 그 공정 계산기 + 그 공정 블로그 글)
+  'AD-P': { name: '공정 스폰서', width: 320, height: 50, price: 70000, capacity: 3, maxKB: 200 },
   // 푸터 가격은 계획안에 따로 없어 견적서 추천과 같은 2만 원으로 둠(주문 만들 때 금액을 직접 고칠 수 있다)
   'AD-F': { name: '푸터 로테이션', width: 320, height: 50, price: 20000, capacity: 3, maxKB: 200, desktop: { width: 728, height: 90 } },
   'AD-PDF': { name: '견적서 추천(글자)', width: 0, height: 0, price: 20000, capacity: null, maxKB: 0 },
