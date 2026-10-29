@@ -16,7 +16,7 @@ import { useEffect, useState } from 'react';
 import Container from './Container';
 
 /** 서버가 주는 모양 — 실패면 total 이 null */
-type Counts = { total: number; today: number };
+type Counts = { total: number; today: number; yesterday: number };
 
 /** 'loading' = 받는 중(높이만 잡음) · null = 실패(띠 숨김) · 숫자 = 표시 */
 type State = 'loading' | Counts | null;
@@ -29,9 +29,9 @@ function loadCounts(): Promise<Counts | null> {
   if (!memo) {
     memo = fetch('/api/visitors')
       .then((r) => (r.ok ? r.json() : null))
-      .then((d: { total?: unknown; today?: unknown } | null) =>
+      .then((d: { total?: unknown; today?: unknown; yesterday?: unknown } | null) =>
         d && typeof d.total === 'number' && d.total > 0 && typeof d.today === 'number'
-          ? { total: d.total, today: d.today }
+          ? { total: d.total, today: d.today, yesterday: typeof d.yesterday === 'number' ? d.yesterday : 0 }
           : null,
       )
       .catch(() => {
@@ -67,7 +67,9 @@ export default function VisitorBand() {
           <p className="text-[12px] leading-none text-ink-2 whitespace-nowrap tabular-nums">
             전체 <span className="font-semibold text-ink">{fmt(state.total)}</span>
             <span className="mx-1.5 text-ink-2/50" aria-hidden>·</span>
-            오늘 <span className="font-semibold text-accent">{fmt(state.today)}</span>
+            {/* 새벽엔 GA 에 오늘 줄이 아직 없어 0 → 그때는 "어제 N" 으로(둘 다 0 이면 오늘 0 그대로) */}
+            {state.today === 0 && state.yesterday > 0 ? '어제 ' : '오늘 '}
+            <span className="font-semibold text-accent">{fmt(state.today === 0 && state.yesterday > 0 ? state.yesterday : state.today)}</span>
           </p>
         )}
       </Container>

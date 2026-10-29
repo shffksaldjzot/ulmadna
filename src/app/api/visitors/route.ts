@@ -15,5 +15,5 @@ export const revalidate = 3600;
 export async function GET() {
   const v = await getVisitorCounts();
   // 실패면 total:null — 화면은 이걸 보고 띠를 숨긴다
-  return NextResponse.json(v ?? { total: null, today: null });
+  return NextResponse.json(v ?? { total: null, today: null, yesterday: null });
 }

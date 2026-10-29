@@ -21,11 +21,13 @@ export const VISITORS_START_DATE = '2015-08-14';
 export interface VisitorCounts {
   total: number; // 전체(누적) 방문자
   today: number; // 오늘(한국 시간) 방문자
+  yesterday: number; // 어제 방문자 — 새벽엔 GA 에 오늘 줄이 아직 없어 0 이라, 그때 띠가 "어제 N" 으로 보여 줌
 }
 
 /** 한국 시간 기준 오늘 날짜를 GA 날짜 모양(20261030)으로 만든다 */
-function kstTodayYmd(): string {
-  const kst = new Date(Date.now() + 9 * 60 * 60 * 1000); // UTC + 9시간 = 한국 시간
+function kstTodayYmd(offsetDays = 0): string {
+  // UTC + 9시간 = 한국 시간. offsetDays = -1 이면 어제
+  const kst = new Date(Date.now() + 9 * 60 * 60 * 1000 + offsetDays * 24 * 60 * 60 * 1000);
   return kst.toISOString().slice(0, 10).replace(/-/g, '');
 }
 
@@ -44,14 +46,17 @@ async function fetchVisitorsOrThrow(): Promise<VisitorCounts> {
   // 열쇠 값은 절대 안 찍음 — 이유 문자와 GA 응답 앞부분(오류 설명)만 서버 로그에 남긴다
   if (!r.ok) throw new Error(`visitors: ${r.reason} ${r.detail ?? ''}`.trim());
   const todayKey = kstTodayYmd();
+  const yKey = kstTodayYmd(-1); // 어제 열쇠(한국 날짜)
   let total = 0;
   let today = 0;
+  let yesterday = 0;
   for (const row of r.rows) {
     const n = row.vals[0] ?? 0;
     total += n; // 날짜별 방문자를 전부 더해 누적
     if (row.dims[0] === todayKey) today = n; // 오늘 날짜 줄만 따로
+    if (row.dims[0] === yKey) yesterday = n; // 어제 줄
   }
-  return { total: Math.round(total), today: Math.round(today) };
+  return { total: Math.round(total), today: Math.round(today), yesterday: Math.round(yesterday) };
 }
 
 /** 1시간 캐시(서버 전체 공유) — 키 이름을 바꾸면 캐시가 새로 시작된다 */
