@@ -44,6 +44,10 @@ export interface MyOrder {
   run_status: string;
   note: string | null;
   bannerUrl: string | null;
+  /** 제작 대행 주문인지(SQL 20261101 실행 전엔 항상 false) */
+  design_requested: boolean;
+  /** 배너 그림이 있는지(배지 '배너 제작 중' 판정용) */
+  has_banner: boolean;
   impressions: number;
   clicks: number;
 }
@@ -180,14 +184,19 @@ export interface DayEvent {
 export async function myAds(advertiserId: number, today: string): Promise<{ orders: MyOrder[]; events: DayEvent[] } | null> {
   const sb = adminOrNull();
   if (!sb) return null;
-  const { data, error } = await sb
-    .from('ad_orders')
-    .select('id,slot_kind,sido,process,start_date,end_date,units,amount,vat,pay_status,run_status,note,banner_path')
-    .eq('advertiser_id', advertiserId)
-    .order('id', { ascending: false })
-    .limit(200);
+  // 제작 대행 칸(design_requested)까지 읽는다. 칸이 아직 없는 DB(SQL 20261101 실행 전)면 빼고 다시 읽는다
+  const cols = 'id,slot_kind,sido,process,start_date,end_date,units,amount,vat,pay_status,run_status,note,banner_path';
+  const read = (withDesign: boolean) =>
+    sb
+      .from('ad_orders')
+      .select(withDesign ? `${cols},design_requested` : cols)
+      .eq('advertiser_id', advertiserId)
+      .order('id', { ascending: false })
+      .limit(200);
+  let { data, error } = await read(true);
+  if (error) ({ data, error } = await read(false));
   if (error) return null;
-  const rows = data ?? [];
+  const rows = (data ?? []) as unknown as Record<string, unknown>[];
   const ids = rows.map((r) => Number(r.id));
   const from = lastDays(today, 14)[0];
   const events: DayEvent[] = [];
@@ -218,6 +227,8 @@ export async function myAds(advertiserId: number, today: string): Promise<{ orde
     run_status: String(r.run_status),
     note: (r.note as string | null) ?? null,
     bannerUrl: bannerUrl(sb, (r.banner_path as string | null) ?? null),
+    design_requested: r.design_requested === true,
+    has_banner: !!r.banner_path,
     impressions: total.get(Number(r.id))?.i ?? 0,
     clicks: total.get(Number(r.id))?.c ?? 0,
   }));
@@ -251,6 +262,27 @@ export async function myOrder(advertiserId: number, orderId: number): Promise<{
     pay_status: String(data.pay_status),
     run_status: String(data.run_status),
   };
+}
+
+// ── 배너 제작 대행 ─────────────────────────────
+
+/**
+ * 이 광고주의 제작 대행이 "첫 회 무료"인가(2026-10-29)
+ *   이전 주문(ad_orders)에 design_requested=true 가 한 줄이라도 있으면 false.
+ *   칸이 아직 없으면(20261101_ads_design.sql 실행 전, 오류 42703) 맡긴 적이 없는 것이므로 true.
+ *   그 밖의 연결 실패는 null(판정 불가 — 결제 준비에서 막는다).
+ */
+export async function designFirstFree(advertiserId: number): Promise<boolean | null> {
+  const sb = adminOrNull();
+  if (!sb) return null;
+  const { data, error } = await sb
+    .from('ad_orders')
+    .select('id')
+    .eq('advertiser_id', advertiserId)
+    .eq('design_requested', true)
+    .limit(1);
+  if (error) return (error as { code?: string }).code === '42703' ? true : null;
+  return !data?.length;
 }
 
 // ── 결제 기록 ─────────────────────────────────

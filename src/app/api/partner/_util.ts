@@ -11,10 +11,10 @@ export function fail(status: number, error: string) {
   return NextResponse.json({ error }, { status });
 }
 
-/** 로그인한 업체 번호. 아니면 오류 응답 */
-export async function partnerOr401(): Promise<{ id: number } | { res: NextResponse }> {
+/** 로그인한 업체 번호·상호(상호는 제작 대행 입력 내용에 함께 적는다). 아니면 오류 응답 */
+export async function partnerOr401(): Promise<{ id: number; name: string } | { res: NextResponse }> {
   const s = await currentPartner();
-  if (s.state === 'ok') return { id: s.partner.advertiserId };
+  if (s.state === 'ok') return { id: s.partner.advertiserId, name: s.partner.name };
   if (s.state === 'down') return { res: fail(503, '준비 중이에요') };
   return { res: fail(401, '다시 로그인해 주세요') };
 }
