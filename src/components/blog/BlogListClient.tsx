@@ -17,6 +17,8 @@ import type { PostIndexItem } from "@/lib/blog";
 import { BLOG_CATEGORIES } from "@/lib/blog-categories";
 import { matchesQuery, normalizeKo } from "@/lib/blog-search";
 import { PostCard, fmtDate } from "./PostCard";
+// 검색창 돋보기 — 컬러 이모지 대신 단색 선 아이콘(2026년 10월 29일)
+import { SearchIcon } from "./LineIcons";
 
 /** "더보기" 한 번에 더 나오는 글 수 */
 const PAGE_SIZE = 18;
@@ -97,7 +99,7 @@ export function BlogListClient({ posts }: { posts: PostIndexItem[] }) {
       {/* 검색창 — 안내문 없이 placeholder 한 줄로 */}
       <div className="blog-search">
         <span className="blog-search-icon" aria-hidden="true">
-          🔍
+          <SearchIcon size={17} />
         </span>
         <input
           type="search"

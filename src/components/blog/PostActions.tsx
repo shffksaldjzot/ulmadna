@@ -21,6 +21,8 @@
 import { useEffect, useState } from "react";
 import { isLiked, isSaved, subscribeMyChange, toggleLiked, toggleSaved } from "@/lib/blog-my";
 import { track } from "@/lib/analytics";
+// 컬러 이모지 대신 단색 선 아이콘(2026년 10월 29일)
+import { BookmarkIcon, HeartIcon } from "./LineIcons";
 
 // 좋아요 "숫자"는 서버(Supabase) 값이라 blog-my.ts(localStorage 목록) 이벤트로는 안 흘러온다.
 // 글 위/끝 두 컴포넌트가 숫자까지 서로 맞추도록, 숫자가 바뀔 때만 쏘는 전용 이벤트를 하나 둔다.
@@ -104,7 +106,8 @@ export function PostActions({
         aria-pressed={saved}
         aria-label={saved ? "저장 취소" : "글 저장"}
       >
-        <span aria-hidden="true">🔖</span>
+        {/* 저장되면 속이 채워진 책갈피 */}
+        <BookmarkIcon filled={saved} />
       </button>
       <button
         type="button"
@@ -113,7 +116,8 @@ export function PostActions({
         aria-pressed={liked}
         aria-label={liked ? "좋아요 취소" : "좋아요"}
       >
-        <span aria-hidden="true">{liked ? "❤️" : "🤍"}</span>
+        {/* 좋아요 누르면 속이 채워진 하트 */}
+        <HeartIcon filled={liked} />
         {likeCount > 0 && <span className="blog-action-count">{likeCount.toLocaleString()}</span>}
       </button>
     </div>
