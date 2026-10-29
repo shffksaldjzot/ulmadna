@@ -15,11 +15,13 @@ import { Card, PageHead, fmt } from '../_ui';
 import { AdvertiserForm, OrderActions, OrderForm } from './AdsForms';
 // 도배 결과 화면 예시 링크 만들기용(34평 실크 기본 조건)
 import { DEFAULT_CALC_FORM, encodeWallpaperForm } from '@/lib/v1/wallpaperQuery';
+// 토탈 판정 글 예시 링크(AD-T 자리 확인용)
+import { getAllPostMeta } from '@/lib/blog';
 
 export const dynamic = 'force-dynamic';
 
-/** 판에 보일 자리 4종(견적서 추천은 개수 제한이 없어 판에서 뺌) */
-const BOARD_KINDS: SlotKind[] = ['AD-H', 'AD-R', 'AD-P', 'AD-F'];
+/** 판에 보일 자리 5종(견적서 추천은 개수 제한이 없어 판에서 뺌). AD-T 토탈 인테리어 스폰서는 2026-10-29 추가 */
+const BOARD_KINDS: SlotKind[] = ['AD-H', 'AD-R', 'AD-P', 'AD-T', 'AD-F'];
 
 const PAY_LABEL: Record<string, string> = { pending: '입금 대기', paid: '입금 확인', refunded: '환불' };
 const RUN_LABEL: Record<string, string> = { review: '심사중', live: '게재', ended: '종료', stopped: '중지' };
@@ -32,6 +34,8 @@ export default async function AdsPage() {
   const sidos = [...SIDO_CODES.map((c) => ({ code: c, name: REGION_NAMES[c] })), { code: SIDO_ALL, name: '전국(준비 중·판매 안 함)' }];
   /** 지역 이름(전국 포함) */
   const regionName = (c: string) => (c === SIDO_ALL ? '전국' : REGION_NAMES[c] ?? c);
+  // 토탈(인테리어 총론) 판정 글 하나 — 본문 중간 AD-T 자리 확인용
+  const totalPost = getAllPostMeta().find((p) => p.process.total);
 
   if (!advs || !ord) {
     return (
@@ -59,6 +63,7 @@ export default async function AdsPage() {
             ['타일 물량', '/calc/tile-pro'],
             // 결과 화면은 공유 링크(?d=)가 있어야 결과가 보인다 — 34평 실크 기본 조건 예시를 붙인다
             ['도배 결과 화면', `/calc/wallpaper/result?d=${encodeWallpaperForm({ ...DEFAULT_CALC_FORM, paperType: '실크' })}`],
+            ...(totalPost ? [['총론 블로그 글(AD-T)', `/blog/${totalPost.slug}`]] : []),
           ].map(([label, href]) => (
             <a
               key={label}
@@ -82,6 +87,7 @@ export default async function AdsPage() {
                 {BOARD_KINDS.map((k) => (
                   <th key={k} className="py-2 px-2 text-center text-[11px] font-medium text-gray-400 whitespace-nowrap">
                     {k}<br /><span className="text-gray-300">{SLOT_INFO[k].name} {SLOT_INFO[k].width}×{SLOT_INFO[k].height}</span>
+                    {k === 'AD-T' && <><br /><span className="text-gray-300">30일 {SLOT_INFO[k].price / 10000}만원</span></>}
                   </th>
                 ))}
               </tr>
@@ -142,7 +148,7 @@ export default async function AdsPage() {
                     <tr key={o.id} className="border-b border-gray-50 align-top">
                       <td className="py-2 px-2">
                         <p className="font-medium text-gray-700">{o.advertiser_name} <span className="text-[11px] text-gray-300">#{o.id}</span></p>
-                        <p className="text-[11px] text-gray-500">{o.slot_kind} · {regionName(o.sido)}{o.process ? ` · ${o.process}` : ''}</p>
+                        <p className="text-[11px] text-gray-500">{o.slot_kind} · {regionName(o.sido)}{o.process && o.slot_kind !== 'AD-T' ? ` · ${o.process}` : ''}</p>
                         {img && <a href={img} target="_blank" rel="noreferrer" className="text-[11px] text-brown underline">배너 보기</a>}
                         {pcImg && <a href={pcImg} target="_blank" rel="noreferrer" className="ml-2 text-[11px] text-brown underline">PC 배너 보기</a>}
                       </td>

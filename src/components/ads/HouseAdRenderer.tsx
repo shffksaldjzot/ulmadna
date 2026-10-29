@@ -1,26 +1,21 @@
 // ─────────────────────────────────────────────────────────────
-// 자사 콘텐츠(House Ad) 렌더러
-//  - AD-H, AD-R 슬롯에서 광고주 없을 때 노출 (v2 명세 §5.4)
+// 자사 콘텐츠(House Ad) 렌더러 — 빈 광고 자리 폴백
+//  - AD-H, AD-R 슬롯에서 산 업체가 없을 때 노출 (v2 명세 §5.4)
 //  - 광고 전역 스위치(ADS_ENABLED, src/lib/ads/config.ts)가 꺼져 있는 동안은
 //    resolveAdContent가 항상 collapse를 반환하므로 이 컴포넌트는 실제로 렌더되지 않는다.
-//    (2026-09-15 기준 ADS_ENABLED=false — 광고 자체를 켤지는 별도의 사업 결정이라
-//    이 작업에서는 건드리지 않았다. 스위치를 켜는 순간 아래 카드가 그대로 나타난다.)
 //
-// 2026-09-15 디자인 통일 작업 A: "애드센스 320×100" 같은 자리표시 문구 대신 실제로
-// 눌리는 계산기 홍보 카드로 바꿨다. "광고" 라벨 없음(자사 콘텐츠라 원래도 라벨 대상 아님).
-// 날짜 기준으로 카드를 돌려써서(진짜 랜덤이 아니라 오늘 하루는 서버·화면이 같은 카드를
-// 보여주도록) 매번 렌더가 흔들리는 하이드레이션 불일치를 피했다.
+// 2026-10-29 형아 결정: 빈자리는 얼마드나 자체 안내 한 줄 —
+//   "이 자리에 우리 업체 광고 · 30일 N만원부터 → 광고 안내"(/sponsor 로 이동).
+//   다른 회사 상호·전화·서비스 안내는 넣지 않는다.
+//   N 은 가격 정본(SLOT_INFO)의 가장 싼 상품 값에서 읽는다(가격이 바뀌면 같이 바뀜).
+//   "광고" 라벨 없음(자사 안내라 라벨 대상 아님).
 // ─────────────────────────────────────────────────────────────
 
 import type { AdSlotId } from '@/lib/ads/types';
+import { SLOT_INFO } from '@/lib/ads/pricing';
 
-// 계산기 홍보 카드 3종 — 실제로 켜져 있는 계산기만 넣는다(준비 중 공정은 안내하지 않음)
-const CALC_PROMOS = [
-  { title: '도배 계산기', body: '벽지 롤수와 비용 바로', href: '/calc/wallpaper' },
-  // 2026-10-03 검색 노출: 링크 글자에 "몰탈 계산기"가 들어가게
-  { title: '미장·몰탈 계산기', body: '레미탈 포대수와 비용 바로', href: '/calc/mortar' },
-  { title: '바닥재 계산기', body: '바닥재 수량과 비용 바로', href: '/calc/flooring' },
-] as const;
+/** 30일 최저 요금(만원) — 0원(무료) 상품은 빼고 계산 */
+const MIN_MANWON = Math.min(...Object.values(SLOT_INFO).map((s) => s.price).filter((p) => p > 0)) / 10000;
 
 interface HouseAdRendererProps {
   slotId: AdSlotId;
@@ -28,22 +23,17 @@ interface HouseAdRendererProps {
 
 export default function HouseAdRenderer({ slotId }: HouseAdRendererProps) {
   // house ad 대상이 아닌 슬롯 — 안전장치 (호출되지 않아야 정상)
-  if (slotId === 'AD-P' || slotId === 'AD-F') return null;
-
-  // 날짜(일)로 카드를 하나 고른다 — AD-H/AD-R이 한 화면에 같이 있어도 서로 다른 카드가
-  // 나오도록 슬롯별로 한 칸씩 밀어서 고른다.
-  const dayIndex = new Date().getDate();
-  const offset = slotId === 'AD-R' ? 1 : 0;
-  const promo = CALC_PROMOS[(dayIndex + offset) % CALC_PROMOS.length];
+  if (slotId !== 'AD-H' && slotId !== 'AD-R') return null;
 
   return (
     <a
-      href={promo.href}
-      className="flex flex-col justify-center w-full h-full bg-surface border border-line rounded-card px-4 py-3 hover:border-accent transition-colors"
+      href="/sponsor"
+      className="flex items-center justify-center gap-2 w-full h-full bg-surface border border-dashed border-line rounded-card px-4 py-3 text-center hover:border-accent transition-colors"
     >
-      <p className="t-body font-bold text-ink">{promo.title}</p>
-      <p className="t-sub text-ink-2 mt-1">{promo.body}</p>
-      <p className="t-sub font-semibold text-accent mt-2">지금 계산하기 →</p>
+      <span className="t-sub text-ink-2">
+        이 자리에 우리 업체 광고 · 30일 {MIN_MANWON.toLocaleString('ko-KR')}만원부터
+      </span>
+      <span className="t-sub font-semibold text-accent whitespace-nowrap">광고 안내 →</span>
     </a>
   );
 }
