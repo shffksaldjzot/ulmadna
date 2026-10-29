@@ -28,6 +28,18 @@ export const SLOT_INFO: Record<SlotKind, { name: string; width: number; height: 
   'AD-PDF': { name: '견적서 추천(글자)', width: 0, height: 0, price: 20000, capacity: null, maxKB: 0 },
 };
 
+/**
+ * 지역 '전국' 값(2026-10-29 준비만 — 판매하지 않는다).
+ *  - 주문의 sido 칸에 이 값이 있으면 방문자 지역과 상관없이 매칭된다.
+ *  - 관리자 주문 화면 지역 선택지 맨 끝에만 보인다. DB 제약은 20261030_ads_desktop_banner.sql 초안에서 푼다.
+ */
+export const SIDO_ALL = 'ALL';
+
+/** 주문 지역 값 검사: 시도 두 자리 번호 또는 '전국'(ALL) */
+export function isOrderSido(v: unknown): v is string {
+  return typeof v === 'string' && (/^\d{2}$/.test(v) || v === SIDO_ALL);
+}
+
 /** 공정 스폰서(AD-P) 공정 이름 — ProcessToggles.tsx 의 PROCESS_GROUPS 라벨과 같아야 한다(맞춰서 수정) */
 export const AD_PROCESS_GROUPS = [
   '철거', '확장·설비', '전기·조명', '에어컨', '목공', '창호', '도배·바닥', '도장·필름', '타일', '욕실', '주방', '가구', '부대비용',

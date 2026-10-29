@@ -17,7 +17,9 @@ import {
   calcOrder,
   isDay,
   isHttpsUrl,
+  isOrderSido,
   kstToday,
+  SIDO_ALL,
   type SlotKind,
 } from '@/lib/ads/pricing';
 
@@ -181,7 +183,8 @@ export async function createOrder(input: Record<string, unknown>): Promise<Res> 
   if (!sb) return { ok: false, error: '저장소에 연결하지 못했어요' };
   const kind = input.slot_kind as SlotKind;
   if (!SLOT_KINDS.includes(kind)) return { ok: false, error: '자리 종류가 달라요' };
-  const sido = typeof input.sido === 'string' && /^\d{2}$/.test(input.sido) ? input.sido : null;
+  // 지역: 시도 두 자리 번호 또는 '전국'(ALL, 준비만 — 판매 안 함)
+  const sido = isOrderSido(input.sido) ? input.sido : null;
   if (!sido) return { ok: false, error: '지역을 골라 주세요' };
   const advertiserId = Number(input.advertiser_id);
   if (!Number.isInteger(advertiserId) || advertiserId <= 0) return { ok: false, error: '광고주를 골라 주세요' };
@@ -324,7 +327,8 @@ export async function serveAd(kind: SlotKind, sido: string, process: string | nu
           .from('ad_orders')
           .select(withPc ? 'id,banner_path,banner_desktop_path,advertisers(name)' : 'id,banner_path,advertisers(name)')
           .eq('slot_kind', kind)
-          .eq('sido', sido)
+          // 방문자 시도 주문 + '전국'(ALL) 주문을 함께 후보로(전국은 지역과 상관없이 매칭)
+          .in('sido', [sido, SIDO_ALL])
           .eq('run_status', 'live')
           .lte('start_date', today)
           .gte('end_date', today)

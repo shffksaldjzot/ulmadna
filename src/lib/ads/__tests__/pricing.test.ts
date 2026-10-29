@@ -1,6 +1,6 @@
 // 광고 가격·기간·그림 검사 시험 (2026년 10월 29일)
 import { describe, expect, it } from 'vitest';
-import { calcOrder, checkBanner, expiringSoon, imageSize, isHttpsUrl } from '../pricing';
+import { calcOrder, checkBanner, expiringSoon, imageSize, isHttpsUrl, isOrderSido } from '../pricing';
 
 /** 가로·세로만 담은 가짜 PNG 머리말 (extra 만큼 뒤에 덧붙여 파일 크기를 키움) */
 function fakePng(w: number, h: number, extra = 0): Uint8Array {
@@ -55,5 +55,16 @@ describe('만료 임박·주소·그림', () => {
     expect(checkBanner('AD-R', fakePng(728, 90), 'desktop')).toMatch(/PC 그림/);
     expect(checkBanner('AD-P', fakePng(728, 90), 'desktop')).toMatch(/PC 그림/);
     expect(checkBanner('AD-H', fakePng(1456, 180, 400 * 1024), 'desktop')).toMatch(/KB/);
+  });
+});
+
+// 지역 '전국'(ALL) — 준비만(2026-10-29): 시도 두 자리 번호 또는 ALL 만 허용
+describe('주문 지역 값', () => {
+  it('시도 번호와 전국만', () => {
+    expect(isOrderSido('11')).toBe(true);
+    expect(isOrderSido('ALL')).toBe(true);
+    expect(isOrderSido('all')).toBe(false);
+    expect(isOrderSido('1')).toBe(false);
+    expect(isOrderSido(11)).toBe(false);
   });
 });

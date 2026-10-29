@@ -9,7 +9,7 @@
 //   표가 아직 없으면(SQL 미실행) 안내 한 줄만 보인다. 서버 컴포넌트라 열쇠는 브라우저로 안 나간다.
 // ──────────────────────────────────────────────
 import { SIDO_CODES, REGION_NAMES } from '@/server/admin/format';
-import { SLOT_INFO, expiringSoon, kstToday, daysLeft, type SlotKind } from '@/lib/ads/pricing';
+import { SLOT_INFO, SIDO_ALL, expiringSoon, kstToday, daysLeft, type SlotKind } from '@/lib/ads/pricing';
 import { getBoard, listAdvertisers, listOrders, remaining } from '@/server/ads/store';
 import { Card, PageHead, fmt } from '../_ui';
 import { AdvertiserForm, OrderActions, OrderForm } from './AdsForms';
@@ -28,7 +28,10 @@ const won = (n: number) => `${n.toLocaleString('ko-KR')}원`;
 export default async function AdsPage() {
   const today = kstToday();
   const [board, advs, ord] = await Promise.all([getBoard(today), listAdvertisers(), listOrders()]);
-  const sidos = SIDO_CODES.map((c) => ({ code: c, name: REGION_NAMES[c] }));
+  // 지역 선택지 — 맨 끝 '전국'은 준비만(판매 안 함, 2026-10-29). SQL 초안 실행 전엔 저장이 거절된다
+  const sidos = [...SIDO_CODES.map((c) => ({ code: c, name: REGION_NAMES[c] })), { code: SIDO_ALL, name: '전국(준비 중·판매 안 함)' }];
+  /** 지역 이름(전국 포함) */
+  const regionName = (c: string) => (c === SIDO_ALL ? '전국' : REGION_NAMES[c] ?? c);
 
   if (!advs || !ord) {
     return (
@@ -88,7 +91,8 @@ export default async function AdsPage() {
                 <tr key={c} className="border-b border-gray-50">
                   <td className="py-1.5 px-2 text-gray-600 whitespace-nowrap">{REGION_NAMES[c]}</td>
                   {BOARD_KINDS.map((k) => {
-                    const used = board[c]?.[k] ?? 0;
+                    // '전국' 주문은 모든 지역의 자리를 함께 차지한다
+                    const used = (board[c]?.[k] ?? 0) + (board[SIDO_ALL]?.[k] ?? 0);
                     const left = remaining(used, k) ?? 0;
                     // AD-P 는 공정마다 3곳이라 "공정 n건"으로만 보여 준다(공정별 남은 자리는 주문 만들 때 검사)
                     const text = k === 'AD-P' ? (used ? `${used}건` : '비어 있음') : `${left}/3 남음`;
@@ -138,7 +142,7 @@ export default async function AdsPage() {
                     <tr key={o.id} className="border-b border-gray-50 align-top">
                       <td className="py-2 px-2">
                         <p className="font-medium text-gray-700">{o.advertiser_name} <span className="text-[11px] text-gray-300">#{o.id}</span></p>
-                        <p className="text-[11px] text-gray-500">{o.slot_kind} · {REGION_NAMES[o.sido] ?? o.sido}{o.process ? ` · ${o.process}` : ''}</p>
+                        <p className="text-[11px] text-gray-500">{o.slot_kind} · {regionName(o.sido)}{o.process ? ` · ${o.process}` : ''}</p>
                         {img && <a href={img} target="_blank" rel="noreferrer" className="text-[11px] text-brown underline">배너 보기</a>}
                         {pcImg && <a href={pcImg} target="_blank" rel="noreferrer" className="ml-2 text-[11px] text-brown underline">PC 배너 보기</a>}
                       </td>
