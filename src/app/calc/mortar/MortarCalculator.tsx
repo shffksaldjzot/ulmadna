@@ -65,6 +65,7 @@ import QuickAnswer from './QuickAnswer';
 import PreciseRooms from './PreciseRooms';
 import PreciseSection from './PreciseSection';
 import ResultPanel from './ResultPanel';
+import AreaPendingCard from '../_components/AreaPendingCard';
 import { describeMortarBottomBarAssumption } from '../_components/assumptionText';
 import FlowShell from '../_components/flow/FlowShell';
 import AdjustChips from '../_components/flow/AdjustChips';
@@ -442,6 +443,17 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
     ? [...assumedFromEngine, 'measuring']
     : assumedFromEngine;
 
+  // ── 2026-10-29 형아 지시: 면적을 사용자가 정하기 전에는 금액을 어디에도 안 보인다(도배·바닥재와 같은 규칙) ──
+  // 기본값(34평/33㎡ 가정)은 그대로 두고 "사용자가 골랐는지"로만 판단한다. 간단 모드는 면적
+  // 단계를 손댔고 값이 범위 안일 때, 정확 모드는 구역 단계를 손댔을 때를 "골랐다"로 본다.
+  // 공유 링크로 들어오면 전부 손댄 것으로 시작하므로 골랐다고 친다. 지금 보이는 결과가 아직
+  // 면적 가정(assumed에 'area')으로 계산된 것이면 새 결과가 올 때까지 그것도 숨긴다.
+  // 즉답 수량(포수·체적)도 가정 면적 기준이라 결과 카드 전체를 한 줄로 바꾼다.
+  const areaChosen = view === 'simple' ? !!touchedMap.area && simpleAreaInRange : !!touchedMap.zones;
+  const areaPending = !areaChosen || assumed.includes('area');
+  // 금액 자리에 대신 보여 줄 한 줄(설명글 최소화 — 캡션 한 줄)
+  const areaPendingText = view === 'simple' ? '면적을 고르면 바로 나와요' : '구역을 넣으면 바로 나와요';
+
   // ── 추적(GA4, 타일·도배·바닥재 계산기와 같은 이름·파라미터) ──
   // 미장 계산기 화면에 들어왔다는 이벤트를 1번(마운트 시점)
   useEffect(() => {
@@ -680,32 +692,39 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
           // (예전엔 이 구역이 범위 밖이라 진한 갈색 그대로였다)
           className="scroll-mt-16 flex flex-col gap-4 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto flowFocusScope"
         >
-          <AdjustChips visible={!!quick} groups={adjustGroups} />
+          {/* 조정 칩도 결과의 일부라 면적을 고르기 전에는 숨긴다(2026-10-29) */}
+          <AdjustChips visible={!!quick && !areaPending} groups={adjustGroups} />
           {/* 정확 모드 "세부 조정" — 조정 칩 아래, 결과 카드 위. 카드로 감싸지 않는다
               (테두리·배경 없음, 지시서 9-2절). 기존 입력 부품(PreciseSection.tsx)을
               그대로 옮겨서 쓴다. */}
-          {view === 'precise' && quick && (
+          {/* 세부 조정 안에도 금액 칸이 있어 면적을 고르기 전에는 숨긴다(2026-10-29) */}
+          {view === 'precise' && quick && !areaPending && (
             <Collapsible title="세부 조정">
               <div className="pt-2">
                 <PreciseSection form={form} patch={patch} products={products} result={result} />
               </div>
             </Collapsible>
           )}
-          <ResultPanel
-            quick={quick}
-            result={result}
-            range={range}
-            loading={loading}
-            error={error}
-            stale={stale}
-            assumed={assumed}
-            allDone={allDone}
-            moneyFieldsAllInRange={moneyFieldsAllInRange}
-            form={form}
-            areaAssumedText={areaAssumedText}
-            thicknessAssumedText={thicknessAssumedText}
-            emptyMessage={emptyMessage}
-          />
+          {/* 2026-10-29: 용도를 골랐어도 면적을 아직 안 정했으면 결과 카드 대신 한 줄만 보인다 */}
+          {areaPending && touchedMap.usage ? (
+            <AreaPendingCard text={areaPendingText} />
+          ) : (
+            <ResultPanel
+              quick={quick}
+              result={result}
+              range={range}
+              loading={loading}
+              error={error}
+              stale={stale}
+              assumed={assumed}
+              allDone={allDone}
+              moneyFieldsAllInRange={moneyFieldsAllInRange}
+              form={form}
+              areaAssumedText={areaAssumedText}
+              thicknessAssumedText={thicknessAssumedText}
+              emptyMessage={emptyMessage}
+            />
+          )}
         </div>
       </div>
 
@@ -716,8 +735,9 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
         stepNumber={Math.min(activeIndex + 1, steps.length)}
         stepCount={steps.length}
         stepTitle={currentStepTitle}
-        amountText={range ? formatManRange(range.min, range.max) : undefined}
-        assumedNote={describeMortarBottomBarAssumption(assumed, areaAssumedText) ?? undefined}
+        // 면적을 고르기 전에는 금액을 안 넘긴다 → 하단 바는 "단계 번호 · 단계 제목"만 보인다(2026-10-29)
+        amountText={range && !areaPending ? formatManRange(range.min, range.max) : undefined}
+        assumedNote={areaPending ? undefined : (describeMortarBottomBarAssumption(assumed, areaAssumedText) ?? undefined)}
         allDone={allDone}
         calculating={loading || stale}
         failed={bottomFailed}
