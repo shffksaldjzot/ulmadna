@@ -33,6 +33,7 @@ import ChipGroup from '@/components/v1/ChipGroup';
 import NumberField from '@/components/v1/NumberField';
 import {
   pyeongToExclusiveSqm,
+  exclusiveSqmToPyeong,
   pyeongToSupplySqm,
   sqmToPyeong,
   SUPPLY_PYEONG_CHIPS,
@@ -80,7 +81,7 @@ export interface AreaInputProps {
    * 있다 — 34평 가정) **화면 표시만** 숨긴다:
    *   - 칩은 하나도 선택 표시하지 않는다
    *   - 숫자 칸은 비우고, 그 값을 자리 글자(placeholder)로 흐리게 보여준다
-   *   - 환산 캡션 줄("≈ 112.4㎡ · 84㎡")은 안 그린다
+   *   - 환산 캡션 줄("≈ 84㎡")은 안 그린다
    * 기본 false. 2026-09-29 지적 6번 이후로는 도배·바닥재·미장 세 계산기가 전부 이 prop을
    * 넘긴다(각 계산기의 면적 단계가 손 안 댔을 때는 항상 true) — 안 넘기면(다른 화면이
    * 이 부품을 새로 쓰는 경우) 예전처럼 값이 그대로 보인다.
@@ -131,10 +132,15 @@ export default function AreaInput({
   // 밑에서 convCaption을 null로 덮어써서 처리한다.
   function conversionCaption(): string | null {
     if (value === '' || typeof value !== 'number' || value <= 0) return null;
-    if (unit === '평') {
-      const sqm = pyeongToSupplySqm(value);
-      return mode === 'supply' ? `≈ ${sqm}㎡ · ${pyeongToExclusiveSqm(value)}㎡` : `≈ ${sqm}㎡`;
+    // 2026-10-29: supply(평형) 모드는 계산에 실제로 쓰는 값 하나만 보여준다.
+    //   예전 "≈ 112.4㎡ · 84㎡"의 112.4는 34×3.3058 단순 환산(공급면적)이라 계산에 안 쓰이고,
+    //   칩("34평 · 84㎡")과도 달라 뜻이 헷갈렸다 → 칩과 같은 전용 ㎡ 하나만 남긴다.
+    //   ㎡ 입력(전용 ㎡)일 때도 같은 표 기준으로 "대략 몇 평형"인지 보여준다.
+    if (mode === 'supply') {
+      return unit === '평' ? `≈ ${pyeongToExclusiveSqm(value)}㎡` : `≈ ${exclusiveSqmToPyeong(value)}평`;
     }
+    // work·exclusive 모드는 순수 단위 환산(×3.3058) 그대로
+    if (unit === '평') return `≈ ${pyeongToSupplySqm(value)}㎡`;
     return `≈ ${sqmToPyeong(value)}평`;
   }
   const convCaption = untouched || outOfRange ? null : conversionCaption();
