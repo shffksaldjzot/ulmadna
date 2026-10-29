@@ -83,7 +83,7 @@ export default function LoginPage() {
         </button>
 
         {/* 가르는 선 */}
-        <div className="flex items-center gap-3 my-6 t-sub text-v1-text-disabled" aria-hidden="true">
+        <div className="flex items-center gap-3 my-6 t-sub text-ink-2" aria-hidden="true">
           <span className="flex-1 border-t border-line" />
           또는 아이디로
           <span className="flex-1 border-t border-line" />
@@ -119,8 +119,9 @@ export default function LoginPage() {
           </Link>
         </div>
       </AuthCard>
-      <p className="text-center text-[12px] text-ink-2/70">
-        카카오는 고유 번호만, 아이디 가입은 아이디 · 암호화된 비밀번호만 저장해요 ·{' '}
+      {/* 2026-10-29 폴리싱 묶음 A: 저장 항목 설명 두 줄 → 한 줄(자세한 건 개인정보처리방침에) */}
+      <p className="text-center t-sub text-ink-2">
+        필요한 최소 정보만 저장해요 ·{' '}
         <Link href="/privacy" className="underline">
           개인정보처리방침
         </Link>

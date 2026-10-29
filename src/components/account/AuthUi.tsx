@@ -36,7 +36,9 @@ export const inputCls =
 
 /** 주 단추(강조색 알약) */
 export const primaryBtnCls =
-  'w-full h-[52px] rounded-chip bg-accent hover:bg-accent-press text-white text-[16px] font-bold inline-flex items-center justify-center disabled:opacity-50 transition-colors';
+  // 2026-10-29 폴리싱 묶음 A: 비활성(칸을 아직 안 채움)일 때 강조색을 반투명으로 흐린 옅은 살구색이라
+  // 눌릴 것처럼 보였다 → 회색 톤(테두리색 바탕 + 보조 글자색)으로. 비활성일 땐 호버해도 회색 유지(disabled:hover:)
+  'w-full h-[52px] rounded-chip bg-accent hover:bg-accent-press text-white text-[16px] font-bold inline-flex items-center justify-center disabled:bg-line disabled:hover:bg-line disabled:text-ink-2 disabled:cursor-not-allowed transition-colors';
 
 /** 이름표 + 칸 + 안내/오류 한 줄 */
 export function Field({
