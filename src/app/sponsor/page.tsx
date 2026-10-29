@@ -146,12 +146,13 @@ export default async function SponsorPage() {
           <Link href="/">
             <Image src="/ulmadna_logo.png" alt="얼마드나" width={100} height={34} />
           </Link>
-          <a
-            href="mailto:cs870@naver.com?subject=[얼마드나] 스폰서 광고 문의"
+          {/* 2026-10-29: 광고주 셀프 화면(/partner)이 생겨 상단 단추는 바로 신청으로 */}
+          <Link
+            href="/partner/signup"
             className="bg-brown text-white text-xs px-4 py-2 rounded-full hover:bg-brown/90 transition-colors"
           >
-            광고 문의하기
-          </a>
+            광고 신청하기
+          </Link>
         </div>
       </header>
 
