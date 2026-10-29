@@ -46,4 +46,14 @@ describe('만료 임박·주소·그림', () => {
     expect(checkBanner('AD-H', new Uint8Array(40))).toMatch(/PNG/);
     expect(checkBanner('AD-H', fakePng(640, 200, 400 * 1024))).toMatch(/KB/);
   });
+  // PC 그림(2026-10-29): AD-H·AD-F 만 728×90 또는 2배 1456×180, 다른 자리는 받지 않는다
+  it('PC 그림은 728×90 과 2배만, PC 규격 있는 자리만', () => {
+    expect(checkBanner('AD-H', fakePng(728, 90), 'desktop')).toBeNull();
+    expect(checkBanner('AD-H', fakePng(1456, 180), 'desktop')).toBeNull();
+    expect(checkBanner('AD-F', fakePng(728, 90), 'desktop')).toBeNull();
+    expect(checkBanner('AD-H', fakePng(320, 100), 'desktop')).toMatch(/728x90/);
+    expect(checkBanner('AD-R', fakePng(728, 90), 'desktop')).toMatch(/PC 그림/);
+    expect(checkBanner('AD-P', fakePng(728, 90), 'desktop')).toMatch(/PC 그림/);
+    expect(checkBanner('AD-H', fakePng(1456, 180, 400 * 1024), 'desktop')).toMatch(/KB/);
+  });
 });

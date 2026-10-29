@@ -125,12 +125,15 @@ export default async function AdsPage() {
                   const soon = o.run_status === 'live' && expiringSoon(o.end_date, today);
                   const ctr = o.impressions ? ((o.clicks / o.impressions) * 100).toFixed(1) : '-';
                   const img = ord.bannerBase(o.banner_path);
+                  // PC 그림(선택) — SQL 초안 실행 전엔 칸이 없어 null
+                  const pcImg = ord.bannerBase(o.banner_desktop_path ?? null);
                   return (
                     <tr key={o.id} className="border-b border-gray-50 align-top">
                       <td className="py-2 px-2">
                         <p className="font-medium text-gray-700">{o.advertiser_name} <span className="text-[11px] text-gray-300">#{o.id}</span></p>
                         <p className="text-[11px] text-gray-500">{o.slot_kind} · {REGION_NAMES[o.sido] ?? o.sido}{o.process ? ` · ${o.process}` : ''}</p>
                         {img && <a href={img} target="_blank" rel="noreferrer" className="text-[11px] text-brown underline">배너 보기</a>}
+                        {pcImg && <a href={pcImg} target="_blank" rel="noreferrer" className="ml-2 text-[11px] text-brown underline">PC 배너 보기</a>}
                       </td>
                       <td className="py-2 px-2 whitespace-nowrap text-[12px] text-gray-600">
                         {o.start_date}<br />~ {o.end_date}
@@ -150,7 +153,7 @@ export default async function AdsPage() {
                       </td>
                       <td className="py-2 px-2 min-w-[220px]">
                         <OrderActions id={o.id} kind={o.slot_kind} payStatus={o.pay_status} runStatus={o.run_status}
-                          hasBanner={!!o.banner_path} clickUrl={o.click_url} phone={o.phone} />
+                          hasBanner={!!o.banner_path} hasDesktopBanner={!!o.banner_desktop_path} clickUrl={o.click_url} phone={o.phone} />
                       </td>
                     </tr>
                   );

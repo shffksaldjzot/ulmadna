@@ -35,9 +35,9 @@ export interface AdSlotSize {
   width: number;
   height: number;
   responsive?: boolean;
-  // 향후 PC 전용 규격(예: 728×90) 추가 시 채울 필드.
+  // PC 전용 규격(2026-10-29부터 AD-H·AD-F = 728×90).
   //  - 미설정 시 모바일 규격(width/height)을 PC에서도 그대로 가운데 정렬해 노출.
-  //  - AdSlot 컴포넌트에서 lg: prefix Tailwind 클래스로 분기 추가 시 활성화.
+  //  - AdSlot 컴포넌트가 lg: Tailwind 클래스로 상자 폭·높이를 바꾼다.
   desktop?: { width: number; height: number };
 }
 
@@ -48,6 +48,8 @@ export interface ResolvedAdContent {
   kind: AdContentKind;
   // banner 콘텐츠용 (향후 확장)
   bannerImageUrl?: string;
+  // PC 전용 그림(선택, AD-H·AD-F). 없으면 PC 에서도 bannerImageUrl 을 가운데 보여 준다
+  bannerDesktopImageUrl?: string;
   bannerLinkUrl?: string;
   bannerAdvertiserName?: string;
   // adsense 콘텐츠용 — 광고단위 슬롯ID

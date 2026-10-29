@@ -24,16 +24,26 @@ import SponsoredLabel from './SponsoredLabel';
 import { AdsenseUnit } from './AdsenseUnit';
 import { SLOT_INFO } from '@/lib/ads/pricing';
 
-// 슬롯별 max-width Tailwind 클래스 (purge 안전 — 정적 문자열).
-//  - 현재는 모바일 규격을 PC에서도 그대로 사용 (콘텐츠 폭 안 가운데 정렬).
-//  - 향후 PC 전용 규격(728×90 등) 도입 시 lg: prefix 추가
-//    (예: 'max-w-[320px] lg:max-w-[728px]') — types.ts의 AdSlotSize.desktop도 함께 채움.
-const SLOT_MAX_W_CLASS: Record<AdSlotId, string> = {
-  'AD-H': 'max-w-[320px]',
-  'AD-P': 'max-w-[320px]',
-  'AD-R': 'max-w-[300px]',
-  'AD-F': 'max-w-[320px]',
+// 슬롯별 상자 크기 Tailwind 클래스 (purge 안전 — 정적 문자열).
+//  - base: 휴대폰 규격(최대 폭 + 최소 높이). PC 전용 규격이 없는 자리는 PC 에서도 이 크기로 가운데 정렬.
+//  - desktop: lg(1024px) 이상에서 바뀌는 PC 전용 규격(2026-10-29 형아 결정: AD-H·AD-F 만 728×90).
+//    AD_SLOT_SIZES(config.ts)의 desktop 값과 같은 숫자를 쓴다.
+//  - min-height 는 CLS(레이아웃 시프트) 방지용.
+const SLOT_BOX: Record<AdSlotId, { base: string; desktop?: string }> = {
+  'AD-H': { base: 'max-w-[320px] min-h-[100px]', desktop: 'lg:max-w-[728px] lg:min-h-[90px]' },
+  'AD-P': { base: 'max-w-[320px] min-h-[50px]' },
+  'AD-R': { base: 'max-w-[300px] min-h-[250px]' },
+  'AD-F': { base: 'max-w-[320px] min-h-[50px]', desktop: 'lg:max-w-[728px] lg:min-h-[90px]' },
 };
+
+/** 상자 크기 클래스: usePc=true 면 PC 규격까지(있을 때만) 붙인다 */
+function boxClass(id: AdSlotId, usePc: boolean): string {
+  const b = SLOT_BOX[id];
+  return usePc && b.desktop ? `${b.base} ${b.desktop}` : b.base;
+}
+
+/** 표시판 글자에 쓸 "만원" 표기 */
+const manwon = (won: number) => `${(won / 10000).toLocaleString('ko-KR')}만원`;
 
 interface AdSlotProps {
   id: AdSlotId;
@@ -66,22 +76,32 @@ export default function AdSlot({
 
   // provider에 노출 캡 컨텍스트 전달 — 유료 배너가 있으면 banner 로 바꿔 끼운다
   const content: ResolvedAdContent = served
-    ? { kind: 'banner', bannerImageUrl: served.imageUrl, bannerLinkUrl: served.href, bannerAdvertiserName: served.name }
+    ? {
+        kind: 'banner',
+        bannerImageUrl: served.imageUrl,
+        bannerDesktopImageUrl: served.desktopImageUrl ?? undefined,
+        bannerLinkUrl: served.href,
+        bannerAdvertiserName: served.name,
+      }
     : resolveAdContent(key, { adPPageIndex });
 
   // 자리 전체 표시 모드(?ad_preview=all + 관리자): 접히는 자리도 펼쳐서 점선 표시판으로 그린다
+  //  - PC 전용 규격이 있는 자리(AD-H·AD-F)는 PC 에서 728×90 상자로 그리고 글자에 두 규격을 함께 적는다
   const mapMode = useAdMapMode();
   if (mapMode) {
     const info = SLOT_INFO[id];
     const sz = AD_SLOT_SIZES[id];
+    const sizeText = sz.desktop
+      ? `PC ${sz.desktop.width}×${sz.desktop.height} · 휴대폰 ${sz.width}×${sz.height}`
+      : `${sz.width}×${sz.height}`;
     const title =
       id === 'AD-P'
-        ? `AD-P 공정 스폰서 · ${processGroup ?? ''} · ${sz.width}×${sz.height} · ${(info.price / 10000).toLocaleString('ko-KR')}만원${capped ? ' (한 화면 4곳까지만 노출)' : ''}`
-        : `${id} ${info.name} ${sz.width}×${sz.height} · 30일 ${(info.price / 10000).toLocaleString('ko-KR')}만원 · 지역당 ${info.capacity}곳`;
+        ? `AD-P 공정 스폰서 · ${processGroup ?? ''} · ${sizeText} · ${manwon(info.price)}${capped ? ' (한 화면 4곳까지만 노출)' : ''}`
+        : `${id} ${info.name} · ${sizeText} · 30일 ${manwon(info.price)} · 지역당 ${info.capacity}곳`;
     return (
       <div
-        className={`relative w-full ${SLOT_MAX_W_CLASS[id]} mx-auto my-3 flex items-center justify-center text-center`}
-        style={{ minHeight: `${sz.height}px`, border: '2px dashed #f97316', background: 'rgba(249,115,22,0.08)', borderRadius: 6, padding: 4 }}
+        className={`relative w-full ${boxClass(id, true)} mx-auto my-3 flex items-center justify-center text-center`}
+        style={{ border: '2px dashed #f97316', background: 'rgba(249,115,22,0.08)', borderRadius: 6, padding: 4 }}
         data-ad-slot={id}
         data-ad-process={processGroup}
         data-ad-kind="map"
@@ -96,19 +116,16 @@ export default function AdSlot({
     return null;
   }
 
-  const size = AD_SLOT_SIZES[id];
   const showLabel = SHOW_SPONSORED_LABEL_FOR.includes(content.kind);
-  const maxWClass = SLOT_MAX_W_CLASS[id];
+  // PC 규격 상자를 쓸지: 유료 배너는 PC 그림이 있을 때만(없으면 휴대폰 그림 크기 그대로 가운데),
+  // House Ad·애드센스는 PC 규격 상자를 그대로 쓴다
+  const usePc = content.kind === 'banner' ? !!content.bannerDesktopImageUrl : true;
 
   return (
     <div
-      // 컨테이너 — 모바일 규격을 PC 콘텐츠 폭 안에 가운데 정렬.
-      //  - 향후 PC 전용 규격 도입 시 SLOT_MAX_W_CLASS에 lg:max-w-[...] 추가.
-      //  - min-height는 CLS(레이아웃 시프트) 방지용 inline 유지.
-      className={`relative w-full ${maxWClass} mx-auto my-3 flex items-stretch justify-center ${className}`}
-      style={{
-        minHeight: `${size.height}px`,
-      }}
+      // 컨테이너 — 휴대폰 규격을 기본으로, PC(lg 이상)에선 PC 전용 규격(있을 때만)으로 바뀐다.
+      //  - 상자 크기(최대 폭·최소 높이)는 SLOT_BOX 정적 클래스로 준다(CLS 방지 최소 높이 포함).
+      className={`relative w-full ${boxClass(id, usePc)} mx-auto my-3 flex items-stretch justify-center ${className}`}
       data-ad-slot={id}
       data-ad-process={processGroup}
       data-ad-kind={content.kind}
@@ -128,12 +145,18 @@ export default function AdSlot({
           className="block w-full h-full"
           aria-label={content.bannerAdvertiserName ?? '광고'}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={content.bannerImageUrl}
-            alt={content.bannerAdvertiserName ?? ''}
-            className="w-full h-full object-cover rounded-md"
-          />
+          {/* 화면 폭에 따라 그림을 고른다: PC(1024px 이상)에 PC 그림이 있으면 그것, 아니면 휴대폰 그림 */}
+          <picture className="block w-full h-full">
+            {content.bannerDesktopImageUrl && (
+              <source media="(min-width: 1024px)" srcSet={content.bannerDesktopImageUrl} />
+            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={content.bannerImageUrl}
+              alt={content.bannerAdvertiserName ?? ''}
+              className="w-full h-full object-cover rounded-md"
+            />
+          </picture>
         </a>
       )}
 

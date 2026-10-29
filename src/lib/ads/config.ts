@@ -16,11 +16,13 @@ import type {
 import { ADSENSE_SLOTS } from './adsense';
 
 // 슬롯별 규격 — 모바일 기준 (v2 명세 §4 표)
+//  - desktop: PC(lg 이상, 1024px~) 전용 규격. 2026-10-29 형아 결정으로 AD-H·AD-F 만 728×90.
+//    AdSlot 이 lg 이상에서 이 규격 상자로 바뀐다(배너에 PC 그림이 없으면 휴대폰 그림을 가운데).
 export const AD_SLOT_SIZES: Record<AdSlotId, AdSlotSize> = {
-  'AD-H': { width: 320, height: 100 },
+  'AD-H': { width: 320, height: 100, desktop: { width: 728, height: 90 } },
   'AD-P': { width: 320, height: 50 },
   'AD-R': { width: 300, height: 250, responsive: true },
-  'AD-F': { width: 320, height: 50 },
+  'AD-F': { width: 320, height: 50, desktop: { width: 728, height: 90 } },
 };
 
 // AD-P 노출 캡 — 한 페이지 로드당 최대 노출 슬롯 수 (v2 명세 §6.3)

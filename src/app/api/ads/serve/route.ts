@@ -9,7 +9,7 @@
 //   - 미리보기: preview=<주문번호> 가 있으면 지역·게재 상태와 상관없이 그 주문의 배너를 그 자리에
 //     보여 주고 노출은 세지 않는다(시험용). 주문번호를 모르면 볼 수 없다.
 //   - 응답은 방문자마다 달라서 공유 캐시를 쓰지 않는다(Cache-Control: private).
-// 응답: { ads: { "AD-H": {id,imageUrl,href,name} | null, "AD-P:창호": null, ... } }
+// 응답: { ads: { "AD-H": {id,imageUrl,desktopImageUrl,href,name} | null, "AD-P:창호": null, ... } }
 // ──────────────────────────────────────────────
 import { NextResponse } from 'next/server';
 import { regionFromHeaders, isBotUA } from '@/server/metrics/requestInfo';

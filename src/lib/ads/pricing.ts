@@ -13,13 +13,17 @@ export type SlotKind = 'AD-H' | 'AD-R' | 'AD-P' | 'AD-F' | 'AD-PDF';
 
 export const SLOT_KINDS: SlotKind[] = ['AD-H', 'AD-R', 'AD-P', 'AD-F', 'AD-PDF'];
 
-/** 자리 안내(이름·규격·30일 요금·동시 업체 수 한도). capacity=null 은 제한 없음 */
-export const SLOT_INFO: Record<SlotKind, { name: string; width: number; height: number; price: number; capacity: number | null; maxKB: number }> = {
-  'AD-H': { name: '헤더 가로', width: 320, height: 100, price: 100000, capacity: 3, maxKB: 300 },
+/**
+ * 자리 안내(이름·규격·30일 요금·동시 업체 수 한도). capacity=null 은 제한 없음
+ *  - width/height 는 휴대폰(기본) 규격. desktop 은 PC 전용 규격(2026-10-29 형아 결정: AD-H·AD-F 만 728×90)
+ *  - desktop 이 있는 자리만 주문에 "PC 그림"(선택)을 따로 올릴 수 있다. 없으면 PC 에서도 휴대폰 그림을 가운데 보여 준다
+ */
+export const SLOT_INFO: Record<SlotKind, { name: string; width: number; height: number; price: number; capacity: number | null; maxKB: number; desktop?: { width: number; height: number } }> = {
+  'AD-H': { name: '헤더 가로', width: 320, height: 100, price: 100000, capacity: 3, maxKB: 300, desktop: { width: 728, height: 90 } },
   'AD-R': { name: '결과 옆 네모', width: 300, height: 250, price: 100000, capacity: 3, maxKB: 400 },
   'AD-P': { name: '공정 스폰서', width: 320, height: 50, price: 50000, capacity: 3, maxKB: 200 },
   // 푸터 가격은 계획안에 따로 없어 견적서 추천과 같은 2만 원으로 둠(주문 만들 때 금액을 직접 고칠 수 있다)
-  'AD-F': { name: '푸터 로테이션', width: 320, height: 50, price: 20000, capacity: 3, maxKB: 200 },
+  'AD-F': { name: '푸터 로테이션', width: 320, height: 50, price: 20000, capacity: 3, maxKB: 200, desktop: { width: 728, height: 90 } },
   'AD-PDF': { name: '견적서 추천(글자)', width: 0, height: 0, price: 20000, capacity: null, maxKB: 0 },
 };
 
@@ -117,14 +121,20 @@ export function imageSize(buf: Uint8Array): { type: 'png' | 'jpg'; width: number
   return null;
 }
 
-/** 배너 그림 검사. 문제가 있으면 한국어 이유, 괜찮으면 null (1배·2배 크기만 허용) */
-export function checkBanner(kind: SlotKind, buf: Uint8Array): string | null {
+/**
+ * 배너 그림 검사. 문제가 있으면 한국어 이유, 괜찮으면 null (1배·2배 크기만 허용)
+ *  - target 'desktop' 은 PC 그림 검사(AD-H·AD-F 만 728×90 또는 2배 1456×180). 용량 한도는 같은 자리 기준.
+ */
+export function checkBanner(kind: SlotKind, buf: Uint8Array, target: 'mobile' | 'desktop' = 'mobile'): string | null {
   const info = SLOT_INFO[kind];
   if (!info.width) return '이 자리는 그림이 필요 없어요';
+  // PC 그림은 PC 전용 규격이 있는 자리만 받는다
+  const size = target === 'desktop' ? info.desktop : { width: info.width, height: info.height };
+  if (!size) return '이 자리는 PC 그림을 따로 받지 않아요';
   if (buf.length > info.maxKB * 1024) return `그림은 ${info.maxKB}KB 이하여야 해요`;
   const s = imageSize(buf);
   if (!s) return 'PNG 또는 JPG 그림만 올릴 수 있어요';
-  const ok = (s.width === info.width && s.height === info.height) || (s.width === info.width * 2 && s.height === info.height * 2);
-  if (!ok) return `크기가 ${info.width}x${info.height}(또는 2배 ${info.width * 2}x${info.height * 2})여야 해요. 지금 ${s.width}x${s.height}`;
+  const ok = (s.width === size.width && s.height === size.height) || (s.width === size.width * 2 && s.height === size.height * 2);
+  if (!ok) return `크기가 ${size.width}x${size.height}(또는 2배 ${size.width * 2}x${size.height * 2})여야 해요. 지금 ${s.width}x${s.height}`;
   return null;
 }

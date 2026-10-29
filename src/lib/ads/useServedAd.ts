@@ -15,6 +15,8 @@ import { ADS_ENABLED } from './config';
 export interface ServedBanner {
   id: number;
   imageUrl: string;
+  /** PC 전용 그림 주소(AD-H·AD-F, 선택). 없으면 null — 화면이 휴대폰 그림을 가운데 보여 준다 */
+  desktopImageUrl?: string | null;
   href: string;
   name: string;
 }
