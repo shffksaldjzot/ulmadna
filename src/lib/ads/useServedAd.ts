@@ -90,3 +90,40 @@ export function useServedAd(slot: string, process?: string, enabledIn = true): S
 
   return enabled ? banner : null;
 }
+
+// ─────────────────────────────────────────────────────────────
+// 광고 자리 전체 표시 모드 — 2026년 10월 29일
+//   주소에 ?ad_preview=all 이 있으면 서버에 "관리자냐"고 묻고, 관리자일 때만 true.
+//   true 이면 AdSlot 이 모든 자리를 점선 "표시판"으로 그린다(노출 집계 없음).
+//   관리자가 아니거나 주소에 없으면 항상 false → 일반 방문자는 아무 변화 없음.
+// ─────────────────────────────────────────────────────────────
+let mapPromise: Promise<boolean> | null = null;
+
+/** 주소가 ?ad_preview=all 인지 */
+function isMapQuery(): boolean {
+  try {
+    return new URLSearchParams(window.location.search).get('ad_preview') === 'all';
+  } catch {
+    return false;
+  }
+}
+
+export function useAdMapMode(): boolean {
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    if (!isMapQuery()) return;
+    // 한 화면의 모든 자리가 같은 질문을 한 번만 하도록 약속을 공유
+    if (!mapPromise) {
+      mapPromise = fetch('/api/ads/serve?q=AD-H&preview=all')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((j) => !!(j && (j as { map?: boolean }).map))
+        .catch(() => false);
+    }
+    let alive = true;
+    mapPromise.then((v) => alive && setOn(v));
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return on;
+}

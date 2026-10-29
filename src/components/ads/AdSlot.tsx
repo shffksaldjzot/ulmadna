@@ -12,7 +12,7 @@
 'use client';
 
 import type { AdSlotId, ResolvedAdContent } from '@/lib/ads/types';
-import { useServedAd } from '@/lib/ads/useServedAd';
+import { useServedAd, useAdMapMode } from '@/lib/ads/useServedAd';
 import {
   AD_P_MAX_PER_PAGE,
   AD_SLOT_SIZES,
@@ -22,6 +22,7 @@ import {
 import HouseAdRenderer from './HouseAdRenderer';
 import SponsoredLabel from './SponsoredLabel';
 import { AdsenseUnit } from './AdsenseUnit';
+import { SLOT_INFO } from '@/lib/ads/pricing';
 
 // 슬롯별 max-width Tailwind 클래스 (purge 안전 — 정적 문자열).
 //  - 현재는 모바일 규격을 PC에서도 그대로 사용 (콘텐츠 폭 안 가운데 정렬).
@@ -67,6 +68,28 @@ export default function AdSlot({
   const content: ResolvedAdContent = served
     ? { kind: 'banner', bannerImageUrl: served.imageUrl, bannerLinkUrl: served.href, bannerAdvertiserName: served.name }
     : resolveAdContent(key, { adPPageIndex });
+
+  // 자리 전체 표시 모드(?ad_preview=all + 관리자): 접히는 자리도 펼쳐서 점선 표시판으로 그린다
+  const mapMode = useAdMapMode();
+  if (mapMode) {
+    const info = SLOT_INFO[id];
+    const sz = AD_SLOT_SIZES[id];
+    const title =
+      id === 'AD-P'
+        ? `AD-P 공정 스폰서 · ${processGroup ?? ''} · ${sz.width}×${sz.height} · ${(info.price / 10000).toLocaleString('ko-KR')}만원${capped ? ' (한 화면 4곳까지만 노출)' : ''}`
+        : `${id} ${info.name} ${sz.width}×${sz.height} · 30일 ${(info.price / 10000).toLocaleString('ko-KR')}만원 · 지역당 ${info.capacity}곳`;
+    return (
+      <div
+        className={`relative w-full ${SLOT_MAX_W_CLASS[id]} mx-auto my-3 flex items-center justify-center text-center`}
+        style={{ minHeight: `${sz.height}px`, border: '2px dashed #f97316', background: 'rgba(249,115,22,0.08)', borderRadius: 6, padding: 4 }}
+        data-ad-slot={id}
+        data-ad-process={processGroup}
+        data-ad-kind="map"
+      >
+        <span style={{ fontSize: 12, fontWeight: 600, color: '#c2410c', lineHeight: 1.3 }}>{title}</span>
+      </div>
+    );
+  }
 
   // collapse — DOM에서 완전히 제거 (v2 명세 §5.3)
   if (content.kind === 'collapse') {

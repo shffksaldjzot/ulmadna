@@ -37,6 +37,10 @@ export async function GET(req: Request) {
   if (!wants.length) return NextResponse.json({ ads }, { headers: HEADERS });
 
   const previewRaw = u.searchParams.get('preview');
+  // 자리 전체 표시 모드: preview=all 은 관리자에게만 {map:true}, 그 외엔 빈 응답(노출 집계 없음)
+  if (previewRaw === 'all') {
+    return NextResponse.json({ ads, map: isAdminRequest(req) }, { headers: HEADERS });
+  }
   // 미리보기는 관리자 로그인 쿠키가 있을 때만 동작(없으면 값을 무시하고 일반 방문자로 처리)
   const preview = previewRaw && /^\d{1,9}$/.test(previewRaw) && isAdminRequest(req) ? Number(previewRaw) : null;
 
