@@ -68,6 +68,9 @@ export function middleware(request: NextRequest) {
     }
   }
 
+  // 광고주 화면(/partner) 가드(2026-10-31): 쿠키가 없으면 로그인으로. 로그인·가입 화면은 제외. 진짜 세션 확인은 화면 서버 코드가 한다
+  if ((path === '/partner' || path.startsWith('/partner/')) && !['/partner/login', '/partner/signup'].includes(path) && !request.cookies.get('partner-session')) return NextResponse.redirect(new URL('/partner/login', request.url));
+
   return withSourceCookie(request, NextResponse.next());
 }
 
