@@ -30,7 +30,22 @@ export const SLOT_INFO: Record<SlotKind, { name: string; width: number; height: 
 /** 공정 스폰서(AD-P) 공정 이름 — ProcessToggles.tsx 의 PROCESS_GROUPS 라벨과 같아야 한다(맞춰서 수정) */
 export const AD_PROCESS_GROUPS = [
   '철거', '확장·설비', '전기·조명', '에어컨', '목공', '창호', '도배·바닥', '도장·필름', '타일', '욕실', '주방', '가구', '부대비용',
+  // 미장: 홈 공정 목록엔 없는 공정 — 미장 계산기와 그 공정 블로그 글 2곳에만 나온다(2026-10-29)
+  '미장',
 ];
+
+/**
+ * 공정 계산기 → 공정 스폰서(AD-P) 공정 이름 (2026-10-29)
+ *  - 홈 공정 목록(ProcessToggles)과 같은 글자를 써야 같은 광고주가 잡힌다.
+ *    홈은 도배와 바닥재를 '도배·바닥' 한 묶음으로 쓰므로 두 계산기 모두 '도배·바닥'.
+ *  - 미장은 홈 목록에 없어 '미장' 을 따로 둔다.
+ */
+export const CALC_AD_PROCESS = {
+  wallpaper: '도배·바닥',
+  flooring: '도배·바닥',
+  tile: '타일',
+  mortar: '미장',
+} as const;
 
 export const VAT_RATE = 0.1;
 /** 기간 한 단위 = 30일(29일·31일이 아님) */

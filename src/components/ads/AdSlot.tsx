@@ -54,6 +54,8 @@ interface AdSlotProps {
   adPPageIndex?: number;
   // 추가 클래스 (정렬·여백 조정 등 부모에서 필요할 때)
   className?: string;
+  // PC(lg 이상) 전용 자리 — 휴대폰에선 숨긴다(2026-10-29 형아 결정: 계산기 AD-H 는 PC 에만)
+  desktopOnly?: boolean;
 }
 
 export default function AdSlot({
@@ -61,7 +63,10 @@ export default function AdSlot({
   processGroup,
   adPPageIndex,
   className = '',
+  desktopOnly = false,
 }: AdSlotProps) {
+  // PC 전용 자리면 휴대폰에선 숨김(hidden), lg 이상에서만 보이게(flex)
+  const showClass = desktopOnly ? 'hidden lg:flex' : 'flex';
   // 슬롯 인스턴스 키 구성
   const key =
     id === 'AD-P'
@@ -100,7 +105,7 @@ export default function AdSlot({
         : `${id} ${info.name} · ${sizeText} · 30일 ${manwon(info.price)} · 지역당 ${info.capacity}곳`;
     return (
       <div
-        className={`relative w-full ${boxClass(id, true)} mx-auto my-3 flex items-center justify-center text-center`}
+        className={`relative w-full ${boxClass(id, true)} mx-auto my-3 ${showClass} items-center justify-center text-center`}
         style={{ border: '2px dashed #f97316', background: 'rgba(249,115,22,0.08)', borderRadius: 6, padding: 4 }}
         data-ad-slot={id}
         data-ad-process={processGroup}
@@ -125,7 +130,7 @@ export default function AdSlot({
     <div
       // 컨테이너 — 휴대폰 규격을 기본으로, PC(lg 이상)에선 PC 전용 규격(있을 때만)으로 바뀐다.
       //  - 상자 크기(최대 폭·최소 높이)는 SLOT_BOX 정적 클래스로 준다(CLS 방지 최소 높이 포함).
-      className={`relative w-full ${boxClass(id, usePc)} mx-auto my-3 flex items-stretch justify-center ${className}`}
+      className={`relative w-full ${boxClass(id, usePc)} mx-auto my-3 ${showClass} items-stretch justify-center ${className}`}
       data-ad-slot={id}
       data-ad-process={processGroup}
       data-ad-kind={content.kind}

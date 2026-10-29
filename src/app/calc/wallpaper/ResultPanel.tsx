@@ -28,7 +28,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import Card from '@/components/v1/Card';
 import Collapsible from '@/components/v1/Collapsible';
 import Toggle from '@/components/v1/Toggle';
@@ -63,6 +63,10 @@ export interface ResultPanelProps {
   form: WallpaperFormState;
   /** 구성 보기의 "기존 벽지 제거" 토글 — 켜고 끄면 폼 상태(removeOld)가 바뀌어 다시 계산된다 */
   onRemoveOldChange: (v: boolean) => void;
+  /** 결과 카드 바로 아래 광고 자리(AD-P 공정 스폰서). 결과가 보일 때만 계산기 화면이 넘긴다(2026-10-29) */
+  adAfterCard?: ReactNode;
+  /** 공유·문의 줄 아래 광고 자리(AD-R). 결과가 보일 때만 넘긴다(2026-10-29) */
+  adAfterActions?: ReactNode;
 }
 
 // 비용 구성 한 줄 표기(formatCostLineAmount)는 공유 결과 화면(result/page.tsx)과 완전히
@@ -79,6 +83,8 @@ export default function ResultPanel({
   allDone,
   form,
   onRemoveOldChange,
+  adAfterCard,
+  adAfterActions,
 }: ResultPanelProps) {
   // "링크를 복사했어요" 같은 짧은 토스트 메시지
   const [toast, setToast] = useState<string | null>(null);
@@ -257,6 +263,9 @@ export default function ResultPanel({
         </Collapsible>
       </Card>
 
+      {/* 광고 자리 AD-P — 결과 카드 바로 아래(휴대폰·PC 같은 순서) */}
+      {adAfterCard}
+
       {/* 6. 공유·문의 — 가정값이 남아 있으면(3단계를 다 안 끝냈으면) 공유는 숨긴다 */}
       <div className="flex flex-col gap-4 mt-4">
         {canShare && (
@@ -267,6 +276,8 @@ export default function ResultPanel({
         <CalcContactCta />
         <Disclaimer />
       </div>
+      {/* 광고 자리 AD-R — 공유·문의 줄 아래, 관련 글 위 */}
+      {adAfterActions}
       <Toast message={toast} />
     </>
   );
