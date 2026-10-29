@@ -3,7 +3,7 @@ import Link from 'next/link';
 import BusinessInfo from '@/components/layout/BusinessInfo';
 import { getBoard, remaining } from '@/server/ads/store';
 import { SIDO_CODES, REGION_NAMES } from '@/server/admin/format';
-import { SLOT_INFO, type SlotKind } from '@/lib/ads/pricing';
+import { DESIGN_FEE, SLOT_INFO, type SlotKind } from '@/lib/ads/pricing';
 
 // 남은 자리 숫자를 5분마다 새로 읽는다(광고 표가 비어 있으면 전부 3/3)
 export const revalidate = 300;
@@ -21,6 +21,33 @@ export const metadata = {
 const man = (k: SlotKind) => `${(SLOT_INFO[k].price / 10000).toLocaleString('ko-KR')}만원`;
 /** 30일 요금 "100,000원" 표기(가격표용) */
 const won = (k: SlotKind) => `${SLOT_INFO[k].price.toLocaleString('ko-KR')}원`;
+
+/** 자리 한 줄 설명: "헤더 가로 · 320×100 · 30일 10만원" */
+const slotCaption = (k: SlotKind) => `${SLOT_INFO[k].name} · ${SLOT_INFO[k].width}×${SLOT_INFO[k].height} · 30일 ${man(k)}`;
+
+/**
+ * "광고가 보이는 자리" 캡처 목록(public/sponsor/, 휴대폰 390px 화면)
+ *   real=true  : 관리자 미리보기(?ad_preview=주문번호)로 시험 주문 배너를 실제 자리에 띄워 찍은 실물
+ *   real=false : 자리 위치에 견본 배너를 겹쳐 그린 합성 → 캡션에 "예시"
+ */
+const WHERE_SHOTS: { src: string; title: string; slots: SlotKind[]; real: boolean }[] = [
+  { src: '/sponsor/loc-home-h.webp', title: '첫 화면', slots: ['AD-H'], real: true },
+  { src: '/sponsor/loc-home-result.webp', title: '견적 결과 아래', slots: ['AD-T', 'AD-R'], real: false },
+  { src: '/sponsor/loc-home-process.webp', title: '홈 공정 목록', slots: ['AD-P'], real: false },
+  { src: '/sponsor/loc-calc-result.webp', title: '계산기 결과', slots: ['AD-P', 'AD-R'], real: false },
+  { src: '/sponsor/loc-blog-mid.webp', title: '블로그 글 본문 중간', slots: ['AD-P'], real: false },
+  { src: '/sponsor/loc-blog-end.webp', title: '블로그 글 끝', slots: ['AD-R'], real: true },
+  { src: '/sponsor/loc-footer.webp', title: '푸터', slots: ['AD-F'], real: false },
+];
+
+/** 배너 예시(견본 그림, 2배 크기 PNG 를 1배 크기로 보여 줌) */
+const BANNER_SAMPLES: { src: string; kind: SlotKind }[] = [
+  { src: '/sponsor/banner-ad-h.png', kind: 'AD-H' },
+  { src: '/sponsor/banner-ad-r.png', kind: 'AD-R' },
+  { src: '/sponsor/banner-ad-p.png', kind: 'AD-P' },
+  { src: '/sponsor/banner-ad-t.png', kind: 'AD-T' },
+  { src: '/sponsor/banner-ad-f.png', kind: 'AD-F' },
+];
 
 const AD_SLOTS = [
   {
@@ -260,53 +287,80 @@ export default async function SponsorPage() {
         </div>
       </section>
 
-      {/* 배너 위치 맵 */}
-      <section className="bg-cream py-16 px-4">
+      {/* 광고가 보이는 자리 — 실제 사이트 화면(휴대폰 390px) 캡처 (2026-10-29, 기존 "광고 위치 맵" 대체)
+          실물 = 관리자 미리보기로 시험 주문 배너를 실제 자리에 띄워 찍은 것, 예시 = 자리 위치에 견본 배너를 겹쳐 그린 합성 */}
+      <section id="where" className="bg-cream py-16">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl font-bold text-brown text-center mb-3">광고 위치 맵</h2>
-          <p className="text-sm text-gray-400 text-center mb-8">데스크톱과 모바일에서 광고가 이렇게 보입니다</p>
-
-          <div className="grid lg:grid-cols-2 gap-6">
-            {/* 데스크톱 */}
-            <div className="bg-white rounded-2xl p-5 border border-gray-100">
-              <p className="text-xs font-bold text-brown mb-3">데스크톱 (7개 슬롯)</p>
-              <div className="space-y-2 text-[10px]">
-                <div className="bg-gold/10 border border-gold/20 rounded p-2 text-center text-gold">AD-H · 728×90(휴대폰 320×100) · 헤더 하단</div>
-                <div className="flex gap-2">
-                  <div className="flex-[6] space-y-2">
-                    <div className="bg-gray-50 rounded p-2 text-gray-400 text-center">입력 패널</div>
-                    <div className="bg-gold/10 border border-gold/20 rounded p-1.5 text-center text-gold">AD-P · 320×50</div>
-                    <div className="bg-gray-50 rounded p-2 text-gray-400 text-center">공정 리스트</div>
-                    <div className="bg-gold/10 border border-gold/20 rounded p-1.5 text-center text-gold">AD-P · 320×50</div>
-                  </div>
-                  <div className="flex-[4] space-y-2">
-                    <div className="bg-gray-50 rounded p-2 text-gray-400 text-center">결과 패널</div>
-                    <div className="bg-gold/10 border border-gold/20 rounded p-1.5 text-center text-gold">AD-T · 320×50</div>
-                    <div className="bg-gold/10 border border-gold/20 rounded p-3 text-center text-gold">AD-R1<br/>300×250</div>
-                    <div className="bg-gold/10 border border-gold/20 rounded p-3 text-center text-gold">AD-R2<br/>300×250</div>
-                  </div>
+          <h2 className="text-2xl font-bold text-brown text-center mb-2 px-4">광고가 보이는 자리</h2>
+          <p className="text-sm text-gray-400 text-center mb-8 px-4">실제 화면에 배너가 들어간 모습입니다</p>
+          {/* 휴대폰: 옆으로 넘겨 보기 / PC: 4칸 격자 */}
+          <ul className="flex gap-4 overflow-x-auto snap-x snap-mandatory px-4 pb-2 lg:grid lg:grid-cols-4 lg:overflow-visible lg:px-8">
+            {WHERE_SHOTS.map((s) => (
+              <li key={s.src} className="snap-center shrink-0 w-[230px] lg:w-auto">
+                {/* 휴대폰 틀 */}
+                <div className="rounded-[28px] border-[6px] border-ink bg-ink overflow-hidden shadow-sm">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={s.src} alt={`${s.title} 광고 자리`} width={390} height={844} loading="lazy" className="block w-full h-auto rounded-[22px]" />
                 </div>
-                <div className="bg-gold/10 border border-gold/20 rounded p-2 text-center text-gold">AD-F · 728×90(휴대폰 320×50) · 푸터 상단</div>
-              </div>
+                <p className="mt-3 text-sm font-semibold text-brown">
+                  {s.title}
+                  {!s.real && <span className="ml-1.5 align-middle text-[10px] font-medium text-gray-400 border border-gray-200 rounded px-1">예시</span>}
+                </p>
+                {s.slots.map((k) => (
+                  <p key={k} className="text-xs text-gray-500">{slotCaption(k)}</p>
+                ))}
+              </li>
+            ))}
+          </ul>
+          {/* PC 첫 화면 728×90 */}
+          <div className="px-4 lg:px-8 mt-10">
+            <div className="rounded-xl border-[6px] border-ink bg-ink overflow-hidden max-w-3xl mx-auto">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/sponsor/loc-pc-home.webp" alt="PC 첫 화면 헤더 광고 자리" width={780} height={488} loading="lazy" className="block w-full h-auto" />
             </div>
-
-            {/* 모바일 */}
-            <div className="bg-white rounded-2xl p-5 border border-gray-100">
-              <p className="text-xs font-bold text-brown mb-3">모바일 (5개 슬롯)</p>
-              <div className="max-w-[200px] mx-auto space-y-2 text-[10px]">
-                <div className="bg-gray-50 rounded p-2 text-gray-400 text-center">헤더 + 기본조건</div>
-                <div className="bg-gray-50 rounded p-1.5 text-gray-400 text-center">총 금액</div>
-                <div className="bg-gold/10 border border-gold/20 rounded p-1.5 text-center text-gold">AD-T · 320×50</div>
-                <div className="bg-gold/10 border border-gold/20 rounded p-1.5 text-center text-gold">AD-H · 320×100</div>
-                <div className="bg-gray-50 rounded p-2 text-gray-400 text-center">공정 리스트</div>
-                <div className="bg-gold/10 border border-gold/20 rounded p-1.5 text-center text-gold">AD-P · 320×50</div>
-                <div className="bg-gray-50 rounded p-2 text-gray-400 text-center">공정 리스트</div>
-                <div className="bg-gold/10 border border-gold/20 rounded p-1.5 text-center text-gold">AD-R · 300×250</div>
-                <div className="bg-gray-50 rounded p-1.5 text-gray-400 text-center">결과 + PDF</div>
-                <div className="bg-gold/10 border border-gold/20 rounded p-1 text-center text-gold">AD-F · 320×50</div>
-              </div>
-            </div>
+            <p className="mt-3 text-sm font-semibold text-brown text-center">
+              PC 첫 화면
+              <span className="ml-1.5 align-middle text-[10px] font-medium text-gray-400 border border-gray-200 rounded px-1">예시</span>
+            </p>
+            <p className="text-xs text-gray-500 text-center">{SLOT_INFO['AD-H'].name} · PC 728×90 · 30일 {man('AD-H')}</p>
           </div>
+        </div>
+      </section>
+
+      {/* 배너 예시 — 견본 그림을 실제 크기(1배)로 보여 준다 (2026-10-29) */}
+      <section id="samples" className="py-16 px-4">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-2xl font-bold text-brown text-center mb-2">배너 예시</h2>
+          <p className="text-sm text-gray-400 text-center mb-8">이 정도 수준으로 만들어 드려요</p>
+          <div className="flex flex-wrap justify-center gap-x-8 gap-y-6">
+            {BANNER_SAMPLES.map((b) => (
+              <figure key={b.src} className="flex flex-col items-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={b.src} alt={`${SLOT_INFO[b.kind].name} 배너 예시`} width={SLOT_INFO[b.kind].width} height={SLOT_INFO[b.kind].height} loading="lazy"
+                  style={{ width: SLOT_INFO[b.kind].width, height: SLOT_INFO[b.kind].height }} className="max-w-full rounded-md border border-gray-100" />
+                <figcaption className="mt-2 text-xs text-gray-500">{SLOT_INFO[b.kind].name} · {SLOT_INFO[b.kind].width}×{SLOT_INFO[b.kind].height}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 배너 제작 대행 상품 (2026-10-29 형아 결정: 5만원·부가세 별도·광고주당 첫 1회 무료) */}
+      <section id="design" className="pb-16 px-4">
+        <div className="max-w-md mx-auto bg-cream rounded-2xl p-6 lg:p-8">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-lg font-bold text-brown">배너 제작 대행</h2>
+            <span className="text-[11px] font-semibold bg-brown text-white px-2.5 py-1 rounded-full">첫 1회 무료</span>
+          </div>
+          <p className="mt-2 text-2xl font-bold text-gold tabular-nums">{DESIGN_FEE.toLocaleString('ko-KR')}원<span className="ml-1 text-xs font-normal text-gray-400">부가세 별도</span></p>
+          <ul className="mt-4 space-y-1.5 text-sm text-gray-600">
+            <li>· 시안 1개 + 수정 2회</li>
+            <li>· 3영업일 안에 완성</li>
+            <li>· 상호·전화·강조 문구·로고(선택)만 주세요</li>
+          </ul>
+          <Link href="/partner/new" className="mt-5 block text-center bg-brown text-white text-sm py-3 rounded-full hover:bg-brown/90 transition-colors">
+            광고 신청하며 맡기기
+          </Link>
         </div>
       </section>
 
@@ -332,6 +386,8 @@ export default async function SponsorPage() {
                   ['공정 스폰서', 'AD-P', '시도 × 공정당 3개 업체 · 노출 3곳', won('AD-P')],
                   ['토탈 인테리어 스폰서', 'AD-T', '시도당 3개 업체 · 노출 4곳(견적서 포함)', won('AD-T')],
                   ['견적서 추천 업체', 'AD-PDF', '견적서 안 공정마다 여러 업체', won('AD-PDF')],
+                  // 2026-10-29: 배너 제작 대행(기간 요금이 아니라 1회 요금)
+                  ['배너 제작 대행', '-', '시안 1개 + 수정 2회 · 3영업일 · 첫 1회 무료', `${DESIGN_FEE.toLocaleString('ko-KR')}원(1회)`],
                 ].map(([name, slot, target, price], i) => (
                   <tr key={i} className="border-t border-gray-50">
                     <td className="px-5 py-3 font-medium text-gray-700">{name}</td>
@@ -348,6 +404,7 @@ export default async function SponsorPage() {
             <li>모든 금액은 부가세 별도이며, 결제는 광고주 화면에서 카드로 합니다. 기간은 30일 또는 90일(30일 단위 일시불)입니다.</li>
             <li>서비스 제공기간: 결제 뒤 배너 검토(보통 1영업일)를 거쳐 게재가 시작되며, 신청한 일수 동안 노출됩니다.</li>
             <li>취소·환불: 게재 시작 전 취소는 전액 환불, 배너 반려 시 전액 자동 환불, 게재 뒤에는 남은 일수만큼 환불합니다. 자세한 내용은 <Link href="/refund" className="underline">환불 규정</Link>.</li>
+            <li>배너 제작 대행 제작비는 제작 착수 뒤에는 환불되지 않습니다.</li>
             <li>한 자리를 혼자 쓰고 싶다면 3개 구좌를 모두 구매하시면 됩니다(예: 헤더 3구좌 = 300,000원/30일). 트래픽 성장에 따라 단가가 조정될 수 있습니다.</li>
           </ul>
         </div>

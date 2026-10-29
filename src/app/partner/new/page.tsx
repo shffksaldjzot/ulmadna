@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 import { payConfig } from '@/server/partner/portone';
 import { requirePartnerPage } from '@/server/partner/session';
+import { designFirstFree } from '@/server/partner/store';
 import { PartnerShell } from '../_ui';
 import NewWizard from './NewWizard';
 
@@ -13,6 +14,8 @@ export const dynamic = 'force-dynamic';
 export default async function PartnerNew() {
   const s = await requirePartnerPage();
   const cfg = payConfig();
+  // 제작 대행 첫 회 무료인지(화면 표시용 — 판정 실패면 무료로 보이지 않게 false)
+  const designFree = s.state === 'ok' ? (await designFirstFree(s.partner.advertiserId)) === true : false;
   return (
     <PartnerShell name={s.state === 'ok' ? s.partner.name : ''} active="/partner/new">
       <NewWizard
@@ -20,6 +23,7 @@ export default async function PartnerNew() {
         region={s.state === 'ok' ? s.partner.region : ''}
         email={s.state === 'ok' ? s.partner.email : ''}
         name={s.state === 'ok' ? s.partner.name : ''}
+        designFree={designFree}
       />
     </PartnerShell>
   );

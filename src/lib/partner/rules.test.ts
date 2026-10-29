@@ -2,9 +2,9 @@
 // 광고주 셀프 화면 순수 함수 시험 — 사업자번호·이메일·비밀번호·금액·배지 (2026년 10월 31일)
 // ─────────────────────────────────────────────────────────────
 import { describe, expect, it } from 'vitest';
-import { SLOT_INFO } from '@/lib/ads/pricing';
+import { DESIGN_FEE, SLOT_INFO } from '@/lib/ads/pricing';
 import {
-  PARTNER_SLOTS, badgeOf, ctr, formatBizNo, isBizNo, isEmail, isPartnerRegion, lastDays, newPaymentId,
+  PARTNER_SLOTS, badgeOf, briefProblem, cleanBrief, quoteNew, ctr, formatBizNo, isBizNo, isEmail, isPartnerRegion, lastDays, newPaymentId,
   normalizeBizNo, normalizeEmail, passwordProblem, quote, remainDays, won,
 } from './rules';
 
@@ -72,6 +72,11 @@ describe('광고 카드 표시', () => {
     expect(badgeOf(base, '2026-10-31')).toBe('expired');
     expect(badgeOf({ ...base, pay_status: 'refunded' }, '2026-10-15')).toBe('refunded');
     expect(badgeOf({ ...base, start_date: '2026-10-20' }, '2026-10-15')).toBe('waiting');
+    // 제작 대행: 배너가 없으면 '배너 제작 중', 관리자가 올리면 '배너 검토 중'
+    const design = { ...base, run_status: 'review', design_requested: true };
+    expect(badgeOf({ ...design, has_banner: false }, '2026-10-15')).toBe('design');
+    expect(badgeOf({ ...design, has_banner: true }, '2026-10-15')).toBe('review');
+    expect(badgeOf({ ...design, has_banner: false, pay_status: 'refunded' }, '2026-10-15')).toBe('refunded');
   });
   it('남은 날(마지막 날 포함)·클릭률', () => {
     expect(remainDays('2026-10-30', '2026-10-30')).toBe(1);
@@ -94,5 +99,35 @@ describe('토탈 인테리어 스폰서(AD-T)', () => {
   it('신청 목록에 있고 15만 원 + 부가세', () => {
     expect(PARTNER_SLOTS).toContain('AD-T');
     expect(quote('AD-T', 1)).toEqual({ units: 1, amount: 150000, vat: 15000, total: 165000 });
+  });
+});
+
+describe('배너 제작 대행 금액(2026-10-29)', () => {
+  it('직접 올리기면 제작비 없음 — 기존 금액과 같다', () => {
+    const q = quoteNew('AD-H', 1, null);
+    expect(q).toEqual({ units: 1, adAmount: 100000, designFee: 0, amount: 100000, vat: 10000, total: 110000 });
+  });
+  it('첫 제작은 무료(0원)', () => {
+    const q = quoteNew('AD-P', 1, { firstFree: true });
+    expect(q.designFee).toBe(0);
+    expect(q.amount).toBe(SLOT_INFO['AD-P'].price);
+    expect(q.total).toBe(77000);
+  });
+  it('두 번째부터 5만 원 + 부가세(광고비와 합쳐 계산)', () => {
+    const q = quoteNew('AD-H', 3, { firstFree: false });
+    expect(DESIGN_FEE).toBe(50000);
+    expect(q.adAmount).toBe(300000);
+    expect(q.designFee).toBe(50000);
+    expect(q.amount).toBe(350000);
+    expect(q.vat).toBe(35000);
+    expect(q.total).toBe(385000);
+  });
+  it('입력 정리와 빈칸 검사', () => {
+    expect(cleanBrief(' 남양주  올수리 \t전문 ', 60)).toBe('남양주 올수리 전문');
+    expect(cleanBrief('가'.repeat(80), 40)).toHaveLength(40);
+    expect(cleanBrief(3, 10)).toBe('');
+    expect(briefProblem('', '무료 실측')).not.toBeNull();
+    expect(briefProblem('올수리 전문', '')).not.toBeNull();
+    expect(briefProblem('올수리 전문', '무료 실측')).toBeNull();
   });
 });

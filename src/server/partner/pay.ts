@@ -15,9 +15,9 @@ import 'server-only';
 import crypto from 'crypto';
 import { adminOrNull } from '@/lib/ask/server';
 import { AD_PROCESS_GROUPS, SLOT_INFO, addDaysStr, calcOrder, checkBanner, fromDbSlot, isHttpsUrl, kstToday, toDbSlot, UNIT_DAYS, type SlotKind } from '@/lib/ads/pricing';
-import { PARTNER_SLOTS, PARTNER_UNITS, badgeOf, canManage, isPartnerRegion, newPaymentId, quote, regionName } from '@/lib/partner/rules';
+import { BRIEF_MAX, PARTNER_SLOTS, PARTNER_UNITS, badgeOf, briefProblem, canManage, cleanBrief, imageKind, isPartnerRegion, newPaymentId, quote, quoteNew, regionName } from '@/lib/partner/rules';
 import { cancelPayment, fetchPayment, payConfig } from './portone';
-import { BUCKET, myOrder } from './store';
+import { BUCKET, designFirstFree, myOrder } from './store';
 
 type Res<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -43,17 +43,22 @@ async function slotFree(kind: SlotKind, sido: string, process: string | null, fr
   return data !== false;
 }
 
-/** 주문 이름(결제창·카드 명세에 보임) */
-function orderNameOf(kind: SlotKind, sido: string, process: string | null, units: number, extend = false): string {
+/** 주문 이름(결제창·카드 명세에 보임). 제작 대행을 맡기면 끝에 "+ 배너 제작"을 붙인다 */
+function orderNameOf(kind: SlotKind, sido: string, process: string | null, units: number, extend = false, design = false): string {
   const p = process ? ` ${process}` : '';
-  return `얼마드나 광고 ${SLOT_INFO[kind].name}${p} ${regionName(sido)} ${units * UNIT_DAYS}일${extend ? ' 연장' : ''}`;
+  return `얼마드나 광고 ${SLOT_INFO[kind].name}${p} ${regionName(sido)} ${units * UNIT_DAYS}일${extend ? ' 연장' : ''}${design ? ' + 배너 제작' : ''}`;
 }
+
+/** 제작 대행 로고 용량 한도(보관함 ad-banners 한도 1MB 와 같음) */
+const LOGO_MAX = 1024 * 1024;
 
 /** 새 광고 결제 준비 */
 export async function prepareNew(advertiserId: number, input: {
   kind: unknown; sido: unknown; process: unknown; units: unknown; clickUrl: unknown; phone: unknown;
   file: { bytes: Uint8Array; type: string } | null;
-}): Promise<Res<Prepared>> {
+  /** 배너 제작 대행(2026-10-29): 있으면 그림 대신 업체 소개·강조 문구·로고(선택)를 받는다 */
+  design?: { intro: unknown; headline: unknown; logo: { bytes: Uint8Array; type: string } | null } | null;
+}, partnerName = ''): Promise<Res<Prepared>> {
   if (!payConfig().ready) return { ok: false, error: '결제 준비 중이에요' };
   const kind = input.kind as SlotKind;
   if (!PARTNER_SLOTS.includes(kind)) return { ok: false, error: '자리를 골라 주세요' };
@@ -64,9 +69,21 @@ export async function prepareNew(advertiserId: number, input: {
   const units = Number(input.units);
   if (!(PARTNER_UNITS as readonly number[]).includes(units)) return { ok: false, error: '기간을 골라 주세요' };
   if (!isHttpsUrl(input.clickUrl)) return { ok: false, error: '연결 주소는 https 로 시작해야 해요' };
-  if (!input.file) return { ok: false, error: '배너 그림을 올려 주세요' };
-  const why = checkBanner(kind, input.file.bytes);
-  if (why) return { ok: false, error: why };
+  // 제작 대행이면 그림 대신 입력 내용을 검사, 직접 올리기면 배너 규격 검사
+  const design = input.design ?? null;
+  const intro = design ? cleanBrief(design.intro, BRIEF_MAX.intro) : '';
+  const headline = design ? cleanBrief(design.headline, BRIEF_MAX.headline) : '';
+  if (design) {
+    const bp = briefProblem(intro, headline);
+    if (bp) return { ok: false, error: bp };
+    if (design.logo && (design.logo.bytes.length > LOGO_MAX || !imageKind(design.logo.bytes))) {
+      return { ok: false, error: '로고는 1MB 이하 PNG/JPG 만 올릴 수 있어요' };
+    }
+  } else {
+    if (!input.file) return { ok: false, error: '배너 그림을 올려 주세요' };
+    const why = checkBanner(kind, input.file.bytes);
+    if (why) return { ok: false, error: why };
+  }
 
   const today = kstToday();
   const c = calcOrder(kind, today, units);
@@ -76,22 +93,52 @@ export async function prepareNew(advertiserId: number, input: {
 
   const sb = adminOrNull();
   if (!sb) return { ok: false, error: '지금은 신청을 받을 수 없어요(준비 중)' };
-  // 배너는 결제 전에 보관함에 먼저 둔다(결제가 끝나면 주문에 이 경로를 그대로 적는다)
-  const ext = input.file.type === 'image/png' ? 'png' : 'jpg';
-  const path = `partner/${advertiserId}/${Date.now()}.${ext}`;
-  const up = await sb.storage.from(BUCKET).upload(path, input.file.bytes, { contentType: ext === 'png' ? 'image/png' : 'image/jpeg', upsert: false });
-  if (up.error) return { ok: false, error: '그림을 올리지 못했어요' };
+  // 제작 대행 첫 회 무료 판정 — 브라우저가 보낸 값이 아니라 서버가 DB 로 다시 본다
+  let firstFree = false;
+  if (design) {
+    const f = await designFirstFree(advertiserId);
+    if (f === null) return { ok: false, error: '지금은 신청을 받을 수 없어요(준비 중)' };
+    firstFree = f;
+  }
 
-  const q = quote(kind, units);
+  // 그림(배너 또는 로고)은 결제 전에 보관함에 먼저 둔다(결제가 끝나면 주문에 이 경로를 그대로 적는다)
+  const upload = async (file: { bytes: Uint8Array; type: string }, prefix: string): Promise<string | null> => {
+    const ext = imageKind(file.bytes) === 'png' ? 'png' : 'jpg';
+    const path = `partner/${advertiserId}/${prefix}${Date.now()}.${ext}`;
+    const up = await sb.storage.from(BUCKET).upload(path, file.bytes, { contentType: ext === 'png' ? 'image/png' : 'image/jpeg', upsert: false });
+    return up.error ? null : path;
+  };
+  let path: string | null = null;
+  let logoPath: string | null = null;
+  if (design) {
+    if (design.logo) {
+      logoPath = await upload(design.logo, 'logo-');
+      if (!logoPath) return { ok: false, error: '로고를 올리지 못했어요' };
+    }
+  } else if (input.file) {
+    path = await upload(input.file, '');
+    if (!path) return { ok: false, error: '그림을 올리지 못했어요' };
+  }
+
+  // 금액: 광고비 + 제작비(첫 회 0원) → 부가세 → 합계. 서버가 다시 계산한다(직접 올리기면 제작비 0)
+  const q = quoteNew(kind, units, design ? { firstFree } : null);
   const paymentId = newPaymentId(crypto.randomUUID());
   const phone = typeof input.phone === 'string' ? input.phone.replace(/[^\d-]/g, '').slice(0, 20) || null : null;
   const db = toDbSlot(kind, process); // AD-T 는 AD-P + '토탈 인테리어' 로 적는다
   const { error } = await sb.from('partner_payments').insert({
     payment_id: paymentId, advertiser_id: advertiserId, kind: 'new', slot_kind: db.slot_kind, sido, process: db.process,
     units: q.units, amount: q.amount, vat: q.vat, total: q.total, banner_path: path, click_url: input.clickUrl, phone,
+    // 제작 대행 칸은 맡겼을 때만 적는다(SQL 20261101 실행 전에도 직접 올리기 결제는 그대로 되게)
+    ...(design
+      ? {
+          design_requested: true,
+          design_fee: q.designFee,
+          design_brief: { name: partnerName.slice(0, 80), phone, intro, headline, logo_path: logoPath },
+        }
+      : {}),
   });
   if (error) return { ok: false, error: '지금은 신청을 받을 수 없어요(준비 중)' };
-  return { ok: true, data: { paymentId, orderName: orderNameOf(kind, sido, process, units), total: q.total } };
+  return { ok: true, data: { paymentId, orderName: orderNameOf(kind, sido, process, units, false, !!design), total: q.total } };
 }
 
 /** 30일 연장 결제 준비(내 주문, 아직 안 끝난 주문만) */
@@ -181,6 +228,8 @@ export async function finalizePayment(paymentId: string, advertiserId: number | 
         start_date: today, end_date: c.endDate, units: Number(row.units), amount: Number(row.amount), vat: Number(row.vat),
         pay_method: 'card', pay_status: 'paid', paid_at: nowIso, pay_ref: paymentId, run_status: 'review',
         banner_path: row.banner_path, click_url: row.click_url, phone: row.phone,
+        // 제작 대행(2026-10-29): 결제 기록에 있으면 주문으로 그대로 옮긴다(배너 없이 검토 상태 = '배너 제작 중')
+        ...(row.design_requested ? { design_requested: true, design_brief: row.design_brief ?? null, design_fee: Number(row.design_fee ?? 0) } : {}),
       })
       .select('id')
       .single();

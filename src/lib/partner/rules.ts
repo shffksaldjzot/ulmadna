@@ -7,7 +7,7 @@
 //   서버 전용 코드가 없어서 브라우저에서도 불러 쓸 수 있다.
 //   가격·자리 정보는 광고 정본(src/lib/ads/pricing.ts)을 그대로 읽는다(복사하지 않음).
 // ─────────────────────────────────────────────────────────────
-import { SLOT_INFO, VAT_RATE, daysBetween, type SlotKind } from '@/lib/ads/pricing';
+import { DESIGN_FEE, SLOT_INFO, VAT_RATE, daysBetween, type SlotKind } from '@/lib/ads/pricing';
 import { REGION_NAMES, SIDO_CODES } from '@/server/admin/format';
 
 /** 광고주가 직접 살 수 있는 자리(견적서 추천 글자 광고 AD-PDF 는 관리자 상담으로만). AD-T 는 DB 에 AD-P+'토탈 인테리어'로 저장 */
@@ -87,6 +87,47 @@ export function quote(kind: SlotKind, units: number): { units: number; amount: n
   return { units: u, amount, vat, total: amount + vat };
 }
 
+/**
+ * 새 광고 결제 금액(배너 제작 대행 포함) — 2026-10-29
+ *   design=null 이면 배너를 직접 올리는 경우(제작비 없음).
+ *   design.firstFree=true 면 그 광고주의 첫 제작 대행이라 제작비 0원.
+ *   amount(공급가) = 광고비 + 제작비, 부가세는 합친 공급가의 10% 반올림.
+ *   서버는 첫 회 여부를 DB 로 다시 판정해서 이 함수로 다시 계산한다(브라우저 값을 믿지 않음).
+ */
+export function quoteNew(
+  kind: SlotKind,
+  units: number,
+  design: { firstFree: boolean } | null,
+): { units: number; adAmount: number; designFee: number; amount: number; vat: number; total: number } {
+  const base = quote(kind, units);
+  const designFee = design ? (design.firstFree ? 0 : DESIGN_FEE) : 0;
+  const amount = base.amount + designFee;
+  const vat = Math.round(amount * VAT_RATE);
+  return { units: base.units, adAmount: base.amount, designFee, amount, vat, total: amount + vat };
+}
+
+/** 파일 앞머리로 PNG/JPG 판별(로고 검사용). 둘 다 아니면 null */
+export function imageKind(b: Uint8Array): 'png' | 'jpg' | null {
+  if (b.length > 4 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return 'png';
+  if (b.length > 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return 'jpg';
+  return null;
+}
+
+/** 제작 대행 입력 글자 한도(업체 소개 한 줄·강조 문구) */
+export const BRIEF_MAX = { intro: 60, headline: 40 } as const;
+
+/** 제작 대행 입력 정리: 앞뒤 빈칸 제거·줄바꿈 제거·길이 자르기 */
+export function cleanBrief(v: unknown, max: number): string {
+  return typeof v === 'string' ? v.replace(/\s+/g, ' ').trim().slice(0, max) : '';
+}
+
+/** 제작 대행 입력 문제를 한 줄로(괜찮으면 null) */
+export function briefProblem(intro: string, headline: string): string | null {
+  if (!intro) return '업체 소개 한 줄을 적어 주세요';
+  if (!headline) return '강조 문구를 적어 주세요';
+  return null;
+}
+
 /** 원 단위 숫자 → "110,000원" */
 export function won(n: number): string {
   return `${Math.round(n).toLocaleString('ko-KR')}원`;
@@ -95,9 +136,10 @@ export function won(n: number): string {
 // ── 광고 카드 표시 ───────────────────────────
 
 /** 배지 종류 */
-export type BadgeKind = 'review' | 'live' | 'waiting' | 'expired' | 'stopped' | 'refunded';
+export type BadgeKind = 'design' | 'review' | 'live' | 'waiting' | 'expired' | 'stopped' | 'refunded';
 
 export const BADGE_TEXT: Record<BadgeKind, string> = {
+  design: '배너 제작 중', // 제작 대행 주문인데 아직 배너가 없을 때(2026-10-29)
   review: '배너 검토 중',
   live: '게재 중',
   waiting: '게재 대기',
@@ -106,14 +148,19 @@ export const BADGE_TEXT: Record<BadgeKind, string> = {
   refunded: '환불됨',
 };
 
-/** 주문 상태 → 배지 하나. 날짜가 지났으면 상태와 상관없이 만료 */
+/**
+ * 주문 상태 → 배지 하나. 날짜가 지났으면 상태와 상관없이 만료
+ *   제작 대행 주문(design_requested)이 검토 단계인데 배너가 아직 없으면 '배너 제작 중'.
+ *   관리자가 배너를 올리면 같은 검토 단계라도 '배너 검토 중'으로 바뀐다.
+ */
 export function badgeOf(
-  o: { run_status: string; pay_status: string; start_date: string; end_date: string },
+  o: { run_status: string; pay_status: string; start_date: string; end_date: string; design_requested?: boolean | null; has_banner?: boolean },
   today: string,
 ): BadgeKind {
   if (o.pay_status === 'refunded') return 'refunded';
   if (o.run_status === 'stopped') return 'stopped';
   if (o.run_status === 'ended' || daysBetween(today, o.end_date) < 0) return 'expired';
+  if (o.run_status === 'review' && o.design_requested && !o.has_banner) return 'design';
   if (o.run_status === 'review') return 'review';
   if (o.start_date > today) return 'waiting';
   return 'live';

@@ -63,6 +63,12 @@ export interface AdOrder {
   phone: string | null;
   note: string | null;
   created_at: string;
+  /** 배너 제작 대행(2026-10-29) — 20261101_ads_design.sql 실행 전엔 칸이 없어 undefined */
+  design_requested?: boolean;
+  /** 제작 대행 입력 내용 {name, phone, intro, headline, logo_path} */
+  design_brief?: { name?: string; phone?: string | null; intro?: string; headline?: string; logo_path?: string | null } | null;
+  /** 제작비 공급가(원). amount 에 이미 더해져 있다 */
+  design_fee?: number;
 }
 
 /** 주문 + 광고주 이름 + 노출·클릭 합계(화면용) */

@@ -13,6 +13,7 @@ import { ghostBtn } from './_ui';
 
 /** 배지 색(강조색은 쓰지 않고 상태 색만) */
 const BADGE_CLS: Record<BadgeKind, string> = {
+  design: 'bg-v1-badge-gold-bg text-brown', // 배너 제작 중(제작 대행, 2026-10-29)
   review: 'bg-v1-badge-gold-bg text-brown',
   live: 'bg-safe/10 text-safe',
   waiting: 'bg-bg text-ink-2',
@@ -103,6 +104,7 @@ export default function AdCard({ order: o, today, pay, email, name = '' }: { ord
         ))}
       </div>
 
+      {b === 'design' && <p className="mt-2 text-[13px] text-ink-2">3영업일 안에 시안을 보내 드려요</p>}
       {b === 'review' && o.pay_status === 'paid' && <p className="mt-2 text-[13px] text-ink-2">반려되면 카드로 자동 환불돼요</p>}
       {o.note && (b === 'stopped' || b === 'refunded') && <p className="mt-2 text-[13px] text-danger">{o.note}</p>}
 

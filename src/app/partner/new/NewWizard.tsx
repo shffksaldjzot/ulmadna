@@ -2,13 +2,15 @@
 // ─────────────────────────────────────────────────────────────
 // 새 광고 신청 단계 화면 — 한 화면에 한 가지씩 (2026년 10월 31일)
 //   1 자리 고르기(공정 스폰서면 공정도) → 2 지역·기간 → 3 배너·연결 주소 → 4 금액 확인·카드 결제
+//   3단계에서 "배너 직접 올리기 / 제작 대행 맡기기"를 고른다(2026-10-29).
+//   제작 대행이면 그림 대신 업체 소개 한 줄·강조 문구·로고(선택)를 받고 제작비가 더해진다(첫 회 무료).
 //   자리·가격·규격은 광고 정본(SLOT_INFO)에서 읽는다. 금액은 화면에 보여 주기만 하고
 //   실제 결제 금액은 서버가 다시 계산한다.
 //   배너는 고르자마자 같은 규격 검사(checkBanner)로 바로 알려 준다.
 // ─────────────────────────────────────────────────────────────
 import { useEffect, useState } from 'react';
-import { AD_PROCESS_GROUPS, SLOT_INFO, checkBanner, isHttpsUrl, type SlotKind } from '@/lib/ads/pricing';
-import { PARTNER_REGIONS, PARTNER_SLOTS, PARTNER_UNITS, quote, regionName, won } from '@/lib/partner/rules';
+import { AD_PROCESS_GROUPS, DESIGN_FEE, SLOT_INFO, checkBanner, isHttpsUrl, type SlotKind } from '@/lib/ads/pricing';
+import { BRIEF_MAX, PARTNER_REGIONS, PARTNER_SLOTS, PARTNER_UNITS, briefProblem, cleanBrief, imageKind, quoteNew, regionName, won } from '@/lib/partner/rules';
 import { openCheckout, preparePay, type PayCfg } from '@/lib/partner/payClient';
 import { inputCls, primaryBtn } from '../_ui';
 
@@ -27,7 +29,13 @@ const STEPS = ['자리', '지역·기간', '배너', '결제'];
 const pickCls = (on: boolean) =>
   `w-full min-h-11 rounded-xl border px-4 py-3 text-left ${on ? 'border-accent bg-accent/5' : 'border-line bg-surface'}`;
 
-export default function NewWizard({ pay, region, email, name = '' }: { pay: PayCfg | null; region: string; email: string; name?: string }) {
+export default function NewWizard({
+  pay, region, email, name = '', designFree = false,
+}: {
+  pay: PayCfg | null; region: string; email: string; name?: string;
+  /** 제작 대행 첫 회 무료인지(서버가 판정해 넘김 — 결제 금액은 서버가 다시 계산) */
+  designFree?: boolean;
+}) {
   const [step, setStep] = useState(0);
   const [kind, setKind] = useState<SlotKind | null>(null);
   const [process, setProcess] = useState('');
@@ -38,6 +46,12 @@ export default function NewWizard({ pay, region, email, name = '' }: { pay: PayC
   const [fileErr, setFileErr] = useState('');
   const [clickUrl, setClickUrl] = useState('https://');
   const [phone, setPhone] = useState('');
+  // 배너 제작 대행(2026-10-29): design=true 면 그림 대신 소개·강조 문구·로고(선택)
+  const [design, setDesign] = useState(false);
+  const [intro, setIntro] = useState('');
+  const [headline, setHeadline] = useState('');
+  const [logo, setLogo] = useState<File | null>(null);
+  const [logoErr, setLogoErr] = useState('');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -48,7 +62,9 @@ export default function NewWizard({ pay, region, email, name = '' }: { pay: PayC
   const okStep = [
     !!kind && (kind !== 'AD-P' || !!process),
     !!sido && units > 0,
-    !!file && !fileErr && isHttpsUrl(clickUrl) && phone.replace(/\D/g, '').length >= 10, // 전화는 이니시스 결제창 필수
+    // 배너: 직접 올리기면 그림, 제작 대행이면 소개·강조 문구. 전화는 이니시스 결제창 필수
+    (design ? !briefProblem(cleanBrief(intro, BRIEF_MAX.intro), cleanBrief(headline, BRIEF_MAX.headline)) && !logoErr : !!file && !fileErr)
+      && isHttpsUrl(clickUrl) && phone.replace(/\D/g, '').length >= 10,
     true,
   ][step];
 
@@ -68,9 +84,21 @@ export default function NewWizard({ pay, region, email, name = '' }: { pay: PayC
     setPreview(URL.createObjectURL(f));
   };
 
+  // 로고 고르기(선택) → PNG/JPG·1MB 이하만
+  const pickLogo = async (f: File | undefined) => {
+    setLogo(null);
+    setLogoErr('');
+    if (!f) return;
+    if (f.size > 1024 * 1024 || !imageKind(new Uint8Array(await f.arrayBuffer()))) {
+      setLogoErr('로고는 1MB 이하 PNG/JPG 만 올릴 수 있어요');
+      return;
+    }
+    setLogo(f);
+  };
+
   // 카드 결제: 서버 준비 → 포트원 결제창 → 서버 확인
   const payNow = async () => {
-    if (!pay || !kind || !file || busy) return;
+    if (!pay || !kind || (!design && !file) || busy) return;
     setBusy(true);
     setErr('');
     const f = new FormData();
@@ -81,7 +109,14 @@ export default function NewWizard({ pay, region, email, name = '' }: { pay: PayC
     f.set('units', String(units));
     f.set('clickUrl', clickUrl.trim());
     f.set('phone', phone);
-    f.set('file', file);
+    if (design) {
+      f.set('design', '1');
+      f.set('intro', intro);
+      f.set('headline', headline);
+      if (logo) f.set('logo', logo);
+    } else if (file) {
+      f.set('file', file);
+    }
     const p = await preparePay(f);
     if (!p.ok) {
       setErr(p.error);
@@ -97,7 +132,8 @@ export default function NewWizard({ pay, region, email, name = '' }: { pay: PayC
     setBusy(false);
   };
 
-  const q = kind ? quote(kind, units) : null;
+  // 화면 표시용 금액(실제 결제 금액은 서버가 첫 회 여부를 다시 보고 계산)
+  const q = kind ? quoteNew(kind, units, design ? { firstFree: designFree } : null) : null;
   const info = kind ? SLOT_INFO[kind] : null;
 
   return (
@@ -166,6 +202,38 @@ export default function NewWizard({ pay, region, email, name = '' }: { pay: PayC
       {/* 3. 배너·연결 주소 */}
       {step === 2 && info && (
         <section>
+          {/* 배너 직접 올리기 / 제작 대행 맡기기 */}
+          <div className="mb-5 grid grid-cols-2 gap-2">
+            <button type="button" className={pickCls(!design)} onClick={() => setDesign(false)} aria-pressed={!design}>
+              <span className="block text-[15px] font-semibold text-ink">배너 직접 올리기</span>
+              <span className="mt-0.5 block text-[12px] text-ink-2">그림이 있어요</span>
+            </button>
+            <button type="button" className={pickCls(design)} onClick={() => setDesign(true)} aria-pressed={design}>
+              <span className="block text-[15px] font-semibold text-ink">제작 대행 맡기기</span>
+              <span className="mt-0.5 block text-[12px] text-ink-2">{designFree ? '첫 제작 무료' : `${won(DESIGN_FEE)} · 부가세 별도`}</span>
+            </button>
+          </div>
+
+          {design ? (
+            <div>
+              <label className="block">
+                <span className="mb-1.5 block text-[15px] font-semibold text-ink">업체 소개 한 줄</span>
+                <input className={inputCls} value={intro} maxLength={BRIEF_MAX.intro} onChange={(e) => setIntro(e.target.value)} placeholder="남양주 올수리 전문 10년" />
+              </label>
+              <label className="mt-4 block">
+                <span className="mb-1.5 block text-[15px] font-semibold text-ink">강조 문구</span>
+                <input className={inputCls} value={headline} maxLength={BRIEF_MAX.headline} onChange={(e) => setHeadline(e.target.value)} placeholder="무료 실측 · 당일 견적" />
+              </label>
+              <p className="mb-1.5 mt-4 text-[15px] font-semibold text-ink">로고 <span className="font-normal text-ink-2">(선택)</span></p>
+              <label className="flex min-h-12 cursor-pointer items-center justify-center rounded-xl border border-dashed border-line bg-surface px-3 text-[14px] text-ink-2">
+                {logo ? logo.name : '로고 고르기'}
+                <input type="file" accept="image/png,image/jpeg" className="sr-only" onChange={(e) => void pickLogo(e.target.files?.[0])} />
+              </label>
+              {logoErr && <p className="mt-1 text-[13px] text-danger" role="alert">{logoErr}</p>}
+              <p className="mt-2 text-[13px] text-ink-2">시안 1개 · 수정 2회 · 3영업일</p>
+            </div>
+          ) : (
+          <div>
           <p className="mb-1 text-[15px] font-semibold text-ink">배너 그림</p>
           <p className="mb-2 text-[13px] text-ink-2">
             {info.width}×{info.height} 또는 {info.width * 2}×{info.height * 2} · PNG/JPG · {info.maxKB}KB 이하
@@ -180,6 +248,8 @@ export default function NewWizard({ pay, region, email, name = '' }: { pay: PayC
             <input type="file" accept="image/png,image/jpeg" className="sr-only" onChange={(e) => void pickFile(e.target.files?.[0])} />
           </label>
           {fileErr && <p className="mt-1 text-[13px] text-danger" role="alert">{fileErr}</p>}
+          </div>
+          )}
 
           <label className="mt-5 block">
             <span className="mb-1.5 block text-[15px] font-semibold text-ink">누르면 갈 주소</span>
@@ -202,12 +272,26 @@ export default function NewWizard({ pay, region, email, name = '' }: { pay: PayC
             </p>
             <p className="mt-0.5 text-[13px] text-ink-2">{regionName(sido)} · {units * 30}일 · 결제일부터 시작</p>
             <dl className="mt-4 space-y-1.5 text-[15px]">
+              {design && (
+                <>
+                  <div className="flex justify-between"><dt className="text-ink-2">광고비</dt><dd className="tabular-nums text-ink">{won(q.adAmount)}</dd></div>
+                  <div className="flex justify-between">
+                    <dt className="text-ink-2">배너 제작</dt>
+                    <dd className="tabular-nums text-ink">
+                      {q.designFee === 0 ? (<><s className="mr-1.5 text-ink-2">{won(DESIGN_FEE)}</s>0원</>) : won(q.designFee)}
+                    </dd>
+                  </div>
+                  {q.designFee === 0 && <p className="text-right text-[13px] font-semibold text-accent">첫 제작 무료</p>}
+                </>
+              )}
               <div className="flex justify-between"><dt className="text-ink-2">공급가</dt><dd className="tabular-nums text-ink">{won(q.amount)}</dd></div>
               <div className="flex justify-between"><dt className="text-ink-2">부가세</dt><dd className="tabular-nums text-ink">{won(q.vat)}</dd></div>
               <div className="flex justify-between border-t border-line pt-2"><dt className="font-semibold text-ink">카드 결제</dt><dd className="text-[20px] font-bold tabular-nums text-ink">{won(q.total)}</dd></div>
             </dl>
           </div>
-          <p className="mt-3 text-[13px] text-ink-2">배너 검토 뒤 게재돼요. 반려되면 카드로 자동 환불돼요</p>
+          <p className="mt-3 text-[13px] text-ink-2">
+            {design ? '결제 뒤 3영업일 안에 시안을 보내 드려요' : '배너 검토 뒤 게재돼요. 반려되면 카드로 자동 환불돼요'}
+          </p>
         </section>
       )}
 
