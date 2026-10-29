@@ -60,7 +60,7 @@ export function Field({
     <div className="flex flex-col gap-1.5">
       <span className="text-[14px] font-medium text-ink-2">
         {label}
-        {required === false && <b className="ml-1 text-[12.5px] font-semibold text-v1-text-disabled">선택</b>}
+        {required === false && <b className="ml-1 text-[12.5px] font-semibold text-ink-2">선택</b>}
       </span>
       {children}
       {error ? (
@@ -68,7 +68,8 @@ export function Field({
       ) : ok ? (
         <span className="text-[13px] text-safe">{ok}</span>
       ) : hint ? (
-        <span className="text-[13px] text-v1-text-disabled">{hint}</span>
+        // 2026-10-29: 안내 글자 흐린 색 → 보조 글자색(대비 확보)
+        <span className="text-[13px] text-ink-2">{hint}</span>
       ) : null}
     </div>
   );

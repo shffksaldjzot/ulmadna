@@ -42,7 +42,8 @@ export default function BusinessInfo({
   /** true 면 접힌 한 줄로 시작(푸터용). 누르면 펼쳐진다 */
   collapsed?: boolean;
 }) {
-  const base = `not-italic t-sub text-ink-2/80 leading-relaxed ${className}`;
+  // 2026-10-29: 흐린 글자(/80) → 보조 글자색 그대로(대비 확보)
+  const base = `not-italic t-sub text-ink-2 leading-relaxed ${className}`;
   if (!collapsed) {
     return (
       <address className={base}>
@@ -53,7 +54,7 @@ export default function BusinessInfo({
   return (
     <details className={base}>
       {/* 접힌 상태 한 줄 — 기본 화살표는 숨기고 글자 끝에 ▾ 로만 표시 */}
-      <summary className="cursor-pointer list-none select-none text-ink-2/60 hover:text-ink-2 [&::-webkit-details-marker]:hidden">
+      <summary className="cursor-pointer list-none select-none text-ink-2 hover:text-ink [&::-webkit-details-marker]:hidden">
         {B.name} · 사업자정보 ▾
       </summary>
       <address className="not-italic mt-2">

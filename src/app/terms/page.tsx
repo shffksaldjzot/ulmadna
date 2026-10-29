@@ -53,7 +53,7 @@ export default function TermsPage() {
             </section>
 
             <div className="pt-4 border-t border-line space-y-2">
-              <p className="t-sub text-ink-2/70">시행일: 2026년 4월 6일 (광고 서비스는 별도 <a href="/ads-terms" className="underline">광고 서비스 이용약관</a>·<a href="/refund" className="underline">환불 규정</a> 적용)</p>
+              <p className="t-sub text-ink-2">시행일: 2026년 4월 6일 (광고 서비스는 별도 <a href="/ads-terms" className="underline">광고 서비스 이용약관</a>·<a href="/refund" className="underline">환불 규정</a> 적용)</p>
               <BusinessInfo />
             </div>
           </div>

@@ -88,7 +88,8 @@ export default function SiteFooter() {
           {/* 사업자 정보(결제사 심사 대비) — 정본은 src/lib/business.ts */}
           {/* 2026-10-29 형아 요청: 푸터에선 접어서 한 줄만(누르면 펼침) */}
           <BusinessInfo className="max-w-[560px] text-[12px]" collapsed />
-          <p className="t-sub text-ink-2/70">© 2026 도토리 스튜디오 · 얼마드나</p>
+          {/* 2026-10-29: 흐린 글자(/70) → 보조 글자색 그대로(대비 확보) */}
+          <p className="t-sub text-ink-2">© 2026 도토리 스튜디오 · 얼마드나</p>
         </Container>
       </footer>
       <BottomTabs />

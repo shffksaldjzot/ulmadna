@@ -72,7 +72,7 @@ export default function PrivacyPage() {
             </section>
 
             <div className="pt-4 border-t border-line space-y-2">
-              <p className="t-sub text-ink-2/70">시행일: 2026년 10월 28일 (개정, 이전 2026년 4월 6일)</p>
+              <p className="t-sub text-ink-2">시행일: 2026년 10월 28일 (개정, 이전 2026년 4월 6일)</p>
               <BusinessInfo />
             </div>
           </div>
