@@ -8,6 +8,8 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 import { detectCalculator, type CalculatorKey } from "./blog-calculators";
+// 글 → 공정 묶음 판정(공정 스폰서 광고 AD-P 매칭용, 2026년 10월 29일)
+import { detectPostProcess, type ProcessDecision } from "./blog-process";
 import { detectServiceCta } from "./services";
 import { unified } from "unified";
 import remarkParse from "remark-parse";
@@ -60,6 +62,10 @@ export interface PostMeta {
   // 정하거나(사람이 최종 결정), 없으면 제목·태그 신호 단어로 자동 판정한다.
   // 작성일: 2026년 09월 16일 (직접 서비스 CTA)
   cta: string | null;
+  // 이 글의 공정 묶음(홈 계산기 공정 라벨, 예: "도배·바닥") + 판정 근거.
+  // 머리말 `sponsor:` → `calculator:` → 제목·태그 신호 단어 순서로 정한다(lib/blog-process.ts).
+  // 글 화면의 공정 스폰서 광고 자리(AD-P)와 관리자 표(/admin/blog-process)가 쓴다. (2026년 10월 29일)
+  process: ProcessDecision;
 }
 
 export interface Heading {
@@ -125,6 +131,7 @@ function readMeta(file: string): PostMeta {
     noindex: data.noindex === true, // 공개 유지 + 검색 제외
     calculator: detectCalculator(data.title ?? slug, Array.isArray(data.tags) ? data.tags : [], data.calculator),
     cta: detectServiceCta(data.title ?? slug, Array.isArray(data.tags) ? data.tags : [], data.cta),
+    process: detectPostProcess(data.title ?? slug, Array.isArray(data.tags) ? data.tags : [], data.sponsor, data.calculator),
   };
 }
 
@@ -338,6 +345,7 @@ export async function getPost(slug: string): Promise<Post | null> {
     noindex: data.noindex === true, // 공개 유지 + 검색 제외
     calculator: detectCalculator(data.title ?? slug, Array.isArray(data.tags) ? data.tags : [], data.calculator),
     cta: detectServiceCta(data.title ?? slug, Array.isArray(data.tags) ? data.tags : [], data.cta),
+    process: detectPostProcess(data.title ?? slug, Array.isArray(data.tags) ? data.tags : [], data.sponsor, data.calculator),
     html,
     faq,
     headings,

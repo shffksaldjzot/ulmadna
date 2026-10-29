@@ -30,6 +30,9 @@ import { BlogCover } from "@/components/blog/BlogCover";
 import { addImgDims, imageSize } from "@/lib/blog-image";
 import { AdsenseUnit } from "@/components/ads/AdsenseUnit";
 import { ADSENSE_SLOTS } from "@/lib/ads/adsense";
+// 공정 스폰서(AD-P)·본문 끝(AD-R) 광고 자리 — 광고 스위치 꺼짐이면 미리보기 말고는 안 그림(2026년 10월 29일)
+import { BlogAdSlot } from "@/components/blog/BlogAdSlot";
+import { splitAfterFirstH2 } from "@/lib/blog-process";
 import "../blog.css";
 
 const SITE = "https://ulmadna.com";
@@ -193,6 +196,10 @@ export default async function BlogPost({
       ? insertInlineRelated(post.html, post.headings.length, inlinePick, primaryCat?.label ?? "")
       : post.html
   );
+  // 본문을 첫 소제목(h2) 뒤에서 둘로 나눈다 — 그 사이에 공정 스폰서 광고 자리(AD-P)를 끼운다.
+  // 두 덩어리는 display:contents 로 감싸서, 나누기 전과 화면 배치가 똑같다(광고 자리가 비면 차이 없음).
+  // 소제목이 없거나 전부 스포일러 상자 안이면 나누지 않는다(null).
+  const bodyParts = splitAfterFirstH2(bodyHtml);
   // 대표 이미지 원본 크기(모르면 undefined → 예전처럼 크기 없이 그림)
   const coverSize = post.thumbnail ? imageSize(post.thumbnail) : null;
 
@@ -344,7 +351,16 @@ export default async function BlogPost({
               <CalculatorCta key={key} calculator={key} variant="mini" />
             ))}
 
-            <div className="blog-body" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+            {bodyParts ? (
+              <div className="blog-body">
+                <div style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: bodyParts[0] }} />
+                {/* 첫 소제목 바로 뒤 — 이 글 공정의 스폰서 자리(공정 없음이면 안 그림) */}
+                <BlogAdSlot id="AD-P" process={post.process.process} />
+                <div style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: bodyParts[1] }} />
+              </div>
+            ) : (
+              <div className="blog-body" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+            )}
             {/* 본문 중간 관련 글 링크 클릭 추적(화면엔 안 그림) */}
             <InlineRelatedTracker />
             {/* 스포일러 캔버스 효과(점진적 향상) — .blog-spoiler 강화 */}
@@ -364,6 +380,9 @@ export default async function BlogPost({
 
             {/* 계산기 카드 아래 — "직접 제작·시공" 서비스 카드 1장(글에 매치된 서비스가 있을 때만) */}
             {post.cta && getService(post.cta) && <ServiceCta service={getService(post.cta)!} />}
+
+            {/* 본문 끝 큰 광고 자리(AD-R) — 계산기·서비스 카드 아래, 저장/좋아요 위 */}
+            <BlogAdSlot id="AD-R" />
 
             {ADSENSE_SLOTS.blogInArticle && (
               <div className="blog-ad">
