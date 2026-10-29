@@ -1,6 +1,6 @@
 // 광고 가격·기간·그림 검사 시험 (2026년 10월 29일)
 import { describe, expect, it } from 'vitest';
-import { calcOrder, checkBanner, expiringSoon, imageSize, isHttpsUrl, isOrderSido } from '../pricing';
+import { SLOT_INFO, TOTAL_PROCESS, calcOrder, checkBanner, expiringSoon, fromDbSlot, imageSize, isHttpsUrl, isOrderSido, toDbSlot } from '../pricing';
 
 /** 가로·세로만 담은 가짜 PNG 머리말 (extra 만큼 뒤에 덧붙여 파일 크기를 키움) */
 function fakePng(w: number, h: number, extra = 0): Uint8Array {
@@ -66,5 +66,24 @@ describe('주문 지역 값', () => {
     expect(isOrderSido('all')).toBe(false);
     expect(isOrderSido('1')).toBe(false);
     expect(isOrderSido(11)).toBe(false);
+  });
+});
+
+describe('토탈 인테리어 스폰서(AD-T)', () => {
+  it('30일 15만 원·지역당 3곳·320×50', () => {
+    expect(SLOT_INFO['AD-T']).toMatchObject({ price: 150000, capacity: 3, width: 320, height: 50 });
+    expect(calcOrder('AD-T', '2026-11-01', 2).amount).toBe(300000);
+  });
+  it('DB 에는 AD-P + 토탈 인테리어로 적고, 읽을 때 AD-T 로 되돌린다', () => {
+    expect(toDbSlot('AD-T', null)).toEqual({ slot_kind: 'AD-P', process: TOTAL_PROCESS });
+    expect(toDbSlot('AD-P', '욕실')).toEqual({ slot_kind: 'AD-P', process: '욕실' });
+    expect(fromDbSlot('AD-P', TOTAL_PROCESS)).toBe('AD-T');
+    expect(fromDbSlot('AD-P', '욕실')).toBe('AD-P');
+    expect(fromDbSlot('AD-H', null)).toBe('AD-H');
+  });
+  it('그림 규격은 320×50(2배 640×100)', () => {
+    expect(checkBanner('AD-T', fakePng(320, 50))).toBeNull();
+    expect(checkBanner('AD-T', fakePng(640, 100))).toBeNull();
+    expect(checkBanner('AD-T', fakePng(320, 100))).not.toBeNull();
   });
 });

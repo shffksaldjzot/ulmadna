@@ -20,6 +20,9 @@ import {
   isOrderSido,
   kstToday,
   SIDO_ALL,
+  TOTAL_PROCESS,
+  fromDbSlot,
+  toDbSlot,
   type SlotKind,
 } from '@/lib/ads/pricing';
 
@@ -111,6 +114,8 @@ export async function listOrders(limit = 300): Promise<{ orders: OrderRow[]; ban
   }
   const orders: OrderRow[] = rows.map((r) => ({
     ...r,
+    // DB 의 'AD-P + 토탈 인테리어' 주문은 화면에서 AD-T 로 보인다(pricing.ts toDbSlot 설명)
+    slot_kind: fromDbSlot(r.slot_kind, r.process),
     advertiser_name: names.get(r.advertiser_id) ?? `#${r.advertiser_id}`,
     impressions: imp.get(r.id) ?? 0,
     clicks: clk.get(r.id) ?? 0,
@@ -131,7 +136,7 @@ export async function getBoard(today: string = kstToday()): Promise<BoardMap> {
   if (!sb) return board;
   const { data, error } = await sb
     .from('ad_orders')
-    .select('sido,slot_kind')
+    .select('sido,slot_kind,process')
     .neq('pay_status', 'refunded')
     .in('run_status', ['review', 'live'])
     .lte('start_date', today)
@@ -140,7 +145,8 @@ export async function getBoard(today: string = kstToday()): Promise<BoardMap> {
   if (error) return board;
   for (const r of data ?? []) {
     const s = String(r.sido);
-    const k = String(r.slot_kind);
+    // 토탈 인테리어 스폰서(DB 에선 AD-P + 토탈 인테리어)는 AD-T 칸으로 센다
+    const k = fromDbSlot(String(r.slot_kind), r.process as string | null);
     board[s] = board[s] ?? {};
     board[s][k] = (board[s][k] ?? 0) + 1;
   }
@@ -191,12 +197,17 @@ export async function createOrder(input: Record<string, unknown>): Promise<Res> 
   if (!isDay(input.start_date)) return { ok: false, error: '시작일을 골라 주세요' };
   const process = kind === 'AD-P' ? clean(input.process, 30) : null;
   if (kind === 'AD-P' && !process) return { ok: false, error: '공정을 골라 주세요' };
+  // 공정 스폰서(7만 원)로 '토탈 인테리어' 칸을 사는 것을 막는다 — 토탈은 AD-T(15만 원) 상품으로만
+  if (kind === 'AD-P' && process === TOTAL_PROCESS) return { ok: false, error: '토탈 인테리어는 AD-T 로 주문해 주세요' };
   const override = input.amount === '' || input.amount == null ? null : Number(input.amount);
+  // 금액은 화면 자리 종류(AD-T 면 15만 원) 기준으로 계산
   const c = calcOrder(kind, input.start_date, Number(input.units), override);
+  // DB 에 적을 값: AD-T → AD-P + '토탈 인테리어'
+  const db = toDbSlot(kind, process);
 
   // 자리 검사: 겹치는 주문이 한도에 이르면 막는다
   const { data: ok, error: e1 } = await sb.rpc('ads_slot_available', {
-    p_kind: kind, p_sido: sido, p_process: process, p_from: input.start_date, p_to: c.endDate,
+    p_kind: db.slot_kind, p_sido: sido, p_process: db.process, p_from: input.start_date, p_to: c.endDate,
   });
   if (e1) return { ok: false, error: '자리 검사에 실패했어요(SQL 실행 여부 확인)' };
   if (ok === false) return { ok: false, error: '그 기간엔 자리가 다 찼어요(3개 업체)' };
@@ -204,7 +215,7 @@ export async function createOrder(input: Record<string, unknown>): Promise<Res> 
   const { data, error } = await sb
     .from('ad_orders')
     .insert({
-      advertiser_id: advertiserId, slot_kind: kind, sido, process,
+      advertiser_id: advertiserId, slot_kind: db.slot_kind, sido, process: db.process,
       start_date: input.start_date, end_date: c.endDate, units: c.units, amount: c.amount, vat: c.vat,
       pay_method: input.pay_method === 'card' ? 'card' : 'bank',
       phone: clean(input.phone, 30), click_url: isHttpsUrl(input.click_url) ? input.click_url : null,
@@ -285,8 +296,8 @@ export async function saveBanner(id: number, bytes: Uint8Array, contentType: str
 export async function getOrderKind(id: number): Promise<SlotKind | null> {
   const sb = adminOrNull();
   if (!sb) return null;
-  const { data } = await sb.from('ad_orders').select('slot_kind').eq('id', id).single();
-  return data ? (data.slot_kind as SlotKind) : null;
+  const { data } = await sb.from('ad_orders').select('slot_kind,process').eq('id', id).single();
+  return data ? fromDbSlot(String(data.slot_kind), data.process as string | null) : null;
 }
 
 // ── 사이트 광고 자리 ─────────────────────────
@@ -312,12 +323,14 @@ export async function serveAd(kind: SlotKind, sido: string, process: string | nu
     if (previewId) {
       // select('*') — PC 그림 칸(banner_desktop_path)이 아직 없는 DB 에서도 실패하지 않게 전체 칸을 읽는다
       const { data } = await sb.from('ad_orders').select('*').eq('id', previewId).single();
-      if (!data || data.slot_kind !== kind || !data.banner_path) return null;
+      if (!data || fromDbSlot(String(data.slot_kind), data.process) !== kind || !data.banner_path) return null;
       const url = bannerUrl(sb, data.banner_path);
       const pc = bannerUrl(sb, (data as AdOrder).banner_desktop_path ?? null);
       return url ? { id: previewId, imageUrl: url, desktopImageUrl: pc, href: '#', name: '광고 미리보기' } : null;
     }
     const today = kstToday();
+    // DB 조회 값: AD-T 는 AD-P + '토탈 인테리어'
+    const db = toDbSlot(kind, process);
     const key = `${kind}|${sido}|${process ?? ''}|${today}`;
     let hit = cache.get(key);
     if (!hit || Date.now() - hit.at > CACHE_MS) {
@@ -326,7 +339,7 @@ export async function serveAd(kind: SlotKind, sido: string, process: string | nu
         let q = sb
           .from('ad_orders')
           .select(withPc ? 'id,banner_path,banner_desktop_path,advertisers(name)' : 'id,banner_path,advertisers(name)')
-          .eq('slot_kind', kind)
+          .eq('slot_kind', db.slot_kind)
           // 방문자 시도 주문 + '전국'(ALL) 주문을 함께 후보로(전국은 지역과 상관없이 매칭)
           .in('sido', [sido, SIDO_ALL])
           .eq('run_status', 'live')
@@ -335,7 +348,7 @@ export async function serveAd(kind: SlotKind, sido: string, process: string | nu
           .not('banner_path', 'is', null)
           .not('click_url', 'is', null)
           .limit(10);
-        if (kind === 'AD-P') q = q.eq('process', process ?? '');
+        if (db.slot_kind === 'AD-P') q = q.eq('process', db.process ?? '');
         return q;
       };
       let { data, error } = await query(true);
