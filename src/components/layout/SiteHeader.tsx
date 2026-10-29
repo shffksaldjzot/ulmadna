@@ -23,6 +23,8 @@ import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import Container from './Container';
 import { openContactSheet } from '@/lib/contactSheet';
+// 2026-10-30 형아 결정: 상단바 바로 아래 방문자 띠(전체·오늘, GA4 실제 방문자)
+import VisitorBand from './VisitorBand';
 
 // 메뉴 3개 — 홈은 로고가 그 역할을 하므로 메뉴에 안 넣는다
 const NAV_ITEMS: { href: string; label: string; match: (p: string) => boolean }[] = [
@@ -42,11 +44,14 @@ export default function SiteHeader() {
   const { data: session } = useSession();
 
   return (
-    // 2026-09-15 검수 수정: 반투명(bg-surface/95) + backdrop-blur 조합이 스크롤 중인
+    // 2026-10-30: 상단바(header) + 그 아래 방문자 띠(VisitorBand)를 같이 돌려준다.
+    // 띠는 sticky 상단바 밖에 둬서 스크롤하면 올라가고, 상단바 높이(56/64px)는 그대로 유지된다.
+    <>
+    {/* 2026-09-15 검수 수정: 반투명(bg-surface/95) + backdrop-blur 조합이 스크롤 중인
     // 글자(본문 텍스트)를 헤더 뒤로 흐릿하게 비춰서, 로고 뒤에 회색 얼룩(번짐)이 겹쳐
     // 보이는 문제가 있었다(모바일 블로그 글 스크롤 상태에서 재현·확인, 실제 스크롤에서도
     // 그대로 나타남 — 스크린샷 캡처 아티팩트 아님). 완전 불투명(bg-surface)으로 바꿔
-    // 뒤 콘텐츠가 전혀 비치지 않게 한다 — 하단 탭(BottomTabs)도 원래 불투명이라 통일됨.
+    // 뒤 콘텐츠가 전혀 비치지 않게 한다 — 하단 탭(BottomTabs)도 원래 불투명이라 통일됨. */}
     <header className="sticky top-0 z-50 bg-surface border-b border-line">
       <Container as="div" className="h-14 lg:h-16 flex items-center justify-between gap-4">
         {/* 좌측: 로고 + 무료 배지(데스크톱 전용, 여기 한 번만) */}
@@ -131,5 +136,8 @@ export default function SiteHeader() {
         </div>
       </Container>
     </header>
+    {/* 방문자 띠 — 모든 페이지 공통(이 상단바를 쓰는 곳 전부) */}
+    <VisitorBand />
+    </>
   );
 }
