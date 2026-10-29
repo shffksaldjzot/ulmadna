@@ -79,7 +79,7 @@ export default function V1HomePage() {
                   className={`block py-[10px] ${i === posts.length - 1 ? '' : 'border-b border-v1-line-2'}`}
                 >
                   <p className="text-[16px] font-bold text-foreground leading-[1.5] truncate">{p.title}</p>
-                  <p className="text-[14px] text-v1-text-disabled tabular-nums">{formatDate(p.date)}</p>
+                  <p className="text-[14px] text-ink-2 tabular-nums">{formatDate(p.date)}</p>{/* 날짜: 대비 확보 위해 --ink-2(2026-10-29) */}
                 </Link>
               ))}
             </div>
@@ -123,7 +123,7 @@ export default function V1HomePage() {
                       className={`block py-[10px] ${i === posts.length - 1 ? '' : 'border-b border-v1-line-2'}`}
                     >
                       <p className="text-[16px] font-bold text-foreground leading-[1.5] truncate">{p.title}</p>
-                      <p className="text-[14px] text-v1-text-disabled tabular-nums">{formatDate(p.date)}</p>
+                      <p className="text-[14px] text-ink-2 tabular-nums">{formatDate(p.date)}</p>{/* 날짜: 대비 확보 위해 --ink-2(2026-10-29) */}
                     </Link>
                   ))}
                 </div>

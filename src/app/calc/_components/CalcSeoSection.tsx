@@ -101,7 +101,8 @@ export default function CalcSeoSection({ intro, introTitle, sections, faqs, rela
       {/* 관련 글 — 항상 보임(링크 3개, 캡션 1줄) */}
       {related.length > 0 && (
         <div className="border-t border-v1-line-2 pt-4 flex flex-col gap-2">
-          <p className="text-[13px] text-v1-text-disabled">관련 글</p>
+          {/* "관련 글" 라벨: 대비 확보 위해 --ink-2(2026-10-29) */}
+          <p className="text-[13px] text-ink-2">관련 글</p>
           <div className="flex flex-col gap-1">
             {related.map((r) => (
               <Link key={r.href} href={r.href} className="text-[14px] text-v1-text-secondary hover:text-brown underline underline-offset-2">
