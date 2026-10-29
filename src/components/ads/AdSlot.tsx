@@ -32,6 +32,7 @@ import { SLOT_INFO } from '@/lib/ads/pricing';
 const SLOT_BOX: Record<AdSlotId, { base: string; desktop?: string }> = {
   'AD-H': { base: 'max-w-[320px] min-h-[100px]', desktop: 'lg:max-w-[728px] lg:min-h-[90px]' },
   'AD-P': { base: 'max-w-[320px] min-h-[50px]' },
+  'AD-T': { base: 'max-w-[320px] min-h-[50px]' },
   'AD-R': { base: 'max-w-[300px] min-h-[250px]' },
   'AD-F': { base: 'max-w-[320px] min-h-[50px]', desktop: 'lg:max-w-[728px] lg:min-h-[90px]' },
 };

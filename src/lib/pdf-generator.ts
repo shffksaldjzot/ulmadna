@@ -6,6 +6,20 @@
 import type { CalculatorInput, CalculatorOutput } from '@/types/calculator';
 import { formatWonExact, formatPerPyeong, formatWon, formatPercent } from './format';
 
+/**
+ * 견적서 하단 추천 줄(2026-10-29) — 토탈 인테리어 스폰서(AD-T) 광고주 상호·전화 한 줄(그림 없음).
+ * 없으면(광고 스위치 꺼짐·산 업체 없음) 기존 하단 상자를 그대로 둔다.
+ */
+export interface PdfSponsorLine {
+  name: string;
+  phone?: string | null;
+}
+
+/** HTML 에 넣을 글자 안전 처리(상호·전화는 관리자가 적은 값이지만 그래도 막는다) */
+function esc(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+}
+
 const HOUSING_LABELS: Record<string, string> = {
   under10: '10년 미만', ten20: '10~20년', over20: '20년 이상',
 };
@@ -13,7 +27,7 @@ const GRADE_LABELS: Record<string, string> = {
   basic: '기본(가성비)', mid: '중급(대중적)', premium: '고급(프리미엄)',
 };
 
-function buildHtml(input: CalculatorInput, output: CalculatorOutput): string {
+function buildHtml(input: CalculatorInput, output: CalculatorOutput, sponsor?: PdfSponsorLine | null): string {
   const processRows = output.processes
     .filter(p => p.amount > 0)
     .map(p => `
@@ -137,16 +151,18 @@ function buildHtml(input: CalculatorInput, output: CalculatorOutput): string {
     <br/>ulmadna.com · 2025~2026 시장 평균 기반 참고용
   </div>
 
-  <!-- Sponsor Banner -->
-  <div style="border:1.5px dashed #c9a96e;border-radius:8px;padding:12px 16px;text-align:center;">
+  <!-- Sponsor Banner — 토탈 인테리어 스폰서가 있으면 상호·전화 한 줄, 없으면 기존 안내 -->
+  ${sponsor ? `<div style="border:1px solid #e8dcc8;border-radius:8px;padding:10px 16px;text-align:center;font-size:11px;color:#5c3a21;">
+    <span style="font-size:9px;color:#999;margin-right:6px;">광고</span>토탈 인테리어 스폰서 · <b>${esc(sponsor.name)}</b>${sponsor.phone ? ` · ${esc(sponsor.phone)}` : ''}
+  </div>` : `<div style="border:1.5px dashed #c9a96e;border-radius:8px;padding:12px 16px;text-align:center;">
     <div style="font-size:10px;color:#c9a96e;">이 서비스는 파트너 브랜드의 후원으로 무료 운영됩니다</div>
     <div style="font-size:9px;color:#ccc;margin-top:2px;">ulmadna.com</div>
-  </div>
+  </div>`}
 </div>
 `;
 }
 
-export async function generatePdf(input: CalculatorInput, output: CalculatorOutput) {
+export async function generatePdf(input: CalculatorInput, output: CalculatorOutput, sponsor?: PdfSponsorLine | null) {
   const html2canvas = (await import('html2canvas')).default;
   const { default: jsPDF } = await import('jspdf');
 
@@ -156,7 +172,7 @@ export async function generatePdf(input: CalculatorInput, output: CalculatorOutp
   container.style.left = '-9999px';
   container.style.top = '0';
   container.style.zIndex = '-1';
-  container.innerHTML = buildHtml(input, output);
+  container.innerHTML = buildHtml(input, output, sponsor);
   document.body.appendChild(container);
 
   const root = container.querySelector('#__pdf_root') as HTMLElement;

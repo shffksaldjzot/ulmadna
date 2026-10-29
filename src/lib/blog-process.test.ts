@@ -59,9 +59,35 @@ describe("detectPostProcess — 판정 순서", () => {
     expect(detectPostProcess("수도배관 교체 비용", []).process).toBe("확장·설비");
   });
 
-  it("4) 총론 글·커튼 글은 없음", () => {
-    expect(detectPostProcess("인테리어 업체 고르는 법", ["인테리어 견적", "34평"])).toEqual({ process: null, basis: "none" });
-    expect(detectPostProcess("암막커튼 가격 2026", ["암막커튼 가격"]).process).toBeNull();
+  it("4) 인테리어 총론 글은 토탈", () => {
+    expect(detectPostProcess("인테리어 업체 고르는 법", ["인테리어 견적", "34평"])).toEqual({ process: null, basis: "total", total: true });
+    expect(detectPostProcess("34평(84타입) 아파트 인테리어 비용, 2026년 기준 총정리", ["인테리어 비용"]).total).toBe(true);
+    // 제목엔 없어도 태그에 총론 단어가 있으면 토탈
+    expect(detectPostProcess("자재 지입 시공, 진짜 싼가", ["반셀프 인테리어", "84타입"]).total).toBe(true);
+  });
+
+  it("4) 커튼·블라인드·취득세·선반·TV 벽걸이 글은 '인테리어' 단어가 있어도 없음", () => {
+    const cases: Array<[string, string[]]> = [
+      ["암막커튼 가격 2026", ["암막커튼 가격"]],
+      ["우드블라인드 가격 — 콤비블라인드와 비교", ["인테리어 블라인드"]],
+      ["취득세 카드납부 완전정리", ["취득세 카드납부"]],
+      ["시스템선반 DIY vs 맞춤 제작", ["반셀프 인테리어"]],
+      ["TV 벽걸이 설치 비용", ["TV 벽걸이 설치 비용"]],
+      ["원상복구 비용 — 이사 나갈 때", ["인테리어 원상복구"]],
+    ];
+    for (const [title, tags] of cases) {
+      expect(detectPostProcess(title, tags), title).toEqual({ process: null, basis: "none" });
+    }
+  });
+
+  it("4) 공정이 정해진 글은 토탈이 아니다", () => {
+    const r = detectPostProcess("욕실 인테리어 비용", ["욕실 리모델링"]);
+    expect(r.process).toBe("욕실");
+    expect(r.total).toBeUndefined();
+  });
+
+  it("1) sponsor: total 이면 토탈로 확정", () => {
+    expect(detectPostProcess("암막커튼 가격", [], "total")).toEqual({ process: null, basis: "sponsor", total: true });
   });
 });
 

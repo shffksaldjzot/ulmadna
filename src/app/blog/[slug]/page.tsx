@@ -354,8 +354,13 @@ export default async function BlogPost({
             {bodyParts ? (
               <div className="blog-body">
                 <div style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: bodyParts[0] }} />
-                {/* 첫 소제목 바로 뒤 — 이 글 공정의 스폰서 자리(공정 없음이면 안 그림) */}
-                <BlogAdSlot id="AD-P" process={post.process.process} />
+                {/* 첫 소제목 바로 뒤 — 이 글 공정의 스폰서 자리(공정 없음이면 안 그림)
+                    인테리어 총론 글(판정 "토탈")은 토탈 인테리어 스폰서(AD-T) 자리 (2026-10-29) */}
+                {post.process.total ? (
+                  <BlogAdSlot id="AD-T" />
+                ) : (
+                  <BlogAdSlot id="AD-P" process={post.process.process} />
+                )}
                 <div style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: bodyParts[1] }} />
               </div>
             ) : (

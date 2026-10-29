@@ -9,7 +9,8 @@ import { SLOT_INFO, type SlotKind } from '@/lib/ads/pricing';
 export const revalidate = 300;
 
 // 남은 자리 표에 보일 자리(견적서 추천은 개수 제한이 없어 뺌, 공정 스폰서는 공정별이라 따로 안내)
-const LEFT_KINDS: SlotKind[] = ['AD-H', 'AD-R', 'AD-F'];
+// 토탈 인테리어 스폰서(AD-T)는 시도당 3곳이라 같이 보여 준다(2026-10-29)
+const LEFT_KINDS: SlotKind[] = ['AD-H', 'AD-R', 'AD-T', 'AD-F'];
 
 export const metadata = {
   title: '얼마드나 — 광고/제휴 안내 | 인테리어 견적 계산기 스폰서',
@@ -61,6 +62,26 @@ const AD_SLOTS = [
           <div className="w-6 h-6 bg-brown/10 rounded" />
           <p className="text-[10px] text-gray-600">LX Z:IN 창호는 LX로 — 에너지등급 1등급 보장</p>
           <span className="text-[9px] text-gold ml-auto">자세히 →</span>
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: 'AD-T',
+    name: '토탈 인테리어 스폰서',
+    // 2026-10-29 형아 결정: 30일 15만원, 지역당 3곳, 전 지역 판매
+    size: '320×50',
+    position: '홈 견적 결과 카드 아래 · 계산기 결과 페이지 · 인테리어 총론 블로그 글 · 견적서 PDF 하단 (4곳)',
+    target: '지역권 종합 인테리어 업체',
+    price: `30일 ${man('AD-T')} (시도당 3개 업체, 부가세 별도)`,
+    desc: '전체 견적을 확인한 사람에게 올수리·종합 시공 업체로 노출. 견적서 PDF 에는 상호·전화 한 줄이 함께 실립니다.',
+    mockup: (
+      <div className="border border-dashed border-brown/20 rounded-lg p-2 bg-cream/50">
+        <p className="text-[8px] text-gray-400">광고</p>
+        <div className="flex items-center gap-2 py-1">
+          <div className="w-6 h-6 bg-brown/10 rounded" />
+          <p className="text-[10px] text-gray-600">◇◇토탈인테리어 — 우리 동네 올수리 전문 · 무료 실측</p>
+          <span className="text-[9px] text-gold ml-auto">상담 →</span>
         </div>
       </div>
     ),
@@ -247,7 +268,7 @@ export default async function SponsorPage() {
           <div className="grid lg:grid-cols-2 gap-6">
             {/* 데스크톱 */}
             <div className="bg-white rounded-2xl p-5 border border-gray-100">
-              <p className="text-xs font-bold text-brown mb-3">데스크톱 (6개 슬롯)</p>
+              <p className="text-xs font-bold text-brown mb-3">데스크톱 (7개 슬롯)</p>
               <div className="space-y-2 text-[10px]">
                 <div className="bg-gold/10 border border-gold/20 rounded p-2 text-center text-gold">AD-H · 728×90(휴대폰 320×100) · 헤더 하단</div>
                 <div className="flex gap-2">
@@ -259,6 +280,7 @@ export default async function SponsorPage() {
                   </div>
                   <div className="flex-[4] space-y-2">
                     <div className="bg-gray-50 rounded p-2 text-gray-400 text-center">결과 패널</div>
+                    <div className="bg-gold/10 border border-gold/20 rounded p-1.5 text-center text-gold">AD-T · 320×50</div>
                     <div className="bg-gold/10 border border-gold/20 rounded p-3 text-center text-gold">AD-R1<br/>300×250</div>
                     <div className="bg-gold/10 border border-gold/20 rounded p-3 text-center text-gold">AD-R2<br/>300×250</div>
                   </div>
@@ -269,10 +291,11 @@ export default async function SponsorPage() {
 
             {/* 모바일 */}
             <div className="bg-white rounded-2xl p-5 border border-gray-100">
-              <p className="text-xs font-bold text-brown mb-3">모바일 (4개 슬롯)</p>
+              <p className="text-xs font-bold text-brown mb-3">모바일 (5개 슬롯)</p>
               <div className="max-w-[200px] mx-auto space-y-2 text-[10px]">
                 <div className="bg-gray-50 rounded p-2 text-gray-400 text-center">헤더 + 기본조건</div>
                 <div className="bg-gray-50 rounded p-1.5 text-gray-400 text-center">총 금액</div>
+                <div className="bg-gold/10 border border-gold/20 rounded p-1.5 text-center text-gold">AD-T · 320×50</div>
                 <div className="bg-gold/10 border border-gold/20 rounded p-1.5 text-center text-gold">AD-H · 320×100</div>
                 <div className="bg-gray-50 rounded p-2 text-gray-400 text-center">공정 리스트</div>
                 <div className="bg-gold/10 border border-gold/20 rounded p-1.5 text-center text-gold">AD-P · 320×50</div>
@@ -306,6 +329,7 @@ export default async function SponsorPage() {
                   ['헤더 하단 리더보드', 'AD-H', '시도당 3개 업체', won('AD-H')],
                   ['결과 옆 렉탱글', 'AD-R', '시도당 3개 업체', won('AD-R')],
                   ['공정 스폰서', 'AD-P', '시도 × 공정당 3개 업체 · 노출 3곳', won('AD-P')],
+                  ['토탈 인테리어 스폰서', 'AD-T', '시도당 3개 업체 · 노출 4곳(견적서 포함)', won('AD-T')],
                   ['견적서 추천 업체', 'AD-PDF', '견적서 안 공정마다 여러 업체', won('AD-PDF')],
                 ].map(([name, slot, target, price], i) => (
                   <tr key={i} className="border-t border-gray-50">

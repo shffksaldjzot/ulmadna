@@ -19,6 +19,8 @@ export interface ServedBanner {
   desktopImageUrl?: string | null;
   href: string;
   name: string;
+  /** 주문 전화 번호(없으면 null) — 견적서 PDF 추천 줄에 쓴다 */
+  phone?: string | null;
 }
 
 /** 이미 받은 결과(키 → 배너 또는 null) */
@@ -58,6 +60,27 @@ async function flush() {
     (waiting.get(k) ?? []).forEach((cb) => cb(b));
     waiting.delete(k);
   }
+}
+
+/**
+ * 화면 밖(버튼 눌렀을 때 등)에서 한 번 묻는 함수 — 견적서 PDF 추천 줄(AD-T)용 (2026-10-29)
+ *  - 훅과 같은 규칙: 광고 스위치가 꺼져 있으면 미리보기(?ad_preview=<주문번호>)일 때만 묻고, 아니면 바로 null.
+ *  - 같은 화면에서 이미 받은 결과가 있으면 그것을 쓴다.
+ */
+export function fetchServedAd(slot: string, process?: string): Promise<ServedBanner | null> {
+  if (typeof window === 'undefined') return Promise.resolve(null);
+  if (!ADS_ENABLED && previewId() === null) return Promise.resolve(null);
+  const key = slot === 'AD-P' ? `AD-P:${process ?? ''}` : slot;
+  if (done.has(key)) return Promise.resolve(done.get(key) ?? null);
+  return new Promise((resolve) => {
+    const list = waiting.get(key);
+    if (list) list.push(resolve);
+    else {
+      waiting.set(key, [resolve]);
+      batch.push(key);
+      if (!timer) timer = setTimeout(flush, 0);
+    }
+  });
 }
 
 /** 자리 키: AD-H / AD-R / AD-F, 공정 스폰서는 AD-P:공정이름 */

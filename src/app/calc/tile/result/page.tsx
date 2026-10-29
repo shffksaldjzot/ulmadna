@@ -114,6 +114,8 @@ export default async function TileResultPage({ searchParams }: PageProps) {
               <PostToBoardCheckbox />
               <CalcContactCta />
               <Disclaimer />
+              {/* 광고 자리 AD-T(토탈 인테리어 스폰서, 2026-10-29) — AD-R 바로 위 */}
+              <AdSlot id="AD-T" />
               {/* 광고 자리 AD-R */}
               <AdSlot id="AD-R" />
             </div>

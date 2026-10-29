@@ -121,7 +121,8 @@ export function OrderForm({ advertisers, sidos }: { advertisers: AdvOpt[]; sidos
         </select>
       </label>
       <input name="click_url" placeholder="클릭 주소 https://..." className={`${input} sm:col-span-2`} />
-      <input name="phone" placeholder="전화번호(선택)" className={input} />
+      {/* 토탈 인테리어 스폰서(AD-T)는 이 전화 번호가 견적서 PDF 추천 줄에 상호와 함께 실린다 */}
+      <input name="phone" placeholder={kind === 'AD-T' ? '전화번호(견적서 PDF 에 실림)' : '전화번호(선택)'} className={input} />
       <div className="col-span-full flex flex-wrap items-center gap-3">
         <span className="text-sm text-gray-600 tabular-nums">
           {start} ~ {calc.endDate} · 공급가 {won(calc.amount)} + 부가세 {won(calc.vat)} = <b>{won(calc.amount + calc.vat)}</b>

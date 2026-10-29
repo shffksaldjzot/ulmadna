@@ -5,8 +5,8 @@
 //    광고 슬롯이 견적 결과와 연동되면 "추천"이 되어 책임 사슬 발생 (§6.1)
 // ─────────────────────────────────────────────────────────────
 
-// 광고 슬롯 ID — v2 명세 §4 표 기준 4종
-export type AdSlotId = 'AD-H' | 'AD-P' | 'AD-R' | 'AD-F';
+// 광고 슬롯 ID — v2 명세 §4 표 기준 4종 + 토탈 인테리어 스폰서(AD-T, 2026-10-29)
+export type AdSlotId = 'AD-H' | 'AD-P' | 'AD-T' | 'AD-R' | 'AD-F';
 
 // 슬롯 인스턴스 식별 키
 //  - AD-H/AD-R/AD-F: 페이지에 1개씩 (id 단독으로 식별)
@@ -14,6 +14,7 @@ export type AdSlotId = 'AD-H' | 'AD-P' | 'AD-R' | 'AD-F';
 export type AdSlotKey =
   | { id: 'AD-H' }
   | { id: 'AD-R' }
+  | { id: 'AD-T' }
   | { id: 'AD-F' }
   | { id: 'AD-P'; processGroup: string };
 

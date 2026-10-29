@@ -21,6 +21,8 @@ import { ADSENSE_SLOTS } from './adsense';
 export const AD_SLOT_SIZES: Record<AdSlotId, AdSlotSize> = {
   'AD-H': { width: 320, height: 100, desktop: { width: 728, height: 90 } },
   'AD-P': { width: 320, height: 50 },
+  // 토탈 인테리어 스폰서(2026-10-29) — 공정 스폰서와 같은 320×50 한 줄 배너
+  'AD-T': { width: 320, height: 50 },
   'AD-R': { width: 300, height: 250, responsive: true },
   'AD-F': { width: 320, height: 50, desktop: { width: 728, height: 90 } },
 };
@@ -82,7 +84,9 @@ export function resolveAdContent(
       return { kind: 'house' };
 
     case 'AD-F':
+    case 'AD-T':
       // 로테이션 슬롯 — 광고주 0명이라 접힘 (§5.3)
+      // AD-T(토탈 인테리어 스폰서)도 같은 방식: 산 업체가 없으면 자리 자체가 사라진다
       return { kind: 'collapse' };
 
     case 'AD-P': {

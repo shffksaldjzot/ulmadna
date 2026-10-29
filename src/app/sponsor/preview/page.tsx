@@ -189,6 +189,11 @@ export default function SponsorPreview() {
               </div>
             </div>
 
+            {/* AD-T: 토탈 인테리어 스폰서 — 견적 결과 카드 바로 아래 (2026-10-29) */}
+            <div className="mb-4">
+              <MockBanner id="AD-T" size="320×50" advertiser="◇◇토탈인테리어" copy="우리 동네 올수리 전문 · 무료 실측" cta="상담 →" />
+            </div>
+
             {/* AD-R1: 결과 패널 중간 배너 */}
             <div className="mb-4">
               <MockBannerRect id="AD-R1" advertiser="○○인테리어" copy="화도·남양주 전문 · 시공사례 200건+" />
@@ -248,6 +253,7 @@ export default function SponsorPreview() {
                 <li>AD-H — 헤더 하단 (PC 728×90 · 휴대폰 320×100)</li>
                 <li>AD-P1 — 공정 사이 상단 (320×50)</li>
                 <li>AD-P2 — 공정 사이 하단 (320×50)</li>
+                <li>AD-T — 견적 결과 카드 아래 (320×50, 토탈 인테리어 스폰서)</li>
                 <li>AD-R1 — 결과 패널 중간 (300×250)</li>
                 <li>AD-R2 — 결과 패널 하단 (300×250)</li>
                 <li>AD-F — 푸터 상단 (PC 728×90 · 휴대폰 320×50)</li>
@@ -267,6 +273,7 @@ export default function SponsorPreview() {
               <ul className="space-y-1 text-xs text-gray-600">
                 <li>AD-PDF-H — 견적서 상단 로고</li>
                 <li>AD-PDF-F — 견적서 하단 추천업체</li>
+                <li>AD-T — 견적서 하단 토탈 인테리어 스폰서(상호·전화 한 줄)</li>
               </ul>
               <p className="text-[10px] text-gray-400 mt-2">견적서 다운로드·공유 시 함께 확산</p>
             </div>

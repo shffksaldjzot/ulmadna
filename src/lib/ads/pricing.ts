@@ -9,9 +9,9 @@
 // ─────────────────────────────────────────────────────────────
 
 /** 광고 자리 종류 */
-export type SlotKind = 'AD-H' | 'AD-R' | 'AD-P' | 'AD-F' | 'AD-PDF';
+export type SlotKind = 'AD-H' | 'AD-R' | 'AD-P' | 'AD-T' | 'AD-F' | 'AD-PDF';
 
-export const SLOT_KINDS: SlotKind[] = ['AD-H', 'AD-R', 'AD-P', 'AD-F', 'AD-PDF'];
+export const SLOT_KINDS: SlotKind[] = ['AD-H', 'AD-R', 'AD-P', 'AD-T', 'AD-F', 'AD-PDF'];
 
 /**
  * 자리 안내(이름·규격·30일 요금·동시 업체 수 한도). capacity=null 은 제한 없음
@@ -23,6 +23,9 @@ export const SLOT_INFO: Record<SlotKind, { name: string; width: number; height: 
   'AD-R': { name: '결과 옆 네모', width: 300, height: 250, price: 100000, capacity: 3, maxKB: 400 },
   // 공정 스폰서: 2026-10-29 형아 결정으로 5만 → 7만 원/30일 (노출 3곳: 홈 공정 목록 + 그 공정 계산기 + 그 공정 블로그 글)
   'AD-P': { name: '공정 스폰서', width: 320, height: 50, price: 70000, capacity: 3, maxKB: 200 },
+  // 토탈 인테리어 스폰서: 2026-10-29 형아 결정 30일 15만 원, 지역당 3곳, 전 지역 판매
+  //  (노출 4곳: 홈 견적 결과 카드 아래 + 계산기 결과 공유 페이지 + 총론 블로그 글 본문 중간 + 견적서 PDF 추천 줄)
+  'AD-T': { name: '토탈 인테리어 스폰서', width: 320, height: 50, price: 150000, capacity: 3, maxKB: 200 },
   // 푸터 가격은 계획안에 따로 없어 견적서 추천과 같은 2만 원으로 둠(주문 만들 때 금액을 직접 고칠 수 있다)
   'AD-F': { name: '푸터 로테이션', width: 320, height: 50, price: 20000, capacity: 3, maxKB: 200, desktop: { width: 728, height: 90 } },
   'AD-PDF': { name: '견적서 추천(글자)', width: 0, height: 0, price: 20000, capacity: null, maxKB: 0 },
@@ -38,6 +41,29 @@ export const SIDO_ALL = 'ALL';
 /** 주문 지역 값 검사: 시도 두 자리 번호 또는 '전국'(ALL) */
 export function isOrderSido(v: unknown): v is string {
   return typeof v === 'string' && (/^\d{2}$/.test(v) || v === SIDO_ALL);
+}
+
+// ─────────────────────────────────────────────────────────────
+// 토탈 인테리어 스폰서(AD-T) ↔ DB 저장 방식 (2026-10-29)
+//
+//   DB(ad_orders)에는 새 자리 종류를 만들지 않고 "공정 스폰서(AD-P) + 공정 이름 '토탈 인테리어'"로 저장한다.
+//   이유: ad_orders.slot_kind 검사 제약·자리 수 검사 함수(ads_slot_used — 종류·시도·공정이 같으면 같은 칸)를
+//   그대로 쓸 수 있어 SQL 을 고칠 필요가 없다(지역당 3곳 한도도 AD-P 와 같은 3).
+//   화면·주문·서빙 코드에서는 'AD-T' 로 다루고, DB 를 읽고 쓰는 경계(server/ads/store.ts)에서만 바꾼다.
+//   가격만 다르므로 금액은 SLOT_INFO['AD-T'](15만 원)로 계산해 주문에 적는다.
+// ─────────────────────────────────────────────────────────────
+export const TOTAL_PROCESS = '토탈 인테리어';
+
+/** 화면 자리 종류 → DB 에 적을 (slot_kind, process) */
+export function toDbSlot(kind: SlotKind, process: string | null): { slot_kind: SlotKind; process: string | null } {
+  if (kind === 'AD-T') return { slot_kind: 'AD-P', process: TOTAL_PROCESS };
+  return { slot_kind: kind, process };
+}
+
+/** DB 의 (slot_kind, process) → 화면 자리 종류 (AD-P + '토탈 인테리어' 는 AD-T) */
+export function fromDbSlot(slotKind: string, process: string | null | undefined): SlotKind {
+  if (slotKind === 'AD-P' && process === TOTAL_PROCESS) return 'AD-T';
+  return slotKind as SlotKind;
 }
 
 /** 공정 스폰서(AD-P) 공정 이름 — ProcessToggles.tsx 의 PROCESS_GROUPS 라벨과 같아야 한다(맞춰서 수정) */
