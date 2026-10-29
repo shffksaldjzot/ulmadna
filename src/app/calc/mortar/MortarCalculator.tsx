@@ -74,6 +74,7 @@ import FlowShell from '../_components/flow/FlowShell';
 import AdjustChips from '../_components/flow/AdjustChips';
 import BottomBar from '../_components/flow/BottomBar';
 import { useFlowSteps } from '../_components/flow/useFlowSteps';
+import { useResultReveal } from '../_components/flow/useResultReveal';
 import { useFlowBackNav } from '../_components/flow/useFlowBackNav';
 import { loadSessionState, saveSessionState } from '../_components/flow/sessionPersist';
 import type { FlowStepDef } from '../_components/flow/types';
@@ -649,6 +650,8 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
 
   // 광고 자리를 보일지 — 면적을 고르기 전(금액 숨김 상태)에는 자리도 숨긴다(2026-10-29)
   const adsShown = !!quick && !areaPending;
+  // 2026-10-29: 마지막 단계까지 끝나고 금액 결과가 처음 보일 때 한 번, 결과 카드로 부드럽게 옮긴다
+  useResultReveal(resultRef, allDone, adsShown);
   const adProcess = CALC_AD_PROCESS.mortar;
 
   // 첫 화면 — 아직 모드를 안 골랐으면 질문 하나만 보여준다
@@ -705,7 +708,7 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
           // 2026-09-29 지적 3번: 결과 카드 구역에도 flowFocusScope를 줘서 토글·버튼·시트
           // 안 입력 칸의 초점 테두리가 전부 새 틀 강조색(--accent)으로 통일되게 한다
           // (예전엔 이 구역이 범위 밖이라 진한 갈색 그대로였다)
-          className="scroll-mt-16 flex flex-col gap-4 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto flowFocusScope"
+          className="scroll-mt-[112px] lg:scroll-mt-20 flex flex-col gap-4 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto flowFocusScope"
         >
           {/* 조정 칩도 결과의 일부라 면적을 고르기 전에는 숨긴다(2026-10-29) */}
           <AdjustChips visible={!!quick && !areaPending} groups={adjustGroups} />

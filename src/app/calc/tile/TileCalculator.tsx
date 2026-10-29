@@ -75,6 +75,7 @@ import FlowShell from '../_components/flow/FlowShell';
 import AdjustChips from '../_components/flow/AdjustChips';
 import BottomBar from '../_components/flow/BottomBar';
 import { useFlowSteps } from '../_components/flow/useFlowSteps';
+import { useResultReveal } from '../_components/flow/useResultReveal';
 import { useFlowBackNav } from '../_components/flow/useFlowBackNav';
 import { loadSessionState, saveSessionState } from '../_components/flow/sessionPersist';
 import type { AdjustChipGroup, FlowStepDef } from '../_components/flow/types';
@@ -600,6 +601,8 @@ export default function TileCalculator() {
 
   // 광고 자리를 보일지 — 치수를 넣기 전(금액 숨김 상태)이나 결과가 없을 때는 자리도 숨긴다(2026-10-29)
   const adsShown = !!result && !areaPending;
+  // 2026-10-29: 마지막 단계까지 끝나고 금액 결과가 처음 보일 때 한 번, 결과 카드로 부드럽게 옮긴다
+  useResultReveal(resultRef, allDone, adsShown);
   const adProcess = CALC_AD_PROCESS.tile;
 
   // 첫 화면 — 모드를 아직 안 골랐으면 질문 하나만
@@ -659,7 +662,7 @@ export default function TileCalculator() {
 
         <div
           ref={resultRef}
-          className="scroll-mt-28 flex flex-col gap-4 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto flowFocusScope"
+          className="scroll-mt-[112px] lg:scroll-mt-20 flex flex-col gap-4 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto flowFocusScope"
         >
           {/* 2026-10-29: 정확 모드에서 치수를 다 넣기 전에는 금액 카드 대신 한 줄만 보인다 */}
           {areaPending ? (
