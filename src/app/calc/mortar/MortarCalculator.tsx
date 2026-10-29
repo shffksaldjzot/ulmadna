@@ -31,7 +31,6 @@ import { useSearchParams } from 'next/navigation';
 import TopNav from '@/components/v1/TopNav';
 import Segment from '@/components/v1/Segment';
 import Chip from '@/components/v1/Chip';
-import ChipGroup from '@/components/v1/ChipGroup';
 import Collapsible from '@/components/v1/Collapsible';
 import { DEFAULT_MORTAR_FORM, decodeMortarForm, type MortarFormState } from '@/lib/v1/mortarQuery';
 import type { MortarProductOption } from '@/lib/v1/mortarProductOptions';
@@ -542,20 +541,15 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
   const usageStepContent = (
     // 2026-09-29 지시서 3-6절 다듬기 — 방향키로 옮겨 다닐 수 있게 ChipGroup으로 감싼다.
     // 하나만 고르는 묶음이라 role="radiogroup"(칩도 asRadio로 role="radio"를 낸다)
-    <ChipGroup role="radiogroup" ariaLabel="용도" className="flex flex-wrap gap-2">
-      {TOP_USAGE_ORDER.map((u) => (
-        <Chip
-          key={u}
-          asRadio
-          // 지시서 9-2절: 1단계는 아무것도 선택되지 않은 채 시작한다 — 손대기 전엔 칩에
-          // 선택 표시를 하지 않는다(속에 기본값이 있어도)
-          selected={touchedMap.usage && currentTopUsage === u}
-          onClick={() => selectTopUsage(u)}
-        >
-          {topUsageLabel(u)}
-        </Chip>
-      ))}
-    </ChipGroup>
+    // 2026-10-29 선택 모양 통일: "둘 중 하나"는 칩 두 개 대신 분절(Segment) 하나로 — 간단/정확 전환·입력 방식과 같은 모양(도배 정확 모드 "입력 방식"과 같은 44px 분절)
+    <Segment
+      options={TOP_USAGE_ORDER.map((u) => ({ value: u, label: topUsageLabel(u) }))}
+      // 지시서 9-2절: 1단계는 아무것도 선택되지 않은 채 시작한다 — 손대기 전엔 선택 표시를
+      // 하지 않는다(속에 기본값이 있어도) → value를 비워 둔다
+      value={touchedMap.usage ? currentTopUsage : undefined}
+      onChange={selectTopUsage}
+      ariaLabel="용도"
+    />
   );
 
   const steps: FlowStepDef[] = [

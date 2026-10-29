@@ -30,6 +30,7 @@
 'use client';
 
 import Chip from '@/components/v1/Chip';
+import Segment from '@/components/v1/Segment';
 import ChipGroup from '@/components/v1/ChipGroup';
 import NumberField from '@/components/v1/NumberField';
 import AreaInput from '../_components/AreaInput';
@@ -175,36 +176,31 @@ export default function QuickAnswer({
       {/* 입력 방식 토글 두 묶음을 한 줄 왼쪽·오른쪽으로 나눈다(2026-09-27 저녁 검수 지적
           3번) — 안쪽 라벨("시공 면적")은 뺐다(제목 "면적"과 같은 말이라 중복). */}
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <ChipGroup role="radiogroup" ariaLabel="입력 방식" className="flex gap-2">
-          <Chip
-            shape="square"
-            size="sm"
-            asRadio
-            selected={areaInputMode === 'area'}
-            onClick={() => patch({ areaInputMode: 'area' })}
-          >
-            면적
-          </Chip>
-          <Chip
-            shape="square"
-            size="sm"
-            asRadio
-            selected={areaInputMode === 'rect'}
-            onClick={() => patch({ areaInputMode: 'rect' })}
-          >
-            가로×세로
-          </Chip>
-        </ChipGroup>
+        {/* 2026-10-29 선택 모양 통일: "둘 중 하나"는 칩 두 개 대신 분절(Segment) 하나로 — 간단/정확 전환·입력 방식과 같은 모양 */}
+        <Segment
+          size="sm"
+          options={[
+            { value: 'area' as const, label: '면적' },
+            { value: 'rect' as const, label: '가로×세로' },
+          ]}
+          value={areaInputMode}
+          onChange={(v) => patch({ areaInputMode: v })}
+          className="w-[156px] flex-none"
+          ariaLabel="입력 방식"
+        />
         <div className="flex gap-2">
           {supplyArea && areaInputMode === 'area' && (
-            <ChipGroup role="radiogroup" ariaLabel="단위" className="flex gap-2">
-              <Chip shape="square" size="sm" asRadio selected={areaUnit === '평'} onClick={() => patch({ areaUnit: '평' })}>
-                평
-              </Chip>
-              <Chip shape="square" size="sm" asRadio selected={areaUnit === '㎡'} onClick={() => patch({ areaUnit: '㎡' })}>
-                ㎡
-              </Chip>
-            </ChipGroup>
+            <Segment
+              size="sm"
+              options={[
+                { value: '평' as const, label: '평' },
+                { value: '㎡' as const, label: '㎡' },
+              ]}
+              value={areaUnit}
+              onChange={(v) => patch({ areaUnit: v })}
+              className="w-[104px] flex-none"
+              ariaLabel="단위"
+            />
           )}
         </div>
       </div>

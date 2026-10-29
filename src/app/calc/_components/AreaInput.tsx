@@ -29,6 +29,7 @@
 'use client';
 
 import Chip from '@/components/v1/Chip';
+import Segment from '@/components/v1/Segment';
 import ChipGroup from '@/components/v1/ChipGroup';
 import NumberField from '@/components/v1/NumberField';
 import {
@@ -147,14 +148,18 @@ export default function AreaInput({
 
   const unitToggle = (
     // 평/㎡ 단위 토글 — 값 선택이 아니라 "보기 방식"을 바꾸는 소형 토글이라 size="sm"(32px)
-    <ChipGroup role="radiogroup" ariaLabel="단위" className="flex gap-2">
-      <Chip shape="square" size="sm" asRadio selected={unit === '평'} onClick={() => onUnitChange('평')}>
-        평
-      </Chip>
-      <Chip shape="square" size="sm" asRadio selected={unit === '㎡'} onClick={() => onUnitChange('㎡')}>
-        ㎡
-      </Chip>
-    </ChipGroup>
+    // 2026-10-29 선택 모양 통일: "둘 중 하나"는 칩 두 개 대신 분절(Segment) 하나로 — 간단/정확 전환·입력 방식과 같은 모양
+    <Segment
+      size="sm"
+      options={[
+        { value: '평' as const, label: '평' },
+        { value: '㎡' as const, label: '㎡' },
+      ]}
+      value={unit}
+      onChange={onUnitChange}
+      className="w-[104px] flex-none"
+      ariaLabel="단위"
+    />
   );
 
   return (
