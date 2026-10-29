@@ -66,6 +66,9 @@ import PreciseRooms from './PreciseRooms';
 import PreciseSection from './PreciseSection';
 import ResultPanel from './ResultPanel';
 import AreaPendingCard from '../_components/AreaPendingCard';
+// 광고 자리(2026-10-29): 결과가 보일 때만 — 표시 모드(관리자)는 결과 전에도
+import CalcAdSlot from '@/components/ads/CalcAdSlot';
+import { CALC_AD_PROCESS } from '@/lib/ads/pricing';
 import { describeMortarBottomBarAssumption } from '../_components/assumptionText';
 import FlowShell from '../_components/flow/FlowShell';
 import AdjustChips from '../_components/flow/AdjustChips';
@@ -644,11 +647,17 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
   const bottomFailed = false; // quick이 있으면 실패 표시를 쓸 일이 없다(포수는 항상 즉시 나온다)
   const currentStepTitle = steps[Math.min(activeIndex, steps.length - 1)]?.title ?? '';
 
+  // 광고 자리를 보일지 — 면적을 고르기 전(금액 숨김 상태)에는 자리도 숨긴다(2026-10-29)
+  const adsShown = !!quick && !areaPending;
+  const adProcess = CALC_AD_PROCESS.mortar;
+
   // 첫 화면 — 아직 모드를 안 골랐으면 질문 하나만 보여준다
   if (!modeChosen) {
     return (
       <>
         <TopNav title="몰탈(레미탈) 계산기" backHref="/calc" as="p" />
+        {/* 표시 모드(관리자)에서만 — 결과 전이라 일반 방문자에겐 자리가 없다 */}
+        <CalcAdSlot id="AD-H" show={false} desktopOnly />
         <div className="px-5 lg:px-8 max-w-[1120px] mx-auto">
           <ModePicker
             onPick={(v: CalcViewMode) => {
@@ -656,6 +665,8 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
               setUserPickedMode(true);
             }}
           />
+          <CalcAdSlot id="AD-P" processGroup={adProcess} show={false} />
+          <CalcAdSlot id="AD-R" show={false} />
         </div>
       </>
     );
@@ -671,6 +682,9 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
           <Segment size="sm" options={VIEW_OPTIONS} value={view} onChange={(v) => patch({ view: v })} className="w-[136px]" ariaLabel="계산 모드" />
         }
       />
+
+      {/* 광고 자리 AD-H — PC 에만(728×90), 상단바 아래. 휴대폰엔 넣지 않는다(형아 결정) */}
+      <CalcAdSlot id="AD-H" show={adsShown} desktopOnly />
 
       <div className="px-5 lg:px-8 py-4 pb-20 lg:pb-8 max-w-[1120px] mx-auto flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(480px,560px)_1fr] lg:gap-8 lg:items-start">
         <div className="flex flex-col gap-4">
@@ -723,7 +737,16 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
               areaAssumedText={areaAssumedText}
               thicknessAssumedText={thicknessAssumedText}
               emptyMessage={emptyMessage}
+              adAfterCard={adsShown ? <CalcAdSlot id="AD-P" processGroup={adProcess} show /> : undefined}
+              adAfterActions={adsShown ? <CalcAdSlot id="AD-R" show /> : undefined}
             />
+          )}
+          {/* 결과 전: 표시 모드(관리자)에서만 자리 위치를 보여 준다 */}
+          {!adsShown && (
+            <>
+              <CalcAdSlot id="AD-P" processGroup={adProcess} show={false} />
+              <CalcAdSlot id="AD-R" show={false} />
+            </>
           )}
         </div>
       </div>

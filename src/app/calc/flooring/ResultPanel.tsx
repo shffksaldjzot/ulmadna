@@ -23,7 +23,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import Card from '@/components/v1/Card';
 import Collapsible from '@/components/v1/Collapsible';
 import Toggle from '@/components/v1/Toggle';
@@ -60,6 +60,10 @@ export interface ResultPanelProps {
   onRemoveOldChange: (v: boolean) => void;
   /** 구성 보기의 "걸레받이 교체" 토글 */
   onBaseboardChange: (v: boolean) => void;
+  /** 결과 카드 바로 아래 광고 자리(AD-P 공정 스폰서). 결과가 보일 때만 계산기 화면이 넘긴다(2026-10-29) */
+  adAfterCard?: ReactNode;
+  /** 공유·문의 줄 아래 광고 자리(AD-R). 결과가 보일 때만 넘긴다(2026-10-29) */
+  adAfterActions?: ReactNode;
 }
 
 export default function ResultPanel({
@@ -73,6 +77,8 @@ export default function ResultPanel({
   form,
   onRemoveOldChange,
   onBaseboardChange,
+  adAfterCard,
+  adAfterActions,
 }: ResultPanelProps) {
   const [toast, setToast] = useState<string | null>(null);
 
@@ -258,6 +264,9 @@ export default function ResultPanel({
         </Collapsible>
       </Card>
 
+      {/* 광고 자리 AD-P — 결과 카드 바로 아래(휴대폰·PC 같은 순서) */}
+      {adAfterCard}
+
       {/* 6. 공유·문의 — 가정값이 남아 있으면(3단계를 다 안 끝냈으면) 공유는 숨긴다 */}
       <div className="flex flex-col gap-4 mt-4">
         {canShare && (
@@ -268,6 +277,8 @@ export default function ResultPanel({
         <CalcContactCta />
         <Disclaimer />
       </div>
+      {/* 광고 자리 AD-R — 공유·문의 줄 아래, 관련 글 위 */}
+      {adAfterActions}
       <Toast message={toast} />
     </>
   );

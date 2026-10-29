@@ -82,6 +82,9 @@ import ModePicker, { type CalcViewMode } from '../_components/ModePicker';
 import TileDims from './TileDims';
 import ResultPanel from './ResultPanel';
 import AreaPendingCard from '../_components/AreaPendingCard';
+// 광고 자리(2026-10-29): 결과가 보일 때만 — 표시 모드(관리자)는 결과 전에도
+import CalcAdSlot from '@/components/ads/CalcAdSlot';
+import { CALC_AD_PROCESS } from '@/lib/ads/pricing';
 
 /** 새로 고침 복원 열쇠·판 번호(2026-10-28 간단 단계가 바뀌어 3으로 올림 — 옛 저장값은 버린다) */
 const SESSION_KEY = 'calc:tile:v1';
@@ -595,11 +598,17 @@ export default function TileCalculator() {
     resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
+  // 광고 자리를 보일지 — 치수를 넣기 전(금액 숨김 상태)이나 결과가 없을 때는 자리도 숨긴다(2026-10-29)
+  const adsShown = !!result && !areaPending;
+  const adProcess = CALC_AD_PROCESS.tile;
+
   // 첫 화면 — 모드를 아직 안 골랐으면 질문 하나만
   if (!modeChosen) {
     return (
       <>
         <TopNav title="타일 견적 계산기" backHref="/calc" as="p" />
+        {/* 표시 모드(관리자)에서만 — 결과 전이라 일반 방문자에겐 자리가 없다 */}
+        <CalcAdSlot id="AD-H" show={false} desktopOnly />
         <div className="px-5 lg:px-8 max-w-[1120px] mx-auto">
           <ModePicker
             options={MODE_OPTIONS}
@@ -608,6 +617,8 @@ export default function TileCalculator() {
               setUserPickedMode(true);
             }}
           />
+          <CalcAdSlot id="AD-P" processGroup={adProcess} show={false} />
+          <CalcAdSlot id="AD-R" show={false} />
         </div>
       </>
     );
@@ -635,6 +646,9 @@ export default function TileCalculator() {
           <span className="t-body font-semibold text-brown tabular-nums truncate">{amountText}</span>
         </button>
       )}
+
+      {/* 광고 자리 AD-H — PC 에만(728×90), 상단바 아래. 휴대폰엔 넣지 않는다(형아 결정) */}
+      <CalcAdSlot id="AD-H" show={adsShown} desktopOnly />
 
       <div className="px-5 lg:px-8 py-4 pb-20 lg:pb-8 max-w-[1120px] mx-auto flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(480px,560px)_1fr] lg:gap-8 lg:items-start">
         <div className="flex flex-col gap-4">
@@ -670,7 +684,16 @@ export default function TileCalculator() {
                   </Collapsible>
                 ) : null
               }
+              adAfterCard={adsShown ? <CalcAdSlot id="AD-P" processGroup={adProcess} show /> : undefined}
+              adAfterActions={adsShown ? <CalcAdSlot id="AD-R" show /> : undefined}
             />
+          )}
+          {/* 결과 전: 표시 모드(관리자)에서만 자리 위치를 보여 준다 */}
+          {!adsShown && (
+            <>
+              <CalcAdSlot id="AD-P" processGroup={adProcess} show={false} />
+              <CalcAdSlot id="AD-R" show={false} />
+            </>
           )}
         </div>
       </div>

@@ -17,7 +17,9 @@ import {
   calcOrder,
   isDay,
   isHttpsUrl,
+  isOrderSido,
   kstToday,
+  SIDO_ALL,
   type SlotKind,
 } from '@/lib/ads/pricing';
 
@@ -52,6 +54,8 @@ export interface AdOrder {
   pay_ref: string | null;
   run_status: 'review' | 'live' | 'ended' | 'stopped';
   banner_path: string | null;
+  /** PC 전용 그림 경로(AD-H·AD-F, 선택). 20261030_ads_desktop_banner.sql 실행 전엔 칸 자체가 없어 undefined */
+  banner_desktop_path?: string | null;
   click_url: string | null;
   phone: string | null;
   note: string | null;
@@ -179,7 +183,8 @@ export async function createOrder(input: Record<string, unknown>): Promise<Res> 
   if (!sb) return { ok: false, error: '저장소에 연결하지 못했어요' };
   const kind = input.slot_kind as SlotKind;
   if (!SLOT_KINDS.includes(kind)) return { ok: false, error: '자리 종류가 달라요' };
-  const sido = typeof input.sido === 'string' && /^\d{2}$/.test(input.sido) ? input.sido : null;
+  // 지역: 시도 두 자리 번호 또는 '전국'(ALL, 준비만 — 판매 안 함)
+  const sido = isOrderSido(input.sido) ? input.sido : null;
   if (!sido) return { ok: false, error: '지역을 골라 주세요' };
   const advertiserId = Number(input.advertiser_id);
   if (!Number.isInteger(advertiserId) || advertiserId <= 0) return { ok: false, error: '광고주를 골라 주세요' };
@@ -254,19 +259,26 @@ export async function setOrderLink(id: number, clickUrl: unknown, phone: unknown
   return error ? { ok: false, error: '저장하지 못했어요' } : { ok: true };
 }
 
-/** 배너 파일을 보관함에 올리고 주문에 경로 기록(게재 중이던 주문은 심사중으로 되돌려 다시 승인받게 함) */
-export async function saveBanner(id: number, bytes: Uint8Array, contentType: string): Promise<Res> {
+/**
+ * 배너 파일을 보관함에 올리고 주문에 경로 기록(게재 중이던 주문은 심사중으로 되돌려 다시 승인받게 함)
+ *  - target 'desktop' 이면 PC 그림 칸(banner_desktop_path)에 기록한다(SQL 초안 실행 전이면 저장 실패 문구)
+ */
+export async function saveBanner(id: number, bytes: Uint8Array, contentType: string, target: 'mobile' | 'desktop' = 'mobile'): Promise<Res> {
   const sb = adminOrNull();
   if (!sb) return { ok: false, error: '저장소에 연결하지 못했어요' };
   const ext = contentType === 'image/png' ? 'png' : 'jpg';
-  const path = `${id}/${Date.now()}.${ext}`;
+  // PC 그림은 파일 이름 앞에 pc- 를 붙여 휴대폰 그림과 구분한다
+  const path = `${id}/${target === 'desktop' ? 'pc-' : ''}${Date.now()}.${ext}`;
   const up = await sb.storage.from(BUCKET).upload(path, bytes, { contentType, upsert: false });
   if (up.error) return { ok: false, error: '그림을 올리지 못했어요(보관함 ad-banners 확인)' };
   const { data: cur } = await sb.from('ad_orders').select('run_status').eq('id', id).single();
-  const patch: Record<string, unknown> = { banner_path: path };
+  const patch: Record<string, unknown> = target === 'desktop' ? { banner_desktop_path: path } : { banner_path: path };
   if (cur?.run_status === 'live') patch.run_status = 'review';
   const { error } = await sb.from('ad_orders').update(patch).eq('id', id);
-  return error ? { ok: false, error: '저장하지 못했어요' } : { ok: true };
+  if (error) {
+    return { ok: false, error: target === 'desktop' ? 'PC 그림 칸이 없어요(20261030_ads_desktop_banner.sql 실행 필요)' : '저장하지 못했어요' };
+  }
+  return { ok: true };
 }
 
 /** 주문 한 건의 종류(그림 검사용) */
@@ -281,12 +293,14 @@ export async function getOrderKind(id: number): Promise<SlotKind | null> {
 export interface ServedAd {
   id: number;
   imageUrl: string;
+  /** PC 전용 그림 주소(AD-H·AD-F, 선택). 없으면 null — 화면이 휴대폰 그림을 PC 에서도 가운데 보여 준다 */
+  desktopImageUrl: string | null;
   href: string; // 서버 경유 클릭 주소
   name: string;
 }
 
 /** 게재 중 후보 목록을 60초 동안 서버 메모리에 담아 DB 부담을 줄인다 */
-const cache = new Map<string, { at: number; list: { id: number; banner_path: string; name: string }[] }>();
+const cache = new Map<string, { at: number; list: { id: number; banner_path: string; desktop_path: string | null; name: string }[] }>();
 const CACHE_MS = 60_000;
 
 /** 방문자 시도·자리에 맞는 게재 중 배너 한 개를 돌려 고른다. 없거나 실패하면 null(화면 변화 없음) */
@@ -296,33 +310,42 @@ export async function serveAd(kind: SlotKind, sido: string, process: string | nu
     if (!sb) return null;
     // 미리보기: 주문 번호를 직접 지정하면 지역·게재 상태와 상관없이 그 주문의 배너를 보여 준다(자리 종류만 맞으면)
     if (previewId) {
-      const { data } = await sb.from('ad_orders').select('id,slot_kind,banner_path,advertiser_id').eq('id', previewId).single();
+      // select('*') — PC 그림 칸(banner_desktop_path)이 아직 없는 DB 에서도 실패하지 않게 전체 칸을 읽는다
+      const { data } = await sb.from('ad_orders').select('*').eq('id', previewId).single();
       if (!data || data.slot_kind !== kind || !data.banner_path) return null;
       const url = bannerUrl(sb, data.banner_path);
-      return url ? { id: previewId, imageUrl: url, href: '#', name: '광고 미리보기' } : null;
+      const pc = bannerUrl(sb, (data as AdOrder).banner_desktop_path ?? null);
+      return url ? { id: previewId, imageUrl: url, desktopImageUrl: pc, href: '#', name: '광고 미리보기' } : null;
     }
     const today = kstToday();
     const key = `${kind}|${sido}|${process ?? ''}|${today}`;
     let hit = cache.get(key);
     if (!hit || Date.now() - hit.at > CACHE_MS) {
-      let q = sb
-        .from('ad_orders')
-        .select('id,banner_path,advertisers(name)')
-        .eq('slot_kind', kind)
-        .eq('sido', sido)
-        .eq('run_status', 'live')
-        .lte('start_date', today)
-        .gte('end_date', today)
-        .not('banner_path', 'is', null)
-        .not('click_url', 'is', null)
-        .limit(10);
-      if (kind === 'AD-P') q = q.eq('process', process ?? '');
-      const { data, error } = await q;
+      // 게재 중 후보 조회. withPc=false 는 PC 그림 칸이 아직 없는 DB(SQL 초안 실행 전)용 예비 조회
+      const query = (withPc: boolean) => {
+        let q = sb
+          .from('ad_orders')
+          .select(withPc ? 'id,banner_path,banner_desktop_path,advertisers(name)' : 'id,banner_path,advertisers(name)')
+          .eq('slot_kind', kind)
+          // 방문자 시도 주문 + '전국'(ALL) 주문을 함께 후보로(전국은 지역과 상관없이 매칭)
+          .in('sido', [sido, SIDO_ALL])
+          .eq('run_status', 'live')
+          .lte('start_date', today)
+          .gte('end_date', today)
+          .not('banner_path', 'is', null)
+          .not('click_url', 'is', null)
+          .limit(10);
+        if (kind === 'AD-P') q = q.eq('process', process ?? '');
+        return q;
+      };
+      let { data, error } = await query(true);
+      if (error) ({ data, error } = await query(false));
       if (error) return null;
-      const list = (data ?? []).map((r) => {
+      const list = ((data ?? []) as unknown as Record<string, unknown>[]).map((r) => {
         const adv = (r as unknown as { advertisers?: { name?: string } | { name?: string }[] }).advertisers;
         const name = Array.isArray(adv) ? adv[0]?.name : adv?.name;
-        return { id: Number(r.id), banner_path: String(r.banner_path), name: name ?? '광고' };
+        const pc = r.banner_desktop_path;
+        return { id: Number(r.id), banner_path: String(r.banner_path), desktop_path: typeof pc === 'string' && pc ? pc : null, name: name ?? '광고' };
       });
       hit = { at: Date.now(), list };
       cache.set(key, hit);
@@ -334,7 +357,7 @@ export async function serveAd(kind: SlotKind, sido: string, process: string | nu
     if (!url) return null;
     // 노출 +1 (실패해도 광고는 보여 준다)
     void sb.rpc('ads_bump', { p_order: pick.id, p_imp: 1, p_click: 0 }).then(() => undefined, () => undefined);
-    return { id: pick.id, imageUrl: url, href: `/api/ad-click?o=${pick.id}`, name: pick.name };
+    return { id: pick.id, imageUrl: url, desktopImageUrl: bannerUrl(sb, pick.desktop_path), href: `/api/ad-click?o=${pick.id}`, name: pick.name };
   } catch {
     return null;
   }

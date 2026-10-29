@@ -36,6 +36,9 @@ import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
 // 2026-09-15 디자인 통일 작업: 결과 화면 저장·공유 부품을 계산기 3종 공용 위치로 옮겼다
 import { PostToBoardCheckbox, ResultFab } from '../../_components/ResultActions';
 import CalcContactCta from '../../_components/CalcContactCta';
+// 광고 자리(2026-10-29) — 광고 전역 스위치가 꺼져 있으면 일반 방문자에겐 아무것도 안 보인다
+import AdSlot from '@/components/ads/AdSlot';
+import { CALC_AD_PROCESS } from '@/lib/ads/pricing';
 // 비용 구성 한 줄 표기 — 즉답 화면(ResultPanel.tsx)과 완전히 같은 규칙을 쓰려고 공용 파일로
 // 뺐다(2026-09-27 4차 검수 지적 2번 — 만 원 미만 단가가 "0만"으로 보이던 문제 수리)
 // 2026-09-27 배포 전 검사관 지적 7번: 롤 수 범위·"제품 미정" 표시도 즉답 화면과 같은
@@ -247,6 +250,9 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
         }
       />
 
+      {/* 광고 자리 AD-H — PC 에만(728×90), 상단바 아래 */}
+      <AdSlot id="AD-H" desktopOnly />
+
       {/* px-5: 상단바(TopNav)와 좌우 여백을 맞춘다 */}
       <div className="px-5 py-4 pb-40 lg:pb-8 flex flex-col gap-4 max-w-[720px] mx-auto">
         <p className="text-[13px] text-v1-text-secondary tabular-nums">{buildSummary(state)}</p>
@@ -343,7 +349,13 @@ export default async function WallpaperResultPage({ searchParams }: PageProps) {
           </Collapsible>
         </Card>
 
+        {/* 광고 자리 AD-P(공정 스폰서) — 결과 카드 아래 */}
+        <AdSlot id="AD-P" processGroup={CALC_AD_PROCESS.wallpaper} adPPageIndex={0} />
+
         <PostToBoardCheckbox />
+
+        {/* 광고 자리 AD-R */}
+        <AdSlot id="AD-R" />
 
         {/* 관련 링크 — 시세(/calc/price)·질문(/calc/q) 페이지가 아직 없어서 숨김.
             지금은 실제로 열리는 블로그 글 2개만 보여준다 (2026-09-11 검사관 지적) */}

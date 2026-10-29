@@ -9,10 +9,12 @@
 //   표가 아직 없으면(SQL 미실행) 안내 한 줄만 보인다. 서버 컴포넌트라 열쇠는 브라우저로 안 나간다.
 // ──────────────────────────────────────────────
 import { SIDO_CODES, REGION_NAMES } from '@/server/admin/format';
-import { SLOT_INFO, expiringSoon, kstToday, daysLeft, type SlotKind } from '@/lib/ads/pricing';
+import { SLOT_INFO, SIDO_ALL, expiringSoon, kstToday, daysLeft, type SlotKind } from '@/lib/ads/pricing';
 import { getBoard, listAdvertisers, listOrders, remaining } from '@/server/ads/store';
 import { Card, PageHead, fmt } from '../_ui';
 import { AdvertiserForm, OrderActions, OrderForm } from './AdsForms';
+// 도배 결과 화면 예시 링크 만들기용(34평 실크 기본 조건)
+import { DEFAULT_CALC_FORM, encodeWallpaperForm } from '@/lib/v1/wallpaperQuery';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,7 +28,10 @@ const won = (n: number) => `${n.toLocaleString('ko-KR')}원`;
 export default async function AdsPage() {
   const today = kstToday();
   const [board, advs, ord] = await Promise.all([getBoard(today), listAdvertisers(), listOrders()]);
-  const sidos = SIDO_CODES.map((c) => ({ code: c, name: REGION_NAMES[c] }));
+  // 지역 선택지 — 맨 끝 '전국'은 준비만(판매 안 함, 2026-10-29). SQL 초안 실행 전엔 저장이 거절된다
+  const sidos = [...SIDO_CODES.map((c) => ({ code: c, name: REGION_NAMES[c] })), { code: SIDO_ALL, name: '전국(준비 중·판매 안 함)' }];
+  /** 지역 이름(전국 포함) */
+  const regionName = (c: string) => (c === SIDO_ALL ? '전국' : REGION_NAMES[c] ?? c);
 
   if (!advs || !ord) {
     return (
@@ -45,14 +50,19 @@ export default async function AdsPage() {
       <Card title="광고 자리 보기">
         <div className="flex flex-wrap gap-2">
           {[
-            ['첫 화면', '/'],
+            ['첫 화면(공정 목록)', '/'],
             ['계산기 허브', '/calc'],
-            ['도배 결과', '/calc/wallpaper'],
-            ['견적 계산기(공정 목록)', '/'],
+            ['도배 계산기', '/calc/wallpaper'],
+            ['바닥재 계산기', '/calc/flooring'],
+            ['타일 계산기', '/calc/tile'],
+            ['미장 계산기', '/calc/mortar'],
+            ['타일 물량', '/calc/tile-pro'],
+            // 결과 화면은 공유 링크(?d=)가 있어야 결과가 보인다 — 34평 실크 기본 조건 예시를 붙인다
+            ['도배 결과 화면', `/calc/wallpaper/result?d=${encodeWallpaperForm({ ...DEFAULT_CALC_FORM, paperType: '실크' })}`],
           ].map(([label, href]) => (
             <a
               key={label}
-              href={`${href}?ad_preview=all`}
+              href={`${href}${href.includes('?') ? '&' : '?'}ad_preview=all`}
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-md border border-orange-300 bg-orange-50 px-3 py-1.5 text-sm font-medium text-orange-700"
@@ -81,7 +91,8 @@ export default async function AdsPage() {
                 <tr key={c} className="border-b border-gray-50">
                   <td className="py-1.5 px-2 text-gray-600 whitespace-nowrap">{REGION_NAMES[c]}</td>
                   {BOARD_KINDS.map((k) => {
-                    const used = board[c]?.[k] ?? 0;
+                    // '전국' 주문은 모든 지역의 자리를 함께 차지한다
+                    const used = (board[c]?.[k] ?? 0) + (board[SIDO_ALL]?.[k] ?? 0);
                     const left = remaining(used, k) ?? 0;
                     // AD-P 는 공정마다 3곳이라 "공정 n건"으로만 보여 준다(공정별 남은 자리는 주문 만들 때 검사)
                     const text = k === 'AD-P' ? (used ? `${used}건` : '비어 있음') : `${left}/3 남음`;
@@ -125,12 +136,15 @@ export default async function AdsPage() {
                   const soon = o.run_status === 'live' && expiringSoon(o.end_date, today);
                   const ctr = o.impressions ? ((o.clicks / o.impressions) * 100).toFixed(1) : '-';
                   const img = ord.bannerBase(o.banner_path);
+                  // PC 그림(선택) — SQL 초안 실행 전엔 칸이 없어 null
+                  const pcImg = ord.bannerBase(o.banner_desktop_path ?? null);
                   return (
                     <tr key={o.id} className="border-b border-gray-50 align-top">
                       <td className="py-2 px-2">
                         <p className="font-medium text-gray-700">{o.advertiser_name} <span className="text-[11px] text-gray-300">#{o.id}</span></p>
-                        <p className="text-[11px] text-gray-500">{o.slot_kind} · {REGION_NAMES[o.sido] ?? o.sido}{o.process ? ` · ${o.process}` : ''}</p>
+                        <p className="text-[11px] text-gray-500">{o.slot_kind} · {regionName(o.sido)}{o.process ? ` · ${o.process}` : ''}</p>
                         {img && <a href={img} target="_blank" rel="noreferrer" className="text-[11px] text-brown underline">배너 보기</a>}
+                        {pcImg && <a href={pcImg} target="_blank" rel="noreferrer" className="ml-2 text-[11px] text-brown underline">PC 배너 보기</a>}
                       </td>
                       <td className="py-2 px-2 whitespace-nowrap text-[12px] text-gray-600">
                         {o.start_date}<br />~ {o.end_date}
@@ -150,7 +164,7 @@ export default async function AdsPage() {
                       </td>
                       <td className="py-2 px-2 min-w-[220px]">
                         <OrderActions id={o.id} kind={o.slot_kind} payStatus={o.pay_status} runStatus={o.run_status}
-                          hasBanner={!!o.banner_path} clickUrl={o.click_url} phone={o.phone} />
+                          hasBanner={!!o.banner_path} hasDesktopBanner={!!o.banner_desktop_path} clickUrl={o.click_url} phone={o.phone} />
                       </td>
                     </tr>
                   );

@@ -85,7 +85,7 @@ export default function SponsorPreview() {
 
         {/* AD-H: 헤더 하단 리더보드 */}
         <div className="px-4 lg:px-8 py-3">
-          <MockBanner id="AD-H" size="728×90" advertiser="○○인테리어 — 남양주 No.1" copy="10년 경력 · 시공사례 200건+ · 무료 상담" cta="견적 받기 →" />
+          <MockBanner id="AD-H" size="728×90 · 휴대폰 320×100" advertiser="○○인테리어 — 남양주 No.1" copy="10년 경력 · 시공사례 200건+ · 무료 상담" cta="견적 받기 →" />
         </div>
 
         {/* 히어로 */}
@@ -138,7 +138,7 @@ export default function SponsorPreview() {
             </div>
 
             {/* AD-P1: 공정 사이 배너 */}
-            <MockBanner id="AD-P1" size="468×60" advertiser="LX Z:IN 창호" copy="에너지등급 1등급 보장 · 전국 시공" cta="자세히 →" />
+            <MockBanner id="AD-P1" size="320×50" advertiser="LX Z:IN 창호" copy="에너지등급 1등급 보장 · 전국 시공" cta="자세히 →" />
 
             <div className="space-y-2 mt-4 mb-4">
               {[
@@ -157,7 +157,7 @@ export default function SponsorPreview() {
             </div>
 
             {/* AD-P2: 공정 사이 배너 */}
-            <MockBanner id="AD-P2" size="468×60" advertiser="대림바스 욕실" copy="프리미엄 욕실 리모델링 · 전시장 방문 예약" cta="더 보기 →" />
+            <MockBanner id="AD-P2" size="320×50" advertiser="대림바스 욕실" copy="프리미엄 욕실 리모델링 · 전시장 방문 예약" cta="더 보기 →" />
 
             <div className="space-y-2 mt-4">
               {[
@@ -228,7 +228,7 @@ export default function SponsorPreview() {
 
         {/* AD-F: 푸터 상단 리더보드 */}
         <div className="px-4 lg:px-8 py-4 bg-cream">
-          <MockBanner id="AD-F" size="728×90" advertiser="□□홈 인테리어" copy="수원·용인 전문 시공 · 3D 시뮬레이션 무료" cta="상담 예약 →" />
+          <MockBanner id="AD-F" size="728×90 · 휴대폰 320×50" advertiser="□□홈 인테리어" copy="수원·용인 전문 시공 · 3D 시뮬레이션 무료" cta="상담 예약 →" />
         </div>
 
         {/* 푸터 */}
@@ -245,12 +245,12 @@ export default function SponsorPreview() {
             <div className="bg-cream rounded-xl p-4">
               <p className="font-bold text-gold mb-2">데스크톱 6개 슬롯</p>
               <ul className="space-y-1 text-xs text-gray-600">
-                <li>AD-H — 헤더 하단 (728×90)</li>
-                <li>AD-P1 — 공정 사이 상단 (468×60)</li>
-                <li>AD-P2 — 공정 사이 하단 (468×60)</li>
+                <li>AD-H — 헤더 하단 (PC 728×90 · 휴대폰 320×100)</li>
+                <li>AD-P1 — 공정 사이 상단 (320×50)</li>
+                <li>AD-P2 — 공정 사이 하단 (320×50)</li>
                 <li>AD-R1 — 결과 패널 중간 (300×250)</li>
                 <li>AD-R2 — 결과 패널 하단 (300×250)</li>
-                <li>AD-F — 푸터 상단 (728×90)</li>
+                <li>AD-F — 푸터 상단 (PC 728×90 · 휴대폰 320×50)</li>
               </ul>
             </div>
             <div className="bg-cream rounded-xl p-4">

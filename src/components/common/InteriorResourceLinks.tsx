@@ -7,6 +7,9 @@
 //  - 모든 링크는 새 탭(target=_blank)으로 열림. 외부 공식 사이트만 수록.
 // ─────────────────────────────────────────────────────────────
 
+// 공용 폭 규칙(최대 1120px) — 상단바·본문과 가장자리를 맞춘다
+import Container from '@/components/layout/Container';
+
 // 자료 링크 한 건의 데이터 구조
 interface ResourceLink {
   icon: string;        // 카드 앞 이모지 아이콘
@@ -58,8 +61,10 @@ const LINKS: ResourceLink[] = [
 export default function InteriorResourceLinks() {
   return (
     // 하단 섹션 — 흰 배경으로 위 통계 섹션(cream)과 구분
-    <section className="bg-white py-12 px-4 lg:px-8">
-      <div className="max-w-[1400px] mx-auto">
+    // 2026-10-29: 안쪽 폭을 공용 Container(1120px)로 — PC에서 상단바와 가장자리를 맞춘다.
+    //   모바일은 바깥 띠의 좌우 16px(px-4)를 그대로 두고 Container 여백은 PC에서만 쓴다(모양 변화 없음)
+    <section className="bg-white py-12 px-4 lg:px-0">
+      <Container className="max-lg:px-0">
         {/* 제목부 */}
         <div className="text-center mb-8">
           <p className="text-[10px] text-gold tracking-widest mb-2">
@@ -105,7 +110,7 @@ export default function InteriorResourceLinks() {
         <p className="text-[10px] text-gray-400 text-center mt-5">
           위 링크는 모두 정부·공공 공식 사이트로 연결됩니다. (새 창)
         </p>
-      </div>
+      </Container>
     </section>
   );
 }

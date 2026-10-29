@@ -130,8 +130,10 @@ export default function Home() {
       {/* 파트너 배너: 실제 스폰서 등록 전까지 숨김 */}
 
       {/* ───── 브랜드 스토리 + 통계 ───── */}
-      <section className="bg-cream py-16 px-4 lg:px-8">
-        <div className="max-w-[1400px] mx-auto flex flex-col lg:flex-row items-center gap-12">
+      {/* 2026-10-29: 안쪽 폭을 공용 Container(1120px)로 바꿔 PC에서 상단바와 가장자리를 맞춘다.
+          모바일 모양은 그대로 — 바깥 띠의 좌우 16px(px-4)를 유지하고 Container 여백은 PC에서만 쓴다 */}
+      <section className="bg-cream py-16 px-4 lg:px-0">
+        <Container className="max-lg:px-0 flex flex-col lg:flex-row items-center gap-12">
           <div className="flex-1 max-w-lg">
             <p className="text-[10px] text-gold tracking-widest mb-4">얼마드나를 만든 이유</p>
             <h2 className="text-2xl font-bold text-brown leading-snug mb-4">
@@ -151,10 +153,10 @@ export default function Home() {
             </div>
           </div>
 {/* 시공 사례 이미지 제거됨 */}
-        </div>
+        </Container>
 
         {/* 통계 */}
-        <div className="max-w-[1400px] mx-auto mt-12 flex justify-center gap-12 lg:gap-20">
+        <Container className="max-lg:px-0 mt-12 flex justify-center gap-12 lg:gap-20">
           <div className="text-center">
             <p className="text-3xl font-bold text-brown">1,000건+</p>
             <p className="text-xs text-gray-400 mt-1">실제 견적서 분석</p>
@@ -167,7 +169,7 @@ export default function Home() {
             <p className="text-3xl font-bold text-brown">100%</p>
             <p className="text-xs text-gray-400 mt-1">완전 무료</p>
           </div>
-        </div>
+        </Container>
       </section>
 
       {/* ───── 인테리어 공사 자료실 (광고 자리 대체 — 2026년 06월 29일) ─────

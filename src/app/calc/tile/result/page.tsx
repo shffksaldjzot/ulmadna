@@ -26,6 +26,9 @@ import { buildTileRequestFull, sanitizeTileForm } from '@/lib/v1/tileEngineInput
 import type { TileCalcResultDTO } from '@/lib/v1/useTileCalc';
 import { PostToBoardCheckbox, ResultFab } from '../../_components/ResultActions';
 import CalcContactCta from '../../_components/CalcContactCta';
+// 광고 자리(2026-10-29) — 광고 전역 스위치가 꺼져 있으면 일반 방문자에겐 아무것도 안 보인다
+import AdSlot from '@/components/ads/AdSlot';
+import { CALC_AD_PROCESS } from '@/lib/ads/pricing';
 import { safeCalc } from '../../_components/resultGuard';
 import ResultBody from '../ResultBody';
 
@@ -98,15 +101,21 @@ export default async function TileResultPage({ searchParams }: PageProps) {
     <>
       <TopNav title="타일 견적 계산기" backHref="/calc" rightSlot={changeLink} />
 
+      {/* 광고 자리 AD-H — PC 에만(728×90), 상단바 아래 */}
+      <AdSlot id="AD-H" desktopOnly />
+
       <div className="px-5 py-4 pb-40 lg:pb-8 flex flex-col gap-4 max-w-[720px] mx-auto">
         <ResultBody
           result={dto}
           dimsAssumed={outcome.dimsAssumed}
+          afterCost={<AdSlot id="AD-P" processGroup={CALC_AD_PROCESS.tile} adPPageIndex={0} />}
           actions={
             <div className="flex flex-col gap-4">
               <PostToBoardCheckbox />
               <CalcContactCta />
               <Disclaimer />
+              {/* 광고 자리 AD-R */}
+              <AdSlot id="AD-R" />
             </div>
           }
         />

@@ -54,6 +54,8 @@ import { track } from '@/lib/analytics';
 import CostPanel from './CostPanel';
 import { DEFAULT_COST, buildCostRows, decodeCost, encodeCost, summarizeCost, type CostState } from '@/lib/tilepro/cost';
 import TileLayer, { TILE_COLORS } from './TileLayer';
+// 광고 자리(2026-10-29) — 광고 전역 스위치가 꺼져 있으면 일반 방문자에겐 아무것도 안 보인다
+import CalcAdSlot from '@/components/ads/CalcAdSlot';
 
 /** 단가 기억 저장 이름(기기 안) */
 const PRICE_STORE_KEY = 'tilepro_prices_v1';
@@ -268,6 +270,9 @@ export default function TileProCalculator() {
   return (
     <>
       <TopNav title="타일 물량 계산기" backHref="/calc" as="p" />
+
+      {/* 광고 자리 AD-H — PC 에만(728×90), 상단바 아래(2026-10-29). 물량 계산기는 공정 스폰서 자리 없음 */}
+      <CalcAdSlot id="AD-H" show desktopOnly />
 
       <Container as="div" className="py-4 pb-24 lg:py-8">
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-8">
@@ -523,6 +528,9 @@ export default function TileProCalculator() {
             </section>
 
             <CostPanel form={form} cost={cost} rows={costRows} summary={costSummary} onTouch={onCostTouch} onChange={setCostPatch} onPrice={setPrice} />
+
+            {/* 광고 자리 AD-R — 자재비 아래(2026-10-29) */}
+            <CalcAdSlot id="AD-R" show />
 
             <div className="flex flex-col gap-3">
               <Chip size="sm" className="self-start" selected={shareWithPrices} onClick={() => setShareWithPrices((v) => !v)}>

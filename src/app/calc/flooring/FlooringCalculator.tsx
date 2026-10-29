@@ -46,6 +46,9 @@ import MaterialPicker from './MaterialPicker';
 import ScopeChips from './ScopeChips';
 import ResultPanel from './ResultPanel';
 import AreaPendingCard from '../_components/AreaPendingCard';
+// 광고 자리(2026-10-29): 결과가 보일 때만 — 표시 모드(관리자)는 결과 전에도
+import CalcAdSlot from '@/components/ads/CalcAdSlot';
+import { CALC_AD_PROCESS } from '@/lib/ads/pricing';
 import { describeFlooringBottomBarAssumption } from '../_components/assumptionText';
 import FlowShell from '../_components/flow/FlowShell';
 import AdjustChips from '../_components/flow/AdjustChips';
@@ -482,11 +485,17 @@ export default function FlooringCalculator({ products }: FlooringCalculatorProps
   const bottomFailed = !!error && !result;
   const currentStepTitle = steps[Math.min(activeIndex, steps.length - 1)]?.title ?? '';
 
+  // 광고 자리를 보일지 — 면적을 고르기 전(금액 숨김 상태)에는 자리도 숨긴다(2026-10-29)
+  const adsShown = !!result && !areaPending;
+  const adProcess = CALC_AD_PROCESS.flooring;
+
   // 첫 화면 — 아직 모드를 안 골랐으면 질문 하나만 보여준다(결과 패널·하단 바 전부 숨김)
   if (!modeChosen) {
     return (
       <>
         <TopNav title="바닥재 계산기" backHref="/calc" as="p" />
+        {/* 표시 모드(관리자)에서만 — 결과 전이라 일반 방문자에겐 자리가 없다 */}
+        <CalcAdSlot id="AD-H" show={false} desktopOnly />
         <div className="px-5 lg:px-8 max-w-[1120px] mx-auto">
           <ModePicker
             onPick={(v: CalcViewMode) => {
@@ -494,6 +503,8 @@ export default function FlooringCalculator({ products }: FlooringCalculatorProps
               setUserPickedMode(true);
             }}
           />
+          <CalcAdSlot id="AD-P" processGroup={adProcess} show={false} />
+          <CalcAdSlot id="AD-R" show={false} />
         </div>
       </>
     );
@@ -511,6 +522,9 @@ export default function FlooringCalculator({ products }: FlooringCalculatorProps
           <Segment size="sm" options={VIEW_OPTIONS} value={view} onChange={(v) => patch({ view: v })} className="w-[136px]" ariaLabel="계산 모드" />
         }
       />
+
+      {/* 광고 자리 AD-H — PC 에만(728×90), 상단바 아래. 휴대폰엔 넣지 않는다(형아 결정) */}
+      <CalcAdSlot id="AD-H" show={adsShown} desktopOnly />
 
       <div className="px-5 lg:px-8 py-4 pb-20 lg:pb-8 max-w-[1120px] mx-auto flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(480px,560px)_1fr] lg:gap-8 lg:items-start">
         {/* 왼쪽 — 입력. 데스크톱은 제목 줄이 없으니(TopNav가 lg:hidden) 모드 전환을 여기 작게 둔다 */}
@@ -552,7 +566,16 @@ export default function FlooringCalculator({ products }: FlooringCalculatorProps
               form={form}
               onRemoveOldChange={(v) => patch({ removeOld: v })}
               onBaseboardChange={(v) => patch({ baseboard: v })}
+              adAfterCard={adsShown ? <CalcAdSlot id="AD-P" processGroup={adProcess} show /> : undefined}
+              adAfterActions={adsShown ? <CalcAdSlot id="AD-R" show /> : undefined}
             />
+          )}
+          {/* 결과 전: 표시 모드(관리자)에서만 자리 위치를 보여 준다 */}
+          {!adsShown && (
+            <>
+              <CalcAdSlot id="AD-P" processGroup={adProcess} show={false} />
+              <CalcAdSlot id="AD-R" show={false} />
+            </>
           )}
         </div>
       </div>

@@ -42,9 +42,13 @@ export interface ResultPanelProps {
   onGradeChange: (g: TileGrade) => void;
   /** 총액 카드 아래에 넣을 조정 칩(시공 조건) */
   adjust?: ReactNode;
+  /** 결과 카드 아래 광고 자리(AD-P). 결과가 보일 때만 계산기 화면이 넘긴다(2026-10-29) */
+  adAfterCard?: ReactNode;
+  /** 공유·문의 줄 아래 광고 자리(AD-R). 결과가 보일 때만 넘긴다(2026-10-29) */
+  adAfterActions?: ReactNode;
 }
 
-export default function ResultPanel({ result, loading, error, stale, allDone, form, emptyMessage, dimsAssumed, onGradeChange, adjust }: ResultPanelProps) {
+export default function ResultPanel({ result, loading, error, stale, allDone, form, emptyMessage, dimsAssumed, onGradeChange, adjust, adAfterCard, adAfterActions }: ResultPanelProps) {
   const [toast, setToast] = useState<string | null>(null);
 
   // GA4 — 결과 카드가 새로 생길 때마다 1번(도배 계산기와 같은 방식)
@@ -98,6 +102,7 @@ export default function ResultPanel({ result, loading, error, stale, allDone, fo
         simple={(form.view ?? 'simple') === 'simple'}
         onGradeChange={onGradeChange}
         afterTotal={adjust}
+        afterCost={adAfterCard}
         actions={
           <div className="flex flex-col gap-4">
             {canShare && (
@@ -107,6 +112,8 @@ export default function ResultPanel({ result, loading, error, stale, allDone, fo
             )}
             <CalcContactCta />
             <Disclaimer />
+            {/* 광고 자리 AD-R — 공유·문의 줄 아래 */}
+            {adAfterActions}
           </div>
         }
       />

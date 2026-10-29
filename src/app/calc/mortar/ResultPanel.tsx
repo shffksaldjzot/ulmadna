@@ -32,7 +32,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import Card from '@/components/v1/Card';
 import Collapsible from '@/components/v1/Collapsible';
 import Button from '@/components/v1/Button';
@@ -79,6 +79,10 @@ export interface ResultPanelProps {
   /** 결과가 없을 때(!quick) 보여줄 한 줄. 모바일은 하단 고정 바가 이미 보여주고 있어서
    *  이 패널은 PC(lg 이상)에서만 그린다(2026-09-15 중복 제거) */
   emptyMessage: string;
+  /** 결과 카드 바로 아래 광고 자리(AD-P 공정 스폰서). 결과가 보일 때만 계산기 화면이 넘긴다(2026-10-29) */
+  adAfterCard?: ReactNode;
+  /** 공유·문의 줄 아래 광고 자리(AD-R). 결과가 보일 때만 넘긴다(2026-10-29) */
+  adAfterActions?: ReactNode;
 }
 
 /** 소수 1자리 반올림 — 몰탈 체적 표시용("3.528" → "3.5") */
@@ -154,6 +158,8 @@ export default function ResultPanel({
   areaAssumedText,
   thicknessAssumedText,
   emptyMessage,
+  adAfterCard,
+  adAfterActions,
 }: ResultPanelProps) {
   const [toast, setToast] = useState<string | null>(null);
 
@@ -412,6 +418,9 @@ export default function ResultPanel({
         )}
       </Card>
 
+      {/* 광고 자리 AD-P — 결과 카드 바로 아래(휴대폰·PC 같은 순서) */}
+      {adAfterCard}
+
       <div className="flex flex-col gap-4 mt-4">
         {canShare && (
           <Button variant="secondary" fullWidth onClick={handleShare}>
@@ -421,6 +430,8 @@ export default function ResultPanel({
         <CalcContactCta />
         <Disclaimer />
       </div>
+      {/* 광고 자리 AD-R — 공유·문의 줄 아래, 관련 글 위 */}
+      {adAfterActions}
       <Toast message={toast} />
     </>
   );

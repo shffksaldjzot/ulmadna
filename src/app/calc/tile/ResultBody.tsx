@@ -60,6 +60,8 @@ export interface ResultBodyProps {
   afterTotal?: ReactNode;
   /** 간단 모드 결과 — 큰 숫자 위에 "세트" 이름, 아래에 ㎡·박스 보조 줄(2026-10-28) */
   simple?: boolean;
+  /** ②③④ 구성 카드 바로 아래 자리 — 광고 자리 AD-P(공정 스폰서, 2026-10-29). 결과가 보일 때만 넘긴다 */
+  afterCost?: ReactNode;
 }
 
 /** 작은 "추정" 표식 */
@@ -103,7 +105,7 @@ const BAR_TONE: Record<string, string> = {
   overhead: 'bg-brown/15',
 };
 
-export default function ResultBody({ result, dim = false, dimsAssumed = false, onGradeChange, actions, afterTotal, simple = false }: ResultBodyProps) {
+export default function ResultBody({ result, dim = false, dimsAssumed = false, onGradeChange, actions, afterTotal, simple = false, afterCost }: ResultBodyProps) {
   const self = result.resolved.service === 'self';
   const q = result.quantity;
   const assumed = assumptionLine(result, dimsAssumed);
@@ -226,6 +228,9 @@ export default function ResultBody({ result, dim = false, dimsAssumed = false, o
           <p className="text-[12px] text-v1-text-disabled pt-2">{result.cost.basisLine} · 부가세 포함</p>
         </div>
       </Card>
+
+      {/* 광고 자리 AD-P — 결과(총액·구성) 카드 아래 */}
+      {afterCost}
 
       {/* ⑤ 왜 이 가격 */}
       {!self && bars.length > 1 && (

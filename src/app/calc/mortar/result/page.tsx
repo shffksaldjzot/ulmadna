@@ -29,6 +29,9 @@ import { formatManRange, formatNum, toMan } from '@/lib/v1/money';
 // 2026-09-15 디자인 통일 작업: 도배 결과 화면에만 있던 저장·공유 기능을 레미탈에도 그대로 붙인다
 import { PostToBoardCheckbox, ResultFab } from '../../_components/ResultActions';
 import CalcContactCta from '../../_components/CalcContactCta';
+// 광고 자리(2026-10-29) — 광고 전역 스위치가 꺼져 있으면 일반 방문자에겐 아무것도 안 보인다
+import AdSlot from '@/components/ads/AdSlot';
+import { CALC_AD_PROCESS } from '@/lib/ads/pricing';
 // 2026-09-30 지휘관 긴급 전달(중요 1 남은 부분) — 이 화면이 API(route.ts)와 같은 검증을
 // 거치게 한다(도배·바닥재와 같은 이유).
 import { parseInput, ValidationError } from '@/server/calc/validate/mortar';
@@ -254,6 +257,9 @@ export default async function MortarResultPage({ searchParams }: PageProps) {
         }
       />
 
+      {/* 광고 자리 AD-H — PC 에만(728×90), 상단바 아래 */}
+      <AdSlot id="AD-H" desktopOnly />
+
       {/* px-5: 상단바(TopNav)와 좌우 여백을 맞춘다. pb-40: 모바일 하단 고정 저장·공유
           풍선(ResultFab)에 본문이 가리지 않게 여유를 둔다(도배 결과 화면과 동일) */}
       <div className="px-5 py-4 pb-40 lg:pb-8 flex flex-col gap-4 max-w-[720px] mx-auto">
@@ -396,10 +402,15 @@ export default async function MortarResultPage({ searchParams }: PageProps) {
           </Collapsible>
         </Card>
 
+        {/* 광고 자리 AD-P(공정 스폰서) — 결과 카드 아래 */}
+        <AdSlot id="AD-P" processGroup={CALC_AD_PROCESS.mortar} adPPageIndex={0} />
+
         <PostToBoardCheckbox />
 
         <CalcContactCta />
         <Disclaimer />
+        {/* 광고 자리 AD-R */}
+        <AdSlot id="AD-R" />
       </div>
 
       {/* 하단 고정 — 모바일은 화면 하단에 고정, PC(lg)는 콘텐츠 흐름 안 인라인 버튼으로

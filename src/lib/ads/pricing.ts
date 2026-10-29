@@ -13,20 +13,52 @@ export type SlotKind = 'AD-H' | 'AD-R' | 'AD-P' | 'AD-F' | 'AD-PDF';
 
 export const SLOT_KINDS: SlotKind[] = ['AD-H', 'AD-R', 'AD-P', 'AD-F', 'AD-PDF'];
 
-/** 자리 안내(이름·규격·30일 요금·동시 업체 수 한도). capacity=null 은 제한 없음 */
-export const SLOT_INFO: Record<SlotKind, { name: string; width: number; height: number; price: number; capacity: number | null; maxKB: number }> = {
-  'AD-H': { name: '헤더 가로', width: 320, height: 100, price: 100000, capacity: 3, maxKB: 300 },
+/**
+ * 자리 안내(이름·규격·30일 요금·동시 업체 수 한도). capacity=null 은 제한 없음
+ *  - width/height 는 휴대폰(기본) 규격. desktop 은 PC 전용 규격(2026-10-29 형아 결정: AD-H·AD-F 만 728×90)
+ *  - desktop 이 있는 자리만 주문에 "PC 그림"(선택)을 따로 올릴 수 있다. 없으면 PC 에서도 휴대폰 그림을 가운데 보여 준다
+ */
+export const SLOT_INFO: Record<SlotKind, { name: string; width: number; height: number; price: number; capacity: number | null; maxKB: number; desktop?: { width: number; height: number } }> = {
+  'AD-H': { name: '헤더 가로', width: 320, height: 100, price: 100000, capacity: 3, maxKB: 300, desktop: { width: 728, height: 90 } },
   'AD-R': { name: '결과 옆 네모', width: 300, height: 250, price: 100000, capacity: 3, maxKB: 400 },
-  'AD-P': { name: '공정 스폰서', width: 320, height: 50, price: 50000, capacity: 3, maxKB: 200 },
+  // 공정 스폰서: 2026-10-29 형아 결정으로 5만 → 7만 원/30일 (노출 3곳: 홈 공정 목록 + 그 공정 계산기 + 그 공정 블로그 글)
+  'AD-P': { name: '공정 스폰서', width: 320, height: 50, price: 70000, capacity: 3, maxKB: 200 },
   // 푸터 가격은 계획안에 따로 없어 견적서 추천과 같은 2만 원으로 둠(주문 만들 때 금액을 직접 고칠 수 있다)
-  'AD-F': { name: '푸터 로테이션', width: 320, height: 50, price: 20000, capacity: 3, maxKB: 200 },
+  'AD-F': { name: '푸터 로테이션', width: 320, height: 50, price: 20000, capacity: 3, maxKB: 200, desktop: { width: 728, height: 90 } },
   'AD-PDF': { name: '견적서 추천(글자)', width: 0, height: 0, price: 20000, capacity: null, maxKB: 0 },
 };
+
+/**
+ * 지역 '전국' 값(2026-10-29 준비만 — 판매하지 않는다).
+ *  - 주문의 sido 칸에 이 값이 있으면 방문자 지역과 상관없이 매칭된다.
+ *  - 관리자 주문 화면 지역 선택지 맨 끝에만 보인다. DB 제약은 20261030_ads_desktop_banner.sql 초안에서 푼다.
+ */
+export const SIDO_ALL = 'ALL';
+
+/** 주문 지역 값 검사: 시도 두 자리 번호 또는 '전국'(ALL) */
+export function isOrderSido(v: unknown): v is string {
+  return typeof v === 'string' && (/^\d{2}$/.test(v) || v === SIDO_ALL);
+}
 
 /** 공정 스폰서(AD-P) 공정 이름 — ProcessToggles.tsx 의 PROCESS_GROUPS 라벨과 같아야 한다(맞춰서 수정) */
 export const AD_PROCESS_GROUPS = [
   '철거', '확장·설비', '전기·조명', '에어컨', '목공', '창호', '도배·바닥', '도장·필름', '타일', '욕실', '주방', '가구', '부대비용',
+  // 미장: 홈 공정 목록엔 없는 공정 — 미장 계산기와 그 공정 블로그 글 2곳에만 나온다(2026-10-29)
+  '미장',
 ];
+
+/**
+ * 공정 계산기 → 공정 스폰서(AD-P) 공정 이름 (2026-10-29)
+ *  - 홈 공정 목록(ProcessToggles)과 같은 글자를 써야 같은 광고주가 잡힌다.
+ *    홈은 도배와 바닥재를 '도배·바닥' 한 묶음으로 쓰므로 두 계산기 모두 '도배·바닥'.
+ *  - 미장은 홈 목록에 없어 '미장' 을 따로 둔다.
+ */
+export const CALC_AD_PROCESS = {
+  wallpaper: '도배·바닥',
+  flooring: '도배·바닥',
+  tile: '타일',
+  mortar: '미장',
+} as const;
 
 export const VAT_RATE = 0.1;
 /** 기간 한 단위 = 30일(29일·31일이 아님) */
@@ -117,14 +149,20 @@ export function imageSize(buf: Uint8Array): { type: 'png' | 'jpg'; width: number
   return null;
 }
 
-/** 배너 그림 검사. 문제가 있으면 한국어 이유, 괜찮으면 null (1배·2배 크기만 허용) */
-export function checkBanner(kind: SlotKind, buf: Uint8Array): string | null {
+/**
+ * 배너 그림 검사. 문제가 있으면 한국어 이유, 괜찮으면 null (1배·2배 크기만 허용)
+ *  - target 'desktop' 은 PC 그림 검사(AD-H·AD-F 만 728×90 또는 2배 1456×180). 용량 한도는 같은 자리 기준.
+ */
+export function checkBanner(kind: SlotKind, buf: Uint8Array, target: 'mobile' | 'desktop' = 'mobile'): string | null {
   const info = SLOT_INFO[kind];
   if (!info.width) return '이 자리는 그림이 필요 없어요';
+  // PC 그림은 PC 전용 규격이 있는 자리만 받는다
+  const size = target === 'desktop' ? info.desktop : { width: info.width, height: info.height };
+  if (!size) return '이 자리는 PC 그림을 따로 받지 않아요';
   if (buf.length > info.maxKB * 1024) return `그림은 ${info.maxKB}KB 이하여야 해요`;
   const s = imageSize(buf);
   if (!s) return 'PNG 또는 JPG 그림만 올릴 수 있어요';
-  const ok = (s.width === info.width && s.height === info.height) || (s.width === info.width * 2 && s.height === info.height * 2);
-  if (!ok) return `크기가 ${info.width}x${info.height}(또는 2배 ${info.width * 2}x${info.height * 2})여야 해요. 지금 ${s.width}x${s.height}`;
+  const ok = (s.width === size.width && s.height === size.height) || (s.width === size.width * 2 && s.height === size.height * 2);
+  if (!ok) return `크기가 ${size.width}x${size.height}(또는 2배 ${size.width * 2}x${size.height * 2})여야 해요. 지금 ${s.width}x${s.height}`;
   return null;
 }

@@ -135,12 +135,18 @@ export function OrderForm({ advertisers, sidos }: { advertisers: AdvOpt[]; sidos
 
 /** 주문 한 줄의 단추 모음 */
 export function OrderActions({
-  id, kind, payStatus, runStatus, hasBanner, clickUrl, phone,
+  id, kind, payStatus, runStatus, hasBanner, hasDesktopBanner = false, clickUrl, phone,
 }: {
-  id: number; kind: SlotKind; payStatus: string; runStatus: string; hasBanner: boolean; clickUrl: string | null; phone: string | null;
+  id: number; kind: SlotKind; payStatus: string; runStatus: string; hasBanner: boolean;
+  /** PC 그림(선택)이 올라가 있는지 — AD-H·AD-F 만 뜻이 있다 */
+  hasDesktopBanner?: boolean;
+  clickUrl: string | null; phone: string | null;
 }) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
+  // PC 그림(728×90, 선택) 파일 고르기 칸 — PC 전용 규격이 있는 자리에서만 쓴다
+  const pcFileRef = useRef<HTMLInputElement>(null);
+  const pcSize = SLOT_INFO[kind].desktop;
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
 
@@ -154,12 +160,13 @@ export function OrderActions({
     if (!err) router.refresh();
   }
 
-  /** 배너 파일 올리기 */
-  async function upload(file: File) {
+  /** 배너 파일 올리기 — target 'desktop' 이면 PC 그림 칸으로 */
+  async function upload(file: File, target: 'mobile' | 'desktop' = 'mobile') {
     setBusy(true);
     const fd = new FormData();
     fd.set('id', String(id));
     fd.set('file', file);
+    fd.set('target', target);
     try {
       const res = await fetch('/api/admin/ad-banner', { method: 'POST', body: fd });
       const j = (await res.json().catch(() => null)) as { error?: string } | null;
@@ -193,6 +200,17 @@ export function OrderActions({
           <button className={b} disabled={busy} onClick={() => fileRef.current?.click()}>{hasBanner ? '배너 교체' : '배너 올리기'}</button>
           <input ref={fileRef} type="file" accept="image/png,image/jpeg" className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(f); e.target.value = ''; }} />
+        </>
+      )}
+      {/* PC 그림(선택) — 없으면 PC 에서도 휴대폰 그림이 가운데 나온다 */}
+      {pcSize && (
+        <>
+          <button className={b} disabled={busy} onClick={() => pcFileRef.current?.click()}
+            title={`PC ${pcSize.width}×${pcSize.height} 또는 2배 ${pcSize.width * 2}×${pcSize.height * 2}`}>
+            {hasDesktopBanner ? 'PC 그림 교체' : `PC 그림(선택) ${pcSize.width}×${pcSize.height}`}
+          </button>
+          <input ref={pcFileRef} type="file" accept="image/png,image/jpeg" className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(f, 'desktop'); e.target.value = ''; }} />
         </>
       )}
       <button className={b} disabled={busy} onClick={editLink}>주소 수정</button>
