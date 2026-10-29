@@ -45,6 +45,7 @@ import PreciseSection from './PreciseSection';
 import MaterialPicker from './MaterialPicker';
 import ScopeChips from './ScopeChips';
 import ResultPanel from './ResultPanel';
+import AreaPendingCard from '../_components/AreaPendingCard';
 import { describeFlooringBottomBarAssumption } from '../_components/assumptionText';
 import FlowShell from '../_components/flow/FlowShell';
 import AdjustChips from '../_components/flow/AdjustChips';
@@ -309,6 +310,16 @@ export default function FlooringCalculator({ products }: FlooringCalculatorProps
     ? [...assumedFromEngine, 'measuring' as const]
     : assumedFromEngine;
 
+  // ── 2026-10-29 형아 지시: 면적을 사용자가 정하기 전에는 금액을 어디에도 안 보인다(도배와 같은 규칙) ──
+  // 기본값(34평)은 그대로 두고 "사용자가 골랐는지"로만 판단한다. 간단 모드는 면적 단계를
+  // 손댔고 값이 범위 안일 때, 정확 모드는 실측 단계를 손댔을 때를 "골랐다"로 본다.
+  // 공유 링크로 들어오면 전부 손댄 것으로 시작하므로 골랐다고 친다. 지금 보이는 결과가 아직
+  // 면적 가정(assumed에 'area')으로 계산된 것이면 새 결과가 올 때까지 그것도 숨긴다.
+  const areaChosen = view === 'simple' ? !!touchedMap.area && simpleAreaInRange : !!touchedMap.measure;
+  const areaPending = !areaChosen || assumed.includes('area');
+  // 금액 자리에 대신 보여 줄 한 줄(설명글 최소화 — 캡션 한 줄)
+  const areaPendingText = view === 'simple' ? '면적을 고르면 바로 나와요' : '실측을 넣으면 바로 나와요';
+
   // 떠날 때(탭 닫기·다른 페이지로 이동) 어느 단계에 있었는지 1번 — 어디서 많이 그만두는지
   // 보려고(타일 계산기와 같은 이름·파라미터)
   const stepCount = stepDefs.length;
@@ -523,20 +534,26 @@ export default function FlooringCalculator({ products }: FlooringCalculatorProps
           // (예전엔 이 구역이 범위 밖이라 진한 갈색 그대로였다)
           className="scroll-mt-16 flex flex-col gap-4 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto flowFocusScope"
         >
-          <AdjustChips visible={!!result} groups={adjustGroups} />
+          {/* 조정 칩도 결과의 일부라 면적을 고르기 전에는 숨긴다(2026-10-29) */}
+          <AdjustChips visible={!!result && !areaPending} groups={adjustGroups} />
           {/* 첫 단계(자재)를 고르기 전에는 결과 카드를 그리지 않는다 */}
-          <ResultPanel
-            result={result}
-            range={range}
-            loading={loading}
-            error={error}
-            stale={stale}
-            assumed={assumed}
-            allDone={allDone}
-            form={form}
-            onRemoveOldChange={(v) => patch({ removeOld: v })}
-            onBaseboardChange={(v) => patch({ baseboard: v })}
-          />
+          {/* 2026-10-29: 자재를 골랐어도 면적을 아직 안 정했으면 금액 카드 대신 한 줄만 보인다 */}
+          {areaPending && step0Valid ? (
+            <AreaPendingCard text={areaPendingText} />
+          ) : (
+            <ResultPanel
+              result={result}
+              range={range}
+              loading={loading}
+              error={error}
+              stale={stale}
+              assumed={assumed}
+              allDone={allDone}
+              form={form}
+              onRemoveOldChange={(v) => patch({ removeOld: v })}
+              onBaseboardChange={(v) => patch({ baseboard: v })}
+            />
+          )}
         </div>
       </div>
 
@@ -545,8 +562,9 @@ export default function FlooringCalculator({ products }: FlooringCalculatorProps
         stepNumber={Math.min(activeIndex + 1, steps.length)}
         stepCount={steps.length}
         stepTitle={currentStepTitle}
-        amountText={range ? formatManRange(range.min, range.max) : undefined}
-        assumedNote={describeFlooringBottomBarAssumption(assumed) ?? undefined}
+        // 면적을 고르기 전에는 금액을 안 넘긴다 → 하단 바는 "단계 번호 · 단계 제목"만 보인다(2026-10-29)
+        amountText={range && !areaPending ? formatManRange(range.min, range.max) : undefined}
+        assumedNote={areaPending ? undefined : (describeFlooringBottomBarAssumption(assumed) ?? undefined)}
         allDone={allDone}
         calculating={loading || stale}
         failed={bottomFailed}

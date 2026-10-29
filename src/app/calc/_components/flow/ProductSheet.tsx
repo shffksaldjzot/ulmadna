@@ -71,6 +71,12 @@ export interface ProductSheetProps {
    * 2026-09-27 검수 지적 11번 — 없으면(계산 못 했거나 목록이 비었으면) 그 자리를 비워 둔다.
    */
   undecidedPriceLabel?: string;
+  /**
+   * true면 맨 위 기본 "아직 안 정했어요" 줄을 그리지 않는다(2026년 10월 29일 추가).
+   * 도배처럼 종류마다 "[합지] 아직 안 정했어요" 줄을 items에 직접 넣는 경우에 쓴다.
+   * 기본 false — 바닥재 등 다른 계산기는 예전과 똑같이 보인다.
+   */
+  hideUndecided?: boolean;
 }
 
 export default function ProductSheet({
@@ -82,6 +88,7 @@ export default function ProductSheet({
   onSelect,
   customForm,
   undecidedPriceLabel,
+  hideUndecided = false,
 }: ProductSheetProps) {
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -181,15 +188,17 @@ export default function ProductSheet({
         <div className="flex flex-col">
           {/* 맨 위 줄 — "아직 안 정했어요": 골라도 단계는 완료된다(3-11절). 오른쪽에 그 종류
               전체 가격대를 다른 줄과 같은 모양으로 붙인다(검수 지적 11번) */}
-          <SheetRow
-            selected={selectedCode === PRODUCT_SHEET_UNDECIDED}
-            onClick={() => onSelect(PRODUCT_SHEET_UNDECIDED)}
-            title="아직 안 정했어요"
-            priceLabel={undecidedPriceLabel}
-            topDivider={false}
-          />
+          {!hideUndecided && (
+            <SheetRow
+              selected={selectedCode === PRODUCT_SHEET_UNDECIDED}
+              onClick={() => onSelect(PRODUCT_SHEET_UNDECIDED)}
+              title="아직 안 정했어요"
+              priceLabel={undecidedPriceLabel}
+              topDivider={false}
+            />
+          )}
 
-          {items.map((item) => (
+          {items.map((item, i) => (
             <SheetRow
               key={item.code}
               selected={selectedCode === item.code}
@@ -197,6 +206,8 @@ export default function ProductSheet({
               title={item.title}
               subtitle={item.subtitle}
               priceLabel={item.priceLabel}
+              // 기본 "아직 안 정했어요" 줄을 숨겼으면 목록 첫 줄이 맨 위라 위 구분선을 안 그린다
+              topDivider={!(hideUndecided && i === 0)}
             />
           ))}
 

@@ -23,6 +23,11 @@
 // 재배치: 2026년 09월 09일 (벽지 최우선 A안)
 // 목록 시트로 교체: 2026년 09월 27일 (지시서 3-11절 — 단계 흐름 개선)
 // 시트 열림 상태를 계산기 최상위로 올림(7차 검사 치명 수리): 2026년 09월 27일
+// 합지/실크 선택 단계 없앰: 2026년 10월 29일 — 종류(합지/실크) 세그먼트 단계를 지우고,
+//   목록 한 줄마다 이름 앞에 [합지]/[실크]를 붙여 한 목록에서 바로 고르게 했다(합지 먼저,
+//   실크 다음 — 각 묶음 안의 원래 정렬은 그대로). 고른 제품의 종류가 그대로 엔진에 간다.
+//   "아직 안 정했어요"는 종류마다 한 줄씩([합지]/[실크]) 두고, "직접 입력"은 입력 폼 안에서
+//   종류를 고른다(시공비가 종류마다 달라 엔진이 종류를 꼭 알아야 하기 때문).
 // ──────────────────────────────────────────────
 
 'use client';
@@ -72,40 +77,58 @@ function customRangeError(value: number | '', limit: { min: number; max: number;
   return undefined;
 }
 
+/** 벽지 종류 — 합지 또는 실크 */
+type PaperKind = '합지' | '실크';
+
+/** 목록에서 종류 묶음을 보여 주는 순서(합지 먼저, 실크 다음) */
+const KIND_ORDER: PaperKind[] = ['합지', '실크'];
+
+/**
+ * "아직 안 정했어요" 줄의 코드 — 종류마다 한 줄이라 코드 뒤에 종류를 붙인다
+ * (예: "__undecided__:합지"). 실제 제품 코드와 절대 안 겹친다.
+ */
+const UNDECIDED_PREFIX = `${PRODUCT_SHEET_UNDECIDED}:`;
+
+/**
+ * 시트에서 무언가를 골랐을 때 부르는 쪽(계산기 최상위)에 한 번에 넘기는 값.
+ * 종류·제품 코드·직접 입력 값을 늘 같이 넘겨서, 종류와 제품이 서로 어긋날 틈을 없앤다.
+ *   - 목록 제품:        { paperType: 그 제품 종류, productCode: 코드 }
+ *   - 아직 안 정했어요: { paperType: 그 줄의 종류 } (그 종류 전체 범위로 계산)
+ *   - 직접 입력:        { paperType: 폼에서 고른 종류, product: 입력값 }
+ */
+export interface PaperSelectionChange {
+  paperType: PaperKind;
+  productCode?: string;
+  product?: CustomProduct;
+}
+
 export interface PaperPickerProps {
   /**
-   * 이 카드에서 어느 부분만 그릴지 — "종류"와 "제품"이 서로 다른 단계(StepRow)에 들어간다.
-   *   'type'    — 종류(합지/실크) 세그먼트만.
-   *   'product' — 종류를 고른 뒤 나오는 "제품 고르기" 버튼 + 목록 시트만.
-   */
-  part: 'type' | 'product';
-
-  /**
    * 제품 목록 시트가 열려 있는지 — 이제 계산기 최상위(WallpaperCalculator)가 갖고
-   * 내려준다(7차 검사 치명 수리, 위 파일 머리말 참고). part==='product'일 때만 쓴다.
+   * 내려준다(7차 검사 치명 수리, 위 파일 머리말 참고).
    */
   sheetOpen: boolean;
   /** 시트 열림 상태를 바꿔 달라고 계산기 최상위에 요청한다(보통 setSheetOpen 그대로) */
   onSheetOpenChange: (open: boolean) => void;
 
-  /** 벽지 종류. undefined면 아직 안 고른 상태 */
-  paperType: '합지' | '실크' | undefined;
-  onPaperTypeChange: (v: '합지' | '실크' | undefined) => void;
+  /** 지금 정해진 벽지 종류. undefined면 아직 아무것도 안 고른 상태 */
+  paperType: PaperKind | undefined;
 
   /** 제품 마스터에서 고른 제품 코드. 고르면 그 제품 규격·가격으로 계산한다 */
   productCode: string | undefined;
-  onProductCodeChange: (v: string | undefined) => void;
 
   /** page.tsx가 서버 제품 마스터에서 골라 내려준 목록 (규격·가격 미확인인 제품은 null 칸 포함) */
   products: WallpaperProductOption[];
 
   /** 직접 입력한 벽지 (롤당 가격·폭·길이·무늬 반복) */
   product?: CustomProduct;
-  onProductChange?: (v: CustomProduct | undefined) => void;
+
+  /** 시트에서 한 줄을 고르거나 직접 입력을 [적용]했을 때 — 종류·제품을 한 번에 넘긴다 */
+  onSelect: (v: PaperSelectionChange) => void;
 
   /**
-   * 2단계를 사용자가 실제로 손댔는지(제품 고르기 버튼에 "제품 고르기" 대신 고른 값을
-   * 보여줄지 판단하는 데 쓴다). 아직 한 번도 안 눌렀으면 false.
+   * 이 단계를 사용자가 실제로 손댔는지(버튼에 "제품 고르기" 대신 고른 값을
+   * 보여줄지 판단하는 데 쓴다). 아직 한 번도 안 골랐으면 false.
    */
   touched?: boolean;
 }
@@ -144,18 +167,17 @@ function toFields(product: CustomProduct | undefined): CustomFields {
 }
 
 export default function PaperPicker({
-  part,
   sheetOpen,
   onSheetOpenChange,
   paperType,
-  onPaperTypeChange,
   productCode,
-  onProductCodeChange,
   products,
   product,
-  onProductChange,
+  onSelect,
   touched = false,
 }: PaperPickerProps) {
+  // "직접 입력" 폼 안에서 고르는 벽지 종류 — 이미 정해진 종류가 있으면 그걸로, 없으면 합지로 시작
+  const [customKind, setCustomKind] = useState<PaperKind>(paperType ?? '합지');
   // "직접 입력" 줄을 눌러서 그 아래 입력 폼을 펼쳐 둔 상태인지 — 이미 직접 입력한 값이
   // 있으면 처음부터 펼친 채로 시작한다. 이 상태만으로는 아직 단계를 완료 처리하지 않는다
   // (세 칸을 다 채워야 진짜 "손댔다"고 본다 — 그래야 값도 없이 다음 단계로 훌쩍 넘어가지 않는다)
@@ -216,7 +238,7 @@ export default function PaperPicker({
    * (버튼이 disabled 상태이므로).
    */
   function commitCustom() {
-    if (!customValid || !onProductChange) return;
+    if (!customValid) return;
     const made: CustomProduct = {
       rollPrice: custom.rollPrice as number,
       widthCm: custom.widthCm as number,
@@ -224,7 +246,8 @@ export default function PaperPicker({
       repeatCm: custom.repeatCm === '' ? undefined : custom.repeatCm,
     };
     setLastProduct(made);
-    onProductChange(made);
+    // 직접 입력은 폼 안에서 고른 종류(customKind)로 계산한다 — 목록 선택(productCode)은 지운다
+    onSelect({ paperType: customKind, product: made });
     onSheetOpenChange(false);
   }
 
@@ -232,98 +255,94 @@ export default function PaperPicker({
    * 시트에서 한 줄을 고르면 전부 이 함수로 온다.
    * "직접 입력"만 예외 — 그 자리에서 바로 완료 처리하지 않고 입력 폼만 펼친다(3-11절:
    * 세 칸을 다 채워야 진짜 값이 생기므로, 줄을 누른 순간이 아니라 다 채웠을 때 완료된다).
-   * 나머지 두 줄("아직 안 정했어요"·목록 제품)은 누르는 즉시 시트가 닫히고 단계가 완료된다.
+   * 나머지 줄("[종류] 아직 안 정했어요"·목록 제품)은 누르는 즉시 시트가 닫히고 단계가 완료된다.
    */
   function onSheetSelect(code: string) {
     if (code === PRODUCT_SHEET_CUSTOM) {
+      // 폼을 새로 펼칠 때 종류 칸을 지금 정해진 종류에 맞춰 둔다(이미 펼쳐져 있으면 손대지 않는다)
+      if (!customFormOpen && paperType) setCustomKind(paperType);
       setCustomFormOpen(true);
       return;
     }
-    if (code === PRODUCT_SHEET_UNDECIDED) {
-      // "아직 안 정했어요" — 목록 선택·직접 입력 둘 다 지운다. 종류 전체 범위로 계산되고 단계는 완료된다
-      setCustomFormOpen(false);
-      setLastProduct(undefined);
-      onProductChange?.(undefined);
-      setCustom(toFields(undefined));
-      onProductCodeChange(undefined);
+    // 여기부터는 직접 입력이 아니므로 직접 입력 화면 값은 비운다
+    setCustomFormOpen(false);
+    setLastProduct(undefined);
+    setCustom(toFields(undefined));
+    if (code.startsWith(UNDECIDED_PREFIX)) {
+      // "[합지/실크] 아직 안 정했어요" — 그 종류만 정하고 제품은 비운다(그 종류 전체 범위로 계산)
+      const kind = code.slice(UNDECIDED_PREFIX.length) as PaperKind;
+      onSelect({ paperType: kind });
       onSheetOpenChange(false);
       return;
     }
-    // 목록에서 실제 제품 하나를 골랐다 — 직접 입력은 지운다
-    setCustomFormOpen(false);
-    setLastProduct(undefined);
-    onProductChange?.(undefined);
-    setCustom(toFields(undefined));
-    onProductCodeChange(code);
+    // 목록에서 실제 제품 하나를 골랐다 — 그 제품의 종류가 그대로 벽지 종류가 된다
+    const picked = products.find((p) => p.code === code);
+    if (!picked) return; // 목록에 없는 코드(일어나면 안 됨) — 아무것도 안 바꾼다
+    onSelect({ paperType: picked.kind, productCode: code });
     onSheetOpenChange(false);
   }
 
-  if (part === 'type') {
-    return (
-      // 종류 — 기본 미선택. 고르기 전엔 아무 탭도 활성화하지 않는다
-      <Segment
-        options={[
-          { value: '합지', label: '합지' },
-          { value: '실크', label: '실크' },
-        ]}
-        value={paperType}
-        onChange={onPaperTypeChange}
-        ariaLabel="벽지 종류"
-      />
-    );
+  /**
+   * 한 종류에서 손님에게 보여도 되는 제품만 골라 정렬한다(계산 담당의 isShowableWallpaperProduct와
+   * 같은 규칙 — 목록과 서버 "종류 전체 범위" 계산이 같은 제품 집합을 봐야 한다).
+   * 2026-09-27 검수 지적 10번: 방 전용 소폭(53cm) 제품이 광폭 제품 사이에 브랜드순으로
+   * 섞여 있어서 헷갈렸다 — 광폭(거실·일반용)을 먼저, 소폭(방 전용)은 뒤로 묶는다. 각 묶음
+   * 안에서는 원래 정렬(브랜드순 → 같은 브랜드면 싼 것부터)을 그대로 유지한다.
+   */
+  function listOf(kind: PaperKind) {
+    return products
+      .filter((p) => p.kind === kind && isShowableWallpaperProduct(p))
+      .sort((a, b) => {
+        const aNarrow = (a.widthCm ?? 0) > 0 && (a.widthCm as number) <= 60 ? 1 : 0;
+        const bNarrow = (b.widthCm ?? 0) > 0 && (b.widthCm as number) <= 60 ? 1 : 0;
+        if (aNarrow !== bNarrow) return aNarrow - bNarrow;
+        return a.brand.localeCompare(b.brand, 'en') || (a.price as number) - (b.price as number);
+      });
   }
 
-  // part === 'product' — 종류를 아직 안 골랐으면 그릴 게 없다(방어적 처리)
-  if (!paperType) return null;
+  // 종류별 목록 — 합지 먼저, 실크 다음(KIND_ORDER)
+  const listsByKind = KIND_ORDER.map((kind) => ({ kind, list: listOf(kind) }));
 
-  // 고른 종류 중 손님에게 보여도 되는 제품만 남긴다(계산 담당의 isShowableWallpaperProduct와
-  // 같은 규칙 — 목록과 서버 "종류 전체 범위" 계산이 같은 제품 집합을 봐야 한다)
-  // 2026-09-27 검수 지적 10번: 방 전용 소폭(53cm) 제품이 광폭 제품 사이에 브랜드순으로
-  // 섞여 있어서 헷갈렸다 — 광폭(거실·일반용)을 먼저, 소폭(방 전용)은 뒤로 묶는다. 각 묶음
-  // 안에서는 원래 정렬(브랜드순 → 같은 브랜드면 싼 것부터)을 그대로 유지한다.
-  const list = products
-    .filter((p) => p.kind === paperType && isShowableWallpaperProduct(p))
-    .sort((a, b) => {
-      const aNarrow = (a.widthCm ?? 0) > 0 && (a.widthCm as number) <= 60 ? 1 : 0;
-      const bNarrow = (b.widthCm ?? 0) > 0 && (b.widthCm as number) <= 60 ? 1 : 0;
-      if (aNarrow !== bNarrow) return aNarrow - bNarrow;
-      return a.brand.localeCompare(b.brand, 'en') || (a.price as number) - (b.price as number);
-    });
-
-  const items: PickerItem[] = list.map((p) => ({
-    code: p.code,
-    title: `${p.brand} ${p.name}`,
-    priceLabel: formatRollPrice(p.price as number),
+  // 맨 위 "[종류] 아직 안 정했어요" 줄들 — 오른쪽에 그 종류 전체 가격대(이미 화면에 내려온
+  // 목록의 최저~최고가만 쓴다, 서버를 새로 부르지 않는다 — 검수 지적 11번)
+  const undecidedItems: PickerItem[] = listsByKind.map(({ kind, list }) => ({
+    code: `${UNDECIDED_PREFIX}${kind}`,
+    title: `[${kind}] 아직 안 정했어요`,
+    priceLabel:
+      list.length > 0
+        ? formatRollPriceRange(Math.min(...list.map((p) => p.price as number)), Math.max(...list.map((p) => p.price as number)))
+        : undefined,
   }));
 
-  // "아직 안 정했어요" 줄 오른쪽에 붙일 그 종류 전체 가격대 — 이미 화면에 내려온 제품
-  // 목록(list)의 최저~최고가만 쓴다(서버를 새로 부르지 않는다, 검수 지적 11번)
-  const undecidedPriceLabel =
-    list.length > 0
-      ? formatRollPriceRange(
-          Math.min(...list.map((p) => p.price as number)),
-          Math.max(...list.map((p) => p.price as number)),
-        )
-      : undefined;
+  // 실제 제품 줄들 — 이름 앞에 [합지]/[실크]를 붙인다
+  const productItems: PickerItem[] = listsByKind.flatMap(({ kind, list }) =>
+    list.map((p) => ({
+      code: p.code,
+      title: `[${kind}] ${p.brand} ${p.name}`,
+      priceLabel: formatRollPrice(p.price as number),
+    })),
+  );
+
+  const items: PickerItem[] = [...undecidedItems, ...productItems];
 
   // 시트 안에서 강조 표시할 줄 — 직접 입력 폼이 펼쳐져 있으면(아직 값을 다 안 채웠어도) 그 줄을 강조한다
   const selectedCode = customFormOpen
     ? PRODUCT_SHEET_CUSTOM
     : productCode
       ? productCode
-      : touched
-        ? PRODUCT_SHEET_UNDECIDED
+      : touched && paperType && product === undefined
+        ? `${UNDECIDED_PREFIX}${paperType}`
         : undefined;
 
   // 트리거 버튼에 보여줄 글자 — 아직 한 번도 손 안 댔으면 "제품 고르기", 손댔으면 실제로 값이
   // 갖춰진 것만 보여준다(직접 입력 폼을 펼치기만 하고 값을 안 채웠으면 아직 "제품 고르기"인 채로 둔다)
-  const selectedProduct = productCode ? list.find((p) => p.code === productCode) : undefined;
+  const selectedProduct = productCode ? products.find((p) => p.code === productCode) : undefined;
   const triggerLabel = selectedProduct
-    ? `${selectedProduct.brand} ${selectedProduct.name}`
-    : product !== undefined
-      ? '직접 입력'
-      : touched
-        ? '아직 안 정했어요'
+    ? `[${selectedProduct.kind}] ${selectedProduct.brand} ${selectedProduct.name}`
+    : product !== undefined && paperType
+      ? `[${paperType}] 직접 입력`
+      : touched && paperType
+        ? `[${paperType}] 아직 안 정했어요`
         : '제품 고르기';
 
   return (
@@ -340,14 +359,26 @@ export default function PaperPicker({
       <ProductSheet
         open={sheetOpen}
         onClose={() => onSheetOpenChange(false)}
-        title="벽지 제품"
+        title="벽지"
         items={items}
         selectedCode={selectedCode}
         onSelect={onSheetSelect}
-        undecidedPriceLabel={undecidedPriceLabel}
+        // "아직 안 정했어요"는 종류마다 한 줄씩 items 맨 위에 직접 넣었으므로 시트 기본 줄은 숨긴다
+        hideUndecided
         customForm={
           <>
-            <span className="t-sub text-ink-2">롤당 가격</span>
+            {/* 직접 입력한 벽지의 종류 — 시공비가 종류마다 달라 엔진에 꼭 넘겨야 한다 */}
+            <span className="t-sub text-ink-2">종류</span>
+            <Segment
+              options={[
+                { value: '합지' as const, label: '합지' },
+                { value: '실크' as const, label: '실크' },
+              ]}
+              value={customKind}
+              onChange={(v) => setCustomKind(v)}
+              ariaLabel="직접 입력 벽지 종류"
+            />
+            <span className="t-sub text-ink-2 pt-1">롤당 가격</span>
             <NumberField
               aria-label="롤당 가격"
               suffix="원"

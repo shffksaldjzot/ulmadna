@@ -21,6 +21,9 @@
 // 재배치: 2026년 09월 09일 (벽지 최우선 A안 — 벽지 카드 1번 고정, 모드 세그먼트 도입)
 // 튜토리얼식 단계 안내: 2026년 09월 16일
 // 단계 흐름 2판(좁혀가기·조정 칩·제품 시트·뒤로 가기·새로 고침 복원): 2026년 09월 27일
+// 합지/실크 선택 단계 없앰(2026년 10월 29일): 단계가 [벽지 → 면적/실측] 두 개가 됐다.
+//   벽지 목록 한 줄마다 [합지]/[실크]가 붙어 있고, 고른 줄의 종류가 그대로 paperType이 된다.
+//   폼 상태 모양(paperType·productCode·product)은 그대로라 공유 링크·결과 화면·엔진은 안 바뀐다.
 // ──────────────────────────────────────────────
 
 'use client';
@@ -52,9 +55,10 @@ import { formatManRange } from '@/lib/v1/money';
 import { track } from '@/lib/analytics';
 import QuickAnswer from './QuickAnswer';
 import PreciseSection from './PreciseSection';
-import PaperPicker from './PaperPicker';
+import PaperPicker, { type PaperSelectionChange } from './PaperPicker';
 import ConditionChips from './ConditionChips';
 import ResultPanel from './ResultPanel';
+import AreaPendingCard from '../_components/AreaPendingCard';
 import { describeWallpaperBottomBarAssumption } from '../_components/assumptionText';
 import FlowShell from '../_components/flow/FlowShell';
 import AdjustChips from '../_components/flow/AdjustChips';
@@ -78,7 +82,8 @@ interface WallpaperCalculatorProps {
  * 안 맞아 loadSessionState가 그냥 null로 취급하므로 에러 없이 기본 상태로 시작한다.
  */
 const SESSION_KEY = 'calc:wallpaper:v1';
-const SESSION_VERSION = 2;
+// 2026-10-29: 합지/실크 단계('paperType')를 없애 단계 이름이 바뀌어 2→3으로 올렸다(옛 저장값은 버린다)
+const SESSION_VERSION = 3;
 
 /** 뒤로 가기 스택에서 "이 계산기가 쌓은 몫"을 구분하는 값 */
 const CALC_ID = 'wallpaper';
@@ -267,25 +272,14 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
   }
 
   /**
-   * 벽지 종류가 바뀌는 유일한 통로. 종류만 바꾸고 이전에 고른 제품(productCode·product)을
-   * 안 지우면 화면엔 새 종류가 선택된 것처럼 보여도 계산은 옛 제품 규격·가격으로 되는
-   * 치명 버그였다(검사관 지적 1번). 벽지 카드(PaperPicker)는 이 함수 하나만 쓴다.
-   *
-   * 2026-09-27 배포 전 검사관 지적 5번 수리: 종류가 "실제로" 바뀔 때만 제품(1단계)을
-   * 지우고 그 단계 손댐 표시도 되돌린다(resetTouched — useFlowSteps의 "매인 관계" 기능,
-   * 지시서 4-2절). 예전엔 손댐 표시를 안 지워서, 종류를 바꾸면 제품 단계가 "제품 미정"인
-   * 채로 저절로 완료돼 버렸다. 같은 종류를 다시 누른 경우(값이 안 바뀜)는 아무것도 안
-   * 건드린다(제품을 이미 골라 둔 채로 있어야 한다).
-   *
-   * 2026-09-27 형아 결정(끝낸 단계를 접지 않기) 반영 — "바꾸기로 강제로 열어 둔 단계"
-   * 개념이 없어져서, 같은 값을 다시 눌러도 이제 아무 일도 안 한다(예전엔 강제 열림을
-   * 풀려고 formVersion을 올려 patch({})를 불렀는데, 그 메커니즘 자체가 사라졌다).
+   * 벽지 목록 시트에서 무언가를 골랐을 때(목록 제품·"[종류] 아직 안 정했어요"·직접 입력 [적용])
+   * 부르는 유일한 통로 — 2026-10-29 합지/실크 단계를 없애면서 setPaperType 대신 생겼다.
+   * 종류·제품 코드·직접 입력 값을 늘 한꺼번에 바꿔서, 화면에 보이는 제품과 계산에 쓰는
+   * 종류가 서로 어긋나는 일(검사관 지적 1번과 같은 사고)이 생길 틈을 없앤다.
    */
-  function setPaperType(v: '합지' | '실크' | undefined) {
-    if (v === form.paperType) return; // 값이 안 바뀌었으면 할 일이 없다
-    patch({ paperType: v, productCode: undefined, product: undefined });
-    touch('paperType');
-    resetTouched(['product']);
+  function selectPaper(v: PaperSelectionChange) {
+    patch({ paperType: v.paperType, productCode: v.productCode, product: v.product });
+    touch('product');
   }
 
   const view = form.view ?? 'simple';
@@ -295,11 +289,11 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
   // 종류(paperType)·제품(product)은 두 모드가 공유하는 뜻이라 key도 그대로 공유한다.
   const areaStepKey = view === 'simple' ? 'area' : 'measure';
 
-  // ── 1단계(벽지 종류)·2단계(벽지 제품)·3단계(면적/실측) 값 유효 여부(dataComplete) ──
-  // 2026-09-27 좁혀가기: 2단계(제품)는 이제 "무엇을 골랐든" 항상 유효하다("아직 안 정했어요"도
-  // 정당한 선택이라 그 자체로 완료 조건을 만족한다) — 실제 "완료" 여부는 touched로만 갈린다.
-  const step0Valid = !!form.paperType;
-  const step1Valid = true;
+  // ── 1단계(벽지)·2단계(면적/실측) 값 유효 여부(dataComplete) ──
+  // 2026-10-29: 벽지 단계는 종류(paperType)가 정해져 있으면 유효하다 — 목록 제품·"[종류] 아직
+  // 안 정했어요"·직접 입력 셋 다 종류를 같이 정하므로, 무엇을 골랐든 종류만 있으면 된다.
+  // 실제 "완료" 여부는 touched로 갈린다.
+  const step1Valid = !!form.paperType;
   // 2026-09-29 지적 2번: 서버 허용 범위(평 5~200 · ㎡ 20~300)를 벗어난 값은 "적었지만
   // 계산에 못 쓰는 값"이라 완료로 치지 않는다 — 그래야 그 단계가 미완료로 남아 가정값
   // (34평)으로 계산되고, 결과 공유도 숨는다(칸 아래 안내는 QuickAnswer가 그린다).
@@ -348,12 +342,11 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
   // 단계 이름+유효성 — useFlowSteps에 넘기는 값과 아래 떠날 때 추적(calc_step_leave)에
   // 쓰는 값을 하나로 합친다(타일 계산기와 같은 방식, 따로 두 번 적지 않는다)
   const stepDefs = [
-    { key: 'paperType', valid: step0Valid },
     { key: 'product', valid: step1Valid },
     { key: areaStepKey, valid: step2Valid },
   ];
 
-  const { activeIndex, allDone, completeFlags, touchedMap, touch, resetTouched } = useFlowSteps({
+  const { activeIndex, allDone, completeFlags, touchedMap, touch } = useFlowSteps({
     steps: stepDefs,
     allTouched: hasSharedLink,
     initialTouched: restored?.touched,
@@ -431,6 +424,17 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
     ? [...assumedFromEngine, 'measuring' as const]
     : assumedFromEngine;
 
+  // ── 2026-10-29 형아 지시: 면적을 사용자가 정하기 전에는 금액을 어디에도 안 보인다 ──
+  // 기본값(34평)은 그대로 두고 "사용자가 골랐는지"로만 판단한다. 간단 모드는 면적 단계를
+  // 손댔고 값이 범위 안일 때, 정확 모드는 실측 단계를 손댔을 때를 "골랐다"로 본다.
+  // 공유 링크로 들어오면 useFlowSteps가 전부 손댄 것으로 시작하므로 골랐다고 친다.
+  // 지금 보이는 결과가 아직 34평 가정으로 계산된 것이면(assumed에 'area' — 새 결과 도착 전
+  // 잠깐) 그것도 금액을 숨긴다. 그래야 사용자가 고른 면적과 다른 금액이 한순간도 안 보인다.
+  const areaChosen = view === 'simple' ? !!touchedMap.area && simpleAreaInRange : !!touchedMap.measure;
+  const areaPending = !areaChosen || assumed.includes('area');
+  // 금액 자리에 대신 보여 줄 한 줄(설명글 최소화 — 캡션 한 줄)
+  const areaPendingText = view === 'simple' ? '면적을 고르면 바로 나와요' : '실측을 넣으면 바로 나와요';
+
   // 떠날 때(탭 닫기·다른 페이지로 이동) 어느 단계에 있었는지 1번 — 어디서 많이 그만두는지
   // 보려고(타일 계산기와 같은 이름·파라미터)
   const stepCount = stepDefs.length;
@@ -483,47 +487,19 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
   // ── 단계 정의 배열 하나로 — FlowShell이 이 배열만 보고 화면을 그린다(지시서 4-5절) ──
   const steps: FlowStepDef[] = [
     {
-      key: 'paperType',
-      title: '벽지 종류',
-      valid: step0Valid,
-      content: (
-        <PaperPicker
-          part="type"
-          sheetOpen={sheetOpen}
-          onSheetOpenChange={setSheetOpen}
-          paperType={form.paperType}
-          onPaperTypeChange={setPaperType}
-          productCode={form.productCode}
-          onProductCodeChange={(v) => patch({ productCode: v })}
-          products={products}
-          product={form.product}
-          onProductChange={(v) => patch({ product: v })}
-        />
-      ),
-    },
-    {
       key: 'product',
-      title: '벽지 제품',
+      // 2026-10-29: 합지/실크 단계를 없애고 벽지 한 목록에서 바로 고른다(줄마다 [합지]/[실크])
+      title: '벽지',
       valid: step1Valid,
       content: (
         <PaperPicker
-          part="product"
           sheetOpen={sheetOpen}
           onSheetOpenChange={setSheetOpen}
           paperType={form.paperType}
-          onPaperTypeChange={setPaperType}
           productCode={form.productCode}
-          onProductCodeChange={(v) => {
-            patch({ productCode: v });
-            touch('product');
-          }}
           products={products}
           product={form.product}
-          onProductChange={(v) => {
-            patch({ product: v });
-            // 직접 입력 세 칸이 다 차서 진짜 값이 생겼을 때만 손댔다고 본다(입력 도중엔 건너뛴다)
-            if (v !== undefined) touch('product');
-          }}
+          onSelect={selectPaper}
           touched={touchedMap.product}
         />
       ),
@@ -663,20 +639,26 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
           // (예전엔 이 구역이 범위 밖이라 진한 갈색 그대로였다)
           className="scroll-mt-16 flex flex-col gap-4 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto flowFocusScope"
         >
-          <AdjustChips visible={!!result} groups={adjustGroups} />
+          {/* 조정 칩도 결과의 일부라 면적을 고르기 전에는 숨긴다(2026-10-29) */}
+          <AdjustChips visible={!!result && !areaPending} groups={adjustGroups} />
           {/* 3-13절: 첫 단계(벽지 종류)를 고르기 전에는 결과 카드를 그리지 않는다 — result가
               null이면(= 아직 종류를 안 골랐거나 계산 담당이 계산할 게 없다고 판단) 아무것도 안 그린다 */}
-          <ResultPanel
-            result={result}
-            range={range}
-            loading={loading}
-            error={error}
-            stale={stale}
-            assumed={assumed}
-            allDone={allDone}
-            form={form}
-            onRemoveOldChange={(v) => patch({ removeOld: v })}
-          />
+          {/* 2026-10-29: 벽지를 골랐어도 면적을 아직 안 정했으면 금액 카드 대신 한 줄만 보인다 */}
+          {areaPending && form.paperType ? (
+            <AreaPendingCard text={areaPendingText} />
+          ) : (
+            <ResultPanel
+              result={result}
+              range={range}
+              loading={loading}
+              error={error}
+              stale={stale}
+              assumed={assumed}
+              allDone={allDone}
+              form={form}
+              onRemoveOldChange={(v) => patch({ removeOld: v })}
+            />
+          )}
         </div>
       </div>
 
@@ -685,8 +667,9 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
         stepNumber={Math.min(activeIndex + 1, steps.length)}
         stepCount={steps.length}
         stepTitle={currentStepTitle}
-        amountText={range ? formatManRange(range.min, range.max) : undefined}
-        assumedNote={describeWallpaperBottomBarAssumption(assumed) ?? undefined}
+        // 면적을 고르기 전에는 금액을 안 넘긴다 → 하단 바는 "단계 번호 · 단계 제목"만 보인다(2026-10-29)
+        amountText={range && !areaPending ? formatManRange(range.min, range.max) : undefined}
+        assumedNote={areaPending ? undefined : (describeWallpaperBottomBarAssumption(assumed) ?? undefined)}
         allDone={allDone}
         calculating={loading || stale}
         failed={bottomFailed}

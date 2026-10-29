@@ -81,6 +81,7 @@ import type { AdjustChipGroup, FlowStepDef } from '../_components/flow/types';
 import ModePicker, { type CalcViewMode } from '../_components/ModePicker';
 import TileDims from './TileDims';
 import ResultPanel from './ResultPanel';
+import AreaPendingCard from '../_components/AreaPendingCard';
 
 /** 새로 고침 복원 열쇠·판 번호(2026-10-28 간단 단계가 바뀌어 3으로 올림 — 옛 저장값은 버린다) */
 const SESSION_KEY = 'calc:tile:v1';
@@ -192,6 +193,13 @@ export default function TileCalculator() {
   }, [form, touchedMap, userPickedMode, hasSharedLink]);
 
   const { result, loading, error, stale, dimsAssumed } = useTileCalc(form);
+
+  // 지금 화면에 올라와 있는 결과가 "기본 치수로 계산한 결과"였는지(2026-10-29 — 면적 전 금액 숨김용).
+  // 결과가 최신(stale 아님)일 때만 그 순간의 dimsAssumed로 갱신한다.
+  const [shownDimsAssumed, setShownDimsAssumed] = useState(false);
+  useEffect(() => {
+    if (result && !stale) setShownDimsAssumed(dimsAssumed);
+  }, [result, stale, dimsAssumed]);
 
   // ── 추적 ──
   // GA4 — 타일 계산기 화면에 들어왔다는 이벤트를 1번(마운트 시점)
@@ -560,6 +568,15 @@ export default function TileCalculator() {
     });
   }
 
+  // ── 2026-10-29 형아 지시: 면적(정확 모드는 치수)을 사용자가 넣기 전에는 금액을 어디에도 안 보인다 ──
+  // 간단 모드는 첫 칩(공간)이 곧 면적을 정하는 입력이라(욕실 1칸 등 공간마다 기준 면적) 공간을
+  // 고르기 전엔 원래부터 결과가 없다 — 그대로 둔다. 정확 모드는 공간만 고르면 기본 치수로
+  // 즉답하던 것(dimsAssumed)을, 치수를 다 넣을 때까지 금액 대신 한 줄로 바꾼다.
+  // 치수를 다 넣은 직후에는 새 결과가 오기 전까지 "기본 치수로 계산한 옛 결과"가 잠깐 남아 있다 —
+  // 그 옛 결과가 기본 치수 결과였는지 기억해 두고(shownDimsAssumed), 그동안에도 금액을 숨긴다.
+  const areaPending = view === 'precise' && !!result && (dimsAssumed || (stale && shownDimsAssumed));
+  const areaPendingText = '치수를 넣으면 바로 나와요';
+
   const emptyMessage = view === 'simple' ? '공간·범위·등급을 고르면 바로 나와요' : '공간을 고르면 바로 나와요';
   const currentStepTitle = flowSteps[Math.min(activeIndex, flowSteps.length - 1)]?.title ?? '';
 
@@ -606,7 +623,8 @@ export default function TileCalculator() {
       />
 
       {/* 모바일 — 입력하는 동안 금액 범위를 제목줄 아래에 고정(누르면 결과로). 다 끝나면 하단 바가 대신 보여 준다 */}
-      {amountText && !allDone && (
+      {/* 면적(치수)을 넣기 전에는 이 띠도 안 보인다(2026-10-29) */}
+      {amountText && !allDone && !areaPending && (
         <button
           type="button"
           onClick={scrollToResult}
@@ -628,27 +646,32 @@ export default function TileCalculator() {
           ref={resultRef}
           className="scroll-mt-28 flex flex-col gap-4 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto flowFocusScope"
         >
-          <ResultPanel
-            result={result}
-            loading={loading}
-            error={error}
-            stale={stale}
-            allDone={allDone}
-            form={form}
-            emptyMessage={emptyMessage}
-            dimsAssumed={dimsAssumed}
-            onGradeChange={changeGrade}
-            adjust={
-              result ? (
-                // 전문 칩은 한 칸에 접어 둔다(기본 접힘) — 펼침은 calc_detail_open으로 센다
-                <Collapsible title="세부 조정" onOpen={() => track('calc_detail_open', { process: 'tile', section: 'adjust' })}>
-                  <div className="pt-2 pb-1">
-                    <AdjustChips visible groups={adjustGroups} />
-                  </div>
-                </Collapsible>
-              ) : null
-            }
-          />
+          {/* 2026-10-29: 정확 모드에서 치수를 다 넣기 전에는 금액 카드 대신 한 줄만 보인다 */}
+          {areaPending ? (
+            <AreaPendingCard text={areaPendingText} />
+          ) : (
+            <ResultPanel
+              result={result}
+              loading={loading}
+              error={error}
+              stale={stale}
+              allDone={allDone}
+              form={form}
+              emptyMessage={emptyMessage}
+              dimsAssumed={dimsAssumed}
+              onGradeChange={changeGrade}
+              adjust={
+                result ? (
+                  // 전문 칩은 한 칸에 접어 둔다(기본 접힘) — 펼침은 calc_detail_open으로 센다
+                  <Collapsible title="세부 조정" onOpen={() => track('calc_detail_open', { process: 'tile', section: 'adjust' })}>
+                    <div className="pt-2 pb-1">
+                      <AdjustChips visible groups={adjustGroups} />
+                    </div>
+                  </Collapsible>
+                ) : null
+              }
+            />
+          )}
         </div>
       </div>
 
@@ -656,7 +679,8 @@ export default function TileCalculator() {
         stepNumber={Math.min(activeIndex + 1, flowSteps.length)}
         stepCount={flowSteps.length}
         stepTitle={currentStepTitle}
-        amountText={allDone ? amountText : undefined}
+        // 다 끝났을 때만 금액 — 면적(치수)을 넣기 전이면 다 끝날 수 없지만 한 번 더 막아 둔다(2026-10-29)
+        amountText={allDone && !areaPending ? amountText : undefined}
         allDone={allDone}
         calculating={loading || stale}
         failed={!result && !!error}
