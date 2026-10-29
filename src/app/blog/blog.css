@@ -229,8 +229,12 @@
 .blog-back{display:inline-block;font-size:13.5px;font-weight:700;color:var(--brown-600);text-decoration:none;margin-bottom:20px;}
 .blog-back:hover{color:var(--accent);}
 .blog-post-head{margin-bottom:24px;}
-.blog-post-tags{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;}
-.blog-post-tag{font-size:11.5px;font-weight:700;color:var(--brown-600);background:var(--beige-100);
+/* 태그 칩 — 한 줄 고정(2026-10-29). 예전엔 줄바꿈(wrap)돼 휴대폰에서 2줄(약 100px)을 먹고 제목을 밀어냈다.
+   이제 넘치면 옆으로 밀어 보는 가로 스크롤(스크롤 막대는 숨김), 칩 글자도 줄바꿈 안 함 */
+.blog-post-tags{display:flex;gap:7px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;margin-bottom:14px;}
+.blog-post-tags::-webkit-scrollbar{display:none;}
+.blog-post-tag{flex:none;white-space:nowrap;font-size:11.5px;font-weight:700;color:var(--brown-600);background:var(--beige-100);
   border:1px solid var(--beige-200);padding:4px 11px;border-radius:999px;}
 .blog-post-head h1{font-size:30px;font-weight:800;color:var(--ink);line-height:1.35;letter-spacing:-0.03em;word-break:keep-all;}
 .blog-post-meta{margin-top:12px;font-size:13.5px;color:var(--ink-3);display:flex;align-items:center;flex-wrap:wrap;}
