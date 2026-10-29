@@ -17,6 +17,8 @@ import AskListClient from '@/components/ask/AskListClient';
 import AskListActions from '@/components/ask/AskListActions';
 import { titleWithCategory } from '@/lib/ask/constants';
 import { countPosts, getStats, listPosts, popularPosts } from '@/lib/ask/server';
+import CountUp from '@/components/CountUp';
+import { getEstimateCount } from '@/lib/stats/estimateCount';
 import { askHref, shortDate } from '@/lib/ask/format';
 
 export const revalidate = 60;
@@ -37,7 +39,7 @@ export const metadata: Metadata = {
 
 export default async function AskListPage() {
   // 네 가지를 동시에 읽는다(하나가 실패해도 나머지는 그대로 — 각 함수가 빈 값으로 떨어짐)
-  const [{ items, next }, total, stats, popular] = await Promise.all([listPosts(), countPosts(), getStats(), popularPosts(5)]);
+  const [{ items, next }, total, stats, popular, estimateCount] = await Promise.all([listPosts(), countPosts(), getStats(), popularPosts(5), getEstimateCount()]);
 
   return (
     <AskShell>
@@ -64,7 +66,7 @@ export default async function AskListPage() {
           <section className="why" aria-label="오늘 기준 빅데이터">
             <div className="big">
               <small>오늘 기준 빅데이터 견적서</small>
-              <b>{stats.shown.toLocaleString()}건</b>
+              <b><CountUp value={estimateCount} suffix="건+" /></b>
               {stats.delta != null && stats.delta !== 0 && (
                 <span className="tick">
                   {stats.delta > 0 ? `▲ +${stats.delta.toLocaleString()}` : `▼ ${stats.delta.toLocaleString()}`} <small>어제 대비</small>
