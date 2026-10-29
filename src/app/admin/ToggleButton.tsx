@@ -46,7 +46,7 @@ export default function ToggleButton({
       onClick={run}
       disabled={busy}
       className={`px-2.5 py-1 rounded-md text-xs border whitespace-nowrap disabled:opacity-50 ${
-        danger ? 'border-red-200 text-red-700 hover:bg-red-50' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+        danger ? 'border-red-200 text-red-700 hover:bg-red-50' : 'border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900'
       }`}
     >
       {err ? '실패, 다시' : busy ? '...' : label}

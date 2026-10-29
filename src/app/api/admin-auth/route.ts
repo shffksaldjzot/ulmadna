@@ -84,3 +84,21 @@ export async function POST(req: Request) {
 
   return response;
 }
+
+// ─────────────────────────────────────────────────────────────
+// 관리자 로그아웃 (2026-10-30)
+//  - 관리자 화면 사이드바의 "로그아웃" 단추가 이 주소로 DELETE 요청을 보낸다.
+//  - 로그인 표시 쿠키(admin-auth)를 빈 값·즉시 만료로 덮어써서 지운다.
+//  - 지운 뒤에는 미들웨어가 /admin 접근을 다시 로그인 화면으로 돌려보낸다.
+// ─────────────────────────────────────────────────────────────
+export async function DELETE() {
+  const response = NextResponse.json({ success: true });
+  response.cookies.set('admin-auth', '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 0, // 즉시 만료 = 쿠키 삭제
+    path: '/',
+  });
+  return response;
+}
