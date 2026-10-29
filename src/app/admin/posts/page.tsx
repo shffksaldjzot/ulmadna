@@ -36,7 +36,7 @@ export default async function PostViewsPage({ searchParams }: { searchParams: Pr
               <Stat label="조회된 글" value={s.posts.length} />
               <Stat label="계산기 결과 조회" value={s.calcViews} />
             </div>
-            <DayBars data={s.byDay} />
+            <DayBars data={s.byDay} unit="회" />
           </Card>
           <Card title="유입별 조회 (공유 포함)">
             <BarList items={s.bySrc} name={(k) => nameOf(SRC_NAMES, k)} />

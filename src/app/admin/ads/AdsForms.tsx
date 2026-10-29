@@ -18,7 +18,8 @@ export interface AdvOpt { id: number; name: string }
 
 const input = 'w-full rounded-md border border-gray-200 px-2 py-1.5 text-sm';
 const btn = 'px-3 py-1.5 rounded-md text-sm border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50';
-const btnMain = 'px-3 py-1.5 rounded-md text-sm bg-brown text-white hover:bg-brown/90 disabled:opacity-50';
+// 주 단추: 2026-10-30 마우스를 올리면 더 진한 갈색, 누르면 한 번 더 진하게
+const btnMain = 'px-3 py-1.5 rounded-md text-sm bg-brown text-white hover:bg-brown-hover active:bg-brown-press disabled:opacity-50';
 const won = (n: number) => `${n.toLocaleString('ko-KR')}원`;
 
 /** 관리자 API 호출 공용 — 실패하면 서버가 준 한국어 문구를 돌려준다 */
@@ -188,7 +189,8 @@ export function OrderActions({
     await act({ action: 'link', click_url: url, phone: tel });
   }
 
-  const b = 'px-2 py-1 rounded-md text-xs border border-gray-200 text-gray-600 hover:bg-gray-50 whitespace-nowrap disabled:opacity-50';
+  // 작은 단추: 2026-10-30 마우스를 올리면 바탕·테두리·글자가 함께 진해진다
+  const b = 'px-2 py-1 rounded-md text-xs border border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900 whitespace-nowrap disabled:opacity-50';
   return (
     <div className="flex flex-wrap items-center gap-1">
       {payStatus === 'pending' && (

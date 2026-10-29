@@ -1,0 +1,60 @@
+/* ──────────────────────────────────────────────
+   관리자 화면 공통 반응 규칙 — 2026-10-30
+   [무슨 기능인가]
+     관리자 틀(layout.tsx)의 .admin-scope 안에서만 적용된다. 사이트 다른 화면엔 영향 없음.
+     - 링크·단추·칩: 색이 0.15초 동안 부드럽게 바뀐다(움직이는 효과는 없음).
+     - 표 줄: 마우스를 올리면 바탕이 옅은 크림색이 된다.
+     - 본문 글자 링크: 마우스를 올리면 밑줄.
+     - 키보드(Tab)로 옮겨 가면 강조색 테두리 고리가 보인다.
+     - "움직임 줄이기"를 켠 사람에겐 전환 효과를 끈다.
+   ────────────────────────────────────────────── */
+
+/* 누를 수 있는 것들은 색·바탕·테두리·그림자 변화만 짧게 전환 */
+.admin-scope a,
+.admin-scope button,
+.admin-scope summary,
+.admin-scope input,
+.admin-scope select,
+.admin-scope textarea {
+  transition-property: color, background-color, border-color, box-shadow, opacity;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+
+/* 표 본문 줄: 마우스를 올리면 옅은 크림 바탕(어느 줄을 보는지 또렷하게) */
+.admin-scope tbody tr {
+  transition: background-color 150ms ease-out;
+}
+.admin-scope tbody tr:hover {
+  background-color: #faf6f0;
+}
+
+/* 본문 안의 글자 링크(둥근 단추·칩 모양 제외): 마우스를 올리면 밑줄 */
+.admin-scope main a:not([class*="rounded"]):hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* 단추가 눌릴 수 있을 때만 손가락 커서 */
+.admin-scope button:not(:disabled) {
+  cursor: pointer;
+}
+
+/* 키보드 초점 고리: 강조색 2px. 마우스 클릭 때는 안 보이고 Tab 으로 옮길 때만 보인다 */
+.admin-scope a:focus-visible,
+.admin-scope button:focus-visible,
+.admin-scope summary:focus-visible,
+.admin-scope [tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* 움직임 줄이기 설정을 켠 사람에겐 전환 효과 없음 */
+@media (prefers-reduced-motion: reduce) {
+  .admin-scope *,
+  .admin-scope *::before,
+  .admin-scope *::after {
+    transition: none !important;
+  }
+}

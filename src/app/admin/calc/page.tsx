@@ -28,7 +28,7 @@ export default async function CalcStatsPage({ searchParams }: { searchParams: Pr
               <Stat label="문의 단추 클릭" value={s.contacts} />
               <Stat label="하루 평균" value={Math.round(s.total / days)} />
             </div>
-            <DayBars data={s.byDay} />
+            <DayBars data={s.byDay} unit="회" />
           </Card>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card title="계산기별"><BarList items={s.byProcess} name={(k) => nameOf(PROCESS_NAMES, k)} /></Card>
