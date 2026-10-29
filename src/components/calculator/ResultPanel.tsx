@@ -105,6 +105,10 @@ export default function ResultPanel({ input, output, dispatch }: ResultPanelProp
         </div>
       </div>}
 
+      {/* AD-T: 토탈 인테리어 스폰서(2026-10-29) — 견적 결과 카드 바로 아래.
+          빈자리면 접혀서(광고 스위치 꺼짐 포함) 화면 변화 없음 */}
+      {!isEmpty && <AdSlot id="AD-T" />}
+
       {/* 공정별 비용 비중 */}
       {!isEmpty && (
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
