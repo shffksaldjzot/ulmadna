@@ -327,7 +327,9 @@ const ProcessToggles = forwardRef<{ expandAll: () => void; collapseAll: () => vo
                         {on && amt > 0 && <span className="text-sm font-bold text-gold">{formatWonExact(amt)}</span>}
                         <button
                           onClick={() => { dispatch({ type: 'TOGGLE_PROCESS', payload: proc.id }); if (!on) setExpandedIds(prev => new Set(prev).add(proc.id)); }}
-                          className={`w-9 h-5 rounded-full ${on ? 'bg-accent' : 'bg-gray-300'}`}
+                          // 2026-10-29: tap-44 — 스위치 모양(36×20) 그대로, 누르는 자리만 44px.
+                          // 이 줄은 위아래 여백 py-3(12px씩)이라 44px로 넓혀도 카드(overflow-hidden)에 잘리지 않는다
+                          className={`tap-44 w-9 h-5 rounded-full ${on ? 'bg-accent' : 'bg-gray-300'}`}
                         >
                           <div className={`w-4 h-4 bg-white rounded-full shadow mt-0.5 transition-transform ${on ? 'translate-x-4 ml-0.5' : 'ml-0.5'}`} />
                         </button>

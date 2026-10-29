@@ -109,9 +109,10 @@ export default function InputPanel({ input, output, dispatch }: InputPanelProps)
               <span className="text-[10px] text-gold tracking-widest font-medium">Step 02.</span>
               <span className="text-base font-bold text-brown">공정 세부 선택</span>
             </div>
+            {/* 2026-10-29: tap-44 — 글자(11px) 그대로, 누르는 자리만 44px(전에는 17px) */}
             <button
               onClick={handleToggleAll}
-              className="text-[11px] text-gray-400 hover:text-gold transition-colors"
+              className="tap-44 text-[11px] text-gray-400 hover:text-gold transition-colors"
             >
               {allExpanded ? '모두 접기' : '모두 펼치기'}
             </button>

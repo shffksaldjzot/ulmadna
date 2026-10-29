@@ -36,7 +36,9 @@ export const inputCls =
 
 /** 주 단추(강조색 알약) */
 export const primaryBtnCls =
-  'w-full h-[52px] rounded-chip bg-accent hover:bg-accent-press text-white text-[16px] font-bold inline-flex items-center justify-center disabled:opacity-50 transition-colors';
+  // 2026-10-29 폴리싱 묶음 A: 비활성(칸을 아직 안 채움)일 때 강조색을 반투명으로 흐린 옅은 살구색이라
+  // 눌릴 것처럼 보였다 → 회색 톤(테두리색 바탕 + 보조 글자색)으로. 비활성일 땐 호버해도 회색 유지(disabled:hover:)
+  'w-full h-[52px] rounded-chip bg-accent hover:bg-accent-press text-white text-[16px] font-bold inline-flex items-center justify-center disabled:bg-line disabled:hover:bg-line disabled:text-ink-2 disabled:cursor-not-allowed transition-colors';
 
 /** 이름표 + 칸 + 안내/오류 한 줄 */
 export function Field({
@@ -58,7 +60,7 @@ export function Field({
     <div className="flex flex-col gap-1.5">
       <span className="text-[14px] font-medium text-ink-2">
         {label}
-        {required === false && <b className="ml-1 text-[12.5px] font-semibold text-v1-text-disabled">선택</b>}
+        {required === false && <b className="ml-1 text-[12.5px] font-semibold text-ink-2">선택</b>}
       </span>
       {children}
       {error ? (
@@ -66,7 +68,8 @@ export function Field({
       ) : ok ? (
         <span className="text-[13px] text-safe">{ok}</span>
       ) : hint ? (
-        <span className="text-[13px] text-v1-text-disabled">{hint}</span>
+        // 2026-10-29: 안내 글자 흐린 색 → 보조 글자색(대비 확보)
+        <span className="text-[13px] text-ink-2">{hint}</span>
       ) : null}
     </div>
   );

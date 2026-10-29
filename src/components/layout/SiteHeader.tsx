@@ -28,8 +28,10 @@ import { openContactSheet } from '@/lib/contactSheet';
 const NAV_ITEMS: { href: string; label: string; match: (p: string) => boolean }[] = [
   { href: '/calc', label: '계산기', match: (p) => p.startsWith('/calc') },
   { href: '/blog', label: '블로그', match: (p) => p.startsWith('/blog') && !p.startsWith('/blog/my') },
-  // 2026년 10월 03일: "물어보기" 게시판 진입 메뉴(PC 전용 — 모바일 하단 탭은 그대로 둔다)
-  { href: '/ask', label: '물어보기', match: (p) => p.startsWith('/ask') },
+  // 2026년 10월 03일: "물어보기" 게시판 진입 메뉴
+  // 2026-10-29: 모바일 하단 탭 5번째 칸도 같은 이름 "물어보기"로 맞췄다(전에는 "문의").
+  //   활성 규칙도 하단 탭과 똑같이 — /ask 자체 또는 /ask/ 아래 주소(/askxxx 같은 엉뚱한 주소는 제외)
+  { href: '/ask', label: '물어보기', match: (p) => p === '/ask' || p.startsWith('/ask/') },
   // 2026-09-15: "내 글"이라고 하면 내가 직접 쓴 글로 오해할 수 있어서(블로그팀 수정과 동일 이유)
   // 라벨을 "본 글·저장"으로 맞췄다 — /blog/my 페이지 제목·공유 문구와 일치시킴
   { href: '/blog/my', label: '본 글·저장', match: (p) => p.startsWith('/blog/my') },
@@ -93,11 +95,12 @@ export default function SiteHeader() {
 
         {/* 우측: "문의" 알약(로그인 옆, 모바일도 항상 보임) + 로그인 상태에 따라 분기 */}
         <div className="flex-none flex items-center gap-3">
-          {/* 2026-09-16 형아 지시: 전역 문의 진입점 — 눌리면 공용 문의 시트(전화·카톡·서비스 보기)가 뜬다 */}
+          {/* 2026-09-16 형아 지시: 전역 문의 진입점 — 눌리면 공용 문의 시트(전화·카톡·서비스 보기)가 뜬다
+              2026-10-29: tap-44 — 보이는 높이 40px 그대로, 누르는 자리만 44px(globals.css) */}
           <button
             type="button"
             onClick={() => openContactSheet('header')}
-            className="t-sub font-semibold text-ink-2 border border-line rounded-chip h-10 px-4 inline-flex items-center hover:border-accent hover:text-accent transition-colors"
+            className="tap-44 t-sub font-semibold text-ink-2 border border-line rounded-chip h-10 px-4 inline-flex items-center hover:border-accent hover:text-accent transition-colors"
           >
             문의
           </button>
@@ -109,7 +112,8 @@ export default function SiteHeader() {
               <button
                 type="button"
                 onClick={() => signOut({ callbackUrl: '/' })}
-                className="t-sub text-ink-2 hover:text-ink"
+                // 2026-10-29: tap-44 — 글자 크기 그대로, 누르는 자리만 44px
+                className="tap-44 t-sub text-ink-2 hover:text-ink"
               >
                 로그아웃
               </button>
@@ -118,7 +122,8 @@ export default function SiteHeader() {
           ) : (
             <Link prefetch={false}
               href="/login"
-              className="t-sub font-semibold text-ink-2 border border-line rounded-chip h-10 px-4 inline-flex items-center hover:border-accent hover:text-accent transition-colors"
+              // 2026-10-29: tap-44 — 보이는 높이 40px 그대로, 누르는 자리만 44px
+              className="tap-44 t-sub font-semibold text-ink-2 border border-line rounded-chip h-10 px-4 inline-flex items-center hover:border-accent hover:text-accent transition-colors"
             >
               로그인
             </Link>

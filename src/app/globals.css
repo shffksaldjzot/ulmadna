@@ -89,6 +89,22 @@ body {
 .t-body { font-size: 15px; font-weight: 400; }
 .t-sub { font-size: 13px; font-weight: 400; }
 
+/* ── 터치 영역 44px 확보 (2026-10-29 폴리싱 묶음 A) ──
+   보이는 크기(글자·테두리·스위치)는 그대로 두고, 투명한 ::before를 가운데 기준으로
+   가로·세로 최소 44px까지 넓혀서 손가락으로 누를 수 있는 자리만 키운다.
+   ::before는 그 요소의 일부라 눌러도 같은 단추/링크가 눌린다. 화면에는 아무것도 안 그린다.
+   주의: 조상에 overflow:hidden이 있으면 넓힌 자리가 잘리므로, 주변에 44px 여유가 있는 곳에만 쓴다. */
+.tap-44 { position: relative; }
+.tap-44::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  transform: translate(-50%, -50%);
+}
+
 /* ── 계산기 "단계 흐름 2판"(flow/*) 전용 움직임 (2026-09-27 지시서) ──
    옛 튜토리얼식 단계 안내(StepFlow.tsx, 2026-09-16 도입)가 쓰던 step-flow-rise·
    step-flow-ring·step-flow-shake 키프레임과 .step-flow-enter 클래스는 도배·바닥재·

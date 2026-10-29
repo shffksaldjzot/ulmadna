@@ -153,7 +153,8 @@ export default function MyEstimatesPage() {
                     {est.input.basic.area}평 · {HOUSING_LABELS[est.input.basic.housingType] || ''} · {GRADE_LABELS[est.input.basic.grade] || ''}
                   </p>
                 </div>
-                <span className="text-[10px] text-ink-2/70">{formatDate(est.created_at)}</span>
+                {/* 2026-10-29: 날짜 10px·흐린 글자 → 12px·보조 글자색(읽기 쉽게) */}
+                <span className="text-[12px] text-ink-2">{formatDate(est.created_at)}</span>
               </div>
 
               <div className="flex items-baseline gap-2 mb-4">

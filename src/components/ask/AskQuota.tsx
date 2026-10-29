@@ -72,12 +72,35 @@ function useCountdown(resetAt: string | undefined, on: boolean): string {
   return on && resetAt && now != null ? untilText(resetAt, now) : '';
 }
 
-/** 남은 질문 한 줄(+ 내 몫 작은 글자) */
-export function AskQuotaLine({ quota }: { quota: Quota | null }) {
+/** 남은 질문 한 줄(+ 내 몫 작은 글자)
+ *  compact(2026-10-29, 목록 화면용): 작은 글자 줄 없이 딱 한 줄만.
+ *  내 몫을 다 썼으면(단추가 잠긴 이유) 그 한 줄을 "오늘 내 질문은 다 썼어요"로 바꿔 보여 준다. */
+export function AskQuotaLine({ quota, compact = false }: { quota: Quota | null; compact?: boolean }) {
   const globalZero = !!quota && quota.globalLeft === 0;
   const userZero = !!quota?.loggedIn && quota.left === 0;
   const countdown = useCountdown(quota?.resetAt, globalZero || userZero);
   if (!quota) return null;
+  // 한 줄 모드 — 전체 마감 > 내 몫 소진 > 남은 수 순서로 하나만 보여 준다
+  if (compact)
+    return (
+      <div className="ask-quota" role="status">
+        <p className="main">
+          {globalZero ? (
+            <>
+              <b>오늘 접수 마감</b> · 내일 00:00까지 {countdown || '…'}
+            </>
+          ) : userZero ? (
+            <>
+              <b>오늘 내 질문은 다 썼어요</b> · 내일 00:00까지 {countdown || '…'}
+            </>
+          ) : (
+            <>
+              오늘 남은 질문 <b>{quota.globalLeft}개</b> · 00:00에 다시 {quota.globalLimit}개
+            </>
+          )}
+        </p>
+      </div>
+    );
   return (
     <div className="ask-quota" role="status">
       <p className="main">

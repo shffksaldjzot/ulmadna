@@ -41,7 +41,8 @@ export default async function AskListPage() {
 
   return (
     <AskShell>
-      <main className="app">
+      {/* 2026-10-29 폴리싱 묶음 A: ask-list — 목록 화면에서만 강조색을 질문하기 단추 하나로 줄이는 꾸미기(ask.css) */}
+      <main className="app ask-list">
         {/* 머리: 이 게시판이 무엇인지 한 줄. AI 표기와 데이터 근거를 숨기지 않는다 */}
         <div className="bhead">
           <div className="eyebrow">얼마드나 물어보기</div>
@@ -50,10 +51,10 @@ export default async function AskListPage() {
             {/* PC 제목 오른쪽 질문하기(오늘 남은 질문이 0개면 눌리지 않음) */}
             <AskListActions variant="title" />
           </div>
-          <p className="lead">AI가 얼마드나 빅데이터로 통상 단가와 적정 여부를 답해요</p>
-          {/* 형아 결정: "실시간 아님 · 5~10분"을 작은 글자에서 꺼내 강조색 알약으로 한 줄 */}
-          <p className="ask-notice">실시간 답변이 아니에요 · 자료를 찾아 보느라 5~10분 걸려요</p>
-          {/* 오늘 남은 질문(전체 10개 선착순 · 내 몫 1개) — 본문 크기, 숫자 강조색 */}
+          {/* 2026-10-29: 안내 4겹(소개문·알약 배너·남은 질문·로그인 안내) → 소개문 1줄 + 남은 질문 1줄.
+              "실시간 아님 · 5~10분" 알약은 빼고 걸리는 시간만 소개문 끝에 붙였다(휴대폰 한 줄에 들어가게 짧게) */}
+          <p className="lead">실제 견적서로 AI가 답해요 · 5~10분 걸려요</p>
+          {/* 오늘 남은 질문 한 줄만(로그인 안내 작은 글자는 목록에선 뺌) */}
           <AskListActions variant="quota" />
           <hr />
         </div>

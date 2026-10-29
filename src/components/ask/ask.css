@@ -9,7 +9,8 @@
    ============================================================ */
 .ask-scope{
   /* 시안의 보조 이름 → 기존 토큰에 연결(값은 시안과 같다) */
-  --ink-3:var(--v1-text-disabled);   /* #A79C90 흐린 글자 */
+  /* 2026-10-29 폴리싱 묶음 A: 흐린 글자(#A79C90)가 크림 바탕에서 대비가 낮아(날짜·조회수·안내) 보조 글자 최소 --ink-2로 올림 */
+  --ink-3:var(--ink-2);
   --line-2:var(--v1-line-2);         /* #EFE7DC 안쪽 구분선 */
   --soft:var(--v1-card-soft);        /* #FAF7F3 옅은 면 */
   --accent-wash:color-mix(in srgb, var(--accent) 10%, white); /* 강조색 옅은 바탕 */
@@ -44,7 +45,7 @@
 .ask-scope .bhead .h1row .ask-btn-pc{margin-left:auto;margin-bottom:8px}
 .ask-scope .bhead .lead{font-size:16px;color:var(--ink-2);margin:0 0 18px}
 .ask-scope .bhead hr{border:0;border-top:1px solid var(--line);margin:0 0 18px}
-.ask-scope .sub{display:flex;align-items:center;gap:6px;padding:16px 20px 0;font-size:15px;color:var(--accent);font-weight:600;flex-wrap:wrap}
+.ask-scope .sub{display:flex;align-items:center;gap:6px;padding:16px 20px 0;font-size:15px;color:var(--brown);font-weight:600;flex-wrap:wrap} /* 2026-10-29: 뒤로가기 줄 강조색 → 갈색 */
 .ask-scope .sub a{display:inline-flex;align-items:center;gap:2px}
 .ask-scope .sub .cur{color:var(--ink-2);font-weight:400}
 
@@ -79,7 +80,7 @@
 .ask-scope .q:active{background:var(--soft)}
 .ask-scope .q .tags{display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
 .ask-scope .tag{font-size:12.5px;font-weight:600;color:var(--ink-2);background:var(--soft);border:1px solid var(--line-2);padding:3px 10px;border-radius:999px}
-.ask-scope .tag.ans{color:#fff;background:var(--accent);border-color:var(--accent)}
+.ask-scope .tag.ans{color:var(--brown);background:var(--v1-badge-gold-bg);border-color:var(--line)} /* 2026-10-29: "AI 답변" 표시는 강조색 채움 → 갈색 글자(목록 카드·글 상세 공용, 강조색 한 화면 하나 규칙) */
 .ask-scope .tag.wait{color:var(--ink-2);background:var(--surface);border:1px dashed var(--line)}
 .ask-scope .tag.mine{color:var(--green);background:color-mix(in srgb, var(--green) 10%, white);border-color:color-mix(in srgb, var(--green) 22%, white)}
 .ask-scope .q .ttl{font-size:18px;font-weight:700;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -115,7 +116,7 @@
 .ask-scope .post .tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .ask-scope .post h1{margin:0 0 10px;font-size:26px;font-weight:800;line-height:1.35;letter-spacing:-.01em}
 .ask-scope .post .meta{display:flex;gap:8px;align-items:center;font-size:15px;color:var(--ink-2);flex-wrap:wrap}
-.ask-scope .post .meta .rt{height:34px;padding:0 12px;border-radius:999px;background:var(--accent-wash);color:var(--accent);font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:4px}
+.ask-scope .post .meta .rt{height:34px;padding:0 12px;border-radius:999px;background:var(--soft);border:1px solid var(--line-2);color:var(--ink-2);font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:4px} /* 2026-10-29: "AI 답변 N분" 강조색 → 회색 칩 */
 .ask-scope .post .acts{display:flex;gap:10px;margin:16px 0 0}
 .ask-scope .post .acts button{width:52px;height:52px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--ink-2)}
 .ask-scope .post .acts button.on{color:var(--accent);border-color:var(--accent)}
@@ -133,7 +134,7 @@
 .ask-scope .av-ai{width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:800;line-height:1;text-align:center;flex:none}
 .ask-scope .answer .who b{font-size:16px;display:block}
 .ask-scope .answer .who small{font-size:13px;color:var(--ink-3)}
-.ask-scope .answer .badge{margin-left:auto;font-size:12.5px;font-weight:600;color:var(--accent);background:var(--accent-wash);padding:5px 10px;border-radius:999px}
+.ask-scope .answer .badge{margin-left:auto;font-size:12.5px;font-weight:600;color:var(--brown);background:var(--v1-badge-gold-bg);padding:5px 10px;border-radius:999px} /* 2026-10-29: "견적서 N건 기준" 강조색 → 갈색 */
 .ask-scope .answer .body{font-size:16px;line-height:1.7}
 .ask-scope .answer .body p{margin:0 0 10px}
 .ask-scope .answer .body ul,.ask-scope .answer .body ol{margin:0 0 10px;padding-left:20px}
@@ -255,10 +256,29 @@
 .ask-toast{position:fixed;left:50%;bottom:calc(57px + 80px);transform:translateX(-50%) translateY(8px);background:var(--ink);color:#fff;font-size:14px;padding:11px 18px;border-radius:999px;opacity:0;transition:.2s;z-index:60;pointer-events:none;white-space:nowrap}
 .ask-toast.on{opacity:1;transform:translateX(-50%)}
 
+/* ---------- 글 상세 강조색 정리 (2026-10-29 폴리싱 묶음 A) ----------
+   글 상세에서 강조색은 AI 답변 카드 테두리 하나만. 답변 카드 안 아바타는 갈색 채움으로
+   (블로그 글 끝 "질문하기" 카드의 아바타는 그대로 두려고 .answer 안에서만 바꾼다) */
+.ask-scope .answer .av-ai{background:var(--brown)}
+
+/* ---------- 목록 화면 강조색 정리 (2026-10-29 폴리싱 묶음 A) ----------
+   목록에서 강조색은 "질문하기" 단추 하나만. 나머지 강조 자리는 갈색·회색 토큰으로 */
+.ask-scope .ask-list .bhead .eyebrow{color:var(--brown)}                       /* "얼마드나 물어보기" 라벨 */
+.ask-scope .ask-list .bhead .lead{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} /* 소개문은 한 줄(넘치면 말줄임) */
+.ask-scope .ask-list .ask-quota{margin-bottom:18px}
+.ask-scope .ask-list .ask-quota .main b{color:var(--ink);font-weight:800}       /* 남은 질문 숫자: 진한 글자 */
+.ask-scope .ask-list .why .tick{color:var(--brown)}                            /* 빅데이터 "▲ +N" */
+.ask-scope .ask-list .chip.on{background:var(--brown);border-color:var(--brown)} /* 활성 말머리 칩: 갈색 채움 */
+.ask-scope .ask-list .chips-sub .chip.sm.sel{background:var(--v1-badge-gold-bg);border-color:var(--brown);color:var(--brown)} /* 활성 공정 칩 */
+/* 떠 있는 "질문하기"(오른쪽 아래)가 칩 줄 끝을 가리지 않게 — 휴대폰에서 칩 줄 끝에 단추 폭만큼 빈 자리를 둬서
+   마지막 칩까지 밀어 보면 단추 왼쪽으로 나오게 한다 */
+.ask-scope .ask-list .chips::after{content:"";flex:none;width:136px}
+
 /* ---------- PC: 2열(본문 700 + 오른쪽 300) ---------- */
 @media (min-width:1024px){
   .ask-scope{--tab-h:0px}
   .ask-scope .fab,.ask-scope .mini-ask{display:none}
+  .ask-scope .ask-list .chips::after{display:none} /* PC는 떠 있는 단추가 없어 빈 자리도 필요 없음 */
   .ask-scope .ask-btn-pc{display:inline-flex;width:auto;padding:0 22px;height:48px}
   .ask-scope .list-top{margin:0 0 12px}
   .ask-scope .write-note{margin-left:2px}
