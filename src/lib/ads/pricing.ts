@@ -57,7 +57,7 @@ export const CALC_AD_PROCESS = {
   wallpaper: '도배·바닥',
   flooring: '도배·바닥',
   tile: '타일',
-  mortar: '미장',
+  mortar: '확장·설비', // 2026-10-29: 홈 공정 목록에 미장이 없어 블로그 판정(blog-process)과 같은 '확장·설비'로 통일 — 홈·계산기·블로그 세 곳이 같은 광고주
 } as const;
 
 export const VAT_RATE = 0.1;
