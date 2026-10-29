@@ -308,10 +308,12 @@ export interface ServedAd {
   desktopImageUrl: string | null;
   href: string; // 서버 경유 클릭 주소
   name: string;
+  /** 주문에 적힌 전화 번호(없으면 null) — 견적서 PDF 추천 줄(토탈 인테리어 스폰서)에 쓴다 */
+  phone: string | null;
 }
 
 /** 게재 중 후보 목록을 60초 동안 서버 메모리에 담아 DB 부담을 줄인다 */
-const cache = new Map<string, { at: number; list: { id: number; banner_path: string; desktop_path: string | null; name: string }[] }>();
+const cache = new Map<string, { at: number; list: { id: number; banner_path: string; desktop_path: string | null; name: string; phone: string | null }[] }>();
 const CACHE_MS = 60_000;
 
 /** 방문자 시도·자리에 맞는 게재 중 배너 한 개를 돌려 고른다. 없거나 실패하면 null(화면 변화 없음) */
@@ -326,7 +328,7 @@ export async function serveAd(kind: SlotKind, sido: string, process: string | nu
       if (!data || fromDbSlot(String(data.slot_kind), data.process) !== kind || !data.banner_path) return null;
       const url = bannerUrl(sb, data.banner_path);
       const pc = bannerUrl(sb, (data as AdOrder).banner_desktop_path ?? null);
-      return url ? { id: previewId, imageUrl: url, desktopImageUrl: pc, href: '#', name: '광고 미리보기' } : null;
+      return url ? { id: previewId, imageUrl: url, desktopImageUrl: pc, href: '#', name: '광고 미리보기', phone: (data as AdOrder).phone ?? null } : null;
     }
     const today = kstToday();
     // DB 조회 값: AD-T 는 AD-P + '토탈 인테리어'
@@ -338,7 +340,7 @@ export async function serveAd(kind: SlotKind, sido: string, process: string | nu
       const query = (withPc: boolean) => {
         let q = sb
           .from('ad_orders')
-          .select(withPc ? 'id,banner_path,banner_desktop_path,advertisers(name)' : 'id,banner_path,advertisers(name)')
+          .select(withPc ? 'id,banner_path,banner_desktop_path,phone,advertisers(name)' : 'id,banner_path,phone,advertisers(name)')
           .eq('slot_kind', db.slot_kind)
           // 방문자 시도 주문 + '전국'(ALL) 주문을 함께 후보로(전국은 지역과 상관없이 매칭)
           .in('sido', [sido, SIDO_ALL])
@@ -358,7 +360,7 @@ export async function serveAd(kind: SlotKind, sido: string, process: string | nu
         const adv = (r as unknown as { advertisers?: { name?: string } | { name?: string }[] }).advertisers;
         const name = Array.isArray(adv) ? adv[0]?.name : adv?.name;
         const pc = r.banner_desktop_path;
-        return { id: Number(r.id), banner_path: String(r.banner_path), desktop_path: typeof pc === 'string' && pc ? pc : null, name: name ?? '광고' };
+        return { id: Number(r.id), banner_path: String(r.banner_path), desktop_path: typeof pc === 'string' && pc ? pc : null, name: name ?? '광고', phone: typeof r.phone === 'string' && r.phone ? r.phone : null };
       });
       hit = { at: Date.now(), list };
       cache.set(key, hit);
@@ -370,7 +372,7 @@ export async function serveAd(kind: SlotKind, sido: string, process: string | nu
     if (!url) return null;
     // 노출 +1 (실패해도 광고는 보여 준다)
     void sb.rpc('ads_bump', { p_order: pick.id, p_imp: 1, p_click: 0 }).then(() => undefined, () => undefined);
-    return { id: pick.id, imageUrl: url, desktopImageUrl: bannerUrl(sb, pick.desktop_path), href: `/api/ad-click?o=${pick.id}`, name: pick.name };
+    return { id: pick.id, imageUrl: url, desktopImageUrl: bannerUrl(sb, pick.desktop_path), href: `/api/ad-click?o=${pick.id}`, name: pick.name, phone: pick.phone };
   } catch {
     return null;
   }
