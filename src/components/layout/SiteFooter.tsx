@@ -84,7 +84,8 @@ export default function SiteFooter() {
             얼마드나의 견적은 참고용 예상 금액입니다. 시공 전 업체의 사업자·건설업 등록 여부를 꼭 확인하세요.
           </p>
           {/* 사업자 정보(결제사 심사 대비) — 정본은 src/lib/business.ts */}
-          <BusinessInfo className="max-w-[560px] text-[12px]" />
+          {/* 2026-10-29 형아 요청: 푸터에선 접어서 한 줄만(누르면 펼침) */}
+          <BusinessInfo className="max-w-[560px] text-[12px]" collapsed />
           <p className="t-sub text-ink-2/70">© 2026 도토리 스튜디오 · 얼마드나</p>
         </Container>
       </footer>
