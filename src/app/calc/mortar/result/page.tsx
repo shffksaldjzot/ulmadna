@@ -158,9 +158,10 @@ function formatCostLineAmount(line: {
     const manPrice = toMan(line.unitPriceMin);
     const manAmount = toMan(line.amountMin);
     if (manPrice === 0) {
-      return manAmount === 0 ? '1만 미만' : `${manAmount}만`;
+      // 2026-10-29: 금액 표기 통일 — "만" 뒤에 "원"까지 붙인다(계산기 화면과 같은 규칙)
+      return manAmount === 0 ? '1만원 미만' : `${formatNum(manAmount)}만원`;
     }
-    return `${formatNum(line.qty)}${line.unit} × ${manPrice}만 = ${manAmount}만`;
+    return `${formatNum(line.qty)}${line.unit} × ${formatNum(manPrice)}만원 = ${formatNum(manAmount)}만원`;
   }
   return formatWonRange(line.amountMin, line.amountMax);
 }
