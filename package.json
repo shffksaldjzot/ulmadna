@@ -11,6 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@portone/browser-sdk": "^0.1.13",
     "@supabase/supabase-js": "^2.101.1",
     "@vercel/analytics": "^2.0.1",
     "bcryptjs": "^3.0.3",
