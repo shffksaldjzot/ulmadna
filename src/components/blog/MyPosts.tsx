@@ -145,7 +145,7 @@ export function MyPosts({ posts }: { posts: MyPostMeta[] }) {
                 <Link href={`/blog/${item.slug}`} className="mypost-item-link">
                   {meta?.thumbnail ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={meta.thumbnail} alt={meta.title} />
+                    <img src={meta.thumbnail} alt={meta.title} loading="lazy" decoding="async" />
                   ) : (
                     <span className="mypost-item-noimg" aria-hidden="true">얼마드나</span>
                   )}

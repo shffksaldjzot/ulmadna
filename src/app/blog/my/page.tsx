@@ -23,7 +23,7 @@ export default function MyBlogPage() {
     slug: p.slug,
     title: p.title,
     date: p.date,
-    thumbnail: p.thumbnail,
+    thumbnail: p.thumbSmall ?? p.thumbnail, // 64px 칸이라 작은 썸네일로(2026년 10월 29일)
     category: p.cats.length > 0 ? getCategory(p.cats[0])?.label ?? "" : "",
   }));
 

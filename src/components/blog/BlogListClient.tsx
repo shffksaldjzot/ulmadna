@@ -7,7 +7,9 @@
 // 그래서 검색·필터는 서버를 다시 부르지 않고 브라우저 안에서 즉시 끝납니다.
 //
 // 화면 규칙
-//  - 아무것도 안 걸렀을 때: 맨 위 큰 카드(최신글) + 그 아래 18편씩 "더보기"
+//  - 아무것도 안 걸렀을 때: 맨 위 큰 카드(최신글) + 그 아래 11편 = 첫 화면 12편, 이후 12편씩 "더보기"
+//    (2026-10-29: 예전 첫 화면 19편 → 휴대폰 목록이 1만 1천 px 넘게 길어서 12편으로 줄임)
+//    화면에 아직 안 펼친 글도 검색엔진이 따라갈 수 있게, 그 글들의 링크는 숨긴 목록으로 HTML 에 남긴다
 //  - 검색/칩을 쓴 순간: 큰 카드 없이 걸린 글 전부 한 번에 표시(더보기 없음)
 // ──────────────────────────────────────────────
 
@@ -17,14 +19,18 @@ import type { PostIndexItem } from "@/lib/blog";
 import { BLOG_CATEGORIES } from "@/lib/blog-categories";
 import { matchesQuery, normalizeKo } from "@/lib/blog-search";
 import { PostCard, fmtDate } from "./PostCard";
+// 검색창 돋보기 — 컬러 이모지 대신 단색 선 아이콘(2026년 10월 29일)
+import { SearchIcon } from "./LineIcons";
 
+/** 첫 화면 격자에 깔리는 글 수(맨 위 큰 카드 1편은 따로라 첫 화면 합계 12편) */
+const FIRST_GRID = 11;
 /** "더보기" 한 번에 더 나오는 글 수 */
-const PAGE_SIZE = 18;
+const PAGE_SIZE = 12;
 
 export function BlogListClient({ posts }: { posts: PostIndexItem[] }) {
   const [q, setQ] = useState(""); // 검색창에 친 글자
   const [cat, setCat] = useState(""); // 고른 카테고리 id (빈 값 = 전체)
-  const [visible, setVisible] = useState(PAGE_SIZE); // 지금까지 펼친 글 수
+  const [visible, setVisible] = useState(FIRST_GRID); // 지금까지 펼친 글 수(큰 카드 제외)
   const [ready, setReady] = useState(false); // 주소창(URL) 값을 다 읽었는지
 
   // 주소창의 ?cat= / ?q= 를 화면에 반영.
@@ -58,7 +64,7 @@ export function BlogListClient({ posts }: { posts: PostIndexItem[] }) {
   const pickCat = (id: string) => {
     const next = cat === id ? "" : id; // 같은 칩 다시 누르면 해제
     setCat(next);
-    setVisible(PAGE_SIZE);
+    setVisible(FIRST_GRID);
     const sp = new URLSearchParams(window.location.search);
     if (next) sp.set("cat", next);
     else sp.delete("cat");
@@ -97,7 +103,7 @@ export function BlogListClient({ posts }: { posts: PostIndexItem[] }) {
       {/* 검색창 — 안내문 없이 placeholder 한 줄로 */}
       <div className="blog-search">
         <span className="blog-search-icon" aria-hidden="true">
-          🔍
+          <SearchIcon size={17} />
         </span>
         <input
           type="search"
@@ -206,13 +212,25 @@ export function BlogListClient({ posts }: { posts: PostIndexItem[] }) {
         </div>
       )}
 
-      {/* 더보기 — 18편씩 추가 */}
+      {/* 더보기 — 12편씩 추가 */}
       {hasMore && (
         <div className="blog-more">
           <button type="button" className="blog-more-btn" onClick={() => setVisible((v) => v + PAGE_SIZE)}>
             더보기 <span className="blog-more-left">{posts.length - 1 - visible}편 남음</span>
           </button>
         </div>
+      )}
+
+      {/* 아직 안 펼친 글들의 링크 — 화면엔 안 보이고(hidden) HTML 에만 남겨 검색엔진이 따라가게 한다.
+          Next 링크(Link) 대신 보통 <a>를 써서, 보이지 않는 링크까지 미리 읽기(prefetch)하는 일이 없게 했다 */}
+      {hasMore && (
+        <nav hidden aria-hidden="true">
+          {posts.slice(1 + visible).map((p) => (
+            <a key={p.slug} href={`/blog/${p.slug}`} tabIndex={-1}>
+              {p.title}
+            </a>
+          ))}
+        </nav>
       )}
     </>
   );

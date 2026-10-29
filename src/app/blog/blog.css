@@ -42,7 +42,7 @@
 /* 히어로 — 따뜻한 톤 밴드 + 액센트 오버라인 */
 .blog-hero{padding:44px 0 30px;margin-bottom:34px;border-bottom:1px solid var(--beige-200);position:relative;}
 .blog-hero::before{content:"얼마드나 블로그";display:inline-block;font-size:12.5px;font-weight:800;
-  letter-spacing:.08em;color:var(--accent);margin-bottom:12px;}
+  letter-spacing:.08em;color:var(--brown-500);margin-bottom:12px;} /* 2026-10-29: 강조색→갈색(첫 화면 강조색은 활성 칩 하나만) */
 .blog-hero h1{font-size:36px;font-weight:800;color:var(--brown-700);letter-spacing:-0.035em;word-break:keep-all;line-height:1.15;}
 .blog-hero p{margin-top:12px;font-size:15.5px;color:var(--ink-2);line-height:1.55;}
 .blog-empty{padding:60px 0;text-align:center;color:var(--ink-3);font-size:15px;}
@@ -53,7 +53,7 @@
   border:1.5px solid var(--beige-200);border-radius:999px;padding:0 16px;height:48px;
   margin-bottom:14px;transition:border-color .15s,box-shadow .15s;}
 .blog-search:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(192,97,58,.12);}
-.blog-search-icon{font-size:14px;line-height:1;flex:none;opacity:.55;}
+.blog-search-icon{display:inline-flex;line-height:1;flex:none;color:var(--ink-3);} /* 선 아이콘 색 = 흐린 글자색 */
 .blog-search-input{flex:1;border:none;outline:none;background:transparent;font:inherit;
   font-size:15px;color:var(--ink);min-width:0;}
 .blog-search-input::placeholder{color:var(--ink-3);}
@@ -120,9 +120,10 @@
   -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
 .blog-card-body{padding:18px 18px 20px;display:flex;flex-direction:column;gap:7px;flex:1;}
 /* 태그 — 박스 칩 대신 깔끔한 액센트 오버라인 */
-.blog-card-tag{align-self:flex-start;font-size:11.5px;font-weight:800;color:var(--accent);
+/* 2026-10-29: 강조색→갈색 글자(첫 화면 강조색은 활성 칩 하나만) */
+.blog-card-tag{align-self:flex-start;font-size:11.5px;font-weight:800;color:var(--brown-600);
   letter-spacing:.02em;text-transform:none;}
-.blog-card-body h2{font-size:18px;font-weight:800;color:var(--ink);line-height:1.42;letter-spacing:-0.02em;word-break:keep-all;}
+.blog-card-body h2{font-size:18px;font-weight:800;color:var(--ink);line-height:1.42;letter-spacing:-0.01em;word-break:keep-all;} /* 2026-10-29: 자간 완화 */
 .blog-card-desc{font-size:13.5px;color:var(--ink-2);line-height:1.6;flex:1;margin-top:1px;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .blog-card-date{font-size:12px;color:var(--ink-3);margin-top:6px;padding-top:12px;border-top:1px solid var(--beige-100);}
@@ -136,9 +137,11 @@
 .blog-featured-thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s;}
 .blog-featured:hover .blog-featured-thumb img{transform:scale(1.04);}
 .blog-featured-body{padding:30px 32px;display:flex;flex-direction:column;gap:10px;justify-content:center;}
-.blog-featured-badge{align-self:flex-start;font-size:11px;font-weight:800;color:#fff;background:var(--accent);
-  padding:4px 11px;border-radius:999px;letter-spacing:.03em;}
-.blog-featured-body h2{font-size:25px;font-weight:800;color:var(--ink);line-height:1.32;letter-spacing:-0.03em;word-break:keep-all;}
+/* "최신 글" 알약 — 2026-10-29: 강조색 꽉 찬 알약 → 베이지 바탕 갈색 글자(글 태그 칩과 같은 톤) */
+.blog-featured-badge{align-self:flex-start;font-size:11px;font-weight:800;color:var(--brown-700);background:var(--beige-100);
+  border:1px solid var(--beige-200);padding:4px 11px;border-radius:999px;letter-spacing:.03em;}
+/* 2026-10-29: 자간 -0.03em → -0.015em 완화(굵은 여러 줄 제목 뭉침), 줄 간격 살짝 넓힘 */
+.blog-featured-body h2{font-size:25px;font-weight:800;color:var(--ink);line-height:1.36;letter-spacing:-0.015em;word-break:keep-all;}
 .blog-featured-desc{font-size:14.5px;color:var(--ink-2);line-height:1.65;word-break:keep-all;
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
 
@@ -229,16 +232,21 @@
 .blog-back{display:inline-block;font-size:13.5px;font-weight:700;color:var(--brown-600);text-decoration:none;margin-bottom:20px;}
 .blog-back:hover{color:var(--accent);}
 .blog-post-head{margin-bottom:24px;}
-.blog-post-tags{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;}
-.blog-post-tag{font-size:11.5px;font-weight:700;color:var(--brown-600);background:var(--beige-100);
+/* 태그 칩 — 한 줄 고정(2026-10-29). 예전엔 줄바꿈(wrap)돼 휴대폰에서 2줄(약 100px)을 먹고 제목을 밀어냈다.
+   이제 넘치면 옆으로 밀어 보는 가로 스크롤(스크롤 막대는 숨김), 칩 글자도 줄바꿈 안 함 */
+.blog-post-tags{display:flex;gap:7px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;margin-bottom:14px;}
+.blog-post-tags::-webkit-scrollbar{display:none;}
+.blog-post-tag{flex:none;white-space:nowrap;font-size:11.5px;font-weight:700;color:var(--brown-600);background:var(--beige-100);
   border:1px solid var(--beige-200);padding:4px 11px;border-radius:999px;}
-.blog-post-head h1{font-size:30px;font-weight:800;color:var(--ink);line-height:1.35;letter-spacing:-0.03em;word-break:keep-all;}
+/* 2026-10-29: 굵은 여러 줄 제목이 뭉쳐 보여 자간 -0.03em → -0.01em 로 완화 */
+.blog-post-head h1{font-size:30px;font-weight:800;color:var(--ink);line-height:1.38;letter-spacing:-0.01em;word-break:keep-all;}
 .blog-post-meta{margin-top:12px;font-size:13.5px;color:var(--ink-3);display:flex;align-items:center;flex-wrap:wrap;}
 .blog-readtime-badge{margin-left:9px;font-size:12.5px;font-weight:800;color:var(--accent);
   background:#F6E7DD;padding:4px 11px;border-radius:999px;}
 .blog-readtime{color:var(--brown-600);font-weight:700;}
 .blog-post-cover{border-radius:14px;overflow:hidden;margin-bottom:32px;border:1px solid var(--beige-200);}
-.blog-post-cover img{width:100%;display:block;}
+.blog-post-cover img{width:100%;height:auto;display:block;} /* height:auto = width/height 속성 비율대로 자리 미리 잡기(CLS 방지) */
 
 .blog-body{font-size:16.5px;line-height:1.85;color:var(--ink);word-break:keep-all;overflow-wrap:break-word;letter-spacing:-0.01em;}
 .blog-body h2{font-size:23px;font-weight:800;color:var(--brown-700);margin:42px 0 16px;letter-spacing:-0.02em;}
@@ -250,7 +258,7 @@
 /* 외부 링크(새 탭) — 어른들도 알아보게 화살표 + 새탭 표시 */
 .blog-body a[target="_blank"]::after{content:" ↗";font-size:.85em;vertical-align:0.1em;color:var(--accent);}
 .blog-body strong{font-weight:800;color:var(--brown-700);}
-.blog-body img{width:100%;border-radius:12px;margin:28px 0 6px;border:1px solid var(--beige-200);}
+.blog-body img{width:100%;height:auto;border-radius:12px;margin:28px 0 6px;border:1px solid var(--beige-200);} /* height:auto = 비율 유지 */
 /* 사진/도해 바로 밑 캡션 — 이미지 다음 줄에 *기울임* 한 줄로 적으면 작은 회색 설명으로 */
 .blog-body p > em:only-child{display:block;text-align:center;font-size:13px;line-height:1.55;
   color:var(--ink-3);margin:-2px 0 26px;}

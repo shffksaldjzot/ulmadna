@@ -41,7 +41,7 @@ export function RecentViewedStrip({ posts }: { posts: SlimPost[] }) {
           <Link key={p.slug} href={`/blog/${p.slug}`} className="blog-recent-card">
             {p.thumbnail ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={p.thumbnail} alt={p.title} />
+              <img src={p.thumbnail} alt={p.title} loading="lazy" decoding="async" />
             ) : (
               <span className="blog-recent-noimg" aria-hidden="true">얼마드나</span>
             )}

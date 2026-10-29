@@ -21,8 +21,11 @@ export function PostCard({ post }: { post: PostMeta }) {
     <Link href={`/blog/${post.slug}`} className="blog-card">
       <div className="blog-card-thumb">
         {post.thumbnail ? (
+          // 작은 썸네일(480px webp, 없으면 원본) + 화면 근처에 와서야 받기(lazy).
+          // lazy 를 붙이면 React 가 이 그림을 "미리 받기(preload)" 목록에 넣지 않아서,
+          // 다른 화면이 이 글로 가는 링크를 미리 읽을 때 그림까지 줄줄이 받아오는 일도 없어진다.
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={post.thumbnail} alt={post.title} />
+          <img src={post.thumbSmall ?? post.thumbnail} alt={post.title} width={480} height={288} loading="lazy" decoding="async" />
         ) : (
           <span className="blog-card-noimg">얼마드나</span>
         )}

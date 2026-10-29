@@ -17,6 +17,9 @@ import rehypeRaw from "rehype-raw";
 import rehypeStringify from "rehype-stringify";
 import { detectCategories, normalizeKo } from "./blog-categories";
 
+// 작은 썸네일 주소 고르기(파일이 있을 때만 작은 것, 2026년 10월 29일)
+import { smallThumb } from "./blog-image";
+
 const BLOG_DIR = path.join(process.cwd(), "content", "blog");
 
 export interface FaqItem {
@@ -34,6 +37,9 @@ export interface PostMeta {
   // 아직 한 번도 안 고친 글은 null — 예전 글에는 아무 영향이 없습니다.
   updated: string | null;
   thumbnail: string | null;
+  // 목록 카드·관련 글처럼 작게 보이는 자리용 작은 썸네일(480px webp). 없으면 thumbnail 과 같음.
+  // (빌드 전 scripts/gen-blog-thumbs.mjs 가 만듦, 2026년 10월 29일 폴리싱 묶음 C)
+  thumbSmall: string | null;
   tags: string[];
   readingTime: number; // 예상 읽기 시간(분)
   // 비공개(초안) 글 여부 — 프런트매터에 `draft: true` 라고 적으면 켜집니다.
@@ -112,6 +118,7 @@ function readMeta(file: string): PostMeta {
     date: data.date ?? "",
     updated: data.updated ?? null, // 프런트매터에 updated가 없으면 null
     thumbnail: data.thumbnail ?? null,
+    thumbSmall: smallThumb(data.thumbnail ?? null), // 작은 썸네일(없으면 원본 주소)
     tags: Array.isArray(data.tags) ? data.tags : [],
     readingTime: calcReadingTime(content),
     draft: data.draft === true, // 프런트매터에 draft: true 라고 적힌 글만 비공개 처리
@@ -325,6 +332,7 @@ export async function getPost(slug: string): Promise<Post | null> {
     date: data.date ?? "",
     updated: data.updated ?? null, // 시세 갱신 봇이 적어주는 "마지막 손본 날"
     thumbnail: data.thumbnail ?? null,
+    thumbSmall: smallThumb(data.thumbnail ?? null), // 작은 썸네일(없으면 원본 주소)
     tags: Array.isArray(data.tags) ? data.tags : [],
     draft: data.draft === true, // 비공개(검토용) 글이면 상세 페이지에서 noindex 처리
     noindex: data.noindex === true, // 공개 유지 + 검색 제외
