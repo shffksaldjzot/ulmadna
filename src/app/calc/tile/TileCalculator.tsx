@@ -75,6 +75,7 @@ import FlowShell from '../_components/flow/FlowShell';
 import AdjustChips from '../_components/flow/AdjustChips';
 import BottomBar from '../_components/flow/BottomBar';
 import { useFlowSteps } from '../_components/flow/useFlowSteps';
+import { useResultReveal } from '../_components/flow/useResultReveal';
 import { useFlowBackNav } from '../_components/flow/useFlowBackNav';
 import { loadSessionState, saveSessionState } from '../_components/flow/sessionPersist';
 import type { AdjustChipGroup, FlowStepDef } from '../_components/flow/types';
@@ -600,13 +601,16 @@ export default function TileCalculator() {
 
   // 광고 자리를 보일지 — 치수를 넣기 전(금액 숨김 상태)이나 결과가 없을 때는 자리도 숨긴다(2026-10-29)
   const adsShown = !!result && !areaPending;
+  // 2026-10-29: 마지막 단계까지 끝나고 금액 결과가 처음 보일 때 한 번, 결과 카드로 부드럽게 옮긴다
+  useResultReveal(resultRef, allDone, adsShown);
   const adProcess = CALC_AD_PROCESS.tile;
 
   // 첫 화면 — 모드를 아직 안 골랐으면 질문 하나만
   if (!modeChosen) {
     return (
       <>
-        <TopNav title="타일 견적 계산기" backHref="/calc" as="p" />
+        {/* 2026-10-29: 화면 제목을 허브 카드 이름(타일)과 같게 "타일 계산기"로 — 검색용 h1은 page.tsx 그대로 */}
+        <TopNav title="타일 계산기" backHref="/calc" as="p" />
         {/* 표시 모드(관리자)에서만 — 결과 전이라 일반 방문자에겐 자리가 없다 */}
         <CalcAdSlot id="AD-H" show={false} desktopOnly />
         <div className="px-5 lg:px-8 max-w-[1120px] mx-auto">
@@ -627,30 +631,20 @@ export default function TileCalculator() {
   return (
     <>
       <TopNav
-        title="타일 견적 계산기"
+        title="타일 계산기"
         backHref="/calc"
         as="p"
         rightSlot={<Segment size="sm" options={VIEW_OPTIONS} value={view} onChange={(v) => patch({ view: v })} className="w-[136px]" ariaLabel="계산 모드" />}
       />
 
-      {/* 모바일 — 입력하는 동안 금액 범위를 제목줄 아래에 고정(누르면 결과로). 다 끝나면 하단 바가 대신 보여 준다 */}
-      {/* 면적(치수)을 넣기 전에는 이 띠도 안 보인다(2026-10-29) */}
-      {amountText && !allDone && !areaPending && (
-        <button
-          type="button"
-          onClick={scrollToResult}
-          className={`lg:hidden sticky top-[100px] z-30 w-full h-10 px-5 bg-surface border-b border-line flex items-center justify-between gap-2 transition-opacity ${loading || stale ? 'opacity-60' : ''}`}
-          aria-label={`지금 금액 ${amountText} — 결과 보기`}
-        >
-          <span className="t-sub text-ink-2 flex-none">{result?.resolved.service === 'self' ? '필요 수량' : '지금 견적'}</span>
-          <span className="t-body font-semibold text-brown tabular-nums truncate">{amountText}</span>
-        </button>
-      )}
+      {/* 2026-10-29: 예전엔 입력하는 동안 금액을 제목 줄 아래 띠("지금 견적")에 따로 띄웠다.
+          금액이 띠·결과 카드·하단 바에 2~3번 겹쳐 보여서 띠를 없애고, 다른 계산기 셋처럼
+          하단 바가 진행 중에도 "N/M · 금액 + 자세히"를 보여 준다(결과 카드 한 번 + 하단 바 한 번) */}
 
       {/* 광고 자리 AD-H — PC 에만(728×90), 상단바 아래. 휴대폰엔 넣지 않는다(형아 결정) */}
       <CalcAdSlot id="AD-H" show={adsShown} desktopOnly />
 
-      <div className="px-5 lg:px-8 py-4 pb-20 lg:pb-8 max-w-[1120px] mx-auto flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(480px,560px)_1fr] lg:gap-8 lg:items-start">
+      <div className="px-5 lg:px-8 py-4 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-8 max-w-[1120px] mx-auto flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(480px,560px)_1fr] lg:gap-8 lg:items-start">
         <div className="flex flex-col gap-4">
           <Segment size="sm" options={VIEW_OPTIONS} value={view} onChange={(v) => patch({ view: v })} className="hidden lg:flex w-[160px]" ariaLabel="계산 모드" />
           <FlowShell steps={flowSteps} activeIndex={activeIndex} completeFlags={completeFlags} />
@@ -658,7 +652,7 @@ export default function TileCalculator() {
 
         <div
           ref={resultRef}
-          className="scroll-mt-28 flex flex-col gap-4 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto flowFocusScope"
+          className="scroll-mt-[112px] lg:scroll-mt-20 flex flex-col gap-4 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto flowFocusScope"
         >
           {/* 2026-10-29: 정확 모드에서 치수를 다 넣기 전에는 금액 카드 대신 한 줄만 보인다 */}
           {areaPending ? (
@@ -702,8 +696,9 @@ export default function TileCalculator() {
         stepNumber={Math.min(activeIndex + 1, flowSteps.length)}
         stepCount={flowSteps.length}
         stepTitle={currentStepTitle}
-        // 다 끝났을 때만 금액 — 면적(치수)을 넣기 전이면 다 끝날 수 없지만 한 번 더 막아 둔다(2026-10-29)
-        amountText={allDone && !areaPending ? amountText : undefined}
+        // 결과가 있으면 진행 중에도 금액 + [자세히](도배·바닥재·미장과 같은 규칙, 2026-10-29).
+        // 치수를 넣기 전(금액 숨김)에는 진행 표시만 — 지금 규칙 유지
+        amountText={!areaPending ? amountText : undefined}
         allDone={allDone}
         calculating={loading || stale}
         failed={!result && !!error}

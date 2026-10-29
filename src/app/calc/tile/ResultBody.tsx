@@ -157,9 +157,10 @@ export default function ResultBody({ result, dim = false, dimsAssumed = false, o
                 <>
                   <span className={`block text-[13px] ${on ? 'font-semibold text-ink' : 'text-ink-2'}`}>{GRADE_LABEL[g]}</span>
                   <span className={`block text-[12px] min-[360px]:text-[13px] tabular-nums break-keep ${on ? 'font-semibold text-brown' : 'text-ink-2'}`}>
-                    {/* 320px에선 칸이 좁아 "~" 뒤에서 줄을 바꿀 수 있게(QA 1회차: 잘림) */}
-                    {toMan(t.min).toLocaleString('ko-KR')}~<wbr />
-                    {toMan(t.max).toLocaleString('ko-KR')}만
+                    {/* 320px에선 칸이 좁아 "~" 뒤에서 줄을 바꿀 수 있게(QA 1회차: 잘림).
+                        2026-10-29: 큰 금액과 같은 규칙("196만~248만원")으로 "만원"까지 붙인다 */}
+                    {toMan(t.min).toLocaleString('ko-KR')}만~<wbr />
+                    {toMan(t.max).toLocaleString('ko-KR')}만원
                   </span>
                 </>
               );

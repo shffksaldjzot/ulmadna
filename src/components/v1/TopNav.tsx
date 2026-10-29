@@ -40,7 +40,8 @@ export default function TopNav({ title, backHref, rightSlot, as = 'h1' }: TopNav
   return (
     <div className="lg:hidden sticky top-14 z-40 bg-surface border-b border-line px-5 h-11 flex items-center justify-between">
       <div className="flex items-center gap-3 min-w-0">
-        <Link href={backHref ?? '/calc'} aria-label="뒤로가기" className="text-brown flex-none">
+        {/* 2026-10-29: tap-44 — 화살표(10×16) 크기 그대로, 누르는 자리만 44px */}
+        <Link href={backHref ?? '/calc'} aria-label="뒤로가기" className="tap-44 inline-flex items-center text-brown flex-none">
           <IconBack />
         </Link>
         <TitleTag className="t-section text-ink truncate">{title}</TitleTag>

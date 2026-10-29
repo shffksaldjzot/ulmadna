@@ -67,7 +67,11 @@ export default function FlowShell({ steps, activeIndex, completeFlags }: FlowShe
     // 이미 화면 안에 전부 보이면(고정 헤더 아래까지 포함) 굳이 스크롤하지 않는다
     const rect = node.getBoundingClientRect();
     const headerOffset = 112; // 고정 헤더(모바일: 사이트헤더 56 + 제목줄 44) + 여백 12
-    const fullyVisible = rect.top >= headerOffset && rect.bottom <= window.innerHeight;
+    // 2026-10-29: 모바일은 아래에 고정 바(56px)가 있어 그만큼 뺀 높이까지만 "보인다"로 친다
+    //   (예전엔 바 뒤에 반쯤 가린 단계도 다 보인다고 판단해 스크롤하지 않았다)
+    const isDesktop = window.matchMedia?.('(min-width: 1024px)').matches;
+    const visibleBottom = window.innerHeight - (isDesktop ? 0 : 56);
+    const fullyVisible = rect.top >= headerOffset && rect.bottom <= visibleBottom;
     if (fullyVisible) return;
 
     const reduceMotion =

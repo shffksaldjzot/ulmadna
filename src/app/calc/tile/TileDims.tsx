@@ -15,6 +15,7 @@
 'use client';
 
 import Chip from '@/components/v1/Chip';
+import Segment from '@/components/v1/Segment';
 import ChipGroup from '@/components/v1/ChipGroup';
 import NumberField from '@/components/v1/NumberField';
 import type { TileFormState } from '@/lib/v1/tileQuery';
@@ -79,13 +80,18 @@ export default function TileDims({ space, form, onChange, onUnitChange }: TileDi
             </Chip>
           ))}
         </ChipGroup>
-        <ChipGroup role="radiogroup" ariaLabel="단위" className="flex gap-2 ml-auto">
-          {(['mm', 'm'] as const).map((u) => (
-            <Chip key={u} shape="square" size="sm" asRadio selected={unit === u} onClick={() => onUnitChange(u)}>
-              {u}
-            </Chip>
-          ))}
-        </ChipGroup>
+        {/* 2026-10-29 선택 모양 통일: "둘 중 하나"는 칩 두 개 대신 분절(Segment) 하나로 — 간단/정확 전환·입력 방식과 같은 모양 */}
+        <Segment
+          size="sm"
+          options={[
+            { value: 'mm' as const, label: 'mm' },
+            { value: 'm' as const, label: 'm' },
+          ]}
+          value={unit}
+          onChange={onUnitChange}
+          className="w-[104px] flex-none ml-auto"
+          ariaLabel="단위"
+        />
       </div>
 
       <div className={`grid gap-2 ${fields.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>

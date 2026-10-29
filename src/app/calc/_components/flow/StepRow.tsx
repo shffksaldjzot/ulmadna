@@ -190,10 +190,12 @@ const StepRow = forwardRef<HTMLDivElement, StepRowProps>(function StepRow(
       // transition은 테두리·배경 색만 160ms로 건다(형아 지시 — 높이·위치는 안 바뀐다).
       // relative: 아래 구분선(절대 위치 요소)의 기준점이 된다.
       className={
-        'relative flex flex-col scroll-mt-[112px] transition-[background-color,border-color] duration-[160ms] ease-out motion-reduce:transition-none ' +
+        // scroll-mb-[72px]: 모바일 하단 고정 바(56px)+여백 — 단계로 스크롤할 때 바 뒤에 가리지 않게(2026-10-29)
+        'relative flex flex-col scroll-mt-[112px] scroll-mb-[72px] lg:scroll-mb-0 transition-[background-color,border-color] duration-[160ms] ease-out motion-reduce:transition-none ' +
         (isCardLike
           ? `gap-3 rounded-[16px] border p-4 ${justOpened ? 'flow-step-enter' : ''}`
-          : 'min-h-[48px] opacity-45')
+          // 2026-10-29: 줄 전체 투명도(45%)를 빼고 글자색으로만 낮춘다 — 번호 원·제목이 --ink-2 대비를 지키게
+          : 'min-h-[48px]')
       }
       style={
         isCardLike
@@ -227,12 +229,12 @@ const StepRow = forwardRef<HTMLDivElement, StepRowProps>(function StepRow(
               ? 'bg-accent border-accent text-white'
               : state === 'current'
                 ? 'border-accent text-accent'
-                : 'border-line text-ink-2')
+                : 'border-ink-2/40 text-ink-2')
           }
         >
           {badgeFilled ? <IconCheck /> : badgeNum}
         </span>
-        <span className="t-section text-ink">{title}</span>
+        <span className={'t-section ' + (state === 'upcoming' ? 'text-ink-2' : 'text-ink')}>{title}</span>
       </div>
 
       {/* 입력 내용 — "아직 안 온 단계"만 grid-template-rows로 접어서(0fr) 숨긴다. 지금 할

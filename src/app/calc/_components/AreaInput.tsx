@@ -29,10 +29,12 @@
 'use client';
 
 import Chip from '@/components/v1/Chip';
+import Segment from '@/components/v1/Segment';
 import ChipGroup from '@/components/v1/ChipGroup';
 import NumberField from '@/components/v1/NumberField';
 import {
   pyeongToExclusiveSqm,
+  exclusiveSqmToPyeong,
   pyeongToSupplySqm,
   sqmToPyeong,
   SUPPLY_PYEONG_CHIPS,
@@ -80,7 +82,7 @@ export interface AreaInputProps {
    * 있다 — 34평 가정) **화면 표시만** 숨긴다:
    *   - 칩은 하나도 선택 표시하지 않는다
    *   - 숫자 칸은 비우고, 그 값을 자리 글자(placeholder)로 흐리게 보여준다
-   *   - 환산 캡션 줄("≈ 112.4㎡ · 84㎡")은 안 그린다
+   *   - 환산 캡션 줄("≈ 84㎡")은 안 그린다
    * 기본 false. 2026-09-29 지적 6번 이후로는 도배·바닥재·미장 세 계산기가 전부 이 prop을
    * 넘긴다(각 계산기의 면적 단계가 손 안 댔을 때는 항상 true) — 안 넘기면(다른 화면이
    * 이 부품을 새로 쓰는 경우) 예전처럼 값이 그대로 보인다.
@@ -131,24 +133,33 @@ export default function AreaInput({
   // 밑에서 convCaption을 null로 덮어써서 처리한다.
   function conversionCaption(): string | null {
     if (value === '' || typeof value !== 'number' || value <= 0) return null;
-    if (unit === '평') {
-      const sqm = pyeongToSupplySqm(value);
-      return mode === 'supply' ? `≈ ${sqm}㎡ · ${pyeongToExclusiveSqm(value)}㎡` : `≈ ${sqm}㎡`;
+    // 2026-10-29: supply(평형) 모드는 계산에 실제로 쓰는 값 하나만 보여준다.
+    //   예전 "≈ 112.4㎡ · 84㎡"의 112.4는 34×3.3058 단순 환산(공급면적)이라 계산에 안 쓰이고,
+    //   칩("34평 · 84㎡")과도 달라 뜻이 헷갈렸다 → 칩과 같은 전용 ㎡ 하나만 남긴다.
+    //   ㎡ 입력(전용 ㎡)일 때도 같은 표 기준으로 "대략 몇 평형"인지 보여준다.
+    if (mode === 'supply') {
+      return unit === '평' ? `≈ ${pyeongToExclusiveSqm(value)}㎡` : `≈ ${exclusiveSqmToPyeong(value)}평`;
     }
+    // work·exclusive 모드는 순수 단위 환산(×3.3058) 그대로
+    if (unit === '평') return `≈ ${pyeongToSupplySqm(value)}㎡`;
     return `≈ ${sqmToPyeong(value)}평`;
   }
   const convCaption = untouched || outOfRange ? null : conversionCaption();
 
   const unitToggle = (
     // 평/㎡ 단위 토글 — 값 선택이 아니라 "보기 방식"을 바꾸는 소형 토글이라 size="sm"(32px)
-    <ChipGroup role="radiogroup" ariaLabel="단위" className="flex gap-2">
-      <Chip shape="square" size="sm" asRadio selected={unit === '평'} onClick={() => onUnitChange('평')}>
-        평
-      </Chip>
-      <Chip shape="square" size="sm" asRadio selected={unit === '㎡'} onClick={() => onUnitChange('㎡')}>
-        ㎡
-      </Chip>
-    </ChipGroup>
+    // 2026-10-29 선택 모양 통일: "둘 중 하나"는 칩 두 개 대신 분절(Segment) 하나로 — 간단/정확 전환·입력 방식과 같은 모양
+    <Segment
+      size="sm"
+      options={[
+        { value: '평' as const, label: '평' },
+        { value: '㎡' as const, label: '㎡' },
+      ]}
+      value={unit}
+      onChange={onUnitChange}
+      className="w-[104px] flex-none"
+      ariaLabel="단위"
+    />
   );
 
   return (

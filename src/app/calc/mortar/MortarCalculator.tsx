@@ -31,7 +31,6 @@ import { useSearchParams } from 'next/navigation';
 import TopNav from '@/components/v1/TopNav';
 import Segment from '@/components/v1/Segment';
 import Chip from '@/components/v1/Chip';
-import ChipGroup from '@/components/v1/ChipGroup';
 import Collapsible from '@/components/v1/Collapsible';
 import { DEFAULT_MORTAR_FORM, decodeMortarForm, type MortarFormState } from '@/lib/v1/mortarQuery';
 import type { MortarProductOption } from '@/lib/v1/mortarProductOptions';
@@ -74,6 +73,7 @@ import FlowShell from '../_components/flow/FlowShell';
 import AdjustChips from '../_components/flow/AdjustChips';
 import BottomBar from '../_components/flow/BottomBar';
 import { useFlowSteps } from '../_components/flow/useFlowSteps';
+import { useResultReveal } from '../_components/flow/useResultReveal';
 import { useFlowBackNav } from '../_components/flow/useFlowBackNav';
 import { loadSessionState, saveSessionState } from '../_components/flow/sessionPersist';
 import type { FlowStepDef } from '../_components/flow/types';
@@ -541,20 +541,15 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
   const usageStepContent = (
     // 2026-09-29 지시서 3-6절 다듬기 — 방향키로 옮겨 다닐 수 있게 ChipGroup으로 감싼다.
     // 하나만 고르는 묶음이라 role="radiogroup"(칩도 asRadio로 role="radio"를 낸다)
-    <ChipGroup role="radiogroup" ariaLabel="용도" className="flex flex-wrap gap-2">
-      {TOP_USAGE_ORDER.map((u) => (
-        <Chip
-          key={u}
-          asRadio
-          // 지시서 9-2절: 1단계는 아무것도 선택되지 않은 채 시작한다 — 손대기 전엔 칩에
-          // 선택 표시를 하지 않는다(속에 기본값이 있어도)
-          selected={touchedMap.usage && currentTopUsage === u}
-          onClick={() => selectTopUsage(u)}
-        >
-          {topUsageLabel(u)}
-        </Chip>
-      ))}
-    </ChipGroup>
+    // 2026-10-29 선택 모양 통일: "둘 중 하나"는 칩 두 개 대신 분절(Segment) 하나로 — 간단/정확 전환·입력 방식과 같은 모양(도배 정확 모드 "입력 방식"과 같은 44px 분절)
+    <Segment
+      options={TOP_USAGE_ORDER.map((u) => ({ value: u, label: topUsageLabel(u) }))}
+      // 지시서 9-2절: 1단계는 아무것도 선택되지 않은 채 시작한다 — 손대기 전엔 선택 표시를
+      // 하지 않는다(속에 기본값이 있어도) → value를 비워 둔다
+      value={touchedMap.usage ? currentTopUsage : undefined}
+      onChange={selectTopUsage}
+      ariaLabel="용도"
+    />
   );
 
   const steps: FlowStepDef[] = [
@@ -649,13 +644,16 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
 
   // 광고 자리를 보일지 — 면적을 고르기 전(금액 숨김 상태)에는 자리도 숨긴다(2026-10-29)
   const adsShown = !!quick && !areaPending;
+  // 2026-10-29: 마지막 단계까지 끝나고 금액 결과가 처음 보일 때 한 번, 결과 카드로 부드럽게 옮긴다
+  useResultReveal(resultRef, allDone, adsShown);
   const adProcess = CALC_AD_PROCESS.mortar;
 
   // 첫 화면 — 아직 모드를 안 골랐으면 질문 하나만 보여준다
   if (!modeChosen) {
     return (
       <>
-        <TopNav title="몰탈(레미탈) 계산기" backHref="/calc" as="p" />
+      {/* 2026-10-29: 화면 제목을 허브 카드 이름(미장)과 같게 "미장 계산기"로 — 검색용 h1은 page.tsx 그대로 */}
+        <TopNav title="미장 계산기" backHref="/calc" as="p" />
         {/* 표시 모드(관리자)에서만 — 결과 전이라 일반 방문자에겐 자리가 없다 */}
         <CalcAdSlot id="AD-H" show={false} desktopOnly />
         <div className="px-5 lg:px-8 max-w-[1120px] mx-auto">
@@ -675,7 +673,7 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
   return (
     <>
       <TopNav
-        title="몰탈(레미탈) 계산기"
+        title="미장 계산기"
         backHref="/calc"
         as="p"
         rightSlot={
@@ -686,7 +684,7 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
       {/* 광고 자리 AD-H — PC 에만(728×90), 상단바 아래. 휴대폰엔 넣지 않는다(형아 결정) */}
       <CalcAdSlot id="AD-H" show={adsShown} desktopOnly />
 
-      <div className="px-5 lg:px-8 py-4 pb-20 lg:pb-8 max-w-[1120px] mx-auto flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(480px,560px)_1fr] lg:gap-8 lg:items-start">
+      <div className="px-5 lg:px-8 py-4 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-8 max-w-[1120px] mx-auto flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(480px,560px)_1fr] lg:gap-8 lg:items-start">
         <div className="flex flex-col gap-4">
           <Segment
             size="sm"
@@ -704,7 +702,7 @@ export default function MortarCalculator({ products }: MortarCalculatorProps) {
           // 2026-09-29 지적 3번: 결과 카드 구역에도 flowFocusScope를 줘서 토글·버튼·시트
           // 안 입력 칸의 초점 테두리가 전부 새 틀 강조색(--accent)으로 통일되게 한다
           // (예전엔 이 구역이 범위 밖이라 진한 갈색 그대로였다)
-          className="scroll-mt-16 flex flex-col gap-4 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto flowFocusScope"
+          className="scroll-mt-[112px] lg:scroll-mt-20 flex flex-col gap-4 lg:sticky lg:top-[84px] lg:max-h-[calc(100vh-81px-1rem)] lg:overflow-y-auto flowFocusScope"
         >
           {/* 조정 칩도 결과의 일부라 면적을 고르기 전에는 숨긴다(2026-10-29) */}
           <AdjustChips visible={!!quick && !areaPending} groups={adjustGroups} />

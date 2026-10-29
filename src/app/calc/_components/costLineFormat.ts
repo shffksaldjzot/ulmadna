@@ -45,7 +45,8 @@ export interface CostLineLike {
  * (바닥재·미장도 이 규칙 하나로 통일 — 9-1절 "만 원 미만 금액은 원 단위로")
  */
 export function formatWonPiece(won: number): string {
-  if (won >= 10000) return `${toMan(won)}만`;
+  // 2026-10-29: 큰 금액 표기("182만~236만원")와 같게 "만원"까지 붙인다(예전 "21만" → "21만원")
+  if (won >= 10000) return `${toMan(won).toLocaleString('ko-KR')}만원`;
   return `${Math.round(won).toLocaleString('ko-KR')}원`;
 }
 

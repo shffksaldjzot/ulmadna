@@ -65,10 +65,10 @@ export default function Segment<T extends string>({
             className={
               // sm일 때만 relative + ::before로 위아래 6px씩 눌리는 범위를 44px까지 넓힌다(3-7절).
               // 보이는 크기(글자·패딩)는 md와 똑같이 유지 — 넓히는 건 클릭 가능 영역뿐이다.
-              'flex-1 relative flex items-center justify-center rounded-[4px] transition-colors duration-150 ' +
-              (isSm
-                ? "text-[13px] before:absolute before:content-[''] before:inset-x-0 before:-top-[6px] before:-bottom-[6px] "
-                : 'text-[15px] ') +
+              // 2026-10-29: tap-44(globals.css) — 보이는 크기 그대로, 누르는 자리만 최소 44px.
+              //   예전 sm은 위아래 6px만 넓혀 실제 34px(안쪽 단추 22px+12), md도 안쪽 단추가 34px였다
+              'tap-44 flex-1 flex items-center justify-center rounded-[4px] transition-colors duration-150 ' +
+              (isSm ? 'text-[13px] ' : 'text-[15px] ') +
               (active ? 'bg-white text-brown font-semibold' : 'text-v1-text-secondary font-normal')
             }
           >

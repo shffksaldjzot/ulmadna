@@ -29,9 +29,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import Chip from '@/components/v1/Chip';
 import Segment from '@/components/v1/Segment';
-import ChipGroup from '@/components/v1/ChipGroup';
 import NumberField from '@/components/v1/NumberField';
 import type { PreciseRoomInput, WallpaperOpening } from '@/lib/v1/wallpaperQuery';
 import RoomCard from './precise/RoomCard';
@@ -147,14 +145,18 @@ export default function PreciseSection(props: PreciseSectionProps) {
           평/㎡ 토글과 같은 소형 단위 토글이라 size="sm"(32px, 2026-09-16 형아 피드백) */}
       <div className="flex items-center justify-between">
         <span className="text-[15px] font-semibold text-foreground">단위</span>
-        <ChipGroup role="radiogroup" ariaLabel="단위" className="flex gap-2">
-          <Chip shape="square" size="sm" asRadio selected={unit === 'm'} onClick={() => onUnitChange('m')}>
-            m
-          </Chip>
-          <Chip shape="square" size="sm" asRadio selected={unit === 'mm'} onClick={() => onUnitChange('mm')}>
-            mm
-          </Chip>
-        </ChipGroup>
+        {/* 2026-10-29 선택 모양 통일: "둘 중 하나"는 칩 두 개 대신 분절(Segment) 하나로 — 간단/정확 전환·입력 방식과 같은 모양 */}
+        <Segment
+          size="sm"
+          options={[
+            { value: 'm' as const, label: 'm' },
+            { value: 'mm' as const, label: 'mm' },
+          ]}
+          value={unit}
+          onChange={onUnitChange}
+          className="w-[104px] flex-none"
+          ariaLabel="단위"
+        />
       </div>
 
       {/* 3. 높이 — 비우면 훅이 기본 2.3m로 계산한다.
