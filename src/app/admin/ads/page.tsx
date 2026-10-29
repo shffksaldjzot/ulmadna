@@ -5,6 +5,7 @@
 //   1) 시도 17곳 x 자리 종류 판: 오늘 기준 "남은 자리 n/3"
 //   2) 광고주 등록 · 주문 만들기(기간·금액·부가세 자동 계산)
 //   3) 주문 목록: 입금 확인 · 배너 올리기 · 승인·게재 · 중지/종료 · 만료 7일 전 표시 · 노출·클릭 숫자
+//      제작 대행 주문(2026-10-29)은 "제작 대행" 표시 + 입력 내용 보기. 배너를 올리면 '배너 제작 중' → '심사중'
 //   결제는 1차로 계좌이체 수동 입금 확인. 카드(PG)가 붙으면 같은 주문 표의 결제 방식·상태 칸을 쓴다.
 //   표가 아직 없으면(SQL 미실행) 안내 한 줄만 보인다. 서버 컴포넌트라 열쇠는 브라우저로 안 나간다.
 // ──────────────────────────────────────────────
@@ -144,6 +145,10 @@ export default async function AdsPage() {
                   const img = ord.bannerBase(o.banner_path);
                   // PC 그림(선택) — SQL 초안 실행 전엔 칸이 없어 null
                   const pcImg = ord.bannerBase(o.banner_desktop_path ?? null);
+                  // 제작 대행 주문: 배너가 아직 없으면 '배너 제작 중'
+                  const designing = !!o.design_requested && !o.banner_path && o.run_status === 'review';
+                  const brief = o.design_requested ? o.design_brief ?? null : null;
+                  const logo = brief?.logo_path ? ord.bannerBase(brief.logo_path) : null;
                   return (
                     <tr key={o.id} className="border-b border-gray-50 align-top">
                       <td className="py-2 px-2">
@@ -151,6 +156,21 @@ export default async function AdsPage() {
                         <p className="text-[11px] text-gray-500">{o.slot_kind} · {regionName(o.sido)}{o.process && o.slot_kind !== 'AD-T' ? ` · ${o.process}` : ''}</p>
                         {img && <a href={img} target="_blank" rel="noreferrer" className="text-[11px] text-brown underline">배너 보기</a>}
                         {pcImg && <a href={pcImg} target="_blank" rel="noreferrer" className="ml-2 text-[11px] text-brown underline">PC 배너 보기</a>}
+                        {o.design_requested && (
+                          <details className="mt-1 text-[11px]">
+                            <summary className="cursor-pointer">
+                              <span className="rounded bg-orange-50 px-1.5 py-0.5 font-medium text-orange-700">제작 대행</span>
+                              <span className="ml-1 text-gray-400">제작비 {won(o.design_fee ?? 0)}</span>
+                            </summary>
+                            <dl className="mt-1 space-y-0.5 text-gray-600">
+                              <div><dt className="inline text-gray-400">상호 </dt><dd className="inline">{brief?.name || o.advertiser_name}</dd></div>
+                              <div><dt className="inline text-gray-400">전화 </dt><dd className="inline">{brief?.phone || o.phone || '-'}</dd></div>
+                              <div><dt className="inline text-gray-400">소개 </dt><dd className="inline">{brief?.intro || '-'}</dd></div>
+                              <div><dt className="inline text-gray-400">강조 </dt><dd className="inline">{brief?.headline || '-'}</dd></div>
+                              <div><dt className="inline text-gray-400">로고 </dt><dd className="inline">{logo ? <a href={logo} target="_blank" rel="noreferrer" className="text-brown underline">보기</a> : '없음'}</dd></div>
+                            </dl>
+                          </details>
+                        )}
                       </td>
                       <td className="py-2 px-2 whitespace-nowrap text-[12px] text-gray-600">
                         {o.start_date}<br />~ {o.end_date}
@@ -163,7 +183,7 @@ export default async function AdsPage() {
                       <td className="py-2 px-2 whitespace-nowrap text-[12px]">
                         <span className={o.pay_status === 'paid' ? 'text-brown' : o.pay_status === 'refunded' ? 'text-red-700' : 'text-gray-500'}>{PAY_LABEL[o.pay_status]}</span>
                         <br />
-                        <span className={o.run_status === 'live' ? 'text-brown font-medium' : 'text-gray-500'}>{RUN_LABEL[o.run_status]}</span>
+                        <span className={o.run_status === 'live' ? 'text-brown font-medium' : designing ? 'text-orange-700' : 'text-gray-500'}>{designing ? '배너 제작 중' : RUN_LABEL[o.run_status]}</span>
                       </td>
                       <td className="py-2 px-2 text-right whitespace-nowrap text-[12px] tabular-nums text-gray-600">
                         {fmt(o.impressions)} · {fmt(o.clicks)}<br /><span className="text-gray-400">클릭률 {ctr}{ctr === '-' ? '' : '%'}</span>
