@@ -44,14 +44,14 @@ export default function Chip({ selected, shape = 'pill', size = 'md', asRadio = 
   // 크기별 높이·좌우 패딩·글자 크기 — md(기본 선택 칩) / sm(소형 단위 토글)
   const sizeClass = size === 'sm' ? 'h-8 px-[10px] text-[13px]' : 'h-9 px-[14px] text-[14px]';
   // 눌리는 범위 확장값 — md(36→44)는 위아래 4px씩, sm(32→44)는 위아래 6px씩
-  const hitExpand = size === 'sm' ? 'before:-top-[6px] before:-bottom-[6px]' : 'before:-top-[4px] before:-bottom-[4px]';
   return (
     <button
       type="button"
       className={
         // relative + ::before: 보이는 크기는 그대로 두고 누를 수 있는 영역만 위아래로 넓힌다(3-7절)
-        `relative inline-flex items-center ${sizeClass} ${shapeClass} whitespace-nowrap transition-colors duration-150 ` +
-        `before:absolute before:content-[''] before:inset-x-0 ${hitExpand} ` +
+        // 2026-10-29: 누르는 자리 넓히기를 공용 tap-44(globals.css)로 통일 — 보이는 높이(32·36px) 그대로,
+        //   누르는 자리만 최소 44×44px(예전 위아래 4·6px 넓히기와 같은 결과 + 좁은 칩은 가로도 44px)
+        `tap-44 inline-flex items-center ${sizeClass} ${shapeClass} whitespace-nowrap transition-colors duration-150 ` +
         // 선택 칩 채움은 강조색(accent), 눌림은 약간 어둡게 — 갈색(brown)은 글자·제목 전용이라 채움에는 쓰지 않는다
         (selected
           ? 'bg-accent active:bg-accent-press text-white font-semibold'
