@@ -44,7 +44,10 @@ function withSourceCookie(request: NextRequest, res: NextResponse): NextResponse
 
 export function middleware(request: NextRequest) {
   // /admin 경로 보호
-  if (request.nextUrl.pathname.startsWith('/admin')) {
+  // 2026-10-29 수리: '/admin-login' 도 '/admin' 으로 시작해서 로그인 페이지까지 막혀 무한 이동이 났다
+  //   (10-27 유입 쿠키 작업으로 미들웨어가 모든 주소에서 돌게 된 뒤부터). /admin 과 /admin/... 만 보호한다.
+  const path = request.nextUrl.pathname;
+  if (path === '/admin' || path.startsWith('/admin/')) {
     const sessionToken = process.env.NEXTAUTH_SECRET;
 
     // NEXTAUTH_SECRET 미설정 시 admin 접근 무조건 차단
