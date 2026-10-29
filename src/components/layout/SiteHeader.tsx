@@ -95,11 +95,12 @@ export default function SiteHeader() {
 
         {/* 우측: "문의" 알약(로그인 옆, 모바일도 항상 보임) + 로그인 상태에 따라 분기 */}
         <div className="flex-none flex items-center gap-3">
-          {/* 2026-09-16 형아 지시: 전역 문의 진입점 — 눌리면 공용 문의 시트(전화·카톡·서비스 보기)가 뜬다 */}
+          {/* 2026-09-16 형아 지시: 전역 문의 진입점 — 눌리면 공용 문의 시트(전화·카톡·서비스 보기)가 뜬다
+              2026-10-29: tap-44 — 보이는 높이 40px 그대로, 누르는 자리만 44px(globals.css) */}
           <button
             type="button"
             onClick={() => openContactSheet('header')}
-            className="t-sub font-semibold text-ink-2 border border-line rounded-chip h-10 px-4 inline-flex items-center hover:border-accent hover:text-accent transition-colors"
+            className="tap-44 t-sub font-semibold text-ink-2 border border-line rounded-chip h-10 px-4 inline-flex items-center hover:border-accent hover:text-accent transition-colors"
           >
             문의
           </button>
@@ -111,7 +112,8 @@ export default function SiteHeader() {
               <button
                 type="button"
                 onClick={() => signOut({ callbackUrl: '/' })}
-                className="t-sub text-ink-2 hover:text-ink"
+                // 2026-10-29: tap-44 — 글자 크기 그대로, 누르는 자리만 44px
+                className="tap-44 t-sub text-ink-2 hover:text-ink"
               >
                 로그아웃
               </button>
@@ -120,7 +122,8 @@ export default function SiteHeader() {
           ) : (
             <Link prefetch={false}
               href="/login"
-              className="t-sub font-semibold text-ink-2 border border-line rounded-chip h-10 px-4 inline-flex items-center hover:border-accent hover:text-accent transition-colors"
+              // 2026-10-29: tap-44 — 보이는 높이 40px 그대로, 누르는 자리만 44px
+              className="tap-44 t-sub font-semibold text-ink-2 border border-line rounded-chip h-10 px-4 inline-flex items-center hover:border-accent hover:text-accent transition-colors"
             >
               로그인
             </Link>

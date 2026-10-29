@@ -59,17 +59,19 @@ export default function SiteFooter() {
       <footer className="border-t border-line bg-bg">
         <Container className="pt-8 pb-24 lg:pb-8 flex flex-col items-center gap-3 text-center">
           <LiveNow />
-          <nav aria-label="바닥글 메뉴" className="flex flex-wrap justify-center gap-x-4 gap-y-2">
-            <Link prefetch={false} href="/calc" className="t-sub font-semibold text-ink-2 hover:text-accent">계산기</Link>
-            <Link prefetch={false} href="/blog" className="t-sub font-semibold text-ink-2 hover:text-accent">블로그</Link>
-            <Link prefetch={false} href="/about" className="t-sub font-semibold text-ink-2 hover:text-accent">소개</Link>
-            <Link prefetch={false} href="/contact" className="t-sub font-semibold text-ink-2 hover:text-accent">문의</Link>
-            <Link prefetch={false} href="/terms" className="t-sub font-semibold text-ink-2 hover:text-accent">이용약관</Link>
-            <Link prefetch={false} href="/privacy" className="t-sub font-semibold text-ink-2 hover:text-accent">개인정보처리방침</Link>
-            <Link prefetch={false} href="/ads-terms" className="t-sub font-semibold text-ink-2 hover:text-accent">광고 약관</Link>
-            <Link prefetch={false} href="/refund" className="t-sub font-semibold text-ink-2 hover:text-accent">환불 규정</Link>
-            <Link prefetch={false} href="/sponsor" className="t-sub font-semibold text-ink-2 hover:text-accent">광고 안내</Link>
-            <a href="/feed.xml" aria-label="RSS 구독" className="inline-flex items-center gap-1 t-sub font-semibold text-ink-2 hover:text-accent">
+          {/* 2026-10-29 폴리싱 묶음 A: 링크마다 높이 44px·최소 폭 44px(글자 크기는 그대로).
+              전에는 글자 높이(18~20px)만큼만 눌렸다. 위아래 여백이 링크 안으로 들어가서 줄 간격(gap-y)은 0으로 */}
+          <nav aria-label="바닥글 메뉴" className="flex flex-wrap justify-center gap-x-2">
+            <Link prefetch={false} href="/calc" className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] px-1 t-sub font-semibold text-ink-2 hover:text-accent">계산기</Link>
+            <Link prefetch={false} href="/blog" className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] px-1 t-sub font-semibold text-ink-2 hover:text-accent">블로그</Link>
+            <Link prefetch={false} href="/about" className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] px-1 t-sub font-semibold text-ink-2 hover:text-accent">소개</Link>
+            <Link prefetch={false} href="/contact" className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] px-1 t-sub font-semibold text-ink-2 hover:text-accent">문의</Link>
+            <Link prefetch={false} href="/terms" className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] px-1 t-sub font-semibold text-ink-2 hover:text-accent">이용약관</Link>
+            <Link prefetch={false} href="/privacy" className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] px-1 t-sub font-semibold text-ink-2 hover:text-accent">개인정보처리방침</Link>
+            <Link prefetch={false} href="/ads-terms" className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] px-1 t-sub font-semibold text-ink-2 hover:text-accent">광고 약관</Link>
+            <Link prefetch={false} href="/refund" className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] px-1 t-sub font-semibold text-ink-2 hover:text-accent">환불 규정</Link>
+            <Link prefetch={false} href="/sponsor" className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] px-1 t-sub font-semibold text-ink-2 hover:text-accent">광고 안내</Link>
+            <a href="/feed.xml" aria-label="RSS 구독" className="inline-flex items-center justify-center gap-1 min-h-[44px] min-w-[44px] px-1 t-sub font-semibold text-ink-2 hover:text-accent">
               <svg viewBox="0 0 24 24" aria-hidden="true" className="w-3 h-3 fill-current">
                 <circle cx="5" cy="19" r="2.6" />
                 <path d="M3 10.6v3.1a7.3 7.3 0 0 1 7.3 7.3h3.1A10.4 10.4 0 0 0 3 10.6z" />
