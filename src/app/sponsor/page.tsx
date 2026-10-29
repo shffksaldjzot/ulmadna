@@ -1,9 +1,12 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import BusinessInfo from '@/components/layout/BusinessInfo';
 import { getBoard, remaining } from '@/server/ads/store';
 import { SIDO_CODES, REGION_NAMES } from '@/server/admin/format';
 import { DESIGN_FEE, SLOT_INFO, type SlotKind } from '@/lib/ads/pricing';
+// 광고 자리 표시 캡처(가림막·테두리·꼬리표) — /sponsor/preview 와 같이 쓴다(2026-10-30)
+import { MarkedShot, ShotCaption, PHONE_SHOTS, PC_SHOT } from '@/components/sponsor/MarkedShots';
 
 // 남은 자리 숫자를 5분마다 새로 읽는다(광고 표가 비어 있으면 전부 3/3)
 export const revalidate = 300;
@@ -22,23 +25,46 @@ const man = (k: SlotKind) => `${(SLOT_INFO[k].price / 10000).toLocaleString('ko-
 /** 30일 요금 "100,000원" 표기(가격표용) */
 const won = (k: SlotKind) => `${SLOT_INFO[k].price.toLocaleString('ko-KR')}원`;
 
-/** 자리 한 줄 설명: "헤더 가로 · 320×100 · 30일 10만원" */
-const slotCaption = (k: SlotKind) => `${SLOT_INFO[k].name} · ${SLOT_INFO[k].width}×${SLOT_INFO[k].height} · 30일 ${man(k)}`;
-
 /**
- * "광고가 보이는 자리" 캡처 목록(public/sponsor/, 휴대폰 390px 화면)
- *   real=true  : 관리자 미리보기(?ad_preview=주문번호)로 시험 주문 배너를 실제 자리에 띄워 찍은 실물
- *   real=false : 자리 위치에 견본 배너를 겹쳐 그린 합성 → 캡션에 "예시"
+ * 자리 카드 오른쪽 "배너 실물" — 견본 그림(public/sponsor/banner-ad-*.png, 2배 크기)을 실제 크기로 보여 준다 (2026-10-30)
+ *   형아 신고: 예전 HTML 흉내(회색 동그라미 + "○○인테리어")로는 어떤 광고가 들어가는지 감이 안 온다.
+ *   PC 규격(728×90)이 따로 있는 자리(AD-H·AD-F)는 같은 디자인을 PC 폭으로 늘린 그림(-pc.png)도 같이 보여 준다.
  */
-const WHERE_SHOTS: { src: string; title: string; slots: SlotKind[]; real: boolean }[] = [
-  { src: '/sponsor/loc-home-h.webp', title: '첫 화면', slots: ['AD-H'], real: true },
-  { src: '/sponsor/loc-home-result.webp', title: '견적 결과 아래', slots: ['AD-T', 'AD-R'], real: false },
-  { src: '/sponsor/loc-home-process.webp', title: '홈 공정 목록', slots: ['AD-P'], real: false },
-  { src: '/sponsor/loc-calc-result.webp', title: '계산기 결과', slots: ['AD-P', 'AD-R'], real: false },
-  { src: '/sponsor/loc-blog-mid.webp', title: '블로그 글 본문 중간', slots: ['AD-P'], real: false },
-  { src: '/sponsor/loc-blog-end.webp', title: '블로그 글 끝', slots: ['AD-R'], real: true },
-  { src: '/sponsor/loc-footer.webp', title: '푸터', slots: ['AD-F'], real: false },
-];
+const BANNER_SRC: Partial<Record<SlotKind, { mobile: string; desktop?: string }>> = {
+  'AD-H': { mobile: '/sponsor/banner-ad-h.png', desktop: '/sponsor/banner-ad-h-pc.png' },
+  'AD-P': { mobile: '/sponsor/banner-ad-p.png' },
+  'AD-T': { mobile: '/sponsor/banner-ad-t.png' },
+  'AD-R': { mobile: '/sponsor/banner-ad-r.png' },
+  'AD-F': { mobile: '/sponsor/banner-ad-f.png', desktop: '/sponsor/banner-ad-f-pc.png' },
+};
+
+/** 배너 실물 한 장: 규격 그대로의 크기(CSS px)로, 칸보다 넓으면 비율 유지하며 줄인다 */
+function RealBanner({ src, w, h, label }: { src: string; w: number; h: number; label: string }) {
+  return (
+    <figure className="min-w-0">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt={`${label} 배너 실물`} width={w} height={h} loading="lazy"
+        style={{ width: w, aspectRatio: `${w} / ${h}` }}
+        className="block max-w-full h-auto rounded-md border border-gray-200" />
+      <figcaption className="mt-1.5 text-[11px] text-gray-500 tabular-nums">{label}</figcaption>
+    </figure>
+  );
+}
+
+/** 자리 카드의 배너 실물 묶음(휴대폰 규격 + PC 규격이 있으면 둘 다. PC 규격이 없으면 PC 에서도 같은 그림이라 "휴대폰·PC") */
+function SlotBanners({ kind }: { kind: SlotKind }) {
+  const src = BANNER_SRC[kind];
+  const info = SLOT_INFO[kind];
+  if (!src) return null;
+  return (
+    <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
+      <RealBanner src={src.mobile} w={info.width} h={info.height} label={`${src.desktop ? '휴대폰' : '휴대폰·PC'} ${info.width}×${info.height}`} />
+      {src.desktop && info.desktop && (
+        <RealBanner src={src.desktop} w={info.desktop.width} h={info.desktop.height} label={`PC ${info.desktop.width}×${info.desktop.height}`} />
+      )}
+    </div>
+  );
+}
 
 /** 배너 예시(견본 그림, 2배 크기 PNG 를 1배 크기로 보여 줌) */
 const BANNER_SAMPLES: { src: string; kind: SlotKind }[] = [
@@ -49,7 +75,8 @@ const BANNER_SAMPLES: { src: string; kind: SlotKind }[] = [
   { src: '/sponsor/banner-ad-f.png', kind: 'AD-F' },
 ];
 
-const AD_SLOTS = [
+/** 자리 카드 목록 — 배너 그림이 있는 자리는 실물(SlotBanners), 견적서 글자 광고는 mockup(글자 견본) */
+const AD_SLOTS: { id: SlotKind; name: string; size: string; position: string; target: string; price: string; desc: string; mockup?: ReactNode }[] = [
   {
     id: 'AD-H',
     name: '헤더 하단 리더보드',
@@ -59,19 +86,6 @@ const AD_SLOTS = [
     target: '지역권 타겟',
     price: `30일 ${man('AD-H')} (시도당 3개 업체, 부가세 별도)`,
     desc: '사용자가 가장 먼저 보는 위치. IP 기반으로 해당 지역 업체만 노출됩니다.',
-    mockup: (
-      <div className="border border-dashed border-brown/20 rounded-lg p-3 bg-cream/50 text-center">
-        <p className="text-[8px] text-gray-400 text-left">광고</p>
-        <div className="flex items-center justify-center gap-3 py-2">
-          <div className="w-8 h-8 bg-brown/10 rounded-full" />
-          <div className="text-left">
-            <p className="text-xs font-medium text-brown">○○인테리어 — 남양주 No.1 시공 전문</p>
-            <p className="text-[10px] text-gray-400">무료 상담 1588-XXXX</p>
-          </div>
-          <span className="text-[10px] bg-gold text-white px-2 py-0.5 rounded-full">견적 받기 →</span>
-        </div>
-      </div>
-    ),
   },
   {
     id: 'AD-P',
@@ -82,16 +96,6 @@ const AD_SLOTS = [
     target: '공정별 브랜드 스폰서',
     price: `30일 ${man('AD-P')} (시도·공정당 3개 업체, 부가세 별도)`,
     desc: '사용자가 해당 공정을 선택할 때 자연스럽게 노출. 창호 옆에 KCC, 욕실 옆에 대림 등.',
-    mockup: (
-      <div className="border border-dashed border-brown/20 rounded-lg p-2 bg-cream/50">
-        <p className="text-[8px] text-gray-400">광고</p>
-        <div className="flex items-center gap-2 py-1">
-          <div className="w-6 h-6 bg-brown/10 rounded" />
-          <p className="text-[10px] text-gray-600">LX Z:IN 창호는 LX로 — 에너지등급 1등급 보장</p>
-          <span className="text-[9px] text-gold ml-auto">자세히 →</span>
-        </div>
-      </div>
-    ),
   },
   {
     id: 'AD-T',
@@ -102,16 +106,6 @@ const AD_SLOTS = [
     target: '지역권 종합 인테리어 업체',
     price: `30일 ${man('AD-T')} (시도당 3개 업체, 부가세 별도)`,
     desc: '전체 견적을 확인한 사람에게 올수리·종합 시공 업체로 노출. 견적서 PDF 에는 상호·전화 한 줄이 함께 실립니다.',
-    mockup: (
-      <div className="border border-dashed border-brown/20 rounded-lg p-2 bg-cream/50">
-        <p className="text-[8px] text-gray-400">광고</p>
-        <div className="flex items-center gap-2 py-1">
-          <div className="w-6 h-6 bg-brown/10 rounded" />
-          <p className="text-[10px] text-gray-600">◇◇토탈인테리어 — 우리 동네 올수리 전문 · 무료 실측</p>
-          <span className="text-[9px] text-gold ml-auto">상담 →</span>
-        </div>
-      </div>
-    ),
   },
   {
     id: 'AD-R',
@@ -121,17 +115,16 @@ const AD_SLOTS = [
     target: '지역권 타겟',
     price: `30일 ${man('AD-R')} (시도당 3개 업체, 부가세 별도)`,
     desc: '견적 결과를 확인하는 사용자에게 노출. 가장 구매 의향이 높은 시점입니다.',
-    mockup: (
-      <div className="border border-dashed border-brown/20 rounded-lg p-3 bg-cream/50 w-48 mx-auto">
-        <p className="text-[8px] text-gray-400">광고</p>
-        <div className="w-full h-16 bg-brown/5 rounded my-2 flex items-center justify-center text-[10px] text-gray-300">시공 사례 이미지</div>
-        <p className="text-xs font-medium text-brown text-center">○○인테리어</p>
-        <p className="text-[10px] text-gray-400 text-center">화도·남양주 전문 · 시공사례 200건+</p>
-        <div className="mt-2 text-center">
-          <span className="text-[10px] bg-gold text-white px-3 py-1 rounded-full">무료 상담 →</span>
-        </div>
-      </div>
-    ),
+  },
+  {
+    // 2026-10-30: 푸터 자리도 캡처·가격 꼬리표에 나오므로 카드로 안내(가격은 정본 SLOT_INFO)
+    id: 'AD-F',
+    name: '푸터 로테이션',
+    size: '휴대폰 320×50 · PC 728×90',
+    position: '모든 페이지 맨 아래',
+    target: '지역권 타겟',
+    price: `30일 ${man('AD-F')} (시도당 3개 업체, 부가세 별도)`,
+    desc: '어느 페이지를 보든 맨 아래에 노출됩니다. 상호·전화 한 줄 배너입니다.',
   },
   {
     id: 'AD-PDF',
@@ -263,24 +256,36 @@ export default async function SponsorPage() {
 
           <div className="space-y-8">
             {AD_SLOTS.map(slot => (
-              <div key={slot.id} className="bg-cream rounded-2xl p-6 lg:p-8 flex flex-col lg:flex-row gap-6">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-[10px] bg-brown text-white px-2 py-0.5 rounded-full">{slot.id}</span>
-                    <h3 className="text-base font-bold text-brown">{slot.name}</h3>
+              <div key={slot.id} className="bg-cream rounded-2xl p-6 lg:p-8">
+                <div className="flex flex-col lg:flex-row gap-6">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-[10px] bg-brown text-white px-2 py-0.5 rounded-full">{slot.id}</span>
+                      <h3 className="text-base font-bold text-brown">{slot.name}</h3>
+                    </div>
+                    <div className="space-y-1 text-sm text-gray-600 mb-3">
+                      <p><span className="text-gray-400">사이즈:</span> {slot.size}px</p>
+                      <p><span className="text-gray-400">위치:</span> {slot.position}</p>
+                      <p><span className="text-gray-400">타겟:</span> {slot.target}</p>
+                      <p><span className="text-gray-400">가격:</span> <span className="text-gold font-medium">{slot.price}</span></p>
+                    </div>
+                    <p className="text-xs text-gray-500">{slot.desc}</p>
                   </div>
-                  <div className="space-y-1 text-sm text-gray-600 mb-3">
-                    <p><span className="text-gray-400">사이즈:</span> {slot.size}px</p>
-                    <p><span className="text-gray-400">위치:</span> {slot.position}</p>
-                    <p><span className="text-gray-400">타겟:</span> {slot.target}</p>
-                    <p><span className="text-gray-400">가격:</span> <span className="text-gold font-medium">{slot.price}</span></p>
+                  {/* 견적서 글자 광고(AD-PDF)처럼 그림이 없는 자리는 글자 견본을 옆에 */}
+                  {slot.mockup && (
+                    <div className="lg:w-[300px] shrink-0">
+                      <p className="text-[10px] text-gray-400 mb-2">견적서 미리보기</p>
+                      {slot.mockup}
+                    </div>
+                  )}
+                </div>
+                {/* 배너 실물 — 카드 폭 전체를 써서 PC 728×90 도 실제 크기로 들어간다(좁은 화면에선 비율 유지하며 줄어듦) */}
+                {!slot.mockup && (
+                  <div className="mt-5 pt-5 border-t border-brown/10">
+                    <p className="text-[10px] text-gray-400 mb-2">배너 실물 · 실제 크기</p>
+                    <SlotBanners kind={slot.id} />
                   </div>
-                  <p className="text-xs text-gray-500">{slot.desc}</p>
-                </div>
-                <div className="lg:w-[300px] shrink-0">
-                  <p className="text-[10px] text-gray-400 mb-2">배너 미리보기</p>
-                  {slot.mockup}
-                </div>
+                )}
               </div>
             ))}
           </div>
@@ -292,37 +297,27 @@ export default async function SponsorPage() {
       <section id="where" className="bg-cream py-16">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-2xl font-bold text-brown text-center mb-2 px-4">광고가 보이는 자리</h2>
-          <p className="text-sm text-gray-400 text-center mb-8 px-4">실제 화면에 배너가 들어간 모습입니다</p>
+          <p className="text-sm text-gray-400 text-center mb-8 px-4">테두리 친 칸이 광고 자리입니다</p>
           {/* 휴대폰: 옆으로 넘겨 보기 / PC: 4칸 격자 */}
           <ul className="flex gap-4 overflow-x-auto snap-x snap-mandatory px-4 pb-2 lg:grid lg:grid-cols-4 lg:overflow-visible lg:px-8">
-            {WHERE_SHOTS.map((s) => (
-              <li key={s.src} className="snap-center shrink-0 w-[230px] lg:w-auto">
-                {/* 휴대폰 틀 */}
+            {PHONE_SHOTS.map((s) => (
+              <li key={s.src} className="snap-center shrink-0 w-[250px] lg:w-auto">
+                {/* 휴대폰 틀 + 광고 영역 표시(바깥 어둡게·굵은 테두리·꼬리표) */}
                 <div className="rounded-[28px] border-[6px] border-ink bg-ink overflow-hidden shadow-sm">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={s.src} alt={`${s.title} 광고 자리`} width={390} height={844} loading="lazy" className="block w-full h-auto rounded-[22px]" />
+                  <div className="rounded-[22px] overflow-hidden">
+                    <MarkedShot shot={s} />
+                  </div>
                 </div>
-                <p className="mt-3 text-sm font-semibold text-brown">
-                  {s.title}
-                  {!s.real && <span className="ml-1.5 align-middle text-[10px] font-medium text-gray-400 border border-gray-200 rounded px-1">예시</span>}
-                </p>
-                {s.slots.map((k) => (
-                  <p key={k} className="text-xs text-gray-500">{slotCaption(k)}</p>
-                ))}
+                <ShotCaption shot={s} />
               </li>
             ))}
           </ul>
           {/* PC 첫 화면 728×90 */}
           <div className="px-4 lg:px-8 mt-10">
             <div className="rounded-xl border-[6px] border-ink bg-ink overflow-hidden max-w-3xl mx-auto">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/sponsor/loc-pc-home.webp" alt="PC 첫 화면 헤더 광고 자리" width={780} height={488} loading="lazy" className="block w-full h-auto" />
+              <MarkedShot shot={PC_SHOT} alt="PC 첫 화면 헤더 광고 자리" />
             </div>
-            <p className="mt-3 text-sm font-semibold text-brown text-center">
-              PC 첫 화면
-              <span className="ml-1.5 align-middle text-[10px] font-medium text-gray-400 border border-gray-200 rounded px-1">예시</span>
-            </p>
-            <p className="text-xs text-gray-500 text-center">{SLOT_INFO['AD-H'].name} · PC 728×90 · 30일 {man('AD-H')}</p>
+            <ShotCaption shot={PC_SHOT} center />
           </div>
         </div>
       </section>
@@ -385,6 +380,8 @@ export default async function SponsorPage() {
                   ['결과 옆 렉탱글', 'AD-R', '시도당 3개 업체', won('AD-R')],
                   ['공정 스폰서', 'AD-P', '시도 × 공정당 3개 업체 · 노출 3곳', won('AD-P')],
                   ['토탈 인테리어 스폰서', 'AD-T', '시도당 3개 업체 · 노출 4곳(견적서 포함)', won('AD-T')],
+                  // 2026-10-30: 푸터 자리도 카드·캡처에 안내하므로 가격표에 같이(정본 2만원)
+                  ['푸터 로테이션', 'AD-F', '시도당 3개 업체 · 모든 페이지 맨 아래', won('AD-F')],
                   ['견적서 추천 업체', 'AD-PDF', '견적서 안 공정마다 여러 업체', won('AD-PDF')],
                   // 2026-10-29: 배너 제작 대행(기간 요금이 아니라 1회 요금)
                   ['배너 제작 대행', '-', '시안 1개 + 수정 2회 · 3영업일 · 첫 1회 무료', `${DESIGN_FEE.toLocaleString('ko-KR')}원(1회)`],
