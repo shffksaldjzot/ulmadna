@@ -9,6 +9,7 @@
 //   - ?ad_preview=all(관리자 자리 표시 모드)·?ad_preview=<주문번호>(배너 미리보기)일 때만 AdSlot 에 넘긴다.
 //     관리자 확인·미리보기 판정은 AdSlot 안에서 서버에 물어 처리한다.
 //   - process 가 없는 AD-P 는 그리지 않고, 표시 모드(관리자)에서만 "AD-P 없음" 한 줄을 보여 준다.
+//   - AD-T(토탈 인테리어 스폰서, 2026-10-29): 공정 판정이 "토탈"인 총론 글의 본문 중간 자리.
 // ─────────────────────────────────────────────────────────────
 'use client';
 
@@ -27,8 +28,8 @@ function hasPreviewQuery(): boolean {
 }
 
 interface BlogAdSlotProps {
-  /** 광고 자리 종류 — 블로그 글에는 공정 스폰서(AD-P)와 본문 끝 큰 자리(AD-R)만 쓴다 */
-  id: 'AD-P' | 'AD-R';
+  /** 광고 자리 종류 — 공정 스폰서(AD-P)·토탈 인테리어 스폰서(AD-T, 총론 글)·본문 끝 큰 자리(AD-R) */
+  id: 'AD-P' | 'AD-T' | 'AD-R';
   /** AD-P 전용 — 이 글의 공정 묶음 라벨(없으면 null) */
   process?: string | null;
 }
@@ -46,7 +47,8 @@ export function BlogAdSlot({ id, process }: BlogAdSlotProps) {
   // 공정이 없는 글의 AD-P → 관리자 표시 모드에서만 안내 한 줄
   if (id === 'AD-P' && !process) return <NoProcessNote />;
 
-  return id === 'AD-P' ? <AdSlot id="AD-P" processGroup={process!} adPPageIndex={0} /> : <AdSlot id="AD-R" />;
+  if (id === 'AD-P') return <AdSlot id="AD-P" processGroup={process!} adPPageIndex={0} />;
+  return <AdSlot id={id} />;
 }
 
 /** 공정 미판정 글 — 관리자 표시 모드(?ad_preview=all)에서만 보이는 한 줄 */

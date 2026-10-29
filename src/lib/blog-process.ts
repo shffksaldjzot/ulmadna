@@ -12,9 +12,12 @@
 //   2) 머리말 `calculator:` 값 — 글에 붙은 계산기 종류로 공정을 정한다(배열이면 첫 번째 유효한 값).
 //   3) 제목·태그 신호 단어 표 — 공정 묶음마다 10개 안팎. 제목에 걸리면 3점, 태그에 걸리면 1점씩 더해
 //      점수가 가장 높은 묶음을 고른다. 같은 점수면 제목에서 더 앞에 나온 묶음, 그다음은 표 순서.
-//   4) 아무것도 안 걸리면 없음(null).
+//   4) 공정 묶음이 안 걸린 글 중 인테리어 총론 글(예산·견적·계약·평형별 비용 …)은 "토탈"(total=true).
+//      토탈 글 본문 중간에는 공정 스폰서 대신 토탈 인테리어 스폰서(AD-T) 자리가 들어간다(2026-10-29).
+//      단 커튼·블라인드·취득세·선반·TV 벽걸이처럼 총론이 아닌 글은 제외 단어 표로 걸러 계속 없음.
+//   5) 그래도 아니면 없음(null).
 //
-// 작성일: 2026년 10월 29일
+// 작성일: 2026년 10월 29일 (토탈 판정 추가 2026년 10월 29일)
 // ──────────────────────────────────────────────
 
 /**
@@ -43,7 +46,7 @@ export const PROCESS_LABELS = [
 export type ProcessLabel = (typeof PROCESS_LABELS)[number];
 
 /** 판정 근거 — 관리자 표에서 "왜 이 공정이 됐나"를 보여 주는 데 쓴다 */
-export type ProcessBasis = "sponsor" | "calculator" | "keyword" | "none";
+export type ProcessBasis = "sponsor" | "calculator" | "keyword" | "total" | "none";
 
 /** 판정 결과 */
 export interface ProcessDecision {
@@ -51,6 +54,34 @@ export interface ProcessDecision {
   process: ProcessLabel | null;
   /** 어느 단계에서 정해졌나 */
   basis: ProcessBasis;
+  /**
+   * 토탈 인테리어 총론 글인가(true 일 때만 붙는다, process 는 null).
+   * 글 화면은 이 값이 true 면 본문 중간에 AD-P 대신 토탈 인테리어 스폰서(AD-T) 자리를 그린다.
+   */
+  total?: boolean;
+}
+
+/** 머리말 sponsor: 로 토탈을 직접 지정할 때 쓰는 값 */
+export const SPONSOR_TOTAL = "total";
+
+/**
+ * 토탈 판정 — 인테리어 총론 신호 단어(제목·태그 어디든 하나라도 걸리면 후보).
+ * 공정 묶음이 정해지지 않은 글에만 쓴다.
+ */
+export const TOTAL_KEYWORDS = ["인테리어", "리모델링", "올수리", "턴키", "반셀프", "준공검수", "하자점검"];
+
+/**
+ * 토탈 제외 단어 — 제목에 있으면 총론이 아니라 따로 노는 품목·세금 글이라 없음으로 둔다.
+ *  (커튼·블라인드 글이 "인테리어" 태그 때문에 토탈로 끌려가는 것을 막는다)
+ */
+export const TOTAL_EXCLUDE = ["커튼", "블라인드", "취득세", "선반", "벽걸이", "tv", "나노코팅", "원상복구"];
+
+/** 공정이 안 정해진 글이 인테리어 총론(토탈) 글인지 — 제외 단어(제목) 먼저, 그다음 총론 단어(제목·태그) */
+export function isTotalPost(title: string, tags: string[]): boolean {
+  const t = title.toLowerCase();
+  if (TOTAL_EXCLUDE.some((k) => t.includes(k))) return false;
+  const hay = [t, ...tags.map((x) => String(x).toLowerCase())];
+  return TOTAL_KEYWORDS.some((k) => hay.some((h) => h.includes(k)));
 }
 
 /**
@@ -151,6 +182,8 @@ export function detectPostProcess(
   if (typeof sponsor === "string") {
     const s = sponsor.trim();
     if (s === "none") return { process: null, basis: "sponsor" };
+    // sponsor: total → 토탈 인테리어 스폰서 글로 확정
+    if (s === SPONSOR_TOTAL) return { process: null, basis: "sponsor", total: true };
     if (isProcessLabel(s)) return { process: s, basis: "sponsor" };
     // 표에 없는 글자(오타 등)는 무시하고 다음 단계로
   }
@@ -167,7 +200,10 @@ export function detectPostProcess(
   const byKw = detectProcessByKeywords(title, tags);
   if (byKw) return { process: byKw, basis: "keyword" };
 
-  // 4) 없음
+  // 4) 인테리어 총론 글이면 토탈
+  if (isTotalPost(title, tags)) return { process: null, basis: "total", total: true };
+
+  // 5) 없음
   return { process: null, basis: "none" };
 }
 

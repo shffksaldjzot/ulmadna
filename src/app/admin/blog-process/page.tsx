@@ -5,6 +5,7 @@
 //   블로그 글마다 정해진 공정 묶음(공정 스폰서 광고 AD-P 매칭용)을 모아,
 //   공정별 글 수와 판정 근거(sponsor/calculator/키워드) 개수를 표 하나로 보여 준다.
 //   공정을 못 정한 "없음" 글은 아래에 제목·주소로 늘어놓는다 — 머리말 sponsor: 로 손볼 대상.
+//   2026-10-29: 인테리어 총론 글은 "토탈"(토탈 인테리어 스폰서 AD-T 자리) 묶음으로 따로 센다.
 //   관리자 가드는 middleware 가 /admin/* 에 이미 건다.
 // ──────────────────────────────────────────────
 import { getAllPostMeta } from '@/lib/blog';
@@ -25,14 +26,17 @@ export default function BlogProcessPage() {
     const mine = posts.filter((p) => p.process.process === label);
     return { label, total: mine.length, by: BASES.map((b) => mine.filter((p) => p.process.basis === b).length) };
   });
-  // 공정 없음 글(sponsor: none 으로 끈 글 포함)
-  const none = posts.filter((p) => !p.process.process);
+  // 토탈 묶음(인테리어 총론 글 — 본문 중간에 AD-T)
+  const total = posts.filter((p) => p.process.total);
+  const totalBySponsor = total.filter((p) => p.process.basis === 'sponsor').length;
+  // 공정 없음 글(sponsor: none 으로 끈 글 포함, 토탈 제외)
+  const none = posts.filter((p) => !p.process.process && !p.process.total);
   const noneBySponsor = none.filter((p) => p.process.basis === 'sponsor').length;
   const pct = posts.length ? Math.round((none.length / posts.length) * 1000) / 10 : 0;
 
   return (
     <div>
-      <PageHead title="글 공정 판정" note={`공개 글 ${posts.length}편 · 없음 ${none.length}편(${pct}%)`} />
+      <PageHead title="글 공정 판정" note={`공개 글 ${posts.length}편 · 토탈 ${total.length}편 · 없음 ${none.length}편(${pct}%)`} />
       <div className="space-y-4">
         <Card>
           <div className="overflow-x-auto -mx-1">
@@ -53,6 +57,13 @@ export default function BlogProcessPage() {
                   </tr>
                 ))}
                 <tr className="border-t border-gray-200">
+                  <td className="py-2 px-2 text-gray-700">토탈 <span className="text-xs text-gray-400">AD-T</span></td>
+                  <td className="py-2 px-2 text-right tabular-nums font-semibold">{total.length}</td>
+                  <td className="py-2 px-2 text-right tabular-nums text-gray-500">{totalBySponsor || '–'}</td>
+                  <td className="py-2 px-2 text-right text-gray-300">–</td>
+                  <td className="py-2 px-2 text-right tabular-nums text-gray-500">{total.length - totalBySponsor || '–'}</td>
+                </tr>
+                <tr className="border-b border-gray-50">
                   <td className="py-2 px-2 text-gray-500">없음</td>
                   <td className="py-2 px-2 text-right tabular-nums font-semibold">{none.length}</td>
                   <td className="py-2 px-2 text-right tabular-nums text-gray-500">{noneBySponsor || '–'}</td>
@@ -62,6 +73,16 @@ export default function BlogProcessPage() {
               </tbody>
             </table>
           </div>
+        </Card>
+        <Card title={`토탈 ${total.length}편`}>
+          <ul className="space-y-1.5 text-sm">
+            {total.map((p) => (
+              <li key={p.slug} className="truncate">
+                <a href={`/blog/${p.slug}?ad_preview=all`} className="text-gray-700 hover:text-brown">{p.title}</a>
+                <span className="ml-2 text-xs text-gray-400">{p.slug}</span>
+              </li>
+            ))}
+          </ul>
         </Card>
         <Card title={`없음 ${none.length}편`}>
           {none.length === 0 ? (
