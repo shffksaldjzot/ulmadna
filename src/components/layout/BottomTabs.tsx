@@ -1,5 +1,5 @@
 // ──────────────────────────────────────────────
-// 공용 하단 탭 — 모바일 전용. 홈 · 계산기 · 블로그 · 본 글·저장 · 문의 5칸.
+// 공용 하단 탭 — 모바일 전용. 홈 · 계산기 · 블로그 · 본 글·저장 · 물어보기 5칸.
 //
 // 2026-09-15 형아 지시(디자인 통일 작업 A): 계산기에만 있던 2칸(홈·계산기) 탭을
 // 없애고, 블로그·본 글·저장까지 4칸으로 늘려서 모든 페이지 하단에 똑같이 붙인다.
@@ -11,6 +11,10 @@
 //
 // 2026-09-16 형아 지시(직접 서비스 CTA): 5번째 칸 "문의"를 추가. 다른 탭과 달리 페이지
 // 이동이 아니라 공용 문의 시트(ContactSheet)를 여는 버튼이라 <Link> 대신 <button>으로 그린다.
+//
+// 2026-10-29 폴리싱 묶음 A: 5번째 칸 이름이 모바일은 "문의", 데스크톱 메뉴는 "물어보기"라
+// 같은 곳인지 헷갈렸다 → 5번째 칸을 "물어보기"(/ask 이동)로 바꾸고 다른 탭과 같은 규칙으로
+// /ask·/ask/* 에서 활성 표시가 되게 했다. 문의 시트는 상단바 "문의" 알약에서 그대로 열린다.
 // ──────────────────────────────────────────────
 
 'use client';
@@ -19,7 +23,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { IconHome, IconCalc, IconBlog, IconBookmark, IconQuestion } from '@/components/v1/icons';
-import { openContactSheet } from '@/lib/contactSheet';
 
 const TABS = [
   { href: '/', label: '홈', Icon: IconHome, match: (p: string) => p === '/' },
@@ -33,6 +36,8 @@ const TABS = [
   // 2026-09-15: "내 글"이라고 하면 내가 직접 쓴 글로 오해할 수 있어서(블로그팀 수정과 동일 이유)
   // 라벨을 "본 글·저장"으로 맞췄다 — /blog/my 페이지 제목·공유 문구와 일치시킴
   { href: '/blog/my', label: '본 글·저장', Icon: IconBookmark, match: (p: string) => p.startsWith('/blog/my') },
+  // 2026-10-29: 데스크톱 메뉴와 같은 이름 "물어보기" — 목록(/ask)·글(/ask/…)·질문하기 화면 모두 활성
+  { href: '/ask', label: '물어보기', Icon: IconQuestion, match: (p: string) => p === '/ask' || p.startsWith('/ask/') },
 ];
 
 export default function BottomTabs() {
@@ -59,17 +64,6 @@ export default function BottomTabs() {
           </Link>
         );
       })}
-      {/* 문의 — 페이지 이동이 아니라 공용 문의 시트를 여는 버튼이라 다른 탭과 마크업만 다르고
-          모양(크기·간격)은 똑같이 맞췄다. 이 탭은 활성/비활성 구분이 없다(시트 열림 여부는
-          현재 경로와 무관해서). */}
-      <button
-        type="button"
-        onClick={() => openContactSheet('tab')}
-        className="flex-1 flex flex-col items-center justify-center gap-1 h-14 text-ink-2"
-      >
-        <IconQuestion />
-        <span className="text-[11px]">문의</span>
-      </button>
     </nav>
   );
 }
