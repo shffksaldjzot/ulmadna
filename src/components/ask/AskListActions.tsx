@@ -5,7 +5,7 @@
 // 이 부품이 화면에서 따로 불러 채운다.
 //   variant="title" : PC 제목 오른쪽 단추
 //   variant="row"   : 목록 위 PC 단추
-//   variant="quota" : 머리 안 "오늘 남은 질문" 한 줄
+//   variant="quota" : 머리 안 "오늘 남은 질문" 한 줄(2026-10-29: 한 줄만 — compact)
 //   variant="fab"   : 모바일 떠 있는 "+ 질문하기"
 // 작성일: 2026년 10월 03일
 // ──────────────────────────────────────────────
@@ -22,7 +22,7 @@ export default function AskListActions({ variant }: { variant: 'title' | 'row' |
       질문하기
     </>
   );
-  if (variant === 'quota') return <AskQuotaLine quota={quota} />;
+  if (variant === 'quota') return <AskQuotaLine quota={quota} compact />;
   if (variant === 'fab') return <AskAskButton quota={quota} className="fab">{label}</AskAskButton>;
   if (variant === 'title') return <AskAskButton quota={quota} className="btn p ask-btn-pc">{label}</AskAskButton>;
   return (
