@@ -14,7 +14,8 @@ import { REGION_NAMES, SIDO_CODES } from '@/server/admin/format';
 export const PARTNER_SLOTS: SlotKind[] = ['AD-H', 'AD-R', 'AD-P', 'AD-T', 'AD-F'];
 
 /** 한 번에 고를 수 있는 기간(30일 단위 개수) */
-export const PARTNER_UNITS = [1, 3, 6] as const;
+// 2026-10-29: 180일(6단위)은 뺌 — PG 심사에서 "비실물 장기 서비스(6개월)"가 위험 업종으로 잡혀서 최대 90일로 둔다
+export const PARTNER_UNITS = [1, 3] as const;
 
 /** 시도 17곳 [번호, 이름] — 관리자 자리판과 같은 순서 */
 export const PARTNER_REGIONS: [string, string][] = SIDO_CODES.map((c) => [c, REGION_NAMES[c] ?? c]);
