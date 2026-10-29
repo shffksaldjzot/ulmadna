@@ -27,7 +27,8 @@ export const metadata: Metadata = {
 export default function BlogIndex() {
   const posts = getAllPostIndex();
   // "내가 본 글" 줄은 slug·제목·썸네일만 있으면 되므로 가벼운 필드만 추려서 내려준다
-  const slimForRecent = posts.map((p) => ({ slug: p.slug, title: p.title, thumbnail: p.thumbnail }));
+  // (150px 칸이라 작은 썸네일 주소를 넘긴다 — 2026년 10월 29일)
+  const slimForRecent = posts.map((p) => ({ slug: p.slug, title: p.title, thumbnail: p.thumbSmall ?? p.thumbnail }));
 
   return (
     <div className="blog-scope">

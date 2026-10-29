@@ -177,7 +177,7 @@ export default async function BlogPost({
   const toCandidate = (p: (typeof allPosts)[number], cats: string[]): ReadMoreCandidate => ({
     slug: p.slug,
     title: p.title,
-    thumbnail: p.thumbnail,
+    thumbnail: p.thumbSmall ?? p.thumbnail, // 작은 칸이라 작은 썸네일(2026년 10월 29일)
     category: cats.length > 0 ? getCategory(cats[0])?.label ?? "" : "",
   });
   // 본문 중간 관련 글 1개 — 같은 공정 글 중 최근 28일 조회수 1위(관련 글 4편과는 겹치지 않게).
@@ -425,8 +425,10 @@ export default async function BlogPost({
                   {related.map((r) => (
                     <Link key={r.slug} href={`/blog/${r.slug}`} className="blog-related-card">
                       {r.thumbnail && (
+                        // 작은 썸네일(480px webp) + lazy — 원본 1080px 을 94px 칸에 쓰던 것을 바꿈(2026년 10월 29일).
+                        // lazy 라서 다른 화면이 이 글을 미리 읽을 때 이 그림들까지 미리 받지 않는다.
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={r.thumbnail} alt={r.title} />
+                        <img src={r.thumbSmall ?? r.thumbnail} alt={r.title} width={480} height={288} loading="lazy" decoding="async" />
                       )}
                       <span className="blog-related-title">{r.title}</span>
                     </Link>

@@ -101,7 +101,7 @@ export function ReadMoreAtEnd({ candidates, calc }: { candidates: ReadMoreCandid
           >
             {p.thumbnail ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={p.thumbnail} alt={p.title} />
+              <img src={p.thumbnail} alt={p.title} loading="lazy" decoding="async" />
             ) : (
               <span className="blog-readmore-noimg" aria-hidden="true">얼마드나</span>
             )}
