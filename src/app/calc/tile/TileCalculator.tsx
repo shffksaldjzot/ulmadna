@@ -637,24 +637,14 @@ export default function TileCalculator() {
         rightSlot={<Segment size="sm" options={VIEW_OPTIONS} value={view} onChange={(v) => patch({ view: v })} className="w-[136px]" ariaLabel="계산 모드" />}
       />
 
-      {/* 모바일 — 입력하는 동안 금액 범위를 제목줄 아래에 고정(누르면 결과로). 다 끝나면 하단 바가 대신 보여 준다 */}
-      {/* 면적(치수)을 넣기 전에는 이 띠도 안 보인다(2026-10-29) */}
-      {amountText && !allDone && !areaPending && (
-        <button
-          type="button"
-          onClick={scrollToResult}
-          className={`lg:hidden sticky top-[100px] z-30 w-full h-10 px-5 bg-surface border-b border-line flex items-center justify-between gap-2 transition-opacity ${loading || stale ? 'opacity-60' : ''}`}
-          aria-label={`지금 금액 ${amountText} — 결과 보기`}
-        >
-          <span className="t-sub text-ink-2 flex-none">{result?.resolved.service === 'self' ? '필요 수량' : '지금 견적'}</span>
-          <span className="t-body font-semibold text-brown tabular-nums truncate">{amountText}</span>
-        </button>
-      )}
+      {/* 2026-10-29: 예전엔 입력하는 동안 금액을 제목 줄 아래 띠("지금 견적")에 따로 띄웠다.
+          금액이 띠·결과 카드·하단 바에 2~3번 겹쳐 보여서 띠를 없애고, 다른 계산기 셋처럼
+          하단 바가 진행 중에도 "N/M · 금액 + 자세히"를 보여 준다(결과 카드 한 번 + 하단 바 한 번) */}
 
       {/* 광고 자리 AD-H — PC 에만(728×90), 상단바 아래. 휴대폰엔 넣지 않는다(형아 결정) */}
       <CalcAdSlot id="AD-H" show={adsShown} desktopOnly />
 
-      <div className="px-5 lg:px-8 py-4 pb-20 lg:pb-8 max-w-[1120px] mx-auto flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(480px,560px)_1fr] lg:gap-8 lg:items-start">
+      <div className="px-5 lg:px-8 py-4 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-8 max-w-[1120px] mx-auto flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(480px,560px)_1fr] lg:gap-8 lg:items-start">
         <div className="flex flex-col gap-4">
           <Segment size="sm" options={VIEW_OPTIONS} value={view} onChange={(v) => patch({ view: v })} className="hidden lg:flex w-[160px]" ariaLabel="계산 모드" />
           <FlowShell steps={flowSteps} activeIndex={activeIndex} completeFlags={completeFlags} />
@@ -706,8 +696,9 @@ export default function TileCalculator() {
         stepNumber={Math.min(activeIndex + 1, flowSteps.length)}
         stepCount={flowSteps.length}
         stepTitle={currentStepTitle}
-        // 다 끝났을 때만 금액 — 면적(치수)을 넣기 전이면 다 끝날 수 없지만 한 번 더 막아 둔다(2026-10-29)
-        amountText={allDone && !areaPending ? amountText : undefined}
+        // 결과가 있으면 진행 중에도 금액 + [자세히](도배·바닥재·미장과 같은 규칙, 2026-10-29).
+        // 치수를 넣기 전(금액 숨김)에는 진행 표시만 — 지금 규칙 유지
+        amountText={!areaPending ? amountText : undefined}
         allDone={allDone}
         calculating={loading || stale}
         failed={!result && !!error}

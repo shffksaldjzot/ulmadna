@@ -633,7 +633,7 @@ export default function WallpaperCalculator({ products }: WallpaperCalculatorPro
       {/* 광고 자리 AD-H — PC 에만(728×90), 상단바 아래. 휴대폰엔 넣지 않는다(형아 결정) */}
       <CalcAdSlot id="AD-H" show={adsShown} desktopOnly />
 
-      <div className="px-5 lg:px-8 py-4 pb-20 lg:pb-8 max-w-[1120px] mx-auto flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(480px,560px)_1fr] lg:gap-8 lg:items-start">
+      <div className="px-5 lg:px-8 py-4 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-8 max-w-[1120px] mx-auto flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(480px,560px)_1fr] lg:gap-8 lg:items-start">
         {/* 왼쪽 — 입력. 데스크톱은 제목 줄이 없으니(TopNav가 lg:hidden) 모드 전환을 여기 작게 둔다 */}
         <div className="flex flex-col gap-4">
           <Segment
