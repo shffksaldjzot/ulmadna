@@ -41,6 +41,28 @@ export default async function AdsPage() {
     <div className="space-y-5">
       <PageHead title="광고 자리" note="오늘 기준 남은 자리 · 계좌이체 입금 확인 방식(카드 결제는 준비 중)" />
 
+      {/* 광고 자리 보기 — 각 화면을 ?ad_preview=all 로 새 창에 열면 모든 자리가 점선 표시판으로 보인다(관리자 로그인 상태에서만) */}
+      <Card title="광고 자리 보기">
+        <div className="flex flex-wrap gap-2">
+          {[
+            ['첫 화면', '/'],
+            ['계산기 허브', '/calc'],
+            ['도배 결과', '/calc/wallpaper'],
+            ['견적 계산기(공정 목록)', '/'],
+          ].map(([label, href]) => (
+            <a
+              key={label}
+              href={`${href}?ad_preview=all`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-md border border-orange-300 bg-orange-50 px-3 py-1.5 text-sm font-medium text-orange-700"
+            >
+              {label}
+            </a>
+          ))}
+        </div>
+      </Card>
+
       <Card title="지역별 남은 자리">
         <div className="overflow-x-auto -mx-1">
           <table className="w-full text-sm">
