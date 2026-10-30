@@ -26,7 +26,11 @@ export default function PartnerSignup() {
   const set = (k: keyof typeof f, v: string | boolean) => setF((p) => ({ ...p, [k]: v }));
 
   // 칸별 문제(다 채운 칸만 검사해 한 줄로)
-  const bizBad = normalizeBizNo(f.bizNo).length === 10 && !isBizNo(f.bizNo);
+  // 사업자번호 칸 밑 안내(2026-10-30 실제 광고주 시험: 9자리를 넣고 "빠진 것"만 떠서 헷갈림)
+  //  - 숫자 수가 10이 아니면 "10자리예요(지금 N자리)", 10자리인데 검사 숫자가 안 맞으면 "맞지 않아요"
+  const bizDigits = normalizeBizNo(f.bizNo).length;
+  const bizMsg = bizDigits === 0 ? '' : bizDigits !== 10 ? `사업자번호는 숫자 10자리예요 (지금 ${bizDigits}자리)` : !isBizNo(f.bizNo) ? '사업자번호가 맞지 않아요. 사업자등록증의 번호를 다시 확인해 주세요' : '';
+  const bizBad = bizMsg !== '';
   const emailBad = f.email.length > 3 && !isEmail(f.email.trim().toLowerCase());
   const pwBad = f.password ? passwordProblem(f.password) : null;
   const ready = f.name.trim() && isBizNo(f.bizNo) && f.region && isEmail(f.email.trim().toLowerCase()) && !passwordProblem(f.password) && f.agree;
@@ -83,7 +87,7 @@ export default function PartnerSignup() {
         <label className="block">
           <span className="mb-1.5 block text-[14px] font-medium text-ink">사업자번호</span>
           <input className={inputCls} value={f.bizNo} inputMode="numeric" onChange={(e) => set('bizNo', dashBiz(e.target.value))} placeholder="000-00-00000" />
-          {bizBad && <span className="mt-1 block text-[13px] text-danger">사업자번호를 다시 확인해 주세요(10자리, 하이픈 없이)</span>}
+          {bizBad && <span className="mt-1 block text-[13px] text-danger">{bizMsg}</span>}
           {fe('bizNo')}
         </label>
         <label className="block">
