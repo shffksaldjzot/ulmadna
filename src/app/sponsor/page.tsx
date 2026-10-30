@@ -286,7 +286,7 @@ export default async function SponsorPage() {
                 {/* 배너 실물 — 카드 폭 전체를 써서 PC 728×90 도 실제 크기로 들어간다(좁은 화면에선 비율 유지하며 줄어듦) */}
                 {!slot.mockup && (
                   <div className="mt-5 pt-5 border-t border-brown/10">
-                    <p className="text-[10px] text-gray-400 mb-2">배너 실물 · 실제 크기</p>
+                    <p className="text-[10px] text-gray-400 mb-2">배너 실물 · 실제 크기 · 견본(가상 업체)</p>
                     <SlotBanners kind={slot.id} />
                   </div>
                 )}
@@ -330,7 +330,7 @@ export default async function SponsorPage() {
       <section id="samples" className="py-16 px-4">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-2xl font-bold text-brown text-center mb-2">배너 예시</h2>
-          <p className="text-sm text-gray-400 text-center mb-8">이 정도 수준으로 만들어 드려요</p>
+          <p className="text-sm text-gray-400 text-center mb-8">견본(가상 업체) · 이 정도 수준으로 만들어 드려요</p>
           <div className="flex flex-wrap justify-center gap-x-8 gap-y-6">
             {BANNER_SAMPLES.map((b) => (
               <figure key={b.src} className="flex flex-col items-center">
