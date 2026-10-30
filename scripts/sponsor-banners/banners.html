@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<!-- 광고 견본 배너 7장 원본 (make-banners.mjs 가 이 파일을 열어 장마다 캡처한다) -->
+<!-- 1배 크기(320x100 등)로 그려 두고 zoom:2 로 2배(640x200) PNG 를 뽑는다. 상호·전화는 make-banners.mjs 상단 상수가 채운다 -->
+<style>
+  /* 글꼴: 윈도우에 깔린 노토 산스 KR(가변 글꼴) */
+  @font-face { font-family: 'NotoKR'; src: url('file:///C:/Windows/Fonts/NotoSansKR-VF.ttf'); font-weight: 100 900; }
+  :root { --cream:#f7efe3; --ink:#2a1f17; --gold:#c88a1f; --goldtxt:#8a5f12; --sub:#6b5a4a; --wood:#7a5233; }
+  html, body { margin: 0; padding: 0; background: #fff; }
+  * { box-sizing: border-box; font-family: 'NotoKR', 'Noto Sans KR', 'Malgun Gothic', sans-serif; }
+  /* 배너 공통 틀: 1배 크기, 2배 확대 */
+  .b { position: relative; overflow: hidden; zoom: 2; display: none; }
+  .b.on { display: block; }
+  /* 밝은 바탕: 크림색 + 가는 세로줄(도배지 느낌) */
+  .light { background: var(--cream) repeating-linear-gradient(90deg, rgba(120,90,50,.05) 0 1px, transparent 1px 6px); }
+  /* 어두운 바탕: 마루 널 느낌의 갈색 */
+  .dark { background:
+      linear-gradient(90deg, transparent 0 18%, rgba(255,255,255,.05) 18% 42%, transparent 42% 64%, rgba(0,0,0,.12) 64% 88%, transparent 88%),
+      var(--wood); }
+  .abs { position: absolute; white-space: nowrap; }
+  /* 알약 꼬리표 */
+  .pill { position: absolute; background: var(--ink); color: #fff; font-weight: 700; border-radius: 99px; text-align: center; white-space: nowrap; }
+  .pill.cr { background: var(--cream); color: var(--ink); }
+  /* 전화 단추 */
+  .btn { position: absolute; background: var(--gold); color: #fff; font-weight: 800; border-radius: 10px; text-align: center; display: flex; align-items: center; justify-content: center; white-space: nowrap; }
+  .ttl { font-weight: 800; color: var(--ink); line-height: 1.3; letter-spacing: -.02em; }
+  .name { font-weight: 800; color: var(--goldtxt); }
+
+  /* 1 AD-H 휴대폰 320x100 */
+  #h { width: 320px; height: 100px; }
+  #h .pill { left: 14px; top: 14px; height: 20px; line-height: 20px; padding: 0 10px; font-size: 11px; }
+  #h .ttl { left: 14px; top: 42px; font-size: 18px; line-height: 23px; }
+  #h .name { right: 14px; top: 18px; font-size: 13px; }
+  #h .btn { right: 12px; top: 45px; width: 130px; height: 39px; font-size: 13px; }
+  /* 2 AD-H PC 728x90 */
+  #hpc { width: 728px; height: 90px; }
+  #hpc .pill { left: 20px; top: 32px; height: 27px; line-height: 27px; padding: 0 13px; font-size: 12px; }
+  #hpc .ttl { left: 162px; top: 29px; font-size: 20px; }
+  #hpc .name { right: 182px; top: 33px; font-size: 15px; }
+  #hpc .btn { right: 14px; top: 25px; width: 152px; height: 40px; font-size: 15px; }
+  /* 3 AD-R 300x250 */
+  #r { width: 300px; height: 250px; }
+  #r .pill { left: 16px; top: 16px; height: 23px; line-height: 23px; padding: 0 9px; font-size: 12px; }
+  #r .ttl { left: 16px; top: 48px; font-size: 24px; line-height: 32px; }
+  #r .sub { left: 16px; top: 122px; font-size: 13px; line-height: 18px; color: var(--sub); font-weight: 500; }
+  #r .band { position: absolute; left: 0; right: 0; bottom: 0; height: 74px; }
+  #r .nm { left: 16px; top: 190px; color: #fff; font-size: 17px; font-weight: 800; }
+  #r .nm2 { left: 16px; top: 217px; color: #ecdcc8; font-size: 11px; font-weight: 500; }
+  #r .btn { right: 16px; top: 194px; width: 130px; height: 39px; font-size: 13px; }
+  /* 4 AD-P / 5 AD-T / 6 AD-F 휴대폰 320x50 */
+  #p, #t, #f { width: 320px; height: 50px; }
+  #p .pill, #t .pill { left: 12px; top: 14px; height: 22px; line-height: 22px; padding: 0 9px; font-size: 11px; }
+  #p .ttl, #t .ttl { left: 58px; top: 14px; font-size: 15px; line-height: 22px; width: 128px; overflow: hidden; text-overflow: ellipsis; }
+  #t .ttl { left: 66px; color: #fff; width: auto; overflow: visible; }
+  #p .btn, #t .btn, #f .btn { right: 12px; top: 10px; width: 124px; height: 31px; font-size: 12px; border-radius: 8px; }
+  #f .ttl { left: 14px; top: 8px; font-size: 16px; line-height: 20px; }
+  #f .sub { left: 14px; top: 29px; font-size: 11px; color: var(--sub); font-weight: 500; }
+  /* 7 AD-F PC 728x90 */
+  #fpc { width: 728px; height: 90px; }
+  #fpc .ttl { left: 20px; top: 22px; font-size: 22px; line-height: 28px; }
+  #fpc .sub { left: 20px; top: 54px; font-size: 13px; color: var(--sub); font-weight: 500; }
+  #fpc .btn { right: 14px; top: 25px; width: 152px; height: 40px; font-size: 15px; }
+</style>
+</head>
+<body>
+<!-- data-fill: name=상호, phone=전화 (make-banners.mjs 가 채움) -->
+<div class="b light" id="h">
+  <div class="pill">서울·경기 도배·장판</div>
+  <div class="abs ttl">계산하신 그 평수,<br>그대로 상담드립니다</div>
+  <div class="abs name" data-fill="name"></div>
+  <div class="btn">☎&nbsp;<span data-fill="phone"></span></div>
+</div>
+<div class="b light" id="hpc">
+  <div class="pill">서울·경기 도배·장판</div>
+  <div class="abs ttl">계산하신 그 평수, 그대로 상담드립니다</div>
+  <div class="abs name" data-fill="name"></div>
+  <div class="btn">☎&nbsp;<span data-fill="phone"></span></div>
+</div>
+<div class="b light" id="r">
+  <div class="pill">도배 · 장판 · 마루</div>
+  <div class="abs ttl">방금 본 견적,<br>실측으로 확정하세요</div>
+  <div class="abs sub">벽지·장판 종류별 실제 단가로<br>평수 그대로 다시 계산해 드립니다</div>
+  <div class="band dark"></div>
+  <div class="abs nm" data-fill="name"></div>
+  <div class="abs nm2">서울·경기 시공</div>
+  <div class="btn">☎&nbsp;<span data-fill="phone"></span></div>
+</div>
+<div class="b light" id="p">
+  <div class="pill">도배</div>
+  <div class="abs ttl">도배 실측 상담</div>
+  <div class="btn">☎&nbsp;<span data-fill="phone"></span></div>
+</div>
+<div class="b dark" id="t">
+  <div class="pill cr">올수리</div>
+  <div class="abs ttl">올수리 실측 상담</div>
+  <div class="btn">☎&nbsp;<span data-fill="phone"></span></div>
+</div>
+<div class="b light" id="f">
+  <div class="abs ttl" data-fill="name"></div>
+  <div class="abs sub">서울·경기 · 무료 실측</div>
+  <div class="btn">☎&nbsp;<span data-fill="phone"></span></div>
+</div>
+<div class="b light" id="fpc">
+  <div class="abs ttl" data-fill="name"></div>
+  <div class="abs sub">서울·경기 · 무료 실측</div>
+  <div class="btn">☎&nbsp;<span data-fill="phone"></span></div>
+</div>
+</body>
+</html>
