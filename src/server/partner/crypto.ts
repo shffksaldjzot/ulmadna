@@ -70,3 +70,19 @@ export function recordFail(key: string, now = Date.now()): void {
 export function clearFails(key: string): void {
   fails.delete(key);
 }
+
+// ── 분당 호출 제한(메모리) — 사업자번호 [확인] 같은 가벼운 조회용(2026-10-30) ──
+const hits = new Map<string, number[]>();
+
+/** key 가 windowMs 안에 max 번을 넘기면 false(막음). 아니면 한 번 세고 true */
+export function allowHit(key: string, max: number, windowMs: number, now = Date.now()): boolean {
+  const arr = (hits.get(key) ?? []).filter((t) => now - t < windowMs);
+  if (arr.length >= max) {
+    hits.set(key, arr);
+    return false;
+  }
+  arr.push(now);
+  hits.set(key, arr);
+  if (hits.size > 5000) hits.clear(); // 메모리 보호
+  return true;
+}

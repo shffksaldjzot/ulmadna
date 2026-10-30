@@ -46,11 +46,13 @@ describe('이메일·비밀번호', () => {
 
 describe('결제 금액(부가세 포함)', () => {
   it('헤더 가로 30일 = 10만 + 1만 = 11만 원', () => {
-    expect(quote('AD-H', 1)).toEqual({ units: 1, amount: 100000, vat: 10000, total: 110000 });
+    expect(quote('AD-H', 1)).toMatchObject({ units: 1, amount: 100000, vat: 10000, total: 110000, listAmount: 100000, discountPct: 0 });
   });
-  it('공정 스폰서 90일 = 정본 가격 × 3', () => {
+  it('공정 스폰서 90일 = 정본 가격 × 3 에서 10% 할인', () => {
     const q = quote('AD-P', 3);
-    expect(q.amount).toBe(SLOT_INFO['AD-P'].price * 3);
+    expect(q.listAmount).toBe(SLOT_INFO['AD-P'].price * 3);
+    expect(q.discountPct).toBe(10);
+    expect(q.amount).toBe(SLOT_INFO['AD-P'].price * 3 * 0.9);
     expect(q.vat).toBe(Math.round(q.amount * 0.1));
     expect(q.total).toBe(q.amount + q.vat);
   });
@@ -105,14 +107,14 @@ describe('지역 단계 결제 금액(2026-10-30)', () => {
 describe('토탈 인테리어 스폰서(AD-T)', () => {
   it('신청 목록에 있고 10만 원 + 부가세', () => {
     expect(PARTNER_SLOTS).toContain('AD-T');
-    expect(quote('AD-T', 1)).toEqual({ units: 1, amount: 100000, vat: 10000, total: 110000 });
+    expect(quote('AD-T', 1)).toMatchObject({ units: 1, amount: 100000, vat: 10000, total: 110000 });
   });
 });
 
 describe('배너 제작 대행 금액(2026-10-29)', () => {
   it('직접 올리기면 제작비 없음 — 기존 금액과 같다', () => {
     const q = quoteNew('AD-H', 1, null);
-    expect(q).toEqual({ units: 1, adAmount: 100000, designFee: 0, amount: 100000, vat: 10000, total: 110000 });
+    expect(q).toMatchObject({ units: 1, adAmount: 100000, designFee: 0, amount: 100000, vat: 10000, total: 110000 });
   });
   it('첫 제작은 무료(0원)', () => {
     const q = quoteNew('AD-P', 1, { firstFree: true });
@@ -123,11 +125,11 @@ describe('배너 제작 대행 금액(2026-10-29)', () => {
   it('두 번째부터 5만 원 + 부가세(광고비와 합쳐 계산)', () => {
     const q = quoteNew('AD-H', 3, { firstFree: false });
     expect(DESIGN_FEE).toBe(50000);
-    expect(q.adAmount).toBe(300000);
+    expect(q.adAmount).toBe(270000); // 90일 10% 할인 뒤
     expect(q.designFee).toBe(50000);
-    expect(q.amount).toBe(350000);
-    expect(q.vat).toBe(35000);
-    expect(q.total).toBe(385000);
+    expect(q.amount).toBe(320000);
+    expect(q.vat).toBe(32000);
+    expect(q.total).toBe(352000);
   });
   it('입력 정리와 빈칸 검사', () => {
     expect(cleanBrief(' 남양주  올수리 \t전문 ', 60)).toBe('남양주 올수리 전문');
@@ -153,5 +155,24 @@ describe('전화번호 검사 (2026-10-30)', () => {
   it('저장 값은 숫자와 하이픈만', () => {
     expect(cleanPhone('(010) 1234-5678 번')).toBe('0101234-5678');
     expect(cleanPhone('tel 010-1234-5678')).toBe('010-1234-5678');
+  });
+});
+
+describe('장기 할인·첫 달 무료 결제 금액(2026-10-30)', () => {
+  it('90일: 정가·할인율·할인 뒤 금액', () => {
+    const q = quote('AD-H', 3);
+    expect(q).toMatchObject({ listAmount: 300000, discountPct: 10, amount: 270000, vat: 27000, total: 297000, freeAmount: 0 });
+  });
+  it('첫 달 무료 30일: 0원', () => {
+    expect(quote('AD-H', 1, null, true)).toMatchObject({ amount: 0, vat: 0, total: 0, freeAmount: 100000 });
+  });
+  it('첫 달 무료 90일: 첫 30일 단위만 빠진다(할인 뒤 2단위분)', () => {
+    const q = quote('AD-H', 3, null, true);
+    expect(q.freeAmount).toBe(90000);
+    expect(q.amount).toBe(180000);
+  });
+  it('quoteNew 첫 달 무료 + 제작 대행 첫 회 무료면 합계 0원', () => {
+    expect(quoteNew('AD-H', 1, { firstFree: true }, null, true).total).toBe(0);
+    expect(quoteNew('AD-H', 1, { firstFree: false }, null, true).total).toBe(55000);
   });
 });

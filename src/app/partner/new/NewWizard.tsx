@@ -7,11 +7,13 @@
 //   자리·가격·규격은 광고 정본(SLOT_INFO)에서 읽는다. 금액은 화면에 보여 주기만 하고
 //   실제 결제 금액은 서버가 다시 계산한다.
 //   배너는 고르자마자 자리 규격(2배)에 가운데 맞춤으로 자동 변환한다(2026-10-30).
+//   2026-10-30: 기간 칸에 장기 할인(90일 10%) 표시, 결제 요약에 정가·할인·결제액, 첫 광고주 무료 안내 줄·합계 0원이면 결제창 없이 바로 신청
 //   2026-10-30 변경: 단추가 죽어 있으면 이유 한 줄 표시 · 주소 자동 https:// · 그림 자동 맞춤 · 전화 9자리 이상 · 결제 불가 시 문의 링크
 // ─────────────────────────────────────────────────────────────
 import { useEffect, useState } from 'react';
-import { AD_PROCESS_GROUPS, DESIGN_FEE, SLOT_INFO, checkBanner, slotPrice, normalizeClickUrl, type SlotKind } from '@/lib/ads/pricing';
+import { AD_PROCESS_GROUPS, DESIGN_FEE, SLOT_INFO, checkBanner, longDiscountPct, slotPrice, normalizeClickUrl, type SlotKind } from '@/lib/ads/pricing';
 import { BRIEF_MAX, PARTNER_REGIONS, PARTNER_SLOTS, PARTNER_UNITS, briefProblem, cleanBrief, imageKind, isPhoneOk, cleanPhone, quoteNew, regionName, won } from '@/lib/partner/rules';
+import { FIRST_FREE_ADVERTISERS } from '@/lib/ads/config';
 import { fitBanner } from '@/lib/partner/bannerFit';
 import { BUSINESS } from '@/lib/business';
 import { openCheckout, preparePay, type PayCfg } from '@/lib/partner/payClient';
@@ -33,11 +35,14 @@ const pickCls = (on: boolean) =>
   `w-full min-h-11 rounded-xl border px-4 py-3 text-left ${on ? 'border-accent bg-accent/5' : 'border-line bg-surface'}`;
 
 export default function NewWizard({
-  pay, region, email, name = '', designFree = false,
+  pay, region, email, name = '', designFree = false, promoLeft = 0, promoEligible = false,
 }: {
   pay: PayCfg | null; region: string; email: string; name?: string;
   /** 제작 대행 첫 회 무료인지(서버가 판정해 넘김 — 결제 금액은 서버가 다시 계산) */
   designFree?: boolean;
+  /** 오픈 기념 첫 광고주 무료: 남은 곳(0이면 안내 줄 숨김) · 이 광고주가 지금 대상인가(서버가 판정) */
+  promoLeft?: number;
+  promoEligible?: boolean;
 }) {
   const [step, setStep] = useState(0);
   const [kind, setKind] = useState<SlotKind | null>(null);
@@ -128,7 +133,7 @@ export default function NewWizard({
 
   // 카드 결제: 서버 준비 → 포트원 결제창 → 서버 확인
   const payNow = async () => {
-    if (!pay || !kind || (!design && !file) || busy) return;
+    if ((!pay && !promoEligible) || !kind || (!design && !file) || busy) return;
     setBusy(true);
     setErr('');
     const f = new FormData();
@@ -153,6 +158,16 @@ export default function NewWizard({
       setBusy(false);
       return;
     }
+    // 합계 0원(첫 달 무료): 서버가 결제창 없이 주문을 바로 만들었다
+    if (p.data.free) {
+      location.href = '/partner';
+      return;
+    }
+    if (!pay) {
+      setErr('지금은 카드 결제를 열 수 없어요');
+      setBusy(false);
+      return;
+    }
     const r = await openCheckout(pay, p.data, email, phone, name);
     if (r.kind === 'done') {
       location.href = '/partner';
@@ -163,7 +178,7 @@ export default function NewWizard({
   };
 
   // 화면 표시용 금액(실제 결제 금액은 서버가 첫 회 여부를 다시 보고 계산)
-  const q = kind ? quoteNew(kind, units, design ? { firstFree: designFree } : null, sido) : null;
+  const q = kind ? quoteNew(kind, units, design ? { firstFree: designFree } : null, sido, promoEligible) : null;
   const info = kind ? SLOT_INFO[kind] : null;
 
   return (
@@ -223,6 +238,7 @@ export default function NewWizard({
             {PARTNER_UNITS.map((u) => (
               <button key={u} type="button" onClick={() => setUnits(u)} className={`h-12 rounded-xl border text-[15px] ${units === u ? 'border-accent bg-accent/5 font-semibold text-ink' : 'border-line bg-surface text-ink'}`}>
                 {u * 30}일
+                {longDiscountPct(u) > 0 && <span className="ml-1 text-[13px] font-semibold text-accent">{longDiscountPct(u)}% 할인</span>}
               </button>
             ))}
           </div>
@@ -316,11 +332,23 @@ export default function NewWizard({
                   {q.designFee === 0 && <p className="text-right text-[13px] font-semibold text-accent">첫 제작 무료</p>}
                 </>
               )}
+              {q.discountPct > 0 && (
+                <div className="flex justify-between"><dt className="text-ink-2">정가 {units * 30}일</dt><dd className="tabular-nums text-ink-2"><s>{won(q.listAmount)}</s></dd></div>
+              )}
+              {q.discountPct > 0 && (
+                <div className="flex justify-between"><dt className="text-ink-2">{units * 30}일 할인 {q.discountPct}%</dt><dd className="tabular-nums text-accent">-{won(Math.round((q.listAmount * q.discountPct) / 100))}</dd></div>
+              )}
+              {q.freeAmount > 0 && (
+                <div className="flex justify-between"><dt className="text-ink-2">오픈 기념 첫 달 무료</dt><dd className="tabular-nums text-accent">-{won(q.freeAmount)}</dd></div>
+              )}
               <div className="flex justify-between"><dt className="text-ink-2">공급가</dt><dd className="tabular-nums text-ink">{won(q.amount)}</dd></div>
               <div className="flex justify-between"><dt className="text-ink-2">부가세</dt><dd className="tabular-nums text-ink">{won(q.vat)}</dd></div>
               <div className="flex justify-between border-t border-line pt-2"><dt className="font-semibold text-ink">카드 결제</dt><dd className="text-[20px] font-bold tabular-nums text-ink">{won(q.total)}</dd></div>
             </dl>
           </div>
+          {promoLeft > 0 && (
+            <p className="mt-3 text-[13px] font-semibold text-accent" data-testid="promo-line">오픈 기념 · 첫 광고주 {FIRST_FREE_ADVERTISERS}곳 첫 달 무료 (남은 {promoLeft}곳)</p>
+          )}
           <p className="mt-3 text-[13px] text-ink-2">
             {design ? '결제 뒤 3영업일 안에 시안을 보내 드려요' : '배너 검토 뒤 게재돼요. 반려되면 카드로 자동 환불돼요'}
           </p>
@@ -333,7 +361,7 @@ export default function NewWizard({
       {step < 3 && lacks[step].length > 0 && (
         <p className="mt-4 text-[13px] text-danger" data-testid="lack">{lacks[step].join(' · ')}</p>
       )}
-      {step === 3 && !pay && (
+      {step === 3 && !pay && !promoEligible && (
         <p className="mt-4 text-[13px] text-danger" data-testid="lack">
           지금은 카드 결제를 열 수 없어요. <a href={`mailto:${BUSINESS.email}?subject=[얼마드나] 광고 문의`} className="underline underline-offset-4">문의하기</a>로 연락 주시면 바로 도와 드려요
         </p>
@@ -351,8 +379,8 @@ export default function NewWizard({
             다음
           </button>
         ) : (
-          <button type="button" className={primaryBtn} disabled={!pay || busy} onClick={payNow}>
-            {!pay ? '카드 결제 불가' : busy ? '결제 중…' : `${q ? won(q.total) : ''} 카드 결제`}
+          <button type="button" className={primaryBtn} disabled={(!pay && !promoEligible) || busy} onClick={payNow}>
+            {!pay && !promoEligible ? '카드 결제 불가' : busy ? (q?.total === 0 ? '신청 중…' : '결제 중…') : q?.total === 0 ? '무료로 신청' : `${q ? won(q.total) : ''} 카드 결제`}
           </button>
         )}
       </div>

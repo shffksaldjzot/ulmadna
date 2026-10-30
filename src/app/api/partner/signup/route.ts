@@ -2,11 +2,12 @@
 // 광고주 가입 — POST /api/partner/signup (2026년 10월 31일)
 //   받는 값: { name(상호), bizNo, region, email, password, agree }
 //   순서: 같은 IP 15분 5회 제한 → 칸 검사 → 비밀번호 해시 → 계정 저장 → 바로 로그인 쿠키
-//   사업자번호는 형식(10자리·검증 숫자)만 본다. TODO: 국세청 진위 확인 API 열쇠가 생기면 추가
+//   사업자번호는 형식 + 국세청 상태조회(2026-10-30). 휴업·폐업·미등록이면 막고, 국세청 장애면 통과시켜 biz_status 에 'unchecked' 기록
 // ─────────────────────────────────────────────────────────────
 import { NextResponse } from 'next/server';
 import { isBizNo, isEmail, isPartnerRegion, normalizeBizNo, normalizeEmail, passwordProblem } from '@/lib/partner/rules';
 import { hashPassword, lockedFor, newSession, recordFail, SESSION_COOKIE } from '@/server/partner/crypto';
+import { checkBizNo } from '@/server/partner/ntsVerify';
 import { createAccount, saveSession } from '@/server/partner/store';
 import { clientIp, sessionCookieOptions } from '@/server/partner/session';
 import { fail } from '../_util';
@@ -31,8 +32,14 @@ export async function POST(req: Request) {
   if (pw) return fail(400, pw);
   if (raw.agree !== true) return fail(400, '약관에 동의해 주세요');
 
+  // 국세청 상태조회 한 번 더(화면의 [확인]을 건너뛴 요청 대비). 장애면 막지 않고 'unchecked' 로 기록
+  const nts = await checkBizNo(bizNo);
+  if (nts.ok && nts.kind === 'closed') return fail(400, '휴업·폐업 사업자예요');
+  if (nts.ok && nts.kind === 'unknown') return fail(400, '등록되지 않은 사업자번호예요');
+  const bizStatus = nts.ok ? 'active' : 'unchecked';
+
   recordFail(key); // 가입 시도 횟수 기록(같은 IP 15분 5회)
-  const r = await createAccount({ name, bizNo, region: raw.region, email, passwordHash: await hashPassword(String(raw.password)) });
+  const r = await createAccount({ name, bizNo, region: raw.region, email, passwordHash: await hashPassword(String(raw.password)), bizStatus });
   if (!r.ok) return fail(r.code === 'dup' ? 409 : 503, r.error);
 
   // 가입하자마자 로그인 상태로

@@ -1,6 +1,6 @@
 // 광고 가격·기간·그림 검사 시험 (2026년 10월 29일)
 import { describe, expect, it } from 'vitest';
-import { SLOT_INFO, TOTAL_PROCESS, calcOrder, checkBanner, expiringSoon, fromDbSlot, imageSize, isHttpsUrl, normalizeClickUrl, isOrderSido, regionTier, slotPrice, toDbSlot } from '../pricing';
+import { LONG_DISCOUNT, longDiscountPct, priceOf, SLOT_INFO, TOTAL_PROCESS, calcOrder, checkBanner, expiringSoon, fromDbSlot, imageSize, isHttpsUrl, normalizeClickUrl, isOrderSido, regionTier, slotPrice, toDbSlot } from '../pricing';
 
 /** 가로·세로만 담은 가짜 PNG 머리말 (extra 만큼 뒤에 덧붙여 파일 크기를 키움) */
 function fakePng(w: number, h: number, extra = 0): Uint8Array {
@@ -20,7 +20,7 @@ describe('주문 계산', () => {
     expect(r.vat).toBe(10000);
   });
   it('3단위와 금액 직접 지정(무료 체험)', () => {
-    expect(calcOrder('AD-P', '2026-11-01', 3).amount).toBe(150000);
+    expect(calcOrder('AD-P', '2026-11-01', 3).amount).toBe(135000); // 90일 10% 할인
     const free = calcOrder('AD-P', '2026-11-01', 1, 0);
     expect(free.amount).toBe(0);
     expect(free.vat).toBe(0);
@@ -141,5 +141,33 @@ describe('normalizeClickUrl (2026-10-30)', () => {
     expect(normalizeClickUrl('가게')).toBeNull();
     expect(normalizeClickUrl('a b.com')).toBeNull();
     expect(normalizeClickUrl(123)).toBeNull();
+  });
+});
+
+describe('장기 할인(2026-10-30)', () => {
+  it('할인율: 1~2단위 0 · 3~5단위(90일) 10 · 6단위 이상(180일) 20', () => {
+    expect([1, 2, 3, 5, 6, 12].map(longDiscountPct)).toEqual([0, 0, 10, 10, 20, 20]);
+    expect(LONG_DISCOUNT.map((d) => d.minUnits)).toEqual([6, 3]);
+  });
+  it('calcOrder: 90일·180일 정가·할인율·할인 뒤 금액', () => {
+    const r90 = calcOrder('AD-H', '2026-11-01', 3);
+    expect(r90).toMatchObject({ listAmount: 300000, discountPct: 10, amount: 270000, vat: 27000 });
+    const r180 = calcOrder('AD-H', '2026-11-01', 6);
+    expect(r180).toMatchObject({ listAmount: 600000, discountPct: 20, amount: 480000, endDate: '2027-04-29' });
+    expect(calcOrder('AD-H', '2026-11-01', 1)).toMatchObject({ listAmount: 100000, discountPct: 0, amount: 100000 });
+  });
+  it('견적서 추천 업체 줄(AD-PDF)도 같은 규칙', () => {
+    expect(calcOrder('AD-PDF', '2026-11-01', 3)).toMatchObject({ listAmount: 60000, amount: 54000, discountPct: 10 });
+  });
+  it('직접 지정 금액은 할인 없이 그대로', () => {
+    expect(calcOrder('AD-H', '2026-11-01', 6, 123000)).toMatchObject({ amount: 123000, listAmount: 123000, discountPct: 0 });
+  });
+  it('지역 단계와 함께: 2단계 90일', () => {
+    expect(priceOf('AD-H', 3, '26')).toMatchObject({ listAmount: 210000, amountAfterLong: 189000 });
+  });
+  it('첫 달 무료: 1단위는 0원, 3단위는 한 단위분(할인 뒤)만 빠진다', () => {
+    expect(calcOrder('AD-H', '2026-11-01', 1, null, null, true).amount).toBe(0);
+    const c = calcOrder('AD-H', '2026-11-01', 3, null, null, true);
+    expect(c).toMatchObject({ freeAmount: 90000, amount: 180000 });
   });
 });

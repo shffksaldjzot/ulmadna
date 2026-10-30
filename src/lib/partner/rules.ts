@@ -7,7 +7,7 @@
 //   서버 전용 코드가 없어서 브라우저에서도 불러 쓸 수 있다.
 //   가격·자리 정보는 광고 정본(src/lib/ads/pricing.ts)을 그대로 읽는다(복사하지 않음).
 // ─────────────────────────────────────────────────────────────
-import { DESIGN_FEE, VAT_RATE, slotPrice, daysBetween, type SlotKind } from '@/lib/ads/pricing';
+import { DESIGN_FEE, VAT_RATE, priceOf, daysBetween, type SlotKind } from '@/lib/ads/pricing';
 import { REGION_NAMES, SIDO_CODES } from '@/server/admin/format';
 
 /** 광고주가 직접 살 수 있는 자리(견적서 추천 글자 광고 AD-PDF 는 관리자 상담으로만). AD-T 는 DB 에 AD-P+'토탈 인테리어'로 저장 */
@@ -79,12 +79,16 @@ export function formatBizNo(v: string): string {
 
 // ── 금액 ────────────────────────────────────
 
-/** 결제 금액: 자리 요금 × 단위 = 공급가, 부가세 10% 반올림, 합계 = 카드로 낼 돈 */
-export function quote(kind: SlotKind, units: number, sido?: string | null): { units: number; amount: number; vat: number; total: number } {
-  const u = Math.max(1, Math.min(24, Math.floor(units) || 1));
-  const amount = slotPrice(kind, sido) * u;
-  const vat = Math.round(amount * VAT_RATE);
-  return { units: u, amount, vat, total: amount + vat };
+/**
+ * 결제 금액: 정가(자리 요금 × 단위) → 장기 할인(90일 10%) → (첫 광고주 무료면) 첫 30일 단위 제외 = 공급가,
+ * 부가세 10% 반올림, 합계 = 카드로 낼 돈. 계산은 광고 정본 priceOf 한 곳을 쓴다(2026-10-30).
+ */
+export function quote(kind: SlotKind, units: number, sido?: string | null, firstFree = false): {
+  units: number; amount: number; vat: number; total: number; listAmount: number; discountPct: number; freeAmount: number;
+} {
+  const p = priceOf(kind, units, sido, firstFree);
+  const vat = Math.round(p.amount * VAT_RATE);
+  return { units: p.units, amount: p.amount, vat, total: p.amount + vat, listAmount: p.listAmount, discountPct: p.discountPct, freeAmount: p.freeAmount };
 }
 
 /**
@@ -99,12 +103,13 @@ export function quoteNew(
   units: number,
   design: { firstFree: boolean } | null,
   sido?: string | null,
-): { units: number; adAmount: number; designFee: number; amount: number; vat: number; total: number } {
-  const base = quote(kind, units, sido);
+  firstFreeAd = false, // 오픈 기념: 첫 광고주 첫 30일 단위 무료(서버가 DB 로 판정)
+): { units: number; adAmount: number; designFee: number; amount: number; vat: number; total: number; listAmount: number; discountPct: number; freeAmount: number } {
+  const base = quote(kind, units, sido, firstFreeAd);
   const designFee = design ? (design.firstFree ? 0 : DESIGN_FEE) : 0;
   const amount = base.amount + designFee;
   const vat = Math.round(amount * VAT_RATE);
-  return { units: base.units, adAmount: base.amount, designFee, amount, vat, total: amount + vat };
+  return { units: base.units, adAmount: base.amount, designFee, amount, vat, total: amount + vat, listAmount: base.listAmount, discountPct: base.discountPct, freeAmount: base.freeAmount };
 }
 
 /** 파일 앞머리로 PNG/JPG 판별(로고 검사용). 둘 다 아니면 null */

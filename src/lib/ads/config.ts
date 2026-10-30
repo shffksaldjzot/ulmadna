@@ -27,6 +27,11 @@ export const AD_SLOT_SIZES: Record<AdSlotId, AdSlotSize> = {
   'AD-F': { width: 320, height: 50, desktop: { width: 728, height: 90 } },
 };
 
+// ── 오픈 기념 첫 광고주 무료(2026-10-30 형아 결정) ───────────────
+//  - 결제한 적 있는 광고주가 이 수 미만이면, 새 광고주의 "첫 주문" 첫 30일 단위를 0원으로 한다.
+//  - 0 으로 두면 프로모션이 꺼진다(화면 안내 줄도 사라짐). 판정은 lib/ads/promo.ts, 서버 확인은 server/partner/pay.ts.
+export const FIRST_FREE_ADVERTISERS = 3;
+
 // AD-P 노출 캡 — 한 페이지 로드당 최대 노출 슬롯 수 (v2 명세 §6.3)
 // 사용자 결정: 4. 향후 관리자 설정값으로 빼야 함 (현재는 in-memory 상수).
 export const AD_P_MAX_PER_PAGE = 4;
