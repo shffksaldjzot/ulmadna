@@ -151,7 +151,7 @@ const AD_SLOTS: { id: SlotKind; name: string; size: string; position: string; ta
 const STATS = [
   { value: '24', label: '공정 카테고리' },
   { value: '51+', label: '지역권 타겟 가능' },
-  { value: '12', label: '광고 슬롯 (PC+모바일+PDF)' },
+  { value: '12', label: '광고 자리 (PC+모바일+견적서)' },
   { value: '₩2만~', label: '30일 최소 광고비(부가세 별도)' },
 ];
 
