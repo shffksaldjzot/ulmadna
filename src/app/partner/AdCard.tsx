@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 import { useRef, useState } from 'react';
 import { SLOT_INFO } from '@/lib/ads/pricing';
+import { fitBanner } from '@/lib/partner/bannerFit';
 import { BADGE_TEXT, badgeOf, canManage, ctr, quote, regionName, remainDays, won, type BadgeKind } from '@/lib/partner/rules';
 import { openCheckout, preparePay, type PayCfg } from '@/lib/partner/payClient';
 import type { MyOrder } from '@/server/partner/store';
@@ -51,9 +52,18 @@ export default function AdCard({ order: o, today, pay, email, name = '' }: { ord
   };
 
   // 배너 교체
-  const upload = async (file: File) => {
+  const upload = async (picked: File) => {
     setBusy(true);
     setMsg('');
+    // 자리 규격에 자동 맞춤(2026-10-30) — 크기가 달라도 가운데 잘라 채워 올린다
+    const si = SLOT_INFO[o.slot_kind];
+    const fit = await fitBanner(picked, { width: si.width, height: si.height }, si.maxKB);
+    if (!fit.ok) {
+      setMsg(fit.error);
+      setBusy(false);
+      return;
+    }
+    const file = fit.file;
     const f = new FormData();
     f.set('orderId', String(o.id));
     f.set('file', file);

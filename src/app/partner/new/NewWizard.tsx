@@ -6,11 +6,14 @@
 //   제작 대행이면 그림 대신 업체 소개 한 줄·강조 문구·로고(선택)를 받고 제작비가 더해진다(첫 회 무료).
 //   자리·가격·규격은 광고 정본(SLOT_INFO)에서 읽는다. 금액은 화면에 보여 주기만 하고
 //   실제 결제 금액은 서버가 다시 계산한다.
-//   배너는 고르자마자 같은 규격 검사(checkBanner)로 바로 알려 준다.
+//   배너는 고르자마자 자리 규격(2배)에 가운데 맞춤으로 자동 변환한다(2026-10-30).
+//   2026-10-30 변경: 단추가 죽어 있으면 이유 한 줄 표시 · 주소 자동 https:// · 그림 자동 맞춤 · 전화 9자리 이상 · 결제 불가 시 문의 링크
 // ─────────────────────────────────────────────────────────────
 import { useEffect, useState } from 'react';
-import { AD_PROCESS_GROUPS, DESIGN_FEE, SLOT_INFO, checkBanner, slotPrice, isHttpsUrl, type SlotKind } from '@/lib/ads/pricing';
-import { BRIEF_MAX, PARTNER_REGIONS, PARTNER_SLOTS, PARTNER_UNITS, briefProblem, cleanBrief, imageKind, quoteNew, regionName, won } from '@/lib/partner/rules';
+import { AD_PROCESS_GROUPS, DESIGN_FEE, SLOT_INFO, checkBanner, slotPrice, normalizeClickUrl, type SlotKind } from '@/lib/ads/pricing';
+import { BRIEF_MAX, PARTNER_REGIONS, PARTNER_SLOTS, PARTNER_UNITS, briefProblem, cleanBrief, imageKind, isPhoneOk, cleanPhone, quoteNew, regionName, won } from '@/lib/partner/rules';
+import { fitBanner } from '@/lib/partner/bannerFit';
+import { BUSINESS } from '@/lib/business';
 import { openCheckout, preparePay, type PayCfg } from '@/lib/partner/payClient';
 import { inputCls, primaryBtn } from '../_ui';
 
@@ -44,7 +47,8 @@ export default function NewWizard({
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState('');
   const [fileErr, setFileErr] = useState('');
-  const [clickUrl, setClickUrl] = useState('https://');
+  const [fileNote, setFileNote] = useState(''); // 비율이 많이 달라 잘릴 때 안내 한 줄
+  const [clickUrl, setClickUrl] = useState('');
   const [phone, setPhone] = useState('');
   // 배너 제작 대행(2026-10-29): design=true 면 그림 대신 소개·강조 문구·로고(선택)
   const [design, setDesign] = useState(false);
@@ -54,34 +58,60 @@ export default function NewWizard({
   const [logoErr, setLogoErr] = useState('');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
+  const [fitting, setFitting] = useState(false); // 그림 변환 중
 
   // 미리보기 주소 정리(메모리 새지 않게)
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
 
-  // 각 단계에서 [다음]을 눌러도 되는지
-  const okStep = [
-    !!kind && (kind !== 'AD-P' || !!process),
-    !!sido && units > 0,
-    // 배너: 직접 올리기면 그림, 제작 대행이면 소개·강조 문구. 전화는 이니시스 결제창 필수
-    (design ? !briefProblem(cleanBrief(intro, BRIEF_MAX.intro), cleanBrief(headline, BRIEF_MAX.headline)) && !logoErr : !!file && !fileErr)
-      && isHttpsUrl(clickUrl) && phone.replace(/\D/g, '').length >= 10,
-    true,
-  ][step];
+  // 3단계에서 빠진 것 목록(비어 있으면 [다음] 가능) — 단추가 죽었을 때 이유 한 줄로 보여 준다
+  const lack3: string[] = [];
+  if (design) {
+    const bp = briefProblem(cleanBrief(intro, BRIEF_MAX.intro), cleanBrief(headline, BRIEF_MAX.headline));
+    if (bp) lack3.push(bp);
+    if (logoErr) lack3.push(logoErr);
+  } else {
+    if (fileErr) lack3.push(fileErr);
+    else if (fitting) lack3.push('그림을 맞추는 중이에요');
+    else if (!file) lack3.push('배너 그림을 골라 주세요');
+  }
+  if (!normalizeClickUrl(clickUrl)) lack3.push(clickUrl.trim() ? '누르면 갈 주소를 주소 형태로 적어 주세요(예: www.내가게.com)' : '누르면 갈 주소를 적어 주세요');
+  if (!isPhoneOk(phone)) lack3.push(phone.trim() ? '전화번호는 숫자 9자리 이상이어야 해요' : '전화번호를 적어 주세요');
 
-  // 배너 고르기 → 바로 규격 검사
+  // 단계별 막힌 이유(맞으면 빈 목록)
+  const lacks: string[][] = [
+    [!kind ? '자리를 골라 주세요' : kind === 'AD-P' && !process ? '공정을 골라 주세요' : ''].filter(Boolean),
+    [!sido ? '지역을 골라 주세요' : ''].filter(Boolean),
+    lack3,
+    [],
+  ];
+  // 각 단계에서 [다음]을 눌러도 되는지
+  const okStep = lacks[step].length === 0;
+
+  // 배너 고르기 → 자리 규격에 자동 맞춤(가운데 잘라 채우기)
   const pickFile = async (f: File | undefined) => {
     setFile(null);
     setFileErr('');
+    setFileNote('');
     if (preview) URL.revokeObjectURL(preview);
     setPreview('');
     if (!f || !kind) return;
-    const why = checkBanner(kind, new Uint8Array(await f.arrayBuffer()));
+    const info0 = SLOT_INFO[kind];
+    setFitting(true);
+    const r = await fitBanner(f, { width: info0.width, height: info0.height }, info0.maxKB);
+    setFitting(false);
+    if (!r.ok) {
+      setFileErr(r.error);
+      return;
+    }
+    // 서버와 같은 규격 검사로 한 번 더 확인(변환이 맞으면 항상 통과)
+    const why = checkBanner(kind, new Uint8Array(await r.file.arrayBuffer()));
     if (why) {
       setFileErr(why);
       return;
     }
-    setFile(f);
-    setPreview(URL.createObjectURL(f));
+    if (r.cropped) setFileNote('그림 비율이 달라 가장자리가 잘릴 수 있어요');
+    setFile(r.file);
+    setPreview(URL.createObjectURL(r.file));
   };
 
   // 로고 고르기(선택) → PNG/JPG·1MB 이하만
@@ -107,8 +137,8 @@ export default function NewWizard({
     f.set('sido', sido);
     if (kind === 'AD-P') f.set('process', process);
     f.set('units', String(units));
-    f.set('clickUrl', clickUrl.trim());
-    f.set('phone', phone);
+    f.set('clickUrl', normalizeClickUrl(clickUrl) ?? clickUrl.trim());
+    f.set('phone', cleanPhone(phone));
     if (design) {
       f.set('design', '1');
       f.set('intro', intro);
@@ -154,7 +184,7 @@ export default function NewWizard({
         <section className="space-y-2">
           <p className="mb-2 text-[15px] font-semibold text-ink">어디에 보일까요?</p>
           {PARTNER_SLOTS.map((k) => (
-            <button key={k} type="button" className={pickCls(kind === k)} onClick={() => { setKind(k); setFile(null); setFileErr(''); setPreview(''); }}>
+            <button key={k} type="button" className={pickCls(kind === k)} onClick={() => { setKind(k); setFile(null); setFileErr(''); setFileNote(''); setPreview(''); }}>
               <span className="flex items-center justify-between">
                 <span className="text-[16px] font-semibold text-ink">{SLOT_INFO[k].name}</span>
                 <span className="text-[14px] text-ink tabular-nums">{/* 지역을 고르기 전엔 서울·경기 값 "부터", 고른 뒤엔 그 지역 값(2026-10-30 지역 단계 가격) */}
@@ -237,7 +267,7 @@ export default function NewWizard({
           <div>
           <p className="mb-1 text-[15px] font-semibold text-ink">배너 그림</p>
           <p className="mb-2 text-[13px] text-ink-2">
-            {info.width}×{info.height} 또는 {info.width * 2}×{info.height * 2} · PNG/JPG · {info.maxKB}KB 이하
+            {info.width}×{info.height} 자리 · 크기는 알아서 맞춰 드려요
           </p>
           <label className="flex min-h-24 cursor-pointer items-center justify-center rounded-xl border border-dashed border-line bg-surface p-3">
             {preview ? (
@@ -248,13 +278,14 @@ export default function NewWizard({
             )}
             <input type="file" accept="image/png,image/jpeg" className="sr-only" onChange={(e) => void pickFile(e.target.files?.[0])} />
           </label>
+          {fileNote && <p className="mt-1 text-[13px] text-ink-2">{fileNote}</p>}
           {fileErr && <p className="mt-1 text-[13px] text-danger" role="alert">{fileErr}</p>}
           </div>
           )}
 
           <label className="mt-5 block">
             <span className="mb-1.5 block text-[15px] font-semibold text-ink">누르면 갈 주소</span>
-            <input className={inputCls} inputMode="url" value={clickUrl} onChange={(e) => setClickUrl(e.target.value)} placeholder="https://" />
+            <input className={inputCls} inputMode="url" value={clickUrl} onChange={(e) => setClickUrl(e.target.value)} placeholder="www.내가게.com" />
           </label>
           <label className="mt-4 block">
             <span className="mb-1.5 block text-[15px] font-semibold text-ink">전화 번호 <span className="font-normal text-ink-2">(결제·연락용)</span></span>
@@ -298,6 +329,16 @@ export default function NewWizard({
 
       {err && <p className="mt-4 text-[14px] text-danger" role="alert">{err}</p>}
 
+      {/* 단추가 죽어 있을 때만: 빠진 것 한 줄 */}
+      {step < 3 && lacks[step].length > 0 && (
+        <p className="mt-4 text-[13px] text-danger" data-testid="lack">{lacks[step].join(' · ')}</p>
+      )}
+      {step === 3 && !pay && (
+        <p className="mt-4 text-[13px] text-danger" data-testid="lack">
+          지금은 카드 결제를 열 수 없어요. <a href={`mailto:${BUSINESS.email}?subject=[얼마드나] 광고 문의`} className="underline underline-offset-4">문의하기</a>로 연락 주시면 바로 도와 드려요
+        </p>
+      )}
+
       {/* 아래 단추: 이전 · 다음(또는 결제) */}
       <div className="mt-6 flex gap-2">
         {step > 0 && (
@@ -311,7 +352,7 @@ export default function NewWizard({
           </button>
         ) : (
           <button type="button" className={primaryBtn} disabled={!pay || busy} onClick={payNow}>
-            {!pay ? '결제 준비 중' : busy ? '결제 중…' : `${q ? won(q.total) : ''} 카드 결제`}
+            {!pay ? '카드 결제 불가' : busy ? '결제 중…' : `${q ? won(q.total) : ''} 카드 결제`}
           </button>
         )}
       </div>

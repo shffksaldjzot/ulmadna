@@ -24,7 +24,7 @@ export async function POST(req: Request) {
   const email = normalizeEmail(raw.email);
   // 칸 검사(화면에도 같은 검사가 있지만 서버에서 다시 본다)
   if (!name) return fail(400, '상호를 적어 주세요');
-  if (!isBizNo(bizNo)) return fail(400, '사업자번호를 다시 확인해 주세요');
+  if (!isBizNo(bizNo)) return fail(400, '사업자번호를 다시 확인해 주세요(10자리, 하이픈 없이)');
   if (!isPartnerRegion(raw.region)) return fail(400, '주로 시공하는 지역을 골라 주세요');
   if (!isEmail(email)) return fail(400, '이메일을 다시 확인해 주세요');
   const pw = passwordProblem(raw.password);

@@ -189,6 +189,30 @@ export function isHttpsUrl(s: unknown): s is string {
   }
 }
 
+/**
+ * 클릭 주소 정리(2026-10-30): 앞뒤 공백 제거 → http:// 는 https:// 로 → 주소에 ://가 없으면 https:// 를 붙임.
+ * "주소로 읽히는가"만 본다(URL 생성 성공 + 점이 있는 도메인, 한글 도메인 통과). 안 되면 null.
+ * 화면과 서버가 같은 함수를 써서 저장 값이 같아진다.
+ */
+export function normalizeClickUrl(s: unknown): string | null {
+  if (typeof s !== 'string') return null;
+  let t = s.trim();
+  if (!t || /\s/.test(t)) return null;
+  if (/^http:\/\//i.test(t)) t = 'https://' + t.slice(7);
+  else if (!/^https:\/\//i.test(t)) {
+    if (/^[a-z][a-z0-9+.-]*:\/\//i.test(t)) return null; // ftp:// 같은 다른 방식은 거절
+    t = 'https://' + t.replace(/^\/+/, '');
+  }
+  try {
+    const u = new URL(t);
+    if (u.protocol !== 'https:' || !u.hostname.includes('.')) return null;
+    const out = u.href;
+    return out.length > 500 ? null : out;
+  } catch {
+    return null;
+  }
+}
+
 /** PNG·JPEG 파일 머리말에서 가로·세로를 읽는다. 읽지 못하면 null */
 export function imageSize(buf: Uint8Array): { type: 'png' | 'jpg'; width: number; height: number } | null {
   // PNG: 8바이트 서명 뒤 IHDR 에 가로(16~19)·세로(20~23)

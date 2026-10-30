@@ -17,6 +17,7 @@ import {
   calcOrder,
   isDay,
   isHttpsUrl,
+  normalizeClickUrl,
   isOrderSido,
   kstToday,
   SIDO_ALL,
@@ -224,7 +225,7 @@ export async function createOrder(input: Record<string, unknown>): Promise<Res> 
       advertiser_id: advertiserId, slot_kind: db.slot_kind, sido, process: db.process,
       start_date: input.start_date, end_date: c.endDate, units: c.units, amount: c.amount, vat: c.vat,
       pay_method: input.pay_method === 'card' ? 'card' : 'bank',
-      phone: clean(input.phone, 30), click_url: isHttpsUrl(input.click_url) ? input.click_url : null,
+      phone: clean(input.phone, 30), click_url: normalizeClickUrl(input.click_url),
     })
     .select('id')
     .single();
@@ -270,8 +271,9 @@ export async function setRunStatus(id: number, status: 'review' | 'live' | 'ende
 export async function setOrderLink(id: number, clickUrl: unknown, phone: unknown): Promise<Res> {
   const sb = adminOrNull();
   if (!sb) return { ok: false, error: '저장소에 연결하지 못했어요' };
-  const url = typeof clickUrl === 'string' && clickUrl.trim() ? clickUrl.trim() : null;
-  if (url && !isHttpsUrl(url)) return { ok: false, error: '주소는 https 로 시작해야 해요' };
+  const hasUrl = typeof clickUrl === 'string' && clickUrl.trim() !== '';
+  const url = hasUrl ? normalizeClickUrl(clickUrl) : null; // 저장 직전 같은 정규화
+  if (hasUrl && !url) return { ok: false, error: '주소를 주소 형태로 적어 주세요' };
   const { error } = await sb.from('ad_orders').update({ click_url: url, phone: clean(phone, 30) }).eq('id', id);
   return error ? { ok: false, error: '저장하지 못했어요' } : { ok: true };
 }
