@@ -167,6 +167,8 @@ export default async function AdsPage() {
                               <div><dt className="inline text-gray-400">전화 </dt><dd className="inline">{brief?.phone || o.phone || '-'}</dd></div>
                               <div><dt className="inline text-gray-400">소개 </dt><dd className="inline">{brief?.intro || '-'}</dd></div>
                               <div><dt className="inline text-gray-400">강조 </dt><dd className="inline">{brief?.headline || '-'}</dd></div>
+                              {/* 원하는 느낌(선택, 2026-10-30 광고주 포털 브리프 칸) */}
+                              {brief?.mood && <div><dt className="inline text-gray-400">느낌 </dt><dd className="inline">{brief.mood}</dd></div>}
                               <div><dt className="inline text-gray-400">로고 </dt><dd className="inline">{logo ? <a href={logo} target="_blank" rel="noreferrer" className="text-brown underline">보기</a> : '없음'}</dd></div>
                             </dl>
                           </details>
