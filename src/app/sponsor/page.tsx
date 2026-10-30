@@ -1,5 +1,16 @@
+// ─────────────────────────────────────────────────────────────
+// 광고주 모집 페이지 (/sponsor) — 2026년 10월 30일 형아 확정 A안으로 다시 짬
+//
+// [무슨 기능인가]
+//   "계산을 끝낸 사람 화면에 전화번호가 뜬다"를 첫 화면에 숫자로 보여 주고, 구획마다 실제 화면 한 장 + 한 줄로 설명한다.
+//   구획: 1 첫 화면(방문자 지역 숫자) 2 누가 보나 3 얼마나 보나(시·도별 라이브 표) 4 어디에 보이나
+//         5 가격·할인·첫 달 무료 6 어떻게 시작하나 7 견본 스타일 8 자주 묻는 것 9 마지막 CTA
+//   숫자 출처: 일별 계산 집계 calc_runs_daily 최근 7일 합(src/server/sponsor/calcStats.ts, 1시간 캐시).
+//   과장 금지: "계약 보장"·"전환율 N%" 같은 말은 쓰지 않는다. 실제 계산 수만 보여 준다.
+// ─────────────────────────────────────────────────────────────
 import Image from 'next/image';
 import Link from 'next/link';
+import { headers } from 'next/headers';
 import type { ReactNode } from 'react';
 import BusinessInfo from '@/components/layout/BusinessInfo';
 import { getBoard, remaining } from '@/server/ads/store';
@@ -8,151 +19,53 @@ import { FIRST_FREE_ADVERTISERS } from '@/lib/ads/config';
 import { LONG_DISCOUNT } from '@/lib/ads/pricing';
 import { SIDO_CODES, REGION_NAMES } from '@/server/admin/format';
 import { DESIGN_FEE, SLOT_INFO, slotPrice, type SlotKind } from '@/lib/ads/pricing';
-// 광고 자리 표시 캡처(가림막·테두리·꼬리표) — /sponsor/preview 와 같이 쓴다(2026-10-30)
 import { BANNER_STYLES, styleImg } from '@/lib/ads/bannerStyles';
 import { MarkedShot, ShotCaption, PHONE_SHOTS, PC_SHOT } from '@/components/sponsor/MarkedShots';
-
-// 남은 자리 숫자를 5분마다 새로 읽는다(광고 표가 비어 있으면 전부 3/3)
-export const revalidate = 300;
+import RegionHero from '@/components/sponsor/RegionHero';
+import { getWeekMap, pickWeek, topRegions, REGION_CHIPS } from '@/server/sponsor/calcStats';
+import { regionFromHeaders } from '@/server/metrics/requestInfo';
 
 // 남은 자리 표에 보일 자리(견적서 추천은 개수 제한이 없어 뺌, 공정 스폰서는 공정별이라 따로 안내)
-// 토탈 인테리어 스폰서(AD-T)는 지역(시·도)당 3곳이라 같이 보여 준다(2026-10-29)
 const LEFT_KINDS: SlotKind[] = ['AD-H', 'AD-R', 'AD-T', 'AD-F'];
 
 export const metadata = {
-  title: '얼마드나 — 광고/제휴 안내 | 인테리어 견적 계산기',
-  description: '월 방문자 타겟 광고로 인테리어 고객에게 직접 도달하세요. 지역권 타겟, 공정 전문 배너, 견적서 내 광고.',
+  title: '얼마드나 — 광고주 모집 | 견적을 계산한 사람에게 보이는 광고',
+  description: '견적 숫자를 본 직후, 그 지역·공정 사람에게만 보이는 광고. 30일 5만원부터.',
 };
 
-/** 30일 요금 "n만원" 표기 — 가격 정본(SLOT_INFO)에서 읽어 와 화면과 주문 금액이 어긋나지 않게 한다 */
-const man = (k: SlotKind) => `${(SLOT_INFO[k].price / 10000).toLocaleString('ko-KR')}만원`;
-/** 30일 요금 "100,000원" 표기(가격표용) */
+/** 30일 요금 "100,000원" 표기(가격표용) — 가격 정본(SLOT_INFO·slotPrice)에서 읽는다 */
 const won = (k: SlotKind, sido?: string) => `${slotPrice(k, sido).toLocaleString('ko-KR')}원`;
-/** 지역 단계별 "n만원" (2026-10-30 지역 단계 가격: 서울·경기 11 / 광역시 부산 26 / 그 외 강원 51) */
-const manAt = (k: SlotKind, sido: string) => `${(slotPrice(k, sido) / 10000).toLocaleString('ko-KR')}만원`;
-/** 카드 가격 줄: "30일 서울·경기 10만원 · 광역시 7만원 · 그 외 5만원 (...)" */
-const tierLine = (k: SlotKind, who: string) =>
-  `30일 서울·경기 ${manAt(k, '11')} · 광역시 ${manAt(k, '26')} · 그 외 ${manAt(k, '51')} (${who}, 부가세 별도)`;
 
-/**
- * 자리 카드 오른쪽 "배너 실물" — 견본 그림(public/sponsor/banner-ad-*.png, 2배 크기)을 실제 크기로 보여 준다 (2026-10-30)
- *   형아 신고: 예전 HTML 흉내(회색 동그라미 + "○○인테리어")로는 어떤 광고가 들어가는지 감이 안 온다.
- *   PC 규격(728×90)이 따로 있는 자리(AD-H·AD-F)는 같은 디자인을 PC 폭으로 늘린 그림(-pc.png)도 같이 보여 준다.
- */
-const BANNER_SRC: Partial<Record<SlotKind, { mobile: string; desktop?: string }>> = {
-  'AD-H': { mobile: '/sponsor/banner-ad-h.png', desktop: '/sponsor/banner-ad-h-pc.png' },
-  'AD-P': { mobile: '/sponsor/banner-ad-p.png' },
-  'AD-T': { mobile: '/sponsor/banner-ad-t.png' },
-  'AD-R': { mobile: '/sponsor/banner-ad-r.png' },
-  'AD-F': { mobile: '/sponsor/banner-ad-f.png', desktop: '/sponsor/banner-ad-f-pc.png' },
-};
-
-/** 배너 실물 한 장: 규격 그대로의 크기(CSS px)로, 칸보다 넓으면 비율 유지하며 줄인다 */
-function RealBanner({ src, w, h, label }: { src: string; w: number; h: number; label: string }) {
+/** 구획 제목 + 한 줄 (긴 안내문 금지) */
+function Head({ title, line }: { title: string; line?: string }) {
   return (
-    <figure className="min-w-0">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt={`${label} 배너 실물`} width={w} height={h} loading="lazy"
-        style={{ width: w, aspectRatio: `${w} / ${h}` }}
-        className="block max-w-full h-auto rounded-md border border-gray-200" />
-      <figcaption className="mt-1.5 text-[11px] text-gray-500 tabular-nums">{label}</figcaption>
-    </figure>
-  );
-}
-
-/** 자리 카드의 배너 실물 묶음(휴대폰 규격 + PC 규격이 있으면 둘 다. PC 규격이 없으면 PC 에서도 같은 그림이라 "휴대폰·PC") */
-function SlotBanners({ kind }: { kind: SlotKind }) {
-  const src = BANNER_SRC[kind];
-  const info = SLOT_INFO[kind];
-  if (!src) return null;
-  return (
-    <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
-      <RealBanner src={src.mobile} w={info.width} h={info.height} label={`${src.desktop ? '휴대폰' : '휴대폰·PC'} ${info.width}×${info.height}`} />
-      {src.desktop && info.desktop && (
-        <RealBanner src={src.desktop} w={info.desktop.width} h={info.desktop.height} label={`PC ${info.desktop.width}×${info.desktop.height}`} />
-      )}
+    <div className="text-center mb-6 px-4">
+      <h2 className="text-xl lg:text-2xl font-bold text-brown">{title}</h2>
+      {line && <p className="text-sm text-gray-500 mt-1.5">{line}</p>}
     </div>
   );
 }
 
-/** 자리 카드 목록 — 배너 그림이 있는 자리는 실물(SlotBanners), 견적서 글자 광고는 mockup(글자 견본) */
-const AD_SLOTS: { id: SlotKind; name: string; size: string; position: string; target: string; price: string; desc: string; mockup?: ReactNode }[] = [
-  {
-    id: 'AD-H',
-    name: '맨 위 띠 배너',
-    // 2026-10-29: 실제 규격 — 휴대폰 320×100, PC 728×90
-    size: '휴대폰 320×100 · PC 728×90',
-    position: '모든 화면 맨 위 (블로그 글 포함)',
-    target: '지역권 타겟',
-    price: tierLine('AD-H', '지역당 3개 업체'),
-    desc: '사용자가 가장 먼저 보는 위치. IP 기반으로 해당 지역 업체만 노출됩니다.',
-  },
-  {
-    id: 'AD-P',
-    name: '공정 전문 배너',
-    // 2026-10-29: 실제 규격 320×50, 노출 3곳, 7만원(형아 결정)
-    size: '320×50',
-    position: '홈 공정 목록 · 그 공정 계산기 · 그 공정 블로그 글 (3곳)',
-    target: '공정별 전문 업체',
-    price: tierLine('AD-P', '지역·공정당 3개 업체'),
-    desc: '사용자가 해당 공정을 선택할 때 자연스럽게 노출. 창호 옆에 KCC, 욕실 옆에 대림 등.',
-  },
-  {
-    id: 'AD-T',
-    name: '올수리 업체 배너',
-    // 2026-10-29 형아 결정: 30일 15만원, 지역당 3곳, 전 지역 판매
-    size: '320×50',
-    position: '홈 견적 결과 카드 아래 · 계산기 결과 페이지 · 인테리어 총론 블로그 글 · 견적서 PDF 하단 (4곳)',
-    target: '지역권 종합 인테리어 업체',
-    price: tierLine('AD-T', '지역당 3개 업체'),
-    desc: '전체 견적을 확인한 사람에게 올수리·종합 시공 업체로 노출. 견적서 PDF 에는 상호·전화 한 줄이 함께 실립니다.',
-  },
-  {
-    id: 'AD-R',
-    name: '견적 결과 옆 큰 배너',
-    size: '300×250',
-    position: '견적 결과 영역',
-    target: '지역권 타겟',
-    price: tierLine('AD-R', '지역당 3개 업체'),
-    desc: '견적 결과를 확인하는 사용자에게 노출. 가장 구매 의향이 높은 시점입니다.',
-  },
-  {
-    // 2026-10-30: 푸터 자리도 캡처·가격 꼬리표에 나오므로 카드로 안내(가격은 정본 SLOT_INFO)
-    id: 'AD-F',
-    name: '맨 아래 띠 배너',
-    size: '휴대폰 320×50 · PC 728×90',
-    position: '모든 페이지 맨 아래 (블로그 글 포함)',
-    target: '지역권 타겟',
-    price: tierLine('AD-F', '지역당 3개 업체'),
-    desc: '어느 페이지를 보든 맨 아래에 노출됩니다. 상호·전화 한 줄 배너입니다.',
-  },
-  {
-    id: 'AD-PDF',
-    name: '견적서 추천 업체 줄',
-    size: '견적서 하단',
-    position: '다운로드 견적서',
-    target: '지역권 추천업체',
-    price: `30일 ${man('AD-PDF')} (여러 업체가 함께 실림, 부가세 별도)`,
-    desc: '사용자가 다운받아 저장·공유하는 견적서 하단에 지역 추천업체 리스트가 포함됩니다. 엑셀은 별도 시트로 제공.',
-    mockup: (
-      <div className="border border-dashed border-brown/20 rounded-lg p-3 bg-cream/50 text-[10px]">
-        <p className="text-gray-400 mb-2">📍 [남양주/구리 지역] 추천 인테리어 업체</p>
-        <div className="space-y-1">
-          <p className="text-gray-600">1. ○○인테리어 | 1588-XXXX | 시공사례 200건+</p>
-          <p className="text-gray-600">2. △△디자인 | 010-XXXX | 강마루 전문</p>
-          <p className="text-gray-600">3. □□홈 | 031-XXX | 욕실 리모델링</p>
-        </div>
-        <p className="text-gray-300 mt-2">※ 광고 제휴 업체입니다</p>
+/** 휴대폰 틀 안의 실제 화면 한 장 + 한 줄 설명 */
+function Phone({ src, alt, cap }: { src: string; alt: string; cap: ReactNode }) {
+  return (
+    <figure className="w-[220px] sm:w-auto mx-auto">
+      <div className="rounded-[26px] border-[5px] border-ink bg-ink overflow-hidden shadow-sm">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={src} alt={alt} width={780} height={1688} loading="lazy" className="block w-full h-auto rounded-[20px]" />
       </div>
-    ),
-  },
-];
+      <figcaption className="mt-2 text-xs text-gray-600 text-center leading-snug">{cap}</figcaption>
+    </figure>
+  );
+}
 
-const STATS = [
-  { value: '24', label: '공정 카테고리' },
-  { value: '51+', label: '지역권 타겟 가능' },
-  { value: '12', label: '광고 자리 (PC+모바일+견적서)' },
-  { value: '₩2만~', label: '30일 최소 광고비(부가세 별도)' },
+/** 자주 묻는 것 5개(접힘) */
+const FAQ: [string, string][] = [
+  ['견적만 보고 안 하는 사람도 많지 않나요?', '네, 그럴 수 있습니다. 대신 평수·공정·등급을 입력한 사람만 광고를 보고, 접속 지역으로 한정되며, 계산 수는 위 표처럼 실제 숫자를 그대로 공개합니다.'],
+  ['효과가 없으면요?', '노출·클릭이 광고주 화면에 실시간으로 공개되고, 30일 단위라 맞지 않으면 다음 달에 쓰지 않으시면 됩니다.'],
+  ['경쟁 업체도 같이 보이나요?', '같은 자리에 최대 3곳이 돌아가며 보입니다. 자리가 차면 대기로 접수합니다.'],
+  ['배너가 없어요.', '제작 1회 무료입니다. 8가지 스타일 중에서 고르거나 섞어 드립니다.'],
+  ['세금계산서는요?', '광고주 화면의 결제 기록에서 요청하실 수 있습니다.'],
 ];
 
 /** 가격표 행: [상품명, -, 게재 범위, 가격 코드] — 표(PC)와 카드(휴대폰)가 같이 쓴다 */
@@ -185,145 +98,76 @@ export default async function SponsorPage() {
   const board = await getBoard();
   // 오픈 기념 첫 광고주 무료 — 남은 곳은 서버가 센다(읽기 실패·0이면 줄 숨김)
   const promo = await firstFreeInfo(null);
+  // 방문자 지역(IP 시·도) → 못 읽거나 해외면 전국. 숫자는 1시간 캐시된 7일 합
+  const region = regionFromHeaders(await headers());
+  const weekMap = await getWeekMap();
+  const pick = pickWeek(weekMap, region === 'ZZ' || region === 'unknown' ? 'all' : region);
+  // 지역 숫자가 0이라 전국으로 바뀐 경우 칩 선택 상태도 전국(all)
+  const first = { ...pick, key: pick.label === '전국' ? 'all' : region };
+  const table = topRegions(weekMap, 8);
   return (
     <div className="min-h-screen bg-white">
-      {/* 헤더 */}
-      {/* 2026-10-30: 고정(sticky) 해제 — 스크롤 때 아래 표 머리글과 겹치던 문제 */}
+      {/* 상단 띠 */}
       <header className="bg-white border-b border-gray-100">
         <div className="max-w-5xl mx-auto px-4 lg:px-8 py-2 flex items-center justify-between">
           <Link href="/">
             <Image src="/ulmadna_logo.png" alt="얼마드나" width={100} height={34} />
           </Link>
-          {/* 2026-10-29: 광고주 셀프 화면(/partner)이 생겨 상단 단추는 바로 신청으로 */}
-          <Link
-            href="/partner/signup"
-            className="bg-brown text-white text-xs px-4 py-2 rounded-full hover:bg-brown/90 transition-colors"
-          >
+          <Link href="/partner/signup" className="bg-brown text-white text-xs px-4 py-2 rounded-full hover:bg-brown/90 transition-colors">
             광고 신청하기
           </Link>
         </div>
       </header>
 
-      {/* 히어로 */}
-      <section className="bg-cream py-8 lg:py-24 px-4">
-        <div className="max-w-5xl mx-auto text-center">
-          <p className="text-xs text-gold tracking-widest mb-2">얼마드나 광고 파트너 안내</p>
-          <h1 className="text-2xl lg:text-4xl font-bold text-brown leading-tight mb-3">
-            인테리어를 준비하는 고객에게<br />
-            당신의 브랜드를 보여주세요
-          </h1>
-          <p className="text-sm text-gray-500 max-w-lg mx-auto leading-relaxed">
-            얼마드나는 회원가입 없이 누구나 쓰는 무료 인테리어 견적 계산기입니다.
-            매일 인테리어를 알아보는 실수요자가 방문하며,
-            지역과 공정에 맞춰 당신의 광고만 보여줍니다.
-          </p>
-          {/* 2026-10-30: 주 단추 1개(내용 폭·높이 46px) + 글자 링크 2개 — 휴대폰 첫 화면에 들어오게 */}
-          <div className="mt-5 flex flex-col items-center gap-3">
-            <Link
-              href="/partner/signup"
-              className="inline-flex items-center justify-center h-[46px] px-7 bg-brown text-white text-sm font-semibold rounded-full hover:bg-brown/90 transition-colors"
-            >
-              광고 신청하기
-            </Link>
-            <p className="text-xs text-gray-500">
-              <a href="#slots" className="underline underline-offset-2 py-2 px-1">광고 상품 보기</a>
-              <span className="mx-2 text-gray-300">·</span>
-              <Link href="/sponsor/preview" className="underline underline-offset-2 py-2 px-1">실제 자리 미리보기</Link>
-            </p>
+      {/* 1. 첫 화면 — 형아 확정 문구 + 지역 바꿔 보기 칩 */}
+      <RegionHero initial={first} chips={REGION_CHIPS} freeLeft={promo && promo.left > 0 ? promo.left : 0} />
+
+      {/* 2. 누가 보나 — 실제 화면 3장 */}
+      <section id="who" className="py-12">
+        <div className="max-w-4xl mx-auto">
+          <Head title="누가 보나" />
+          <div className="grid sm:grid-cols-3 gap-6 px-4">
+            <Phone src="/sponsor/loc-home-result.webp" alt="평수·공정·등급 입력 뒤 견적 결과 화면" cap="평수·공정·등급을 넣고 결과가 뜬 화면" />
+            <Phone src="/sponsor/flow/17.webp" alt="접속 지역 광고가 뜬 첫 화면" cap="접속 지역 사람에게만" />
+            <Phone src="/sponsor/flow/03-slots.webp" alt="자리별 남은 곳 표" cap="같은 자리에 최대 3곳" />
           </div>
         </div>
       </section>
 
-      {/* 왜 얼마드나인가 */}
-      <section className="py-16 px-4">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl font-bold text-brown text-center mb-10">왜 얼마드나에 광고하나요?</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-cream rounded-2xl p-6">
-              <p className="text-2xl mb-3">🎯</p>
-              <h3 className="font-bold text-brown mb-2">실수요자만 방문합니다</h3>
-              <p className="text-sm text-gray-500">인테리어 견적을 알아보는 사람만 옵니다. 구경하는 트래픽이 아니라 실제로 시공을 준비하는 고객입니다.</p>
+      {/* 3. 얼마나 보나 — 시·도별 이번 주 계산 수(라이브, 많은 순 8개) + 광고주 화면 */}
+      <section id="how-many" className="bg-cream py-12 px-4">
+        <div className="max-w-4xl mx-auto">
+          <Head title="얼마나 보나" line="최근 7일 견적 계산 수 · 시·도별" />
+          <div className="grid sm:grid-cols-2 gap-6 items-start">
+            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden" data-testid="week-table">
+              {table.length === 0 ? (
+                <p className="p-5 text-sm text-gray-500 text-center">집계를 불러오는 중입니다.</p>
+              ) : (
+                <table className="w-full text-sm">
+                  <tbody>
+                    {table.map((r, i) => (
+                      <tr key={r.code} className={i ? 'border-t border-gray-50' : ''}>
+                        <td className="px-5 py-2.5 text-gray-700">{r.name}</td>
+                        <td className="px-5 py-2.5 text-right font-semibold text-brown tabular-nums">{r.n.toLocaleString('ko-KR')}회</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
-            <div className="bg-cream rounded-2xl p-6">
-              <p className="text-2xl mb-3">📍</p>
-              <h3 className="font-bold text-brown mb-2">지역 타겟이 됩니다</h3>
-              <p className="text-sm text-gray-500">서울 강남 사용자에게는 강남 업체 광고를, 남양주 사용자에게는 남양주 업체 광고를 보여줍니다. IP 기반 자동 타겟.</p>
-            </div>
-            <div className="bg-cream rounded-2xl p-6">
-              <p className="text-2xl mb-3">📄</p>
-              <h3 className="font-bold text-brown mb-2">견적서에 함께 갑니다</h3>
-              <p className="text-sm text-gray-500">PDF/엑셀 견적서를 다운받으면 하단에 추천 업체로 노출됩니다. 견적서가 공유될 때마다 자연스럽게 확산.</p>
-            </div>
+            <Phone src="/sponsor/flow/13.webp" alt="광고주 화면의 노출 추이" cap="노출·클릭은 광고주 화면에서 실시간" />
           </div>
         </div>
       </section>
 
-      {/* 통계 */}
-      <section className="bg-brown py-12 px-4">
-        <div className="max-w-5xl mx-auto flex justify-center gap-12 lg:gap-20">
-          {STATS.map(s => (
-            <div key={s.label} className="text-center">
-              <p className="text-3xl font-bold text-gold">{s.value}</p>
-              <p className="text-xs text-cream/60 mt-1">{s.label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 광고 상품 */}
-      <section id="slots" className="py-16 px-4">
+      {/* 4. 어디에 보이나 — 실제 화면 캔버스(MarkedShots 그대로) */}
+      <section id="where" className="py-12">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl font-bold text-brown text-center mb-3">광고 상품 안내</h2>
-          <p className="text-sm text-gray-400 text-center mb-10">모든 배너에 &ldquo;광고&rdquo; 라벨이 표시되며, 팝업/자동재생 광고는 없습니다</p>
-
-          <div className="space-y-8">
-            {AD_SLOTS.map(slot => (
-              <div key={slot.id} className="bg-cream rounded-2xl p-6 lg:p-8">
-                <div className="flex flex-col lg:flex-row gap-6">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="text-base font-bold text-brown">{slot.name}</h3>
-                    </div>
-                    <div className="space-y-1 text-sm text-gray-600 mb-3">
-                      <p><span className="text-gray-400">사이즈:</span> {slot.size}px</p>
-                      <p><span className="text-gray-400">위치:</span> {slot.position}</p>
-                      <p><span className="text-gray-400">타겟:</span> {slot.target}</p>
-                      <p><span className="text-gray-400">가격:</span> <span className="text-gold font-medium">{slot.price}</span></p>
-                    </div>
-                    <p className="text-xs text-gray-500">{slot.desc}</p>
-                  </div>
-                  {/* 견적서 글자 광고(AD-PDF)처럼 그림이 없는 자리는 글자 견본을 옆에 */}
-                  {slot.mockup && (
-                    <div className="lg:w-[300px] shrink-0">
-                      <p className="text-[10px] text-gray-400 mb-2">견적서 미리보기</p>
-                      {slot.mockup}
-                    </div>
-                  )}
-                </div>
-                {/* 배너 실물 — 카드 폭 전체를 써서 PC 728×90 도 실제 크기로 들어간다(좁은 화면에선 비율 유지하며 줄어듦) */}
-                {!slot.mockup && (
-                  <div className="mt-5 pt-5 border-t border-brown/10">
-                    <p className="text-[10px] text-gray-400 mb-2">배너 실물 · 실제 크기 · 견본(가상 업체)</p>
-                    <SlotBanners kind={slot.id} />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 광고가 보이는 자리 — 실제 사이트 화면(휴대폰 390px) 캡처 (2026-10-29, 기존 "광고 위치 맵" 대체)
-          실물 = 관리자 미리보기로 시험 주문 배너를 실제 자리에 띄워 찍은 것, 예시 = 자리 위치에 견본 배너를 겹쳐 그린 합성 */}
-      <section id="where" className="bg-cream py-16">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl font-bold text-brown text-center mb-2 px-4">광고가 보이는 자리</h2>
-          <p className="text-sm text-gray-400 text-center mb-8 px-4">테두리 친 칸이 광고 자리입니다</p>
-          {/* 휴대폰: 옆으로 넘겨 보기 / PC: 4칸 격자 */}
+          <h2 className="text-xl lg:text-2xl font-bold text-brown text-center mb-2 px-4">어디에 보이나</h2>
+          <p className="text-sm text-gray-500 text-center mb-6 px-4">테두리 친 칸이 광고 자리입니다</p>
           <ul className="flex gap-4 overflow-x-auto snap-x snap-mandatory px-4 pb-2 lg:grid lg:grid-cols-4 lg:overflow-visible lg:px-8">
             {PHONE_SHOTS.map((s) => (
               <li key={s.src} className="snap-center shrink-0 w-[250px] lg:w-auto">
-                {/* 휴대폰 틀 + 광고 영역 표시(바깥 어둡게·굵은 테두리·꼬리표) */}
                 <div className="rounded-[28px] border-[6px] border-ink bg-ink overflow-hidden shadow-sm">
                   <div className="rounded-[22px] overflow-hidden">
                     <MarkedShot shot={s} />
@@ -333,7 +177,6 @@ export default async function SponsorPage() {
               </li>
             ))}
           </ul>
-          {/* PC 첫 화면 728×90 */}
           <div className="px-4 lg:px-8 mt-10">
             <div className="rounded-xl border-[6px] border-ink bg-ink overflow-hidden max-w-3xl mx-auto">
               <MarkedShot shot={PC_SHOT} alt="PC 첫 화면 헤더 광고 자리" />
@@ -343,49 +186,14 @@ export default async function SponsorPage() {
         </div>
       </section>
 
-      {/* 견본 스타일 8종 — 가로로 밀어 보는 카드(2026-10-30). 제작 대행 때 이 중에서 고르거나 섞어 준다 */}
-      <section id="styles" className="pb-16 pt-4">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl font-bold text-brown text-center mb-2 px-4">견본 스타일</h2>
-          <p className="text-xs text-gray-500 text-center mb-6 px-4">제작 대행을 맡기면 이 중에서 고르거나 섞어 드려요 · 견본(가상 업체)</p>
-          <div className="flex gap-3 overflow-x-auto px-4 pb-3 snap-x">
-            {BANNER_STYLES.map((st) => (
-              <div key={st.key} className="snap-start shrink-0 w-[300px] bg-cream rounded-2xl p-4" data-testid={`style-${st.key}`}>
-                <h3 className="text-sm font-bold text-brown">{st.name}</h3>
-                <p className="text-[11px] text-gray-500 mt-0.5 mb-3 h-8">{st.desc}</p>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={styleImg(st.key, '320x100')} alt={`${st.name} 휴대폰 띠 견본`} width={268} height={84} loading="lazy" className="block w-full h-auto rounded-md" />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={styleImg(st.key, '300x250')} alt={`${st.name} 큰 배너 견본`} width={150} height={125} loading="lazy" className="block mt-2 w-[150px] h-auto rounded-md" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 배너 제작 대행 상품 (2026-10-29 형아 결정: 5만원·부가세 별도·광고주당 첫 1회 무료) */}
-      <section id="design" className="pb-16 px-4">
-        <div className="max-w-md mx-auto bg-cream rounded-2xl p-6 lg:p-8">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-lg font-bold text-brown">배너 제작 대행</h2>
-            <span className="text-[11px] font-semibold bg-brown text-white px-2.5 py-1 rounded-full">첫 1회 무료</span>
-          </div>
-          <p className="mt-2 text-2xl font-bold text-gold tabular-nums">{DESIGN_FEE.toLocaleString('ko-KR')}원<span className="ml-1 text-xs font-normal text-gray-400">부가세 별도</span></p>
-          <ul className="mt-4 space-y-1.5 text-sm text-gray-600">
-            <li>· 시안 1개 + 수정 2회</li>
-            <li>· 3영업일 안에 완성</li>
-            <li>· 상호·전화·강조 문구·로고(선택)만 주세요</li>
-          </ul>
-          <Link href="/partner/new" className="mt-5 block text-center bg-brown text-white text-sm py-3 rounded-full hover:bg-brown/90 transition-colors">
-            광고 신청하며 맡기기
-          </Link>
-        </div>
-      </section>
-
+      {/* 5. 가격·할인·첫 달 무료 + 제작 대행 */}
+      <div className="bg-cream pt-4">
       {/* 가격표 — 2026-10-27 형아 확정(계획안 7-9). 30일 단위 일시불 카드 결제 */}
-      <section id="price" className="py-16 px-4">
+      <section id="price" className="py-12 px-4">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl font-bold text-brown text-center mb-8">가격표 (30일 단위)</h2>
+          <h2 className="text-xl lg:text-2xl font-bold text-brown text-center mb-2">가격표 (30일 단위)</h2>
+          {/* 위험 제거 한 줄(2026-10-30 형아 확정 A안) */}
+          <p className="text-sm text-gray-600 text-center mb-8" data-testid="risk-line">반려되면 자동 환불 · 30일 단위 · 언제든 중단</p>
           {/* 휴대폰(640px 이하): 표 대신 카드 목록 */}
           <ul className="sm:hidden space-y-3" data-testid="price-cards">
             {PRICE_ROWS.map(([name, , target, code], i) => (
@@ -451,7 +259,27 @@ export default async function SponsorPage() {
           </ul>
         </div>
       </section>
+      {/* 배너 제작 대행 상품 (2026-10-29 형아 결정: 5만원·부가세 별도·광고주당 첫 1회 무료) */}
+      <section id="design" className="pb-16 px-4">
+        <div className="max-w-md mx-auto bg-cream rounded-2xl p-6 lg:p-8">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-lg font-bold text-brown">배너 제작 대행</h2>
+            <span className="text-[11px] font-semibold bg-brown text-white px-2.5 py-1 rounded-full">첫 1회 무료</span>
+          </div>
+          <p className="mt-2 text-2xl font-bold text-gold tabular-nums">{DESIGN_FEE.toLocaleString('ko-KR')}원<span className="ml-1 text-xs font-normal text-gray-400">부가세 별도</span></p>
+          <ul className="mt-4 space-y-1.5 text-sm text-gray-600">
+            <li>· 시안 1개 + 수정 2회</li>
+            <li>· 3영업일 안에 완성</li>
+            <li>· 상호·전화·강조 문구·로고(선택)만 주세요</li>
+          </ul>
+          <Link href="/partner/new" className="mt-5 block text-center bg-brown text-white text-sm py-3 rounded-full hover:bg-brown/90 transition-colors">
+            광고 신청하며 맡기기
+          </Link>
+        </div>
+      </section>
+      </div>
 
+      {/* 지역별 남은 자리(오늘 고친 표 그대로) */}
       {/* 지역별 남은 자리 — 실제 광고 주문 표에서 읽는다(2026-10-29). 지역(시·도)당 3개 업체 */}
       <section id="left" className="pb-16 px-4">
         <div className="max-w-5xl mx-auto">
@@ -488,46 +316,67 @@ export default async function SponsorPage() {
         </div>
       </section>
 
-      {/* 디자인 규칙 */}
-      <section className="bg-cream py-16 px-4">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl font-bold text-brown text-center mb-8">광고 디자인 규칙</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-2xl p-6 border border-gray-100">
-              <h3 className="font-bold text-brown mb-3">허용</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li className="flex items-start gap-2"><span className="text-safe">✓</span> 흰색 또는 크림 배경</li>
-                <li className="flex items-start gap-2"><span className="text-safe">✓</span> 로고 + 업체명 + 한 줄 카피</li>
-                <li className="flex items-start gap-2"><span className="text-safe">✓</span> CTA 버튼 1개</li>
-                <li className="flex items-start gap-2"><span className="text-safe">✓</span> 시공 사례 이미지</li>
-                <li className="flex items-start gap-2"><span className="text-safe">✓</span> 둥근 모서리 (8px)</li>
-              </ul>
-            </div>
-            <div className="bg-white rounded-2xl p-6 border border-gray-100">
-              <h3 className="font-bold text-brown mb-3">금지</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li className="flex items-start gap-2"><span className="text-danger">✕</span> 팝업/전면 광고</li>
-                <li className="flex items-start gap-2"><span className="text-danger">✕</span> 자동 재생 동영상</li>
-                <li className="flex items-start gap-2"><span className="text-danger">✕</span> 원색/형광 배경</li>
-                <li className="flex items-start gap-2"><span className="text-danger">✕</span> 깜빡이는 애니메이션</li>
-                <li className="flex items-start gap-2"><span className="text-danger">✕</span> 콘텐츠를 가리는 오버레이</li>
-              </ul>
-            </div>
+      {/* 6. 어떻게 시작하나 — 3장면 */}
+      <section id="start" className="py-12">
+        <div className="max-w-4xl mx-auto">
+          <Head title="어떻게 시작하나" />
+          <div className="grid sm:grid-cols-3 gap-6 px-4">
+            <Phone src="/sponsor/flow/05.webp" alt="광고주 가입 화면" cap="1. 가입" />
+            <Phone src="/sponsor/flow/10.webp" alt="자리와 배너를 고르는 화면" cap="2. 자리·배너 고르기" />
+            <Phone src="/sponsor/flow/12.webp" alt="검토 뒤 게재되는 주문 화면" cap="3. 검토 뒤 게재" />
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-20 px-4 text-center">
-        <h2 className="text-2xl font-bold text-brown mb-3">광고 문의</h2>
-        <p className="text-sm text-gray-500 mb-6">아래 이메일로 문의해 주시면 1영업일 내 회신 드립니다</p>
-        <a
-          href="mailto:cs870@naver.com?subject=[얼마드나] 광고 문의"
-          className="inline-block bg-brown text-white text-sm px-8 py-3 rounded-full hover:bg-brown/90 transition-colors"
-        >
-          cs870@naver.com 으로 문의하기
-        </a>
-        <p className="text-xs text-gray-300 mt-4">제출 항목: 배너 이미지 + 클릭 URL + 업체명 + 광고 지역 + 희망 광고 자리 + 게재 기간</p>
+      {/* 7. 견본 스타일 */}
+      {/* 견본 스타일 8종 — 가로로 밀어 보는 카드(2026-10-30). 제작 대행 때 이 중에서 고르거나 섞어 준다 */}
+      <section id="styles" className="pb-12 pt-4">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-xl lg:text-2xl font-bold text-brown text-center mb-2 px-4">견본 스타일</h2>
+          <p className="text-xs text-gray-500 text-center mb-6 px-4">제작 대행을 맡기면 이 중에서 고르거나 섞어 드려요 · 견본(가상 업체)</p>
+          <div className="flex gap-3 overflow-x-auto px-4 pb-3 snap-x">
+            {BANNER_STYLES.map((st) => (
+              <div key={st.key} className="snap-start shrink-0 w-[300px] bg-cream rounded-2xl p-4" data-testid={`style-${st.key}`}>
+                <h3 className="text-sm font-bold text-brown">{st.name}</h3>
+                <p className="text-[11px] text-gray-500 mt-0.5 mb-3 h-8">{st.desc}</p>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={styleImg(st.key, '320x100')} alt={`${st.name} 휴대폰 띠 견본`} width={268} height={84} loading="lazy" className="block w-full h-auto rounded-md" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={styleImg(st.key, '300x250')} alt={`${st.name} 큰 배너 견본`} width={150} height={125} loading="lazy" className="block mt-2 w-[150px] h-auto rounded-md" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 8. 자주 묻는 것 */}
+      <section id="faq" className="bg-cream py-12 px-4">
+        <div className="max-w-2xl mx-auto">
+          <Head title="자주 묻는 것" />
+          <div className="space-y-2">
+            {FAQ.map(([q, a]) => (
+              <details key={q} className="bg-white rounded-xl border border-gray-100 px-4 py-3 group">
+                <summary className="cursor-pointer text-sm font-semibold text-brown list-none flex justify-between gap-3">
+                  {q}<span className="text-gray-400 group-open:rotate-45 transition-transform">+</span>
+                </summary>
+                <p className="mt-2 text-sm text-gray-600 leading-relaxed">{a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 9. 마지막 CTA */}
+      <section className="py-14 px-4 text-center">
+        <h2 className="text-xl lg:text-2xl font-bold text-brown mb-5">내 지역 자리가 남아 있는지 보세요</h2>
+        <div className="flex flex-col items-center gap-3">
+          <a href="#left" className="inline-flex items-center justify-center h-[46px] px-7 bg-brown text-white text-sm font-semibold rounded-full hover:bg-brown/90 transition-colors">
+            내 지역 남은 자리 보기
+          </a>
+          <a href="mailto:cs870@naver.com?subject=[얼마드나] 광고 문의" className="text-xs text-gray-500 underline underline-offset-2 py-2">
+            문의 cs870@naver.com
+          </a>
+        </div>
       </section>
 
       {/* 푸터 — 판매자 정보(결제사 심사 대비, 정본은 src/lib/business.ts) */}
