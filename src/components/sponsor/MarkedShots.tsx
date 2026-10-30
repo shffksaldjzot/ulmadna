@@ -18,7 +18,7 @@
 //   캡처를 새로 찍으면 이 표의 좌표도 다시 재야 한다.
 // ─────────────────────────────────────────────────────────────
 
-import { SLOT_INFO, type SlotKind } from '@/lib/ads/pricing';
+import { SLOT_INFO, slotPrice, type SlotKind } from '@/lib/ads/pricing';
 
 /** 휴대폰 캡처 원본 크기(px) — 390px 화면을 2배로 찍은 것 */
 const PHONE_W = 780;
@@ -80,7 +80,9 @@ export const PC_SHOT: Shot = {
 
 /** 30일 요금 "n만원" — 가격 정본에서 읽는다 */
 export function priceMan(k: SlotKind): string {
-  return `${(SLOT_INFO[k].price / 10000).toLocaleString('ko-KR')}만원`;
+  // 2026-10-30: 지역 단계 가격 — 꼬리표엔 서울·경기(1단계) 값에 "부터"(견적서 줄은 고정가라 그대로)
+  const v = `${(slotPrice(k, '11') / 10000).toLocaleString('ko-KR')}만원`;
+  return k === 'AD-PDF' ? v : `${v}부터`;
 }
 
 /** 자리 사이즈 "320×100" — target 'desktop' 이면 PC 규격(있을 때만) */
@@ -90,7 +92,7 @@ export function slotSize(k: SlotKind, target: 'mobile' | 'desktop' = 'mobile'): 
   return `${s.width}×${s.height}`;
 }
 
-/** 캡션 한 줄: "맨 위 띠 배너 · 320×100 · 30일 10만원" (PC 는 "PC 728×90") */
+/** 캡션 한 줄: "맨 위 띠 배너 · 320×100 · 30일 10만원부터" (PC 는 "PC 728×90") */
 export function slotCaption(k: SlotKind, target: 'mobile' | 'desktop' = 'mobile'): string {
   const size = target === 'desktop' ? `PC ${slotSize(k, 'desktop')}` : slotSize(k);
   return `${SLOT_INFO[k].name} · ${size} · 30일 ${priceMan(k)}`;

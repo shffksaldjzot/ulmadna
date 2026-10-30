@@ -28,8 +28,8 @@ function hasPreviewQuery(): boolean {
 }
 
 interface BlogAdSlotProps {
-  /** 광고 자리 종류 — 공정 스폰서(AD-P)·토탈 인테리어 스폰서(AD-T, 총론 글)·본문 끝 큰 자리(AD-R) */
-  id: 'AD-P' | 'AD-T' | 'AD-R';
+  /** 광고 자리 종류 — 공정 스폰서(AD-P)·토탈 인테리어 스폰서(AD-T, 총론 글)·본문 끝 큰 자리(AD-R)·글 맨 위 띠(AD-H)·글 맨 아래 띠(AD-F, 2026-10-30) */
+  id: 'AD-P' | 'AD-T' | 'AD-R' | 'AD-H' | 'AD-F';
   /** AD-P 전용 — 이 글의 공정 묶음 라벨(없으면 null) */
   process?: string | null;
 }

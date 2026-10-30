@@ -74,9 +74,10 @@ export function OrderForm({ advertisers, sidos }: { advertisers: AdvOpt[]; sidos
   const [start, setStart] = useState(kstToday());
   const [units, setUnits] = useState(1);
   const [amount, setAmount] = useState('');
+  const [sido, setSido] = useState(''); // 지역 단계 가격 계산용
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
-  const calc = useMemo(() => calcOrder(kind, start, units, amount === '' ? null : Number(amount)), [kind, start, units, amount]);
+  const calc = useMemo(() => calcOrder(kind, start, units, amount === '' ? null : Number(amount), sido), [kind, start, units, amount, sido]);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -96,7 +97,7 @@ export function OrderForm({ advertisers, sidos }: { advertisers: AdvOpt[]; sidos
       <select value={kind} onChange={(e) => setKind(e.target.value as SlotKind)} className={input}>
         {SLOT_KINDS.map((k) => <option key={k} value={k}>{k} {SLOT_INFO[k].name}</option>)}
       </select>
-      <select name="sido" required className={input} defaultValue="">
+      <select name="sido" required className={input} value={sido} onChange={(e) => setSido(e.target.value)}>
         <option value="" disabled>지역</option>
         {sidos.map((s) => <option key={s.code} value={s.code}>{s.name}</option>)}
       </select>

@@ -95,10 +95,18 @@ describe('광고 카드 표시', () => {
   });
 });
 
+describe('지역 단계 결제 금액(2026-10-30)', () => {
+  it('광역시 70%·그 외 50%', () => {
+    expect(quote('AD-H', 1, '26').amount).toBe(70000);
+    expect(quote('AD-H', 1, '51').total).toBe(55000);
+    expect(quoteNew('AD-H', 1, null, '26').amount).toBe(70000);
+  });
+});
+
 describe('토탈 인테리어 스폰서(AD-T)', () => {
-  it('신청 목록에 있고 15만 원 + 부가세', () => {
+  it('신청 목록에 있고 10만 원 + 부가세', () => {
     expect(PARTNER_SLOTS).toContain('AD-T');
-    expect(quote('AD-T', 1)).toEqual({ units: 1, amount: 150000, vat: 15000, total: 165000 });
+    expect(quote('AD-T', 1)).toEqual({ units: 1, amount: 100000, vat: 10000, total: 110000 });
   });
 });
 
@@ -111,7 +119,7 @@ describe('배너 제작 대행 금액(2026-10-29)', () => {
     const q = quoteNew('AD-P', 1, { firstFree: true });
     expect(q.designFee).toBe(0);
     expect(q.amount).toBe(SLOT_INFO['AD-P'].price);
-    expect(q.total).toBe(77000);
+    expect(q.total).toBe(55000);
   });
   it('두 번째부터 5만 원 + 부가세(광고비와 합쳐 계산)', () => {
     const q = quoteNew('AD-H', 3, { firstFree: false });

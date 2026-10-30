@@ -18,16 +18,18 @@ export const SLOT_KINDS: SlotKind[] = ['AD-H', 'AD-R', 'AD-P', 'AD-T', 'AD-F', '
  *  - width/height 는 휴대폰(기본) 규격. desktop 은 PC 전용 규격(2026-10-29 형아 결정: AD-H·AD-F 만 728×90)
  *  - desktop 이 있는 자리만 주문에 "PC 그림"(선택)을 따로 올릴 수 있다. 없으면 PC 에서도 휴대폰 그림을 가운데 보여 준다
  */
+// 2026-10-30 형아 결정: GA 노출 기준으로 순서 조정 — 맨 위 10만 · 견적 결과 10만 · 올수리 10만 · 공정 5만 · 맨 아래 3만 · 견적서 줄 2만
+//   여기 price 는 1단계(서울·경기) 정가. 지역별 값은 아래 slotPrice(kind, sido)로 계산한다.
 export const SLOT_INFO: Record<SlotKind, { name: string; width: number; height: number; price: number; capacity: number | null; maxKB: number; desktop?: { width: number; height: number } }> = {
   'AD-H': { name: '맨 위 띠 배너', width: 320, height: 100, price: 100000, capacity: 3, maxKB: 300, desktop: { width: 728, height: 90 } },
   'AD-R': { name: '견적 결과 옆 큰 배너', width: 300, height: 250, price: 100000, capacity: 3, maxKB: 400 },
   // 공정 스폰서: 2026-10-29 형아 결정으로 5만 → 7만 원/30일 (노출 3곳: 홈 공정 목록 + 그 공정 계산기 + 그 공정 블로그 글)
-  'AD-P': { name: '공정 전문 배너', width: 320, height: 50, price: 70000, capacity: 3, maxKB: 200 },
+  'AD-P': { name: '공정 전문 배너', width: 320, height: 50, price: 50000, capacity: 3, maxKB: 200 },
   // 토탈 인테리어 스폰서: 2026-10-29 형아 결정 30일 15만 원, 지역당 3곳, 전 지역 판매
   //  (노출 4곳: 홈 견적 결과 카드 아래 + 계산기 결과 공유 페이지 + 총론 블로그 글 본문 중간 + 견적서 PDF 추천 줄)
-  'AD-T': { name: '올수리 업체 배너', width: 320, height: 50, price: 150000, capacity: 3, maxKB: 200 },
+  'AD-T': { name: '올수리 업체 배너', width: 320, height: 50, price: 100000, capacity: 3, maxKB: 200 },
   // 푸터 가격은 계획안에 따로 없어 견적서 추천과 같은 2만 원으로 둠(주문 만들 때 금액을 직접 고칠 수 있다)
-  'AD-F': { name: '맨 아래 띠 배너', width: 320, height: 50, price: 20000, capacity: 3, maxKB: 200, desktop: { width: 728, height: 90 } },
+  'AD-F': { name: '맨 아래 띠 배너', width: 320, height: 50, price: 30000, capacity: 3, maxKB: 200, desktop: { width: 728, height: 90 } },
   'AD-PDF': { name: '견적서 추천 업체 줄', width: 0, height: 0, price: 20000, capacity: null, maxKB: 0 },
 };
 
@@ -37,6 +39,35 @@ export const SLOT_INFO: Record<SlotKind, { name: string; width: number; height: 
  *  - 관리자 주문 화면 지역 선택지 맨 끝에만 보인다. DB 제약은 20261030_ads_desktop_banner.sql 초안에서 푼다.
  */
 export const SIDO_ALL = 'ALL';
+
+// ─────────────────────────────────────────────────────────────
+// 지역 가격 단계 (2026-10-30 형아 확정, GA 지역 비중 기준)
+//   1단계(정가 100%): 서울 11 · 경기 41
+//   2단계(70%): 부산 26 · 대구 27 · 인천 28 · 광주 29 · 대전 30 · 울산 31 · 세종 36
+//   3단계(50%): 그 외 시·도
+//   견적서 추천 업체 줄(AD-PDF)은 단계 없이 고정가. 전국(ALL)은 판매하지 않아 1단계 값으로만 계산한다.
+// ─────────────────────────────────────────────────────────────
+export type RegionTier = 1 | 2 | 3;
+
+const TIER1_SIDO = ['11', '41'];
+const TIER2_SIDO = ['26', '27', '28', '29', '30', '31', '36'];
+/** 단계별 가격 비율 */
+export const TIER_RATE: Record<RegionTier, number> = { 1: 1, 2: 0.7, 3: 0.5 };
+
+/** 시·도 번호 → 가격 단계 (전국·빈 값은 1단계) */
+export function regionTier(sido?: string | null): RegionTier {
+  if (!sido || sido === SIDO_ALL) return 1;
+  if (TIER1_SIDO.includes(sido)) return 1;
+  if (TIER2_SIDO.includes(sido)) return 2;
+  return 3;
+}
+
+/** 자리 30일 요금(부가세 별도) — 지역 단계 비율을 곱해 100원 단위로 반올림. AD-PDF 는 고정가 */
+export function slotPrice(kind: SlotKind, sido?: string | null): number {
+  const base = SLOT_INFO[kind].price;
+  if (kind === 'AD-PDF') return base;
+  return Math.round((base * TIER_RATE[regionTier(sido)]) / 100) * 100;
+}
 
 /** 주문 지역 값 검사: 시도 두 자리 번호 또는 '전국'(ALL) */
 export function isOrderSido(v: unknown): v is string {
@@ -121,14 +152,14 @@ export function isDay(s: unknown): s is string {
 /**
  * 주문 계산: 시작일·단위 수 → 마지막 날(포함)·공급가·부가세.
  *   - 마지막 날 = 시작일 + 30*단위 - 1 (예: 11-01 시작 1단위 → 11-30)
- *   - 금액은 override 가 있으면 그 값(무료 체험 0원 등), 없으면 자리 요금 × 단위
+ *   - 금액은 override 가 있으면 그 값(무료 체험 0원 등), 없으면 지역 단계 자리 요금(slotPrice) × 단위
  *   - 부가세 = 공급가의 10% 반올림
  */
-export function calcOrder(kind: SlotKind, start: string, units: number, amountOverride?: number | null) {
+export function calcOrder(kind: SlotKind, start: string, units: number, amountOverride?: number | null, sido?: string | null) {
   const u = Math.max(1, Math.min(24, Math.floor(units) || 1));
   const amount = amountOverride != null && Number.isFinite(amountOverride) && amountOverride >= 0
     ? Math.round(amountOverride)
-    : SLOT_INFO[kind].price * u;
+    : slotPrice(kind, sido) * u;
   return {
     units: u,
     endDate: addDaysStr(start, u * UNIT_DAYS - 1),
