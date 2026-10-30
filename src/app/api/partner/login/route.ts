@@ -29,7 +29,10 @@ export async function POST(req: Request) {
   const acc = await findAccount(email);
   if (!acc.ok) return fail(503, '지금은 로그인할 수 없어요(준비 중)');
   const found = acc.data;
-  const ok = !!found && found.status === 'active' && (await verifyPassword(password, found.passwordHash));
+  // 비밀번호가 맞는데 정지된 계정이면 이유를 알려 준다(틀린 사람에겐 계정 존재를 알리지 않는다)
+  const pwOk = !!found && (await verifyPassword(password, found.passwordHash));
+  if (found && pwOk && found.status === 'blocked') return fail(403, '정지된 계정이에요');
+  const ok = pwOk && !!found && found.status === 'active';
   if (!ok || !found) {
     recordFail(ipKey);
     recordFail(emKey);
