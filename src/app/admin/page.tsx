@@ -10,6 +10,7 @@
 import { getMemberStats } from '@/lib/members/server';
 import { getAskDash, getTrafficDash } from '@/server/metrics/adminDash';
 import { getAllPostMeta } from '@/lib/blog';
+import { getAdvSummary } from '@/server/admin/advertisers';
 import LegacyStats from './LegacyStats';
 import Link from 'next/link';
 import { Card, PageHead, Stat, fmt } from './_ui';
@@ -18,7 +19,7 @@ import { Card, PageHead, Stat, fmt } from './_ui';
 export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboard() {
-  const [members, traffic, ask] = await Promise.all([getMemberStats(), getTrafficDash(), getAskDash()]);
+  const [members, traffic, ask, adv] = await Promise.all([getMemberStats(), getTrafficDash(), getAskDash(), getAdvSummary()]);
   // 글 제목 찾기(없는 slug 는 slug 그대로)
   let titles = new Map<string, string>();
   try {
@@ -58,6 +59,15 @@ export default async function AdminDashboard() {
           <p className="text-xs text-gray-500 mt-3">
             도움됐어요 {fmt(ask?.helpful)} · 아쉬워요 {fmt(ask?.sorry)}
           </p>
+        </Card>
+
+        {/* 광고주: 가입 수 · 검토 대기 주문 · 이달 결제 */}
+        <Card title="광고주" right={<Link href="/admin/advertisers" className="text-xs text-gray-400 hover:text-gray-700">자세히 →</Link>}>
+          <div className="grid grid-cols-3 gap-3">
+            <Stat label="광고주" value={adv?.advertisers} />
+            <Stat label="검토 대기 주문" value={adv?.reviewOrders} />
+            <Stat label="이달 결제(원)" value={adv?.monthPaid} />
+          </div>
         </Card>
 
         <Card title="조회수" right={<Link href="/admin/posts" className="text-xs text-gray-400 hover:text-gray-700">자세히 →</Link>}>

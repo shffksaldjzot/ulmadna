@@ -26,6 +26,7 @@ const MAIN_TABS = [
   { href: '/admin/ask', label: '물어보기' },
   { href: '/admin/members', label: '회원' },
   { href: '/admin/ads', label: '광고 자리' },
+  { href: '/admin/advertisers', label: '광고주' },
 ];
 
 /** 옛 자료 메뉴(그대로 유지, 흐리게) */
