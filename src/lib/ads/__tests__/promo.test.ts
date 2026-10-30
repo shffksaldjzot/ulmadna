@@ -1,7 +1,7 @@
 // 오픈 기념 첫 광고주 무료 판정 시험 (2026-10-30)
 import { describe, expect, it } from 'vitest';
 import { FIRST_FREE_ADVERTISERS } from '../config';
-import { firstFreeLeft, isFirstFreeEligible } from '../promo';
+import { countsAsOrder, firstFreeLeft, firstFreeWhy, isFirstFreeEligible } from '../promo';
 
 describe('첫 광고주 무료 판정', () => {
   it('한도 상수는 3', () => {
@@ -26,5 +26,20 @@ describe('첫 광고주 무료 판정', () => {
   it('한도 0 이면 프로모션 꺼짐', () => {
     expect(firstFreeLeft(0, 0)).toBe(0);
     expect(isFirstFreeEligible(0, 0, 0)).toBe(false);
+  });
+  it('환불된 주문은 셈에서 뺀다(첫 주문·제작 1회 무료)', () => {
+    expect(countsAsOrder('paid')).toBe(true);
+    expect(countsAsOrder('pending')).toBe(true);
+    expect(countsAsOrder('refunded')).toBe(false);
+    // 환불 주문만 있던 광고주 = 주문 0건으로 셈 → 다시 대상
+    const mine = ['refunded'].filter(countsAsOrder).length;
+    expect(isFirstFreeEligible(1, mine)).toBe(true);
+  });
+  it('대상이 아닌 이유', () => {
+    expect(firstFreeWhy(0, 0)).toBeNull();
+    expect(firstFreeWhy(1, 2)).toBe('prior');
+    expect(firstFreeWhy(3, 0)).toBe('full');
+    expect(firstFreeWhy(3, 2)).toBe('full');
+    expect(firstFreeWhy(0, 2, 0)).toBeNull();
   });
 });

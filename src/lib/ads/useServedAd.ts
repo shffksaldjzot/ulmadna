@@ -21,6 +21,8 @@ export interface ServedBanner {
   name: string;
   /** 주문 전화 번호(없으면 null) — 견적서 PDF 추천 줄에 쓴다 */
   phone?: string | null;
+  /** 클릭 주소가 없어 전화로 연결되는 광고(2026-10-30) */
+  callOnly?: boolean;
 }
 
 /** 이미 받은 결과(키 → 배너 또는 null) */

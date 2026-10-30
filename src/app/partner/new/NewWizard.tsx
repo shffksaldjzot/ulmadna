@@ -8,6 +8,8 @@
 //   실제 결제 금액은 서버가 다시 계산한다.
 //   배너는 고르자마자 자리 규격(2배)에 가운데 맞춤으로 자동 변환한다(2026-10-30).
 //   2026-10-30: 기간 칸에 장기 할인(90일 10%) 표시, 결제 요약에 정가·할인·결제액, 첫 광고주 무료 안내 줄·합계 0원이면 결제창 없이 바로 신청
+//   2026-10-30(2차): 누르면 갈 주소는 [홈페이지 없음·전화로 연결(기본) / 주소 직접 입력] 선택 · 결제 거절 사유(PG 메시지) 표시 ·
+//                    4단계에 제작 첫 1회 무료 소진·첫 달 무료 제외 이유 한 줄
 //   2026-10-30 변경: 단추가 죽어 있으면 이유 한 줄 표시 · 주소 자동 https:// · 그림 자동 맞춤 · 전화 9자리 이상 · 결제 불가 시 문의 링크
 // ─────────────────────────────────────────────────────────────
 import { useEffect, useState } from 'react';
@@ -36,7 +38,7 @@ const pickCls = (on: boolean) =>
   `w-full min-h-11 rounded-xl border px-4 py-3 text-left ${on ? 'border-accent bg-accent/5' : 'border-line bg-surface'}`;
 
 export default function NewWizard({
-  pay, region, email, name = '', designFree = false, promoLeft = 0, promoEligible = false,
+  pay, region, email, name = '', designFree = false, promoLeft = 0, promoEligible = false, promoWhy = null,
 }: {
   pay: PayCfg | null; region: string; email: string; name?: string;
   /** 제작 대행 첫 회 무료인지(서버가 판정해 넘김 — 결제 금액은 서버가 다시 계산) */
@@ -44,6 +46,8 @@ export default function NewWizard({
   /** 오픈 기념 첫 광고주 무료: 남은 곳(0이면 안내 줄 숨김) · 이 광고주가 지금 대상인가(서버가 판정) */
   promoLeft?: number;
   promoEligible?: boolean;
+  /** 첫 달 무료 대상이 아닌 이유(서버 판정): prior=이전 주문 있음, full=무료 자리 소진 */
+  promoWhy?: 'prior' | 'full' | null;
 }) {
   const [step, setStep] = useState(0);
   const [kind, setKind] = useState<SlotKind | null>(null);
@@ -55,6 +59,7 @@ export default function NewWizard({
   const [fileErr, setFileErr] = useState('');
   const [fileNote, setFileNote] = useState(''); // 비율이 많이 달라 잘릴 때 안내 한 줄
   const [clickUrl, setClickUrl] = useState('');
+  const [noUrl, setNoUrl] = useState(true); // 홈페이지 없음(전화로 연결)이 기본 — 주소 검사 건너뜀
   const [phone, setPhone] = useState('');
   // 배너 제작 대행(2026-10-29): design=true 면 그림 대신 소개·강조 문구·로고(선택)
   const [design, setDesign] = useState(false);
@@ -65,6 +70,7 @@ export default function NewWizard({
   const [logo, setLogo] = useState<File | null>(null);
   const [logoErr, setLogoErr] = useState('');
   const [err, setErr] = useState('');
+  const [pgMsg, setPgMsg] = useState(''); // 결제사(PG)가 거절한 사유 그대로
   const [busy, setBusy] = useState(false);
   const [fitting, setFitting] = useState(false); // 그림 변환 중
 
@@ -82,7 +88,7 @@ export default function NewWizard({
     else if (fitting) lack3.push('그림을 맞추는 중이에요');
     else if (!file) lack3.push('배너 그림을 골라 주세요');
   }
-  if (!normalizeClickUrl(clickUrl)) lack3.push(clickUrl.trim() ? '누르면 갈 주소를 주소 형태로 적어 주세요(예: www.내가게.com)' : '누르면 갈 주소를 적어 주세요');
+  if (!noUrl && !normalizeClickUrl(clickUrl)) lack3.push(clickUrl.trim() ? '누르면 갈 주소를 주소 형태로 적어 주세요(예: www.내가게.com)' : '누르면 갈 주소를 적어 주세요');
   if (!isPhoneOk(phone)) lack3.push(phone.trim() ? '전화번호는 숫자 9자리 이상이어야 해요' : '전화번호를 적어 주세요');
 
   // 단계별 막힌 이유(맞으면 빈 목록)
@@ -139,13 +145,14 @@ export default function NewWizard({
     if ((!pay && !promoEligible) || !kind || (!design && !file) || busy) return;
     setBusy(true);
     setErr('');
+    setPgMsg('');
     const f = new FormData();
     f.set('mode', 'new');
     f.set('kind', kind);
     f.set('sido', sido);
     if (kind === 'AD-P') f.set('process', process);
     f.set('units', String(units));
-    f.set('clickUrl', normalizeClickUrl(clickUrl) ?? clickUrl.trim());
+    f.set('clickUrl', noUrl ? '' : normalizeClickUrl(clickUrl) ?? clickUrl.trim()); // 빈 값 = 전화로 연결
     f.set('phone', cleanPhone(phone));
     if (design) {
       f.set('design', '1');
@@ -178,7 +185,10 @@ export default function NewWizard({
       location.href = r.orderId ? `/partner?done=${r.orderId}` : '/partner';
       return;
     }
-    if (r.kind === 'fail') setErr(r.error);
+    if (r.kind === 'fail') {
+      setErr(r.error);
+      setPgMsg(r.pgMessage ?? '');
+    }
     setBusy(false);
   };
 
@@ -310,12 +320,23 @@ export default function NewWizard({
           </div>
           )}
 
-          <label className="mt-5 block">
-            <span className="mb-1.5 block text-[15px] font-semibold text-ink">누르면 갈 주소</span>
-            <input className={inputCls} inputMode="url" value={clickUrl} onChange={(e) => setClickUrl(e.target.value)} placeholder="www.내가게.com" />
-          </label>
+          {/* 누르면 갈 곳: 홈페이지 없음(전화 연결, 기본) / 주소 직접 입력 */}
+          <p className="mb-1.5 mt-5 text-[15px] font-semibold text-ink">누르면 갈 곳</p>
+          <div className="grid grid-cols-2 gap-2" data-testid="url-toggle">
+            <button type="button" className={pickCls(noUrl)} onClick={() => setNoUrl(true)} aria-pressed={noUrl}>
+              <span className="block text-[14px] font-semibold text-ink">홈페이지 없음</span>
+              <span className="mt-0.5 block text-[12px] text-ink-2">전화로 연결</span>
+            </button>
+            <button type="button" className={pickCls(!noUrl)} onClick={() => setNoUrl(false)} aria-pressed={!noUrl}>
+              <span className="block text-[14px] font-semibold text-ink">주소 직접 입력</span>
+              <span className="mt-0.5 block text-[12px] text-ink-2">홈페이지로 연결</span>
+            </button>
+          </div>
+          {!noUrl && (
+            <input className={`${inputCls} mt-2`} inputMode="url" value={clickUrl} onChange={(e) => setClickUrl(e.target.value)} placeholder="www.내가게.com" aria-label="누르면 갈 주소" />
+          )}
           <label className="mt-4 block">
-            <span className="mb-1.5 block text-[15px] font-semibold text-ink">전화 번호 <span className="font-normal text-ink-2">(결제·연락용)</span></span>
+            <span className="mb-1.5 block text-[15px] font-semibold text-ink">전화 번호 <span className="font-normal text-ink-2">{noUrl ? '(배너를 누르면 여기로 전화가 걸려요)' : '(결제·연락용)'}</span></span>
             <input className={inputCls} inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="010-0000-0000" />
           </label>
         </section>
@@ -340,7 +361,9 @@ export default function NewWizard({
                       {q.designFee === 0 ? (<><s className="mr-1.5 text-ink-2">{won(DESIGN_FEE)}</s>0원</>) : won(q.designFee)}
                     </dd>
                   </div>
-                  {q.designFee === 0 && <p className="text-right text-[13px] font-semibold text-accent">첫 제작 무료</p>}
+                  {q.designFee === 0
+                    ? <p className="text-right text-[13px] font-semibold text-accent" data-testid="design-note">(첫 1회 무료)</p>
+                    : <p className="text-right text-[13px] text-ink-2" data-testid="design-note">(첫 1회 무료는 이미 썼어요)</p>}
                 </>
               )}
               {q.discountPct > 0 && (
@@ -357,7 +380,12 @@ export default function NewWizard({
               <div className="flex justify-between border-t border-line pt-2"><dt className="font-semibold text-ink">카드 결제</dt><dd className="text-[20px] font-bold tabular-nums text-ink">{won(q.total)}</dd></div>
             </dl>
           </div>
-          {promoLeft > 0 && (
+          {!promoEligible && promoWhy && (
+            <p className="mt-3 text-[13px] text-ink-2" data-testid="promo-why">
+              {promoWhy === 'prior' ? '이전 주문이 있어 첫 달 무료 대상이 아니에요' : '첫 달 무료 자리가 모두 찼어요'}
+            </p>
+          )}
+          {promoLeft > 0 && promoWhy !== 'prior' && (
             <p className="mt-3 text-[13px] font-semibold text-accent" data-testid="promo-line">오픈 기념 · 첫 광고주 {FIRST_FREE_ADVERTISERS}곳 첫 달 무료 (남은 {promoLeft}곳)</p>
           )}
           <p className="mt-3 text-[13px] text-ink-2">
@@ -366,7 +394,16 @@ export default function NewWizard({
         </section>
       )}
 
-      {err && <p className="mt-4 text-[14px] text-danger" role="alert">{err}</p>}
+      {err && (
+        <p className="mt-4 text-[14px] text-danger" role="alert" data-testid="pay-err">
+          {err}
+          {pgMsg && (
+            <>
+              {' · '}{pgMsg} · 다시 시도하거나 <a href={`mailto:${BUSINESS.email}?subject=[얼마드나] 결제 문의`} className="underline underline-offset-4">문의하기</a>
+            </>
+          )}
+        </p>
+      )}
 
       {/* 단추가 죽어 있을 때만: 빠진 것 한 줄 */}
       {step < 3 && lacks[step].length > 0 && (

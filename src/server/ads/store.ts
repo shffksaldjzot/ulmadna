@@ -255,10 +255,11 @@ export async function setRunStatus(id: number, status: 'review' | 'live' | 'ende
   const sb = adminOrNull();
   if (!sb) return { ok: false, error: '저장소에 연결하지 못했어요' };
   if (status === 'live') {
-    const { data } = await sb.from('ad_orders').select('slot_kind,banner_path,click_url,pay_status,amount').eq('id', id).single();
+    const { data } = await sb.from('ad_orders').select('slot_kind,banner_path,click_url,phone,pay_status,amount').eq('id', id).single();
     if (!data) return { ok: false, error: '주문을 찾지 못했어요' };
     if (data.slot_kind !== 'AD-PDF' && !data.banner_path) return { ok: false, error: '배너를 먼저 올려 주세요' };
-    if (!data.click_url) return { ok: false, error: '클릭 주소(https)를 먼저 적어 주세요' };
+    // 주소가 없으면 전화번호로 연결(전화 걸기 광고, 2026-10-30)
+    if (!data.click_url && !data.phone) return { ok: false, error: '클릭 주소(https) 또는 전화번호를 먼저 적어 주세요' };
     if (data.pay_status !== 'paid' && Number(data.amount) > 0) return { ok: false, error: '입금 확인 뒤에 게재할 수 있어요' };
   }
   const patch: Record<string, unknown> = { run_status: status };
@@ -318,10 +319,12 @@ export interface ServedAd {
   name: string;
   /** 주문에 적힌 전화 번호(없으면 null) — 견적서 PDF 추천 줄(토탈 인테리어 스폰서)에 쓴다 */
   phone: string | null;
+  /** 클릭 주소 없이 전화로만 연결되는 광고(2026-10-30): true 면 배너를 누르면 전화 걸기 */
+  callOnly?: boolean;
 }
 
 /** 게재 중 후보 목록을 60초 동안 서버 메모리에 담아 DB 부담을 줄인다 */
-const cache = new Map<string, { at: number; list: { id: number; banner_path: string; desktop_path: string | null; name: string; phone: string | null }[] }>();
+const cache = new Map<string, { at: number; list: { id: number; banner_path: string; desktop_path: string | null; name: string; phone: string | null; callOnly: boolean }[] }>();
 const CACHE_MS = 60_000;
 
 /** 방문자 시도·자리에 맞는 게재 중 배너 한 개를 돌려 고른다. 없거나 실패하면 null(화면 변화 없음) */
@@ -336,7 +339,7 @@ export async function serveAd(kind: SlotKind, sido: string, process: string | nu
       if (!data || fromDbSlot(String(data.slot_kind), data.process) !== kind || !data.banner_path) return null;
       const url = bannerUrl(sb, data.banner_path);
       const pc = bannerUrl(sb, (data as AdOrder).banner_desktop_path ?? null);
-      return url ? { id: previewId, imageUrl: url, desktopImageUrl: pc, href: '#', name: '광고 미리보기', phone: (data as AdOrder).phone ?? null } : null;
+      return url ? { id: previewId, imageUrl: url, desktopImageUrl: pc, href: '#', name: '광고 미리보기', phone: (data as AdOrder).phone ?? null, callOnly: !(data as AdOrder).click_url } : null;
     }
     const today = kstToday();
     // DB 조회 값: AD-T 는 AD-P + '토탈 인테리어'
@@ -348,7 +351,7 @@ export async function serveAd(kind: SlotKind, sido: string, process: string | nu
       const query = (withPc: boolean) => {
         let q = sb
           .from('ad_orders')
-          .select(withPc ? 'id,banner_path,banner_desktop_path,phone,advertisers(name)' : 'id,banner_path,phone,advertisers(name)')
+          .select(withPc ? 'id,banner_path,banner_desktop_path,phone,click_url,advertisers(name)' : 'id,banner_path,phone,click_url,advertisers(name)')
           .eq('slot_kind', db.slot_kind)
           // 방문자 시도 주문 + '전국'(ALL) 주문을 함께 후보로(전국은 지역과 상관없이 매칭)
           .in('sido', [sido, SIDO_ALL])
@@ -356,7 +359,8 @@ export async function serveAd(kind: SlotKind, sido: string, process: string | nu
           .lte('start_date', today)
           .gte('end_date', today)
           .not('banner_path', 'is', null)
-          .not('click_url', 'is', null)
+          // 클릭 주소가 없어도 전화번호가 있으면 노출(전화 걸기 광고, 2026-10-30) — 둘 다 없는 주문은 아래에서 거른다
+          .or('click_url.not.is.null,phone.not.is.null')
           .limit(10);
         if (db.slot_kind === 'AD-P') q = q.eq('process', db.process ?? '');
         return q;
@@ -364,11 +368,11 @@ export async function serveAd(kind: SlotKind, sido: string, process: string | nu
       let { data, error } = await query(true);
       if (error) ({ data, error } = await query(false));
       if (error) return null;
-      const list = ((data ?? []) as unknown as Record<string, unknown>[]).map((r) => {
+      const list = ((data ?? []) as unknown as Record<string, unknown>[]).filter((r) => !!r.click_url || !!r.phone).map((r) => {
         const adv = (r as unknown as { advertisers?: { name?: string } | { name?: string }[] }).advertisers;
         const name = Array.isArray(adv) ? adv[0]?.name : adv?.name;
         const pc = r.banner_desktop_path;
-        return { id: Number(r.id), banner_path: String(r.banner_path), desktop_path: typeof pc === 'string' && pc ? pc : null, name: name ?? '광고', phone: typeof r.phone === 'string' && r.phone ? r.phone : null };
+        return { id: Number(r.id), banner_path: String(r.banner_path), desktop_path: typeof pc === 'string' && pc ? pc : null, name: name ?? '광고', phone: typeof r.phone === 'string' && r.phone ? r.phone : null, callOnly: !r.click_url };
       });
       hit = { at: Date.now(), list };
       cache.set(key, hit);
@@ -380,7 +384,7 @@ export async function serveAd(kind: SlotKind, sido: string, process: string | nu
     if (!url) return null;
     // 노출 +1 (실패해도 광고는 보여 준다)
     void sb.rpc('ads_bump', { p_order: pick.id, p_imp: 1, p_click: 0 }).then(() => undefined, () => undefined);
-    return { id: pick.id, imageUrl: url, desktopImageUrl: bannerUrl(sb, pick.desktop_path), href: `/api/ad-click?o=${pick.id}`, name: pick.name, phone: pick.phone };
+    return { id: pick.id, imageUrl: url, desktopImageUrl: bannerUrl(sb, pick.desktop_path), href: `/api/ad-click?o=${pick.id}`, name: pick.name, phone: pick.phone, callOnly: pick.callOnly };
   } catch {
     return null;
   }
@@ -399,5 +403,22 @@ export async function clickAd(id: number, count = true): Promise<string | null> 
     return data.click_url;
   } catch {
     return null;
+  }
+}
+
+/**
+ * 전화 걸기 광고의 클릭 세기(2026-10-30): 게재 중이고 클릭 주소가 없는 주문만 +1.
+ *   주소가 있는 주문은 /api/ad-click 이동 경로에서 세므로 여기선 세지 않는다(이중 집계 방지).
+ */
+export async function countCallClick(id: number): Promise<boolean> {
+  try {
+    const sb = adminOrNull();
+    if (!sb) return false;
+    const { data } = await sb.from('ad_orders').select('click_url,run_status').eq('id', id).single();
+    if (!data || data.click_url || data.run_status !== 'live') return false;
+    await sb.rpc('ads_bump', { p_order: id, p_imp: 0, p_click: 1 });
+    return true;
+  } catch {
+    return false;
   }
 }

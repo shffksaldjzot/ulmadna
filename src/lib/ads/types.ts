@@ -53,6 +53,9 @@ export interface ResolvedAdContent {
   bannerDesktopImageUrl?: string;
   bannerLinkUrl?: string;
   bannerAdvertiserName?: string;
+  // 주소 없이 전화로만 연결되는 배너(2026-10-30): 주문 번호·전화번호(있으면 누를 때 전화 걸기)
+  bannerOrderId?: number;
+  bannerCallPhone?: string;
   // adsense 콘텐츠용 — 광고단위 슬롯ID
   adsenseSlot?: string;
 }

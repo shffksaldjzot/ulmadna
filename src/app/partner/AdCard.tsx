@@ -122,7 +122,7 @@ export default function AdCard({ order: o, today, pay, email, name = '' }: { ord
     }
     const r = await openCheckout(pay, p.data, email, (o as { phone?: string | null }).phone ?? undefined, name); // 이니시스 결제창 필수(전화·이름)
     if (r.kind === 'done') location.reload();
-    else if (r.kind === 'fail') setMsg(r.error);
+    else if (r.kind === 'fail') setMsg(r.pgMessage ? `${r.error} · ${r.pgMessage}` : r.error); // 결제사 거절 사유 그대로
     setBusy(false);
   };
 

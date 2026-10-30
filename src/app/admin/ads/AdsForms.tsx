@@ -122,7 +122,7 @@ export function OrderForm({ advertisers, sidos }: { advertisers: AdvOpt[]; sidos
           <option value="card">카드(준비 중)</option>
         </select>
       </label>
-      <input name="click_url" placeholder="클릭 주소 https://..." className={`${input} sm:col-span-2`} />
+      <input name="click_url" placeholder="클릭 주소 https://... (비우면 전화로 연결)" className={`${input} sm:col-span-2`} />
       {/* 토탈 인테리어 스폰서(AD-T)는 이 전화 번호가 견적서 PDF 추천 줄에 상호와 함께 실린다 */}
       <input name="phone" placeholder={kind === 'AD-T' ? '전화번호(견적서 PDF 에 실림)' : '전화번호(선택)'} className={input} />
       <div className="col-span-full flex flex-wrap items-center gap-3">
@@ -185,7 +185,7 @@ export function OrderActions({
 
   /** 클릭 주소·전화 고치기 */
   async function editLink() {
-    const url = window.prompt('클릭 주소(https://...)', clickUrl ?? '');
+    const url = window.prompt("클릭 주소(https://..., 비우면 전화로 연결)", clickUrl ?? '');
     if (url === null) return;
     const tel = window.prompt('전화번호(비워도 됨)', phone ?? '');
     if (tel === null) return;
