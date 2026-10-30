@@ -285,6 +285,8 @@ export default async function BlogPost({
         {/* 큰 화면에서는 [본문 720px | 목차 236px] 두 칸, 좁은 화면에서는 그냥 세로 한 줄 */}
         <div className="blog-layout">
           <article className="blog-main">
+            {/* 글 맨 위 띠 광고(AD-H) — 제목 위. 휴대폰 320×100 / PC 728×90, 블로그에서는 휴대폰에도 보임(2026-10-30) */}
+            <BlogAdSlot id="AD-H" />
             <header className="blog-post-head">
               {/* 비공개(검토용) 글에만 보이는 표시 — 목록·검색에 안 나오는 상태임을 알려줍니다 */}
               {post.draft && (
@@ -388,6 +390,9 @@ export default async function BlogPost({
 
             {/* 본문 끝 큰 광고 자리(AD-R) — 계산기·서비스 카드 아래, 저장/좋아요 위 */}
             <BlogAdSlot id="AD-R" />
+
+            {/* 글 맨 아래 띠 광고(AD-F) — AD-R 아래. 휴대폰 320×50 / PC 728×90(2026-10-30) */}
+            <BlogAdSlot id="AD-F" />
 
             {ADSENSE_SLOTS.blogInArticle && (
               <div className="blog-ad">

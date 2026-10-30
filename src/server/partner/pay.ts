@@ -86,7 +86,7 @@ export async function prepareNew(advertiserId: number, input: {
   }
 
   const today = kstToday();
-  const c = calcOrder(kind, today, units);
+  const c = calcOrder(kind, today, units, null, sido);
   const free = await slotFree(kind, sido, process, today, c.endDate);
   if (free === null) return { ok: false, error: '지금은 신청을 받을 수 없어요(준비 중)' };
   if (!free) return { ok: false, error: '이 지역은 자리가 다 찼어요' };
@@ -121,7 +121,7 @@ export async function prepareNew(advertiserId: number, input: {
   }
 
   // 금액: 광고비 + 제작비(첫 회 0원) → 부가세 → 합계. 서버가 다시 계산한다(직접 올리기면 제작비 0)
-  const q = quoteNew(kind, units, design ? { firstFree } : null);
+  const q = quoteNew(kind, units, design ? { firstFree } : null, sido);
   const paymentId = newPaymentId(crypto.randomUUID());
   const phone = typeof input.phone === 'string' ? input.phone.replace(/[^\d-]/g, '').slice(0, 20) || null : null;
   const db = toDbSlot(kind, process); // AD-T 는 AD-P + '토탈 인테리어' 로 적는다
@@ -156,7 +156,7 @@ export async function prepareExtend(advertiserId: number, orderId: number): Prom
   if (!free) return { ok: false, error: '다음 30일은 자리가 다 찼어요' };
   const sb = adminOrNull();
   if (!sb) return { ok: false, error: '지금은 연장을 받을 수 없어요(준비 중)' };
-  const q = quote(o.slot_kind, 1);
+  const q = quote(o.slot_kind, 1, o.sido);
   const paymentId = newPaymentId(crypto.randomUUID());
   const db = toDbSlot(o.slot_kind, o.process);
   const { error } = await sb.from('partner_payments').insert({
@@ -213,7 +213,7 @@ export async function finalizePayment(paymentId: string, advertiserId: number | 
   const units = Number(row.units);
   if (row.kind === 'new') {
     const today = kstToday();
-    const c = calcOrder(kind, today, units);
+    const c = calcOrder(kind, today, units, null, String(row.sido));
     // 결제하는 사이 자리가 찼으면 바로 카드 취소
     const free = await slotFree(kind, row.sido, screenProcess, today, c.endDate);
     if (free === false) {

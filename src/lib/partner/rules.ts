@@ -7,7 +7,7 @@
 //   서버 전용 코드가 없어서 브라우저에서도 불러 쓸 수 있다.
 //   가격·자리 정보는 광고 정본(src/lib/ads/pricing.ts)을 그대로 읽는다(복사하지 않음).
 // ─────────────────────────────────────────────────────────────
-import { DESIGN_FEE, SLOT_INFO, VAT_RATE, daysBetween, type SlotKind } from '@/lib/ads/pricing';
+import { DESIGN_FEE, VAT_RATE, slotPrice, daysBetween, type SlotKind } from '@/lib/ads/pricing';
 import { REGION_NAMES, SIDO_CODES } from '@/server/admin/format';
 
 /** 광고주가 직접 살 수 있는 자리(견적서 추천 글자 광고 AD-PDF 는 관리자 상담으로만). AD-T 는 DB 에 AD-P+'토탈 인테리어'로 저장 */
@@ -80,9 +80,9 @@ export function formatBizNo(v: string): string {
 // ── 금액 ────────────────────────────────────
 
 /** 결제 금액: 자리 요금 × 단위 = 공급가, 부가세 10% 반올림, 합계 = 카드로 낼 돈 */
-export function quote(kind: SlotKind, units: number): { units: number; amount: number; vat: number; total: number } {
+export function quote(kind: SlotKind, units: number, sido?: string | null): { units: number; amount: number; vat: number; total: number } {
   const u = Math.max(1, Math.min(24, Math.floor(units) || 1));
-  const amount = SLOT_INFO[kind].price * u;
+  const amount = slotPrice(kind, sido) * u;
   const vat = Math.round(amount * VAT_RATE);
   return { units: u, amount, vat, total: amount + vat };
 }
@@ -98,8 +98,9 @@ export function quoteNew(
   kind: SlotKind,
   units: number,
   design: { firstFree: boolean } | null,
+  sido?: string | null,
 ): { units: number; adAmount: number; designFee: number; amount: number; vat: number; total: number } {
-  const base = quote(kind, units);
+  const base = quote(kind, units, sido);
   const designFee = design ? (design.firstFree ? 0 : DESIGN_FEE) : 0;
   const amount = base.amount + designFee;
   const vat = Math.round(amount * VAT_RATE);

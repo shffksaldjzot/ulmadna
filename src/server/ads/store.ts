@@ -207,7 +207,7 @@ export async function createOrder(input: Record<string, unknown>): Promise<Res> 
   if (kind === 'AD-P' && process === TOTAL_PROCESS) return { ok: false, error: '토탈 인테리어는 AD-T 로 주문해 주세요' };
   const override = input.amount === '' || input.amount == null ? null : Number(input.amount);
   // 금액은 화면 자리 종류(AD-T 면 15만 원) 기준으로 계산
-  const c = calcOrder(kind, input.start_date, Number(input.units), override);
+  const c = calcOrder(kind, input.start_date, Number(input.units), override, sido);
   // DB 에 적을 값: AD-T → AD-P + '토탈 인테리어'
   const db = toDbSlot(kind, process);
 

@@ -1,6 +1,6 @@
 // 광고 가격·기간·그림 검사 시험 (2026년 10월 29일)
 import { describe, expect, it } from 'vitest';
-import { SLOT_INFO, TOTAL_PROCESS, calcOrder, checkBanner, expiringSoon, fromDbSlot, imageSize, isHttpsUrl, isOrderSido, toDbSlot } from '../pricing';
+import { SLOT_INFO, TOTAL_PROCESS, calcOrder, checkBanner, expiringSoon, fromDbSlot, imageSize, isHttpsUrl, isOrderSido, regionTier, slotPrice, toDbSlot } from '../pricing';
 
 /** 가로·세로만 담은 가짜 PNG 머리말 (extra 만큼 뒤에 덧붙여 파일 크기를 키움) */
 function fakePng(w: number, h: number, extra = 0): Uint8Array {
@@ -20,7 +20,7 @@ describe('주문 계산', () => {
     expect(r.vat).toBe(10000);
   });
   it('3단위와 금액 직접 지정(무료 체험)', () => {
-    expect(calcOrder('AD-P', '2026-11-01', 3).amount).toBe(210000);
+    expect(calcOrder('AD-P', '2026-11-01', 3).amount).toBe(150000);
     const free = calcOrder('AD-P', '2026-11-01', 1, 0);
     expect(free.amount).toBe(0);
     expect(free.vat).toBe(0);
@@ -70,9 +70,9 @@ describe('주문 지역 값', () => {
 });
 
 describe('토탈 인테리어 스폰서(AD-T)', () => {
-  it('30일 15만 원·지역당 3곳·320×50', () => {
-    expect(SLOT_INFO['AD-T']).toMatchObject({ price: 150000, capacity: 3, width: 320, height: 50 });
-    expect(calcOrder('AD-T', '2026-11-01', 2).amount).toBe(300000);
+  it('30일 10만 원·지역당 3곳·320×50', () => {
+    expect(SLOT_INFO['AD-T']).toMatchObject({ price: 100000, capacity: 3, width: 320, height: 50 });
+    expect(calcOrder('AD-T', '2026-11-01', 2).amount).toBe(200000);
   });
   it('DB 에는 AD-P + 토탈 인테리어로 적고, 읽을 때 AD-T 로 되돌린다', () => {
     expect(toDbSlot('AD-T', null)).toEqual({ slot_kind: 'AD-P', process: TOTAL_PROCESS });
@@ -85,5 +85,41 @@ describe('토탈 인테리어 스폰서(AD-T)', () => {
     expect(checkBanner('AD-T', fakePng(320, 50))).toBeNull();
     expect(checkBanner('AD-T', fakePng(640, 100))).toBeNull();
     expect(checkBanner('AD-T', fakePng(320, 100))).not.toBeNull();
+  });
+});
+
+describe('지역 가격 단계(2026-10-30)', () => {
+  it('정가 순서: 맨 위 10 · 견적 결과 10 · 올수리 10 · 공정 5 · 맨 아래 3 · 견적서 2', () => {
+    expect(SLOT_INFO['AD-H'].price).toBe(100000);
+    expect(SLOT_INFO['AD-R'].price).toBe(100000);
+    expect(SLOT_INFO['AD-T'].price).toBe(100000);
+    expect(SLOT_INFO['AD-P'].price).toBe(50000);
+    expect(SLOT_INFO['AD-F'].price).toBe(30000);
+    expect(SLOT_INFO['AD-PDF'].price).toBe(20000);
+  });
+  it('단계 판정: 서울·경기 1, 광역시 2, 그 외 3, 전국은 1', () => {
+    expect(regionTier('11')).toBe(1);
+    expect(regionTier('41')).toBe(1);
+    for (const c of ['26', '27', '28', '29', '30', '31', '36']) expect(regionTier(c)).toBe(2);
+    expect(regionTier('51')).toBe(3);
+    expect(regionTier('50')).toBe(3);
+    expect(regionTier('ALL')).toBe(1);
+    expect(regionTier(undefined)).toBe(1);
+  });
+  it('slotPrice: 단계 비율 적용 + 100원 반올림, 견적서 줄은 고정', () => {
+    expect(slotPrice('AD-H', '11')).toBe(100000);
+    expect(slotPrice('AD-H', '26')).toBe(70000);
+    expect(slotPrice('AD-H', '51')).toBe(50000);
+    expect(slotPrice('AD-P', '26')).toBe(35000);
+    expect(slotPrice('AD-F', '26')).toBe(21000);
+    expect(slotPrice('AD-F', '51')).toBe(15000);
+    expect(slotPrice('AD-PDF', '51')).toBe(20000);
+    expect(slotPrice('AD-H', 'ALL')).toBe(100000);
+  });
+  it('calcOrder(sido): 지역 값 × 단위, 직접 지정 금액이 우선', () => {
+    expect(calcOrder('AD-H', '2026-11-01', 2, null, '26').amount).toBe(140000);
+    expect(calcOrder('AD-H', '2026-11-01', 1, null, '51').vat).toBe(5000);
+    expect(calcOrder('AD-H', '2026-11-01', 1, 0, '51').amount).toBe(0);
+    expect(calcOrder('AD-H', '2026-11-01', 1).amount).toBe(100000);
   });
 });

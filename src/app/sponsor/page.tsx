@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import BusinessInfo from '@/components/layout/BusinessInfo';
 import { getBoard, remaining } from '@/server/ads/store';
 import { SIDO_CODES, REGION_NAMES } from '@/server/admin/format';
-import { DESIGN_FEE, SLOT_INFO, type SlotKind } from '@/lib/ads/pricing';
+import { DESIGN_FEE, SLOT_INFO, slotPrice, type SlotKind } from '@/lib/ads/pricing';
 // 광고 자리 표시 캡처(가림막·테두리·꼬리표) — /sponsor/preview 와 같이 쓴다(2026-10-30)
 import { MarkedShot, ShotCaption, PHONE_SHOTS, PC_SHOT } from '@/components/sponsor/MarkedShots';
 
@@ -23,7 +23,12 @@ export const metadata = {
 /** 30일 요금 "n만원" 표기 — 가격 정본(SLOT_INFO)에서 읽어 와 화면과 주문 금액이 어긋나지 않게 한다 */
 const man = (k: SlotKind) => `${(SLOT_INFO[k].price / 10000).toLocaleString('ko-KR')}만원`;
 /** 30일 요금 "100,000원" 표기(가격표용) */
-const won = (k: SlotKind) => `${SLOT_INFO[k].price.toLocaleString('ko-KR')}원`;
+const won = (k: SlotKind, sido?: string) => `${slotPrice(k, sido).toLocaleString('ko-KR')}원`;
+/** 지역 단계별 "n만원" (2026-10-30 지역 단계 가격: 서울·경기 11 / 광역시 부산 26 / 그 외 강원 51) */
+const manAt = (k: SlotKind, sido: string) => `${(slotPrice(k, sido) / 10000).toLocaleString('ko-KR')}만원`;
+/** 카드 가격 줄: "30일 서울·경기 10만원 · 광역시 7만원 · 그 외 5만원 (...)" */
+const tierLine = (k: SlotKind, who: string) =>
+  `30일 서울·경기 ${manAt(k, '11')} · 광역시 ${manAt(k, '26')} · 그 외 ${manAt(k, '51')} (${who}, 부가세 별도)`;
 
 /**
  * 자리 카드 오른쪽 "배너 실물" — 견본 그림(public/sponsor/banner-ad-*.png, 2배 크기)을 실제 크기로 보여 준다 (2026-10-30)
@@ -82,9 +87,9 @@ const AD_SLOTS: { id: SlotKind; name: string; size: string; position: string; ta
     name: '맨 위 띠 배너',
     // 2026-10-29: 실제 규격 — 휴대폰 320×100, PC 728×90
     size: '휴대폰 320×100 · PC 728×90',
-    position: '모든 화면 맨 위',
+    position: '모든 화면 맨 위 (블로그 글 포함)',
     target: '지역권 타겟',
-    price: `30일 ${man('AD-H')} (지역(시·도)당 3개 업체, 부가세 별도)`,
+    price: tierLine('AD-H', '지역당 3개 업체'),
     desc: '사용자가 가장 먼저 보는 위치. IP 기반으로 해당 지역 업체만 노출됩니다.',
   },
   {
@@ -94,7 +99,7 @@ const AD_SLOTS: { id: SlotKind; name: string; size: string; position: string; ta
     size: '320×50',
     position: '홈 공정 목록 · 그 공정 계산기 · 그 공정 블로그 글 (3곳)',
     target: '공정별 전문 업체',
-    price: `30일 ${man('AD-P')} (지역·공정당 3개 업체, 부가세 별도)`,
+    price: tierLine('AD-P', '지역·공정당 3개 업체'),
     desc: '사용자가 해당 공정을 선택할 때 자연스럽게 노출. 창호 옆에 KCC, 욕실 옆에 대림 등.',
   },
   {
@@ -104,7 +109,7 @@ const AD_SLOTS: { id: SlotKind; name: string; size: string; position: string; ta
     size: '320×50',
     position: '홈 견적 결과 카드 아래 · 계산기 결과 페이지 · 인테리어 총론 블로그 글 · 견적서 PDF 하단 (4곳)',
     target: '지역권 종합 인테리어 업체',
-    price: `30일 ${man('AD-T')} (지역(시·도)당 3개 업체, 부가세 별도)`,
+    price: tierLine('AD-T', '지역당 3개 업체'),
     desc: '전체 견적을 확인한 사람에게 올수리·종합 시공 업체로 노출. 견적서 PDF 에는 상호·전화 한 줄이 함께 실립니다.',
   },
   {
@@ -113,7 +118,7 @@ const AD_SLOTS: { id: SlotKind; name: string; size: string; position: string; ta
     size: '300×250',
     position: '견적 결과 영역',
     target: '지역권 타겟',
-    price: `30일 ${man('AD-R')} (지역(시·도)당 3개 업체, 부가세 별도)`,
+    price: tierLine('AD-R', '지역당 3개 업체'),
     desc: '견적 결과를 확인하는 사용자에게 노출. 가장 구매 의향이 높은 시점입니다.',
   },
   {
@@ -121,9 +126,9 @@ const AD_SLOTS: { id: SlotKind; name: string; size: string; position: string; ta
     id: 'AD-F',
     name: '맨 아래 띠 배너',
     size: '휴대폰 320×50 · PC 728×90',
-    position: '모든 페이지 맨 아래',
+    position: '모든 페이지 맨 아래 (블로그 글 포함)',
     target: '지역권 타겟',
-    price: `30일 ${man('AD-F')} (지역(시·도)당 3개 업체, 부가세 별도)`,
+    price: tierLine('AD-F', '지역당 3개 업체'),
     desc: '어느 페이지를 보든 맨 아래에 노출됩니다. 상호·전화 한 줄 배너입니다.',
   },
   {
@@ -368,26 +373,37 @@ export default async function SponsorPage() {
                 <tr>
                   <th className="text-left px-5 py-3">상품</th>
                   <th className="text-left px-5 py-3">게재 범위</th>
-                  <th className="text-right px-5 py-3">30일 요금</th>
+                  <th className="text-right px-4 py-3 whitespace-nowrap">서울·경기</th>
+                  <th className="text-right px-4 py-3 whitespace-nowrap">광역시</th>
+                  <th className="text-right px-4 py-3 whitespace-nowrap">그 외</th>
                 </tr>
               </thead>
               <tbody>
                 {[
                   // 금액은 가격 정본(SLOT_INFO)에서 읽는다(2026-10-29 공정 스폰서 7만원)
-                  ['맨 위 띠 배너', 'AD-H', '지역(시·도)당 3개 업체', won('AD-H')],
-                  ['견적 결과 옆 큰 배너', 'AD-R', '지역(시·도)당 3개 업체', won('AD-R')],
-                  ['공정 전문 배너', 'AD-P', '지역 · 공정당 3개 업체 · 노출 3곳', won('AD-P')],
-                  ['올수리 업체 배너', 'AD-T', '지역(시·도)당 3개 업체 · 노출 4곳(견적서 포함)', won('AD-T')],
+                  ['맨 위 띠 배너', 'AD-H', '지역(시·도)당 3개 업체 · 블로그 글 포함', 'AD-H'],
+                  ['견적 결과 옆 큰 배너', 'AD-R', '지역(시·도)당 3개 업체', 'AD-R'],
+                  ['공정 전문 배너', 'AD-P', '지역 · 공정당 3개 업체 · 노출 3곳', 'AD-P'],
+                  ['올수리 업체 배너', 'AD-T', '지역(시·도)당 3개 업체 · 노출 4곳(견적서 포함)', 'AD-T'],
                   // 2026-10-30: 푸터 자리도 카드·캡처에 안내하므로 가격표에 같이(정본 2만원)
-                  ['맨 아래 띠 배너', 'AD-F', '지역(시·도)당 3개 업체 · 모든 페이지 맨 아래', won('AD-F')],
-                  ['견적서 추천 업체 줄', 'AD-PDF', '견적서 안 공정마다 여러 업체', won('AD-PDF')],
+                  ['맨 아래 띠 배너', 'AD-F', '지역(시·도)당 3개 업체 · 블로그 글 포함 모든 페이지 맨 아래', 'AD-F'],
+                  ['견적서 추천 업체 줄', 'AD-PDF', '견적서 안 공정마다 여러 업체', 'AD-PDF'],
                   // 2026-10-29: 배너 제작 대행(기간 요금이 아니라 1회 요금)
-                  ['배너 제작 대행', '-', '시안 1개 + 수정 2회 · 3영업일 · 첫 1회 무료', `${DESIGN_FEE.toLocaleString('ko-KR')}원(1회)`],
-                ].map(([name, , target, price], i) => (
+                  ['배너 제작 대행', '-', '시안 1개 + 수정 2회 · 3영업일 · 첫 1회 무료', 'DESIGN'],
+                ].map(([name, , target, code], i) => (
                   <tr key={i} className="border-t border-gray-50">
                     <td className="px-5 py-3 font-medium text-gray-700">{name}</td>
                     <td className="px-5 py-3 text-gray-400">{target}</td>
-                    <td className="px-5 py-3 text-right font-semibold text-gold whitespace-nowrap">{price}</td>
+                    {code === 'DESIGN' ? (
+                      <td colSpan={3} className="px-4 py-3 text-right font-semibold text-gold whitespace-nowrap">{DESIGN_FEE.toLocaleString('ko-KR')}원(1회)</td>
+                    ) : code === 'AD-PDF' ? (
+                      <td colSpan={3} className="px-4 py-3 text-right font-semibold text-gold whitespace-nowrap">{won('AD-PDF')} (전 지역 같음)</td>
+                    ) : (
+                      // 지역 단계: 서울·경기(11) / 광역시(26) / 그 외(51) 대표 값
+                      [['11'], ['26'], ['51']].map(([sd]) => (
+                        <td key={sd} className="px-4 py-3 text-right font-semibold text-gold whitespace-nowrap">{won(code as SlotKind, sd)}</td>
+                      ))
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -399,7 +415,7 @@ export default async function SponsorPage() {
             <li>서비스 제공기간: 결제 뒤 배너 검토(보통 1영업일)를 거쳐 게재가 시작되며, 신청한 일수 동안 노출됩니다.</li>
             <li>취소·환불: 게재 시작 전 취소는 전액 환불, 배너 반려 시 전액 자동 환불, 게재 뒤에는 남은 일수만큼 환불합니다. 자세한 내용은 <Link href="/refund" className="underline">환불 규정</Link>.</li>
             <li>배너 제작 대행 제작비는 제작 착수 뒤에는 환불되지 않습니다.</li>
-            <li>한 자리를 혼자 쓰고 싶다면 3개 구좌를 모두 구매하시면 됩니다(예: 헤더 3구좌 = 300,000원/30일). 트래픽 성장에 따라 단가가 조정될 수 있습니다.</li>
+            <li>한 자리를 혼자 쓰고 싶다면 3개 구좌를 모두 구매하시면 됩니다(예: 맨 위 띠 3구좌 = 서울·경기 300,000원/30일). 트래픽 성장에 따라 단가가 조정될 수 있습니다.</li>
           </ul>
         </div>
       </section>

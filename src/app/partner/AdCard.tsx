@@ -28,7 +28,7 @@ export default function AdCard({ order: o, today, pay, email, name = '' }: { ord
   const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const manage = canManage(b);
-  const ext = quote(o.slot_kind, 1);
+  const ext = quote(o.slot_kind, 1, o.sido);
 
   // 30일 연장
   const extend = async () => {

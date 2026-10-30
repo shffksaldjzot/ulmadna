@@ -9,7 +9,7 @@
 //   배너는 고르자마자 같은 규격 검사(checkBanner)로 바로 알려 준다.
 // ─────────────────────────────────────────────────────────────
 import { useEffect, useState } from 'react';
-import { AD_PROCESS_GROUPS, DESIGN_FEE, SLOT_INFO, checkBanner, isHttpsUrl, type SlotKind } from '@/lib/ads/pricing';
+import { AD_PROCESS_GROUPS, DESIGN_FEE, SLOT_INFO, checkBanner, slotPrice, isHttpsUrl, type SlotKind } from '@/lib/ads/pricing';
 import { BRIEF_MAX, PARTNER_REGIONS, PARTNER_SLOTS, PARTNER_UNITS, briefProblem, cleanBrief, imageKind, quoteNew, regionName, won } from '@/lib/partner/rules';
 import { openCheckout, preparePay, type PayCfg } from '@/lib/partner/payClient';
 import { inputCls, primaryBtn } from '../_ui';
@@ -133,7 +133,7 @@ export default function NewWizard({
   };
 
   // 화면 표시용 금액(실제 결제 금액은 서버가 첫 회 여부를 다시 보고 계산)
-  const q = kind ? quoteNew(kind, units, design ? { firstFree: designFree } : null) : null;
+  const q = kind ? quoteNew(kind, units, design ? { firstFree: designFree } : null, sido) : null;
   const info = kind ? SLOT_INFO[kind] : null;
 
   return (
@@ -157,7 +157,8 @@ export default function NewWizard({
             <button key={k} type="button" className={pickCls(kind === k)} onClick={() => { setKind(k); setFile(null); setFileErr(''); setPreview(''); }}>
               <span className="flex items-center justify-between">
                 <span className="text-[16px] font-semibold text-ink">{SLOT_INFO[k].name}</span>
-                <span className="text-[14px] text-ink tabular-nums">{won(SLOT_INFO[k].price)}<span className="text-ink-2">/30일</span></span>
+                <span className="text-[14px] text-ink tabular-nums">{/* 지역을 고르기 전엔 서울·경기 값 "부터", 고른 뒤엔 그 지역 값(2026-10-30 지역 단계 가격) */}
+                  {k === 'AD-PDF' || sido ? won(slotPrice(k, sido)) : `서울·경기 ${won(slotPrice(k, '11'))}부터`}<span className="text-ink-2">/30일</span></span>
               </span>
               <span className="mt-0.5 block text-[13px] text-ink-2">{WHERE[k]} · {SLOT_INFO[k].width}×{SLOT_INFO[k].height}</span>
             </button>
