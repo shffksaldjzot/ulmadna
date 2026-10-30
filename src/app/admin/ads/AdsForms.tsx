@@ -127,7 +127,9 @@ export function OrderForm({ advertisers, sidos }: { advertisers: AdvOpt[]; sidos
       <input name="phone" placeholder={kind === 'AD-T' ? '전화번호(견적서 PDF 에 실림)' : '전화번호(선택)'} className={input} />
       <div className="col-span-full flex flex-wrap items-center gap-3">
         <span className="text-sm text-gray-600 tabular-nums">
-          {start} ~ {calc.endDate} · 공급가 {won(calc.amount)} + 부가세 {won(calc.vat)} = <b>{won(calc.amount + calc.vat)}</b>
+          {start} ~ {calc.endDate} ·{' '}
+          {calc.discountPct > 0 && <>정가 <s>{won(calc.listAmount)}</s> → {calc.discountPct}% 할인 · </>}
+          공급가 {won(calc.amount)} + 부가세 {won(calc.vat)} = <b>{won(calc.amount + calc.vat)}</b>
         </span>
         <button className={btnMain} disabled={busy}>주문 만들기</button>
         {msg && <span className="text-xs text-gray-500">{msg}</span>}

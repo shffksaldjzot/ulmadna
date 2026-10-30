@@ -3,6 +3,9 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import BusinessInfo from '@/components/layout/BusinessInfo';
 import { getBoard, remaining } from '@/server/ads/store';
+import { firstFreeInfo } from '@/server/partner/store';
+import { FIRST_FREE_ADVERTISERS } from '@/lib/ads/config';
+import { LONG_DISCOUNT } from '@/lib/ads/pricing';
 import { SIDO_CODES, REGION_NAMES } from '@/server/admin/format';
 import { DESIGN_FEE, SLOT_INFO, slotPrice, type SlotKind } from '@/lib/ads/pricing';
 // 광고 자리 표시 캡처(가림막·테두리·꼬리표) — /sponsor/preview 와 같이 쓴다(2026-10-30)
@@ -70,15 +73,6 @@ function SlotBanners({ kind }: { kind: SlotKind }) {
     </div>
   );
 }
-
-/** 배너 예시(견본 그림, 2배 크기 PNG 를 1배 크기로 보여 줌) */
-const BANNER_SAMPLES: { src: string; kind: SlotKind }[] = [
-  { src: '/sponsor/banner-ad-h.png', kind: 'AD-H' },
-  { src: '/sponsor/banner-ad-r.png', kind: 'AD-R' },
-  { src: '/sponsor/banner-ad-p.png', kind: 'AD-P' },
-  { src: '/sponsor/banner-ad-t.png', kind: 'AD-T' },
-  { src: '/sponsor/banner-ad-f.png', kind: 'AD-F' },
-];
 
 /** 자리 카드 목록 — 배너 그림이 있는 자리는 실물(SlotBanners), 견적서 글자 광고는 mockup(글자 견본) */
 const AD_SLOTS: { id: SlotKind; name: string; size: string; position: string; target: string; price: string; desc: string; mockup?: ReactNode }[] = [
@@ -163,6 +157,8 @@ const STATS = [
 export default async function SponsorPage() {
   // 실제 광고 표에서 오늘 기준 사용 수를 읽는다(읽기 실패·표 없음이면 빈 판 = 3/3)
   const board = await getBoard();
+  // 오픈 기념 첫 광고주 무료 — 남은 곳은 서버가 센다(읽기 실패·0이면 줄 숨김)
+  const promo = await firstFreeInfo(null);
   return (
     <div className="min-h-screen bg-white">
       {/* 헤더 */}
@@ -326,24 +322,6 @@ export default async function SponsorPage() {
         </div>
       </section>
 
-      {/* 배너 예시 — 견본 그림을 실제 크기(1배)로 보여 준다 (2026-10-29) */}
-      <section id="samples" className="py-16 px-4">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl font-bold text-brown text-center mb-2">배너 예시</h2>
-          <p className="text-sm text-gray-400 text-center mb-8">견본(가상 업체) · 이 정도 수준으로 만들어 드려요</p>
-          <div className="flex flex-wrap justify-center gap-x-8 gap-y-6">
-            {BANNER_SAMPLES.map((b) => (
-              <figure key={b.src} className="flex flex-col items-center">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={b.src} alt={`${SLOT_INFO[b.kind].name} 배너 예시`} width={SLOT_INFO[b.kind].width} height={SLOT_INFO[b.kind].height} loading="lazy"
-                  style={{ width: SLOT_INFO[b.kind].width, height: SLOT_INFO[b.kind].height }} className="max-w-full rounded-md border border-gray-100" />
-                <figcaption className="mt-2 text-xs text-gray-500">{SLOT_INFO[b.kind].name} · {SLOT_INFO[b.kind].width}×{SLOT_INFO[b.kind].height}</figcaption>
-              </figure>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* 배너 제작 대행 상품 (2026-10-29 형아 결정: 5만원·부가세 별도·광고주당 첫 1회 무료) */}
       <section id="design" className="pb-16 px-4">
         <div className="max-w-md mx-auto bg-cream rounded-2xl p-6 lg:p-8">
@@ -409,6 +387,13 @@ export default async function SponsorPage() {
               </tbody>
             </table>
           </div>
+          {/* 장기 할인(2026-10-30): 정본 LONG_DISCOUNT 에서 문구를 만든다 → "90일 10% · 180일 20% 할인" */}
+          <p className="text-sm font-semibold text-brown text-center mt-4" data-testid="long-discount">
+            {[...LONG_DISCOUNT].reverse().map((d) => `${d.minUnits * 30}일 ${d.pct}%`).join(' · ')} 할인
+          </p>
+          {promo && promo.left > 0 && (
+            <p className="text-sm font-semibold text-gold text-center mt-1" data-testid="promo-line">오픈 기념 · 첫 광고주 {FIRST_FREE_ADVERTISERS}곳 첫 달 무료 (남은 {promo.left}곳)</p>
+          )}
           <ul className="text-xs text-gray-500 text-center mt-4 space-y-1">
             {/* 2026-10-29: PG 심사 필수 항목(서비스 제공기간·취소·환불 규정을 상품 페이지에 기재) — 카드 결제로 통일 */}
             <li>모든 금액은 부가세 별도이며, 결제는 광고주 화면에서 카드로 합니다. 기간은 30일 또는 90일(30일 단위 일시불)입니다.</li>

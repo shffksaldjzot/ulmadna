@@ -9,6 +9,7 @@
 //      - 새 광고면 ad_orders 에 주문을 만든다(카드·결제 완료·배너 검토 중)
 //      - 연장이면 그 주문의 마지막 날을 30일 × 단위만큼 늘린다
 //      결제 확인 API 와 웹훅이 동시에 와도 한 번만 처리되게, 'ready' → 'paid' 바꾸기에 성공한 쪽만 진행한다.
+//   (오픈 기념 첫 광고주 무료로 합계가 0원이면 2)·3)을 건너뛰고 준비 단계에서 바로 주문(검토 상태)을 만든다)
 //   4) 환불(refund): 관리자가 반려하면 포트원 결제 취소 → 기록 'refunded' → 주문 중지.
 // ─────────────────────────────────────────────────────────────
 import 'server-only';
@@ -17,12 +18,14 @@ import { adminOrNull } from '@/lib/ask/server';
 import { AD_PROCESS_GROUPS, SLOT_INFO, addDaysStr, calcOrder, checkBanner, fromDbSlot, normalizeClickUrl, kstToday, toDbSlot, UNIT_DAYS, type SlotKind } from '@/lib/ads/pricing';
 import { BRIEF_MAX, PARTNER_SLOTS, PARTNER_UNITS, badgeOf, briefProblem, canManage, cleanBrief, cleanPhone, imageKind, isPartnerRegion, newPaymentId, quote, quoteNew, regionName } from '@/lib/partner/rules';
 import { cancelPayment, fetchPayment, payConfig } from './portone';
-import { BUCKET, designFirstFree, myOrder } from './store';
+import { BUCKET, designFirstFree, firstFreeInfo, myOrder } from './store';
 
 type Res<T> = { ok: true; data: T } | { ok: false; error: string };
 
 /** 결제창을 여는 데 필요한 값 */
 export interface Prepared {
+  /** true 면 결제창 없이 주문이 바로 만들어졌다(오픈 기념 첫 달 무료로 합계 0원, 2026-10-30) */
+  free?: boolean;
   paymentId: string;
   orderName: string;
   total: number;
@@ -59,7 +62,7 @@ export async function prepareNew(advertiserId: number, input: {
   /** 배너 제작 대행(2026-10-29): 있으면 그림 대신 업체 소개·강조 문구·로고(선택)를 받는다 */
   design?: { intro: unknown; headline: unknown; logo: { bytes: Uint8Array; type: string } | null } | null;
 }, partnerName = ''): Promise<Res<Prepared>> {
-  if (!payConfig().ready) return { ok: false, error: '결제 준비 중이에요' };
+  const payReady = payConfig().ready; // 합계 0원(첫 달 무료)이면 결제 설정 없이도 신청된다 — 아래 q.total 판정 뒤에 확인
   const kind = input.kind as SlotKind;
   if (!PARTNER_SLOTS.includes(kind)) return { ok: false, error: '자리를 골라 주세요' };
   if (!isPartnerRegion(input.sido)) return { ok: false, error: '지역을 골라 주세요' };
@@ -123,10 +126,28 @@ export async function prepareNew(advertiserId: number, input: {
   }
 
   // 금액: 광고비 + 제작비(첫 회 0원) → 부가세 → 합계. 서버가 다시 계산한다(직접 올리기면 제작비 0)
-  const q = quoteNew(kind, units, design ? { firstFree } : null, sido);
+  // 오픈 기념 첫 광고주 무료 — 이것도 서버가 DB 로 판정(남은 곳 있음 + 이 광고주의 첫 주문)
+  const promo = await firstFreeInfo(advertiserId);
+  if (promo === null) return { ok: false, error: '지금은 신청을 받을 수 없어요(준비 중)' };
+  const q = quoteNew(kind, units, design ? { firstFree } : null, sido, promo.eligible);
+  if (q.total > 0 && !payReady) return { ok: false, error: '결제 준비 중이에요' };
   const paymentId = newPaymentId(crypto.randomUUID());
   const phone = cleanPhone(input.phone) || null;
   const db = toDbSlot(kind, process); // AD-T 는 AD-P + '토탈 인테리어' 로 적는다
+
+  // 합계 0원: 결제창 없이 바로 주문 생성(검토 상태). 결제한 광고주로 세어져 무료 3곳 한도에 반영된다
+  if (q.total === 0) {
+    const nowIso = new Date().toISOString();
+    const { error: oe } = await sb.from('ad_orders').insert({
+      advertiser_id: advertiserId, slot_kind: db.slot_kind, sido, process: db.process,
+      start_date: today, end_date: c.endDate, units: q.units, amount: 0, vat: 0,
+      pay_method: 'card', pay_status: 'paid', paid_at: nowIso, pay_ref: `promo-${paymentId}`, run_status: 'review',
+      banner_path: path, click_url: clickUrl, phone, note: '오픈 기념 첫 달 무료',
+      ...(design ? { design_requested: true, design_fee: 0, design_brief: { name: partnerName.slice(0, 80), phone, intro, headline, logo_path: logoPath } } : {}),
+    });
+    if (oe) return { ok: false, error: '지금은 신청을 받을 수 없어요(준비 중)' };
+    return { ok: true, data: { free: true, paymentId, orderName: orderNameOf(kind, sido, process, units, false, !!design), total: 0 } };
+  }
   const { error } = await sb.from('partner_payments').insert({
     payment_id: paymentId, advertiser_id: advertiserId, kind: 'new', slot_kind: db.slot_kind, sido, process: db.process,
     units: q.units, amount: q.amount, vat: q.vat, total: q.total, banner_path: path, click_url: clickUrl, phone,

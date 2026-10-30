@@ -15,6 +15,7 @@ import { adminOrNull } from '@/lib/ask/server';
 import { bannerUrl } from '@/server/ads/store';
 import { lastDays } from '@/lib/partner/rules';
 import { fromDbSlot, type SlotKind } from '@/lib/ads/pricing';
+import { firstFreeLeft, isFirstFreeEligible } from '@/lib/ads/promo';
 import { hashToken, isTokenShape } from './crypto';
 
 /** 배너 보관함 이름(관리자 업로드와 같은 곳) */
@@ -82,6 +83,8 @@ export async function createAccount(input: {
   region: string;
   email: string;
   passwordHash: string;
+  /** 가입 때 국세청 상태조회 결과(2026-10-30). 'active' 확인됨 / 'unchecked' 국세청 장애로 통과 */
+  bizStatus?: 'active' | 'unchecked';
 }): Promise<Res<{ advertiserId: number }>> {
   const sb = adminOrNull();
   if (!sb) return { ok: false, error: '지금은 가입을 받을 수 없어요(준비 중)', code: 'down' };
@@ -97,13 +100,18 @@ export async function createAccount(input: {
     .single();
   if (e1 || !adv) return { ok: false, error: '가입을 저장하지 못했어요', code: 'down' };
   const advertiserId = Number(adv.id);
-  const { error: e2 } = await sb.from('partner_accounts').insert({
+  const row = {
     advertiser_id: advertiserId,
     email: input.email,
     password_hash: input.passwordHash,
     biz_no: input.bizNo,
     region: input.region,
-  });
+  };
+  let { error: e2 } = await sb.from('partner_accounts').insert({ ...row, biz_status: input.bizStatus ?? 'unchecked' });
+  // biz_status 칸이 아직 없으면(20261030_partner_biz_status.sql 실행 전) 그 칸 없이 다시 넣는다
+  if (e2 && ['42703', 'PGRST204'].includes((e2 as { code?: string }).code ?? '')) {
+    ({ error: e2 } = await sb.from('partner_accounts').insert(row));
+  }
   if (e2) {
     await sb.from('advertisers').delete().eq('id', advertiserId); // 반쪽 가입을 남기지 않는다
     const dupErr = (e2 as { code?: string }).code === '23505';
@@ -321,4 +329,33 @@ export async function requestTaxInvoice(advertiserId: number, paymentId: string)
   if (error) return { ok: false, error: '저장하지 못했어요' };
   if (!data?.length) return { ok: false, error: '이미 요청했거나 결제 완료 건이 아니에요' };
   return { ok: true, data: undefined };
+}
+
+// ── 오픈 기념 첫 광고주 무료(2026-10-30) ───────────────────
+
+/** 결제한 적 있는 광고주 수(ad_orders 에 pay_status='paid' 주문이 있는 광고주). 읽기 실패면 null */
+export async function paidAdvertiserCount(): Promise<number | null> {
+  const sb = adminOrNull();
+  if (!sb) return null;
+  const { data, error } = await sb.from('ad_orders').select('advertiser_id').eq('pay_status', 'paid').limit(5000);
+  if (error) return null;
+  return new Set((data ?? []).map((r) => Number(r.advertiser_id))).size;
+}
+
+/**
+ * 무료 프로모션 상태: left=남은 곳(0이면 끝·꺼짐), eligible=이 광고주가 지금 첫 달 무료 대상인가.
+ *   advertiserId 가 없으면(공개 화면) eligible 은 false. 읽기 실패면 null(결제 준비에서 막음, 공개 화면은 줄 숨김).
+ */
+export async function firstFreeInfo(advertiserId: number | null): Promise<{ left: number; eligible: boolean } | null> {
+  const paid = await paidAdvertiserCount();
+  if (paid === null) return null;
+  let mine = 1; // 모르면 "이미 주문 있음"으로 둬 무료로 새지 않게
+  if (advertiserId != null) {
+    const sb = adminOrNull();
+    if (!sb) return null;
+    const { count, error } = await sb.from('ad_orders').select('id', { count: 'exact', head: true }).eq('advertiser_id', advertiserId);
+    if (error) return null;
+    mine = count ?? 0;
+  }
+  return { left: firstFreeLeft(paid), eligible: advertiserId != null && isFirstFreeEligible(paid, mine) };
 }

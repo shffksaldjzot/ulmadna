@@ -3,6 +3,7 @@
 // /partner/signup — 광고주 가입 (2026년 10월 31일)
 //   칸: 상호 · 사업자번호(형식 검사) · 주로 시공 지역 · 이메일 · 비밀번호 · 약관 동의
 //   2026-10-30: 막힌 이유를 칸 아래에 표시(검사 실패 · 서버 오류도 해당 칸 밑), 단추가 죽었을 땐 빠진 칸 한 줄
+//   2026-10-30: 사업자번호 옆 [확인] 단추(국세청 상태조회). 계속사업자·국세청 장애일 때만 가입 단추가 켜진다
 //   보내기: POST /api/partner/signup → 성공하면 바로 로그인된 상태로 /partner/new(새 광고 신청)
 // ─────────────────────────────────────────────────────────────
 import Link from 'next/link';
@@ -23,7 +24,31 @@ export default function PartnerSignup() {
   const [err, setErr] = useState(''); // 칸에 못 붙이는 오류(연결 끊김 등)
   const [fieldErr, setFieldErr] = useState<{ key: string; msg: string } | null>(null); // 서버가 돌려준 칸별 오류
   const [busy, setBusy] = useState(false);
-  const set = (k: keyof typeof f, v: string | boolean) => setF((p) => ({ ...p, [k]: v }));
+  // 국세청 [확인] 결과: none=아직 / busy=조회 중 / active=계속사업자 / closed=휴업·폐업 / unknown=미등록 / down=국세청 장애(가입 허용)
+  const [biz, setBiz] = useState<'none' | 'busy' | 'active' | 'closed' | 'unknown' | 'down'>('none');
+  const set = (k: keyof typeof f, v: string | boolean) => {
+    if (k === 'bizNo') setBiz('none'); // 번호를 고치면 확인 결과는 무효
+    setF((p) => ({ ...p, [k]: v }));
+  };
+
+  /** [확인] 단추: 서버를 거쳐 국세청 상태조회 */
+  const checkBiz = async () => {
+    if (!isBizNo(f.bizNo) || biz === 'busy') return;
+    setBiz('busy');
+    try {
+      const r = await fetch('/api/partner/biz-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bizNo: f.bizNo }),
+      });
+      const d = (await r.json().catch(() => ({}))) as { ok?: boolean; kind?: string };
+      if (r.ok && d.ok && (d.kind === 'active' || d.kind === 'closed' || d.kind === 'unknown')) setBiz(d.kind);
+      else setBiz('down'); // 429·장애·열쇠 없음 모두 "그대로 가입 가능"
+    } catch {
+      setBiz('down');
+    }
+  };
+  const bizPass = biz === 'active' || biz === 'down'; // 가입 단추를 켜는 결과
 
   // 칸별 문제(다 채운 칸만 검사해 한 줄로)
   // 사업자번호 칸 밑 안내(2026-10-30 실제 광고주 시험: 9자리를 넣고 "빠진 것"만 떠서 헷갈림)
@@ -33,7 +58,7 @@ export default function PartnerSignup() {
   const bizBad = bizMsg !== '';
   const emailBad = f.email.length > 3 && !isEmail(f.email.trim().toLowerCase());
   const pwBad = f.password ? passwordProblem(f.password) : null;
-  const ready = f.name.trim() && isBizNo(f.bizNo) && f.region && isEmail(f.email.trim().toLowerCase()) && !passwordProblem(f.password) && f.agree;
+  const ready = f.name.trim() && isBizNo(f.bizNo) && bizPass && f.region && isEmail(f.email.trim().toLowerCase()) && !passwordProblem(f.password) && f.agree;
 
   // 서버 오류 문구를 어느 칸 문제인지로 분류
   const fieldOf = (m: string): string => (m.includes('사업자') ? 'bizNo' : m.includes('상호') ? 'name' : m.includes('지역') ? 'region' : m.includes('이메일') ? 'email' : m.includes('비밀번호') ? 'password' : m.includes('약관') ? 'agree' : '');
@@ -43,6 +68,7 @@ export default function PartnerSignup() {
   const lack = [
     !f.name.trim() && '상호',
     !isBizNo(f.bizNo) && '사업자번호',
+    isBizNo(f.bizNo) && !bizPass && '사업자번호 확인',
     !f.region && '지역',
     !isEmail(f.email.trim().toLowerCase()) && '이메일',
     (!f.password || passwordProblem(f.password)) && '비밀번호',
@@ -86,8 +112,17 @@ export default function PartnerSignup() {
         </label>
         <label className="block">
           <span className="mb-1.5 block text-[14px] font-medium text-ink">사업자번호</span>
-          <input className={inputCls} value={f.bizNo} inputMode="numeric" onChange={(e) => set('bizNo', dashBiz(e.target.value))} placeholder="000-00-00000" />
+          <div className="flex gap-2">
+            <input className={`${inputCls} min-w-0 flex-1`} value={f.bizNo} inputMode="numeric" onChange={(e) => set('bizNo', dashBiz(e.target.value))} placeholder="000-00-00000" />
+            <button type="button" onClick={checkBiz} disabled={!isBizNo(f.bizNo) || biz === 'busy'} data-testid="biz-check" className="h-12 shrink-0 rounded-xl border border-line bg-surface px-4 text-[14px] font-semibold text-ink disabled:opacity-40">
+              {biz === 'busy' ? '확인 중…' : '확인'}
+            </button>
+          </div>
           {bizBad && <span className="mt-1 block text-[13px] text-danger">{bizMsg}</span>}
+          {biz === 'active' && <span className="mt-1 block text-[13px] text-[#2f7a3d]" data-testid="biz-result">계속사업자 · 확인됨</span>}
+          {biz === 'closed' && <span className="mt-1 block text-[13px] text-danger" data-testid="biz-result">휴업·폐업 사업자예요</span>}
+          {biz === 'unknown' && <span className="mt-1 block text-[13px] text-danger" data-testid="biz-result">등록되지 않은 번호예요</span>}
+          {biz === 'down' && <span className="mt-1 block text-[13px] text-ink-2" data-testid="biz-result">지금은 국세청 확인이 안 돼요. 그대로 가입할 수 있어요</span>}
           {fe('bizNo')}
         </label>
         <label className="block">

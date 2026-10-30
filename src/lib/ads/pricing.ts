@@ -150,21 +150,55 @@ export function isDay(s: unknown): s is string {
 }
 
 /**
+ * 장기 할인(2026-10-30 형아 결정) — 30일 단위 개수가 3 이상(90일)이면 공급가 10%, 6 이상(180일)이면 20% 할인.
+ *   화면(공개 /sponsor·광고주 마법사·관리자)과 서버가 이 한 곳을 읽는다. 큰 구간부터 차례로 맞춰 본다.
+ */
+export const LONG_DISCOUNT: { minUnits: number; pct: number }[] = [
+  { minUnits: 6, pct: 20 },
+  { minUnits: 3, pct: 10 },
+];
+
+/** 단위 개수 → 장기 할인율(%). 해당 없으면 0 */
+export function longDiscountPct(units: number): number {
+  const u = Math.floor(units) || 0;
+  return LONG_DISCOUNT.find((d) => u >= d.minUnits)?.pct ?? 0;
+}
+
+/**
+ * 금액 계산 한 곳(순수 함수) — 정가 → 장기 할인 → (선택) 첫 달 무료.
+ *   listAmount  = 자리 30일 요금 × 단위(할인 전)
+ *   discountPct = 장기 할인율, amountAfterLong = 할인 뒤 금액
+ *   freeAmount  = 첫 달 무료로 빠진 금액(첫 30일 단위 1개분 = 할인 뒤 금액 ÷ 단위, 1단위면 전액)
+ *   amount      = 최종 공급가(부가세 별도)
+ */
+export function priceOf(kind: SlotKind, units: number, sido?: string | null, firstFree = false) {
+  const u = Math.max(1, Math.min(24, Math.floor(units) || 1));
+  const listAmount = slotPrice(kind, sido) * u;
+  const discountPct = longDiscountPct(u);
+  const amountAfterLong = Math.round((listAmount * (100 - discountPct)) / 100);
+  const freeAmount = firstFree ? Math.round(amountAfterLong / u) : 0;
+  return { units: u, listAmount, discountPct, amountAfterLong, freeAmount, amount: amountAfterLong - freeAmount };
+}
+
+/**
  * 주문 계산: 시작일·단위 수 → 마지막 날(포함)·공급가·부가세.
  *   - 마지막 날 = 시작일 + 30*단위 - 1 (예: 11-01 시작 1단위 → 11-30)
- *   - 금액은 override 가 있으면 그 값(무료 체험 0원 등), 없으면 지역 단계 자리 요금(slotPrice) × 단위
+ *   - 금액은 override 가 있으면 그 값(무료 체험 0원 등, 할인 없음), 없으면 priceOf(정가 → 장기 할인 → 첫 달 무료)
  *   - 부가세 = 공급가의 10% 반올림
+ *   - listAmount(할인 전)·discountPct(할인율)·freeAmount(첫 달 무료로 빠진 돈)를 같이 돌려준다
  */
-export function calcOrder(kind: SlotKind, start: string, units: number, amountOverride?: number | null, sido?: string | null) {
-  const u = Math.max(1, Math.min(24, Math.floor(units) || 1));
-  const amount = amountOverride != null && Number.isFinite(amountOverride) && amountOverride >= 0
-    ? Math.round(amountOverride)
-    : slotPrice(kind, sido) * u;
+export function calcOrder(kind: SlotKind, start: string, units: number, amountOverride?: number | null, sido?: string | null, firstFree = false) {
+  const p = priceOf(kind, units, sido, firstFree);
+  const manual = amountOverride != null && Number.isFinite(amountOverride) && amountOverride >= 0;
+  const amount = manual ? Math.round(amountOverride as number) : p.amount;
   return {
-    units: u,
-    endDate: addDaysStr(start, u * UNIT_DAYS - 1),
+    units: p.units,
+    endDate: addDaysStr(start, p.units * UNIT_DAYS - 1),
     amount,
     vat: Math.round(amount * VAT_RATE),
+    listAmount: manual ? amount : p.listAmount,
+    discountPct: manual ? 0 : p.discountPct,
+    freeAmount: manual ? 0 : p.freeAmount,
   };
 }
 

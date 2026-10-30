@@ -19,6 +19,8 @@ export interface PayCfg {
 
 /** 서버 준비 결과 */
 export interface PreparedPay {
+  /** true 면 합계 0원(첫 달 무료)이라 서버가 주문을 바로 만들었다 — 결제창 없음 */
+  free?: boolean;
   paymentId: string;
   orderName: string;
   total: number;
