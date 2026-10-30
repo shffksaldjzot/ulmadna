@@ -13,6 +13,7 @@ import { SIDO_CODES, REGION_NAMES } from '@/server/admin/format';
 import { SLOT_INFO, SIDO_ALL, expiringSoon, kstToday, daysLeft, type SlotKind } from '@/lib/ads/pricing';
 import { getBoard, listAdvertisers, listOrders, remaining } from '@/server/ads/store';
 import { Card, PageHead, fmt } from '../_ui';
+import { styleLabel } from '@/lib/ads/bannerStyles';
 import { AdvertiserForm, OrderActions, OrderForm } from './AdsForms';
 // 도배 결과 화면 예시 링크 만들기용(34평 실크 기본 조건)
 import { DEFAULT_CALC_FORM, encodeWallpaperForm } from '@/lib/v1/wallpaperQuery';
@@ -168,6 +169,7 @@ export default async function AdsPage() {
                               <div><dt className="inline text-gray-400">소개 </dt><dd className="inline">{brief?.intro || '-'}</dd></div>
                               <div><dt className="inline text-gray-400">강조 </dt><dd className="inline">{brief?.headline || '-'}</dd></div>
                               {/* 원하는 느낌(선택, 2026-10-30 광고주 포털 브리프 칸) */}
+                              <div><dt className="inline text-gray-400">스타일 </dt><dd className="inline">{styleLabel(brief?.style)}</dd></div>
                               {brief?.mood && <div><dt className="inline text-gray-400">느낌 </dt><dd className="inline">{brief.mood}</dd></div>}
                               <div><dt className="inline text-gray-400">로고 </dt><dd className="inline">{logo ? <a href={logo} target="_blank" rel="noreferrer" className="text-brown underline">보기</a> : '없음'}</dd></div>
                             </dl>

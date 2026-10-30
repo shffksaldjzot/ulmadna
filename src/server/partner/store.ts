@@ -37,6 +37,8 @@ export interface DesignBrief {
   intro?: string;
   headline?: string;
   mood?: string;
+  /** 견본 스타일 열쇠(bannerStyles.ts), 없으면 맡김 */
+  style?: string;
   logo_path?: string | null;
 }
 

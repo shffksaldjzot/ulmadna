@@ -12,6 +12,7 @@
 // ─────────────────────────────────────────────────────────────
 import { useEffect, useState } from 'react';
 import { AD_PROCESS_GROUPS, DESIGN_FEE, SLOT_INFO, checkBanner, longDiscountPct, slotPrice, normalizeClickUrl, type SlotKind } from '@/lib/ads/pricing';
+import StylePicker from '@/components/sponsor/StylePicker';
 import { BRIEF_MAX, PARTNER_REGIONS, PARTNER_SLOTS, PARTNER_UNITS, briefProblem, cleanBrief, imageKind, isPhoneOk, cleanPhone, quoteNew, regionName, won } from '@/lib/partner/rules';
 import { FIRST_FREE_ADVERTISERS } from '@/lib/ads/config';
 import { fitBanner } from '@/lib/partner/bannerFit';
@@ -60,6 +61,7 @@ export default function NewWizard({
   const [intro, setIntro] = useState('');
   const [headline, setHeadline] = useState('');
   const [mood, setMood] = useState(''); // 원하는 느낌(선택)
+  const [style, setStyle] = useState(''); // 견본 스타일 열쇠(선택, 빈 값=맡김)
   const [logo, setLogo] = useState<File | null>(null);
   const [logoErr, setLogoErr] = useState('');
   const [err, setErr] = useState('');
@@ -150,6 +152,7 @@ export default function NewWizard({
       f.set('intro', intro);
       f.set('headline', headline);
       if (mood.trim()) f.set('mood', mood);
+      if (style) f.set('style', style);
       if (logo) f.set('logo', logo);
     } else if (file) {
       f.set('file', file);
@@ -273,6 +276,8 @@ export default function NewWizard({
                 <span className="mb-1.5 block text-[15px] font-semibold text-ink">강조 문구</span>
                 <input className={inputCls} value={headline} maxLength={BRIEF_MAX.headline} onChange={(e) => setHeadline(e.target.value)} placeholder="무료 실측 · 당일 견적" />
               </label>
+              <p className="mb-1.5 mt-4 text-[15px] font-semibold text-ink">스타일 <span className="font-normal text-ink-2">(선택)</span></p>
+              <StylePicker value={style} onChange={setStyle} />
               <label className="mt-4 block">
                 <span className="mb-1.5 block text-[15px] font-semibold text-ink">원하는 느낌 <span className="font-normal text-ink-2">(선택)</span></span>
                 <input className={inputCls} value={mood} maxLength={BRIEF_MAX.mood} onChange={(e) => setMood(e.target.value)} placeholder="깔끔 · 고급 · 친근" />

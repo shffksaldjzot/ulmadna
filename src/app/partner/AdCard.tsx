@@ -11,6 +11,8 @@ import { BADGE_TEXT, badgeOf, canManage, ctr, quote, regionName, remainDays, won
 import { BRIEF_MAX } from '@/lib/partner/rules';
 import { openCheckout, preparePay, type PayCfg } from '@/lib/partner/payClient';
 import type { MyOrder } from '@/server/partner/store';
+import StylePicker from '@/components/sponsor/StylePicker';
+import { styleLabel } from '@/lib/ads/bannerStyles';
 import { ghostBtn } from './_ui';
 
 /** 배지 색(강조색은 쓰지 않고 상태 색만) */
@@ -32,6 +34,7 @@ function BriefBox({ order: o, phone }: { order: MyOrder; phone: string }) {
   const [intro, setIntro] = useState(br.intro ?? '');
   const [headline, setHeadline] = useState(br.headline ?? '');
   const [mood, setMood] = useState(br.mood ?? '');
+  const [style, setStyle] = useState(br.style ?? '');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const canEdit = !o.has_banner; // 배너가 올라오면 시안 작업이 시작된 것
@@ -39,7 +42,7 @@ function BriefBox({ order: o, phone }: { order: MyOrder; phone: string }) {
     setBusy(true);
     setErr('');
     try {
-      const r = await fetch(`/api/partner/orders/${o.id}/brief`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ intro, headline, mood }) });
+      const r = await fetch(`/api/partner/orders/${o.id}/brief`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ intro, headline, mood, style }) });
       const d = (await r.json().catch(() => ({}))) as { error?: string };
       if (r.ok) location.reload();
       else setErr(d.error || '저장하지 못했어요');
@@ -52,6 +55,7 @@ function BriefBox({ order: o, phone }: { order: MyOrder; phone: string }) {
     ['상호', br.name || '-'],
     ['소개 문구', br.intro || '-'],
     ['강조 문구', br.headline || '-'],
+    ['스타일', styleLabel(br.style)],
     ['원하는 느낌', br.mood || '-'],
     ['로고', br.logo_path ? '올림' : '없음'],
     ['전화', br.phone || phone || '-'],
@@ -78,6 +82,7 @@ function BriefBox({ order: o, phone }: { order: MyOrder; phone: string }) {
                 <input className="h-12 w-full rounded-xl border border-line bg-surface px-3.5 text-[16px] text-ink" value={intro} maxLength={BRIEF_MAX.intro} onChange={(e) => setIntro(e.target.value)} /></label>
               <label className="block"><span className="mb-1 block text-[13px] text-ink-2">강조 문구</span>
                 <input className="h-12 w-full rounded-xl border border-line bg-surface px-3.5 text-[16px] text-ink" value={headline} maxLength={BRIEF_MAX.headline} onChange={(e) => setHeadline(e.target.value)} /></label>
+              <div><span className="mb-1 block text-[13px] text-ink-2">스타일 (선택)</span><StylePicker value={style} onChange={setStyle} /></div>
               <label className="block"><span className="mb-1 block text-[13px] text-ink-2">원하는 느낌 (선택)</span>
                 <input className="h-12 w-full rounded-xl border border-line bg-surface px-3.5 text-[16px] text-ink" value={mood} maxLength={BRIEF_MAX.mood} onChange={(e) => setMood(e.target.value)} /></label>
               <div className="grid grid-cols-2 gap-2">

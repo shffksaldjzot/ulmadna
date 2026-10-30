@@ -12,6 +12,7 @@
 //   (오픈 기념 첫 광고주 무료로 합계가 0원이면 2)·3)을 건너뛰고 준비 단계에서 바로 주문(검토 상태)을 만든다)
 //   4) 환불(refund): 관리자가 반려하면 포트원 결제 취소 → 기록 'refunded' → 주문 중지.
 // ─────────────────────────────────────────────────────────────
+import { cleanStyleKey } from '@/lib/ads/bannerStyles';
 import 'server-only';
 import crypto from 'crypto';
 import { adminOrNull } from '@/lib/ask/server';
@@ -62,7 +63,7 @@ export async function prepareNew(advertiserId: number, input: {
   kind: unknown; sido: unknown; process: unknown; units: unknown; clickUrl: unknown; phone: unknown;
   file: { bytes: Uint8Array; type: string } | null;
   /** 배너 제작 대행(2026-10-29): 있으면 그림 대신 업체 소개·강조 문구·로고(선택)를 받는다 */
-  design?: { intro: unknown; headline: unknown; mood?: unknown; logo: { bytes: Uint8Array; type: string } | null } | null;
+  design?: { intro: unknown; headline: unknown; mood?: unknown; style?: unknown; logo: { bytes: Uint8Array; type: string } | null } | null;
 }, partnerName = ''): Promise<Res<Prepared>> {
   const payReady = payConfig().ready; // 합계 0원(첫 달 무료)이면 결제 설정 없이도 신청된다 — 아래 q.total 판정 뒤에 확인
   const kind = input.kind as SlotKind;
@@ -81,6 +82,7 @@ export async function prepareNew(advertiserId: number, input: {
   const intro = design ? cleanBrief(design.intro, BRIEF_MAX.intro) : '';
   const headline = design ? cleanBrief(design.headline, BRIEF_MAX.headline) : '';
   const mood = design ? cleanBrief(design.mood, BRIEF_MAX.mood) : ''; // 원하는 느낌(선택)
+  const style = design ? cleanStyleKey(design.style) : ''; // 견본 스타일 열쇠(안 고르면 빈 값 = 맡김)
   if (design) {
     const bp = briefProblem(intro, headline);
     if (bp) return { ok: false, error: bp };
@@ -146,7 +148,7 @@ export async function prepareNew(advertiserId: number, input: {
       start_date: today, end_date: c.endDate, units: q.units, amount: 0, vat: 0,
       pay_method: 'card', pay_status: 'paid', paid_at: nowIso, pay_ref: `promo-${paymentId}`, run_status: 'review',
       banner_path: path, click_url: clickUrl, phone, note: '오픈 기념 첫 달 무료',
-      ...(design ? { design_requested: true, design_fee: 0, design_brief: { name: partnerName.slice(0, 80), phone, intro, headline, mood, logo_path: logoPath } } : {}),
+      ...(design ? { design_requested: true, design_fee: 0, design_brief: { name: partnerName.slice(0, 80), phone, intro, headline, mood, style, logo_path: logoPath } } : {}),
     }).select('id').single();
     if (oe) return { ok: false, error: '지금은 신청을 받을 수 없어요(준비 중)' };
     return { ok: true, data: { free: true, orderId: freeOrd ? Number(freeOrd.id) : undefined, paymentId, orderName: orderNameOf(kind, sido, process, units, false, !!design), total: 0 } };
@@ -159,7 +161,7 @@ export async function prepareNew(advertiserId: number, input: {
       ? {
           design_requested: true,
           design_fee: q.designFee,
-          design_brief: { name: partnerName.slice(0, 80), phone, intro, headline, mood, logo_path: logoPath },
+          design_brief: { name: partnerName.slice(0, 80), phone, intro, headline, mood, style, logo_path: logoPath },
         }
       : {}),
   });
