@@ -26,6 +26,8 @@ type Res<T> = { ok: true; data: T } | { ok: false; error: string };
 export interface Prepared {
   /** true 면 결제창 없이 주문이 바로 만들어졌다(오픈 기념 첫 달 무료로 합계 0원, 2026-10-30) */
   free?: boolean;
+  /** 무료 신청으로 바로 만든 주문 번호(완료 안내용, 2026-10-30) */
+  orderId?: number;
   paymentId: string;
   orderName: string;
   total: number;
@@ -60,7 +62,7 @@ export async function prepareNew(advertiserId: number, input: {
   kind: unknown; sido: unknown; process: unknown; units: unknown; clickUrl: unknown; phone: unknown;
   file: { bytes: Uint8Array; type: string } | null;
   /** 배너 제작 대행(2026-10-29): 있으면 그림 대신 업체 소개·강조 문구·로고(선택)를 받는다 */
-  design?: { intro: unknown; headline: unknown; logo: { bytes: Uint8Array; type: string } | null } | null;
+  design?: { intro: unknown; headline: unknown; mood?: unknown; logo: { bytes: Uint8Array; type: string } | null } | null;
 }, partnerName = ''): Promise<Res<Prepared>> {
   const payReady = payConfig().ready; // 합계 0원(첫 달 무료)이면 결제 설정 없이도 신청된다 — 아래 q.total 판정 뒤에 확인
   const kind = input.kind as SlotKind;
@@ -78,6 +80,7 @@ export async function prepareNew(advertiserId: number, input: {
   const design = input.design ?? null;
   const intro = design ? cleanBrief(design.intro, BRIEF_MAX.intro) : '';
   const headline = design ? cleanBrief(design.headline, BRIEF_MAX.headline) : '';
+  const mood = design ? cleanBrief(design.mood, BRIEF_MAX.mood) : ''; // 원하는 느낌(선택)
   if (design) {
     const bp = briefProblem(intro, headline);
     if (bp) return { ok: false, error: bp };
@@ -138,15 +141,15 @@ export async function prepareNew(advertiserId: number, input: {
   // 합계 0원: 결제창 없이 바로 주문 생성(검토 상태). 결제한 광고주로 세어져 무료 3곳 한도에 반영된다
   if (q.total === 0) {
     const nowIso = new Date().toISOString();
-    const { error: oe } = await sb.from('ad_orders').insert({
+    const { data: freeOrd, error: oe } = await sb.from('ad_orders').insert({
       advertiser_id: advertiserId, slot_kind: db.slot_kind, sido, process: db.process,
       start_date: today, end_date: c.endDate, units: q.units, amount: 0, vat: 0,
       pay_method: 'card', pay_status: 'paid', paid_at: nowIso, pay_ref: `promo-${paymentId}`, run_status: 'review',
       banner_path: path, click_url: clickUrl, phone, note: '오픈 기념 첫 달 무료',
-      ...(design ? { design_requested: true, design_fee: 0, design_brief: { name: partnerName.slice(0, 80), phone, intro, headline, logo_path: logoPath } } : {}),
-    });
+      ...(design ? { design_requested: true, design_fee: 0, design_brief: { name: partnerName.slice(0, 80), phone, intro, headline, mood, logo_path: logoPath } } : {}),
+    }).select('id').single();
     if (oe) return { ok: false, error: '지금은 신청을 받을 수 없어요(준비 중)' };
-    return { ok: true, data: { free: true, paymentId, orderName: orderNameOf(kind, sido, process, units, false, !!design), total: 0 } };
+    return { ok: true, data: { free: true, orderId: freeOrd ? Number(freeOrd.id) : undefined, paymentId, orderName: orderNameOf(kind, sido, process, units, false, !!design), total: 0 } };
   }
   const { error } = await sb.from('partner_payments').insert({
     payment_id: paymentId, advertiser_id: advertiserId, kind: 'new', slot_kind: db.slot_kind, sido, process: db.process,
@@ -156,7 +159,7 @@ export async function prepareNew(advertiserId: number, input: {
       ? {
           design_requested: true,
           design_fee: q.designFee,
-          design_brief: { name: partnerName.slice(0, 80), phone, intro, headline, logo_path: logoPath },
+          design_brief: { name: partnerName.slice(0, 80), phone, intro, headline, mood, logo_path: logoPath },
         }
       : {}),
   });
@@ -318,4 +321,13 @@ export async function refundPayment(paymentId: string, reason: string): Promise<
     }
   }
   return { ok: true, data: null };
+}
+
+/** 결제 번호 → 만들어진 주문 번호(본인 결제만). 완료 안내 주소용, 없으면 null */
+export async function paymentOrderId(paymentId: string, advertiserId: number): Promise<number | null> {
+  const sb = adminOrNull();
+  if (!sb) return null;
+  const { data } = await sb.from('partner_payments').select('order_id,advertiser_id,kind').eq('payment_id', paymentId).maybeSingle();
+  if (!data || Number(data.advertiser_id) !== advertiserId || data.kind !== 'new' || data.order_id == null) return null;
+  return Number(data.order_id);
 }

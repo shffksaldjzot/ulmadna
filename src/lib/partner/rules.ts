@@ -120,7 +120,8 @@ export function imageKind(b: Uint8Array): 'png' | 'jpg' | null {
 }
 
 /** 제작 대행 입력 글자 한도(업체 소개 한 줄·강조 문구) */
-export const BRIEF_MAX = { intro: 60, headline: 40 } as const;
+// mood = 원하는 느낌(선택, 2026-10-30)
+export const BRIEF_MAX = { intro: 60, headline: 40, mood: 30 } as const;
 
 /** 제작 대행 입력 정리: 앞뒤 빈칸 제거·줄바꿈 제거·길이 자르기 */
 export function cleanBrief(v: unknown, max: number): string {
@@ -145,8 +146,8 @@ export function won(n: number): string {
 export type BadgeKind = 'design' | 'review' | 'live' | 'waiting' | 'expired' | 'stopped' | 'refunded';
 
 export const BADGE_TEXT: Record<BadgeKind, string> = {
-  design: '배너 제작 중', // 제작 대행 주문인데 아직 배너가 없을 때(2026-10-29)
-  review: '배너 검토 중',
+  design: '시안 준비 중 · 3영업일', // 제작 대행 주문인데 아직 배너가 없을 때(2026-10-29)
+  review: '배너 검토 중 · 1영업일',
   live: '게재 중',
   waiting: '게재 대기',
   expired: '만료',

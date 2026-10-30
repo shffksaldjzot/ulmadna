@@ -8,6 +8,7 @@ import { useRef, useState } from 'react';
 import { SLOT_INFO } from '@/lib/ads/pricing';
 import { fitBanner } from '@/lib/partner/bannerFit';
 import { BADGE_TEXT, badgeOf, canManage, ctr, quote, regionName, remainDays, won, type BadgeKind } from '@/lib/partner/rules';
+import { BRIEF_MAX } from '@/lib/partner/rules';
 import { openCheckout, preparePay, type PayCfg } from '@/lib/partner/payClient';
 import type { MyOrder } from '@/server/partner/store';
 import { ghostBtn } from './_ui';
@@ -22,6 +23,75 @@ const BADGE_CLS: Record<BadgeKind, string> = {
   stopped: 'bg-danger/10 text-danger',
   refunded: 'bg-danger/10 text-danger',
 };
+
+/** 제작 요청 내용 칸(접힘) — 시안 만들기 전(배너 없음)에는 [내용 고치기]로 수정할 수 있다(2026-10-30) */
+function BriefBox({ order: o, phone }: { order: MyOrder; phone: string }) {
+  const br = o.design_brief ?? {};
+  const [open, setOpen] = useState(false);
+  const [edit, setEdit] = useState(false);
+  const [intro, setIntro] = useState(br.intro ?? '');
+  const [headline, setHeadline] = useState(br.headline ?? '');
+  const [mood, setMood] = useState(br.mood ?? '');
+  const [err, setErr] = useState('');
+  const [busy, setBusy] = useState(false);
+  const canEdit = !o.has_banner; // 배너가 올라오면 시안 작업이 시작된 것
+  const save = async () => {
+    setBusy(true);
+    setErr('');
+    try {
+      const r = await fetch(`/api/partner/orders/${o.id}/brief`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ intro, headline, mood }) });
+      const d = (await r.json().catch(() => ({}))) as { error?: string };
+      if (r.ok) location.reload();
+      else setErr(d.error || '저장하지 못했어요');
+    } catch {
+      setErr('연결이 끊겼어요');
+    }
+    setBusy(false);
+  };
+  const rows: [string, string][] = [
+    ['상호', br.name || '-'],
+    ['소개 문구', br.intro || '-'],
+    ['강조 문구', br.headline || '-'],
+    ['원하는 느낌', br.mood || '-'],
+    ['로고', br.logo_path ? '올림' : '없음'],
+    ['전화', br.phone || phone || '-'],
+  ];
+  return (
+    <div className="mt-3 rounded-xl border border-line">
+      <button type="button" className="flex h-11 w-full items-center justify-between px-3 text-[14px] font-medium text-ink" onClick={() => setOpen(!open)} aria-expanded={open}>
+        제작 요청 내용<span className="text-ink-2">{open ? '접기' : '보기'}</span>
+      </button>
+      {open && (
+        <div className="border-t border-line px-3 py-3">
+          {!edit ? (
+            <>
+              <dl className="space-y-1 text-[14px]">
+                {rows.map(([k, v]) => (
+                  <div key={k} className="flex gap-3"><dt className="w-20 shrink-0 text-ink-2">{k}</dt><dd className="min-w-0 break-words text-ink">{v}</dd></div>
+                ))}
+              </dl>
+              {canEdit && <button type="button" className={`${ghostBtn} mt-3 w-full`} onClick={() => setEdit(true)}>내용 고치기</button>}
+            </>
+          ) : (
+            <div className="space-y-3">
+              <label className="block"><span className="mb-1 block text-[13px] text-ink-2">소개 문구</span>
+                <input className="h-12 w-full rounded-xl border border-line bg-surface px-3.5 text-[16px] text-ink" value={intro} maxLength={BRIEF_MAX.intro} onChange={(e) => setIntro(e.target.value)} /></label>
+              <label className="block"><span className="mb-1 block text-[13px] text-ink-2">강조 문구</span>
+                <input className="h-12 w-full rounded-xl border border-line bg-surface px-3.5 text-[16px] text-ink" value={headline} maxLength={BRIEF_MAX.headline} onChange={(e) => setHeadline(e.target.value)} /></label>
+              <label className="block"><span className="mb-1 block text-[13px] text-ink-2">원하는 느낌 (선택)</span>
+                <input className="h-12 w-full rounded-xl border border-line bg-surface px-3.5 text-[16px] text-ink" value={mood} maxLength={BRIEF_MAX.mood} onChange={(e) => setMood(e.target.value)} /></label>
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" className={ghostBtn} disabled={busy} onClick={() => { setEdit(false); setErr(''); }}>취소</button>
+                <button type="button" className={`${ghostBtn} !border-accent !text-accent`} disabled={busy} onClick={save}>저장</button>
+              </div>
+              {err && <p className="text-[13px] text-danger" role="alert">{err}</p>}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AdCard({ order: o, today, pay, email, name = '' }: { order: MyOrder; today: string; pay: PayCfg | null; email: string; name?: string }) {
   const b = badgeOf(o, today);
@@ -115,6 +185,7 @@ export default function AdCard({ order: o, today, pay, email, name = '' }: { ord
       </div>
 
       {b === 'design' && <p className="mt-2 text-[13px] text-ink-2">3영업일 안에 시안을 보내 드려요</p>}
+      {o.design_requested && o.design_brief && <BriefBox order={o} phone={(o as { phone?: string | null }).phone ?? ''} />}
       {b === 'review' && o.pay_status === 'paid' && <p className="mt-2 text-[13px] text-ink-2">반려되면 카드로 자동 환불돼요</p>}
       {o.note && (b === 'stopped' || b === 'refunded') && <p className="mt-2 text-[13px] text-danger">{o.note}</p>}
 

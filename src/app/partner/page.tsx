@@ -12,11 +12,13 @@ import { requirePartnerPage } from '@/server/partner/session';
 import { myAds } from '@/server/partner/store';
 import { Card, NotReady, PartnerShell, primaryBtn } from './_ui';
 import AdCard from './AdCard';
+import DoneCard from './DoneCard';
 
 export const dynamic = 'force-dynamic';
 
-export default async function PartnerHome() {
+export default async function PartnerHome({ searchParams }: { searchParams: Promise<{ done?: string }> }) {
   const s = await requirePartnerPage();
+  const doneId = Number((await searchParams).done); // 결제 직후 완료 안내용 주문 번호(2026-10-30)
   const name = s.state === 'ok' ? s.partner.name : '';
   const today = kstToday();
   const data = s.state === 'ok' ? await myAds(s.partner.advertiserId, today) : null;
@@ -28,8 +30,13 @@ export default async function PartnerHome() {
   const weekClk = data?.events.filter((e) => week.has(e.day)).reduce((a, e) => a + e.clicks, 0) ?? 0;
   const liveCount = data?.orders.filter((o) => badgeOf(o, today) === 'live').length ?? 0;
 
+  // 내 주문일 때만 완료 카드(남의 번호·없는 번호면 안 뜸)
+  const doneOrder = data && Number.isInteger(doneId) ? data.orders.find((o) => o.id === doneId) : undefined;
+  const doneKind = doneOrder ? (doneOrder.amount === 0 ? 'free' : doneOrder.design_requested ? 'design' : 'review') : null;
+
   return (
     <PartnerShell name={name} active="/partner">
+      {doneKind && <DoneCard kind={doneKind} design={!!doneOrder?.design_requested} />}
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-[22px] font-bold text-brown">내 광고</h1>
         {data && data.orders.length > 0 && (

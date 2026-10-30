@@ -30,6 +30,16 @@ export interface Partner {
   bizNo: string;
 }
 
+/** 제작 요청 내용(주문에 JSON 으로 저장됨) */
+export interface DesignBrief {
+  name?: string;
+  phone?: string | null;
+  intro?: string;
+  headline?: string;
+  mood?: string;
+  logo_path?: string | null;
+}
+
 /** 내 주문 한 줄(화면용) */
 export interface MyOrder {
   id: number;
@@ -49,6 +59,8 @@ export interface MyOrder {
   design_requested: boolean;
   /** 배너 그림이 있는지(배지 '배너 제작 중' 판정용) */
   has_banner: boolean;
+  /** 제작 요청 내용(제작 대행 주문만, 2026-10-30) */
+  design_brief: DesignBrief | null;
   impressions: number;
   clicks: number;
 }
@@ -197,7 +209,7 @@ export async function myAds(advertiserId: number, today: string): Promise<{ orde
   const read = (withDesign: boolean) =>
     sb
       .from('ad_orders')
-      .select(withDesign ? `${cols},design_requested` : cols)
+      .select(withDesign ? `${cols},design_requested,design_brief` : cols)
       .eq('advertiser_id', advertiserId)
       .order('id', { ascending: false })
       .limit(200);
@@ -237,6 +249,7 @@ export async function myAds(advertiserId: number, today: string): Promise<{ orde
     bannerUrl: bannerUrl(sb, (r.banner_path as string | null) ?? null),
     design_requested: r.design_requested === true,
     has_banner: !!r.banner_path,
+    design_brief: r.design_requested === true && r.design_brief && typeof r.design_brief === 'object' ? (r.design_brief as DesignBrief) : null,
     impressions: total.get(Number(r.id))?.i ?? 0,
     clicks: total.get(Number(r.id))?.c ?? 0,
   }));
