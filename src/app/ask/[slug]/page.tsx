@@ -292,10 +292,10 @@ export default async function AskPostPage({ params }: { params: Promise<{ slug: 
           </div>
         )}
 
-        {/* 이어서 물어본 것 — AI 재답변은 강조 테두리 */}
+        {/* 댓글(이어서 물어본 것 포함) — AI 재답변은 강조 테두리 (2026-10-30: 커뮤니티 느낌으로 '댓글') */}
         {comments.length > 0 && (
           <section className="thread">
-            <h3>이어서 물어본 것 {comments.length}</h3>
+            <h3>댓글 {comments.length}</h3>
             {comments.map((c) => (
               <div key={c.id} className={`c${c.is_ai ? ' ul' : ''}`}>
                 <div className="who">
@@ -308,7 +308,7 @@ export default async function AskPostPage({ params }: { params: Promise<{ slug: 
             ))}
           </section>
         )}
-        {post.status !== 'hidden' && <AskCommentForm postId={post.id} />}
+        {post.status !== 'hidden' && <AskCommentForm postId={post.id} isAuthor={isAuthor} />}
 
         {/* 답변 준비 중이면 "기다리는 동안" 읽을거리, 아니면 비슷한 질문 */}
         {waitReads.length > 0 && (

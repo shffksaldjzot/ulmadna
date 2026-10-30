@@ -14,7 +14,11 @@ import { useSession } from 'next-auth/react';
 import { showAskToast } from './AskToast';
 import { LIMITS } from '@/lib/ask/constants';
 
-export default function AskCommentForm({ postId }: { postId: number }) {
+/**
+ * isAuthor: 질문 쓴 사람이면 "이어서 물어보기", 다른 사람이면 "댓글 달기"(2026-10-30 형아: 질문자끼리 소통하는 게시판이니 댓글 느낌으로)
+ */
+export default function AskCommentForm({ postId, isAuthor = false }: { postId: number; isAuthor?: boolean }) {
+  const label = isAuthor ? '이어서 물어보기' : '댓글 달기';
   const { status } = useSession();
   const router = useRouter();
   const pathname = usePathname() ?? '/ask';
@@ -60,7 +64,7 @@ export default function AskCommentForm({ postId }: { postId: number }) {
       if (!r.ok) throw new Error(d.error || '댓글을 올리지 못했어요');
       setText('');
       setReload((n) => n + 1); // 남은 댓글 수 다시 받기
-      showAskToast('올렸어요 · AI가 이어서 답해요');
+      showAskToast(isAuthor ? '올렸어요 · AI가 이어서 답해요' : '댓글 올렸어요');
       router.refresh();
     } catch (err) {
       showAskToast(err instanceof Error ? err.message : '댓글을 올리지 못했어요');
@@ -85,8 +89,8 @@ export default function AskCommentForm({ postId }: { postId: number }) {
         value={text}
         onChange={(e) => setText(e.target.value)}
         maxLength={LIMITS.commentMax}
-        placeholder={status === 'authenticated' ? '이어서 물어보기' : '이어서 물어보기 · 로그인 필요'}
-        aria-label="이어서 물어보기"
+        placeholder={status === 'authenticated' ? label : `${label} · 로그인 필요`}
+        aria-label={label}
       />
       <button type="submit" disabled={busy || left === 0}>
         {status === 'authenticated' ? '보내기' : '로그인'}
