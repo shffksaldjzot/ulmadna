@@ -32,7 +32,8 @@ export async function POST(req: Request) {
   // 비밀번호가 맞는데 정지된 계정이면 이유를 알려 준다(틀린 사람에겐 계정 존재를 알리지 않는다)
   const pwOk = !!found && (await verifyPassword(password, found.passwordHash));
   if (found && pwOk && found.status === 'blocked') return fail(403, '정지된 계정이에요');
-  const ok = pwOk && !!found && found.status === 'active';
+  // 탈퇴 요청 중(withdraw_requested)에도 로그인은 된다
+  const ok = pwOk && !!found && (found.status === 'active' || found.status === 'withdraw_requested');
   if (!ok || !found) {
     recordFail(ipKey);
     recordFail(emKey);
