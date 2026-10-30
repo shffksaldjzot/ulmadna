@@ -90,10 +90,10 @@ export function slotSize(k: SlotKind, target: 'mobile' | 'desktop' = 'mobile'): 
   return `${s.width}×${s.height}`;
 }
 
-/** 캡션 한 줄: "AD-H · 헤더 가로 · 320×100 · 30일 10만원" (PC 는 "PC 728×90") */
+/** 캡션 한 줄: "맨 위 띠 배너 · 320×100 · 30일 10만원" (PC 는 "PC 728×90") */
 export function slotCaption(k: SlotKind, target: 'mobile' | 'desktop' = 'mobile'): string {
   const size = target === 'desktop' ? `PC ${slotSize(k, 'desktop')}` : slotSize(k);
-  return `${k} · ${SLOT_INFO[k].name} · ${size} · 30일 ${priceMan(k)}`;
+  return `${SLOT_INFO[k].name} · ${size} · 30일 ${priceMan(k)}`;
 }
 
 /** 원본 픽셀 → 캡처 폭·높이 대비 % (폰 폭이 바뀌어도 영역이 맞게) */
@@ -153,7 +153,7 @@ export function MarkedShot({ shot, alt }: { shot: Shot; alt?: string }) {
               }`}
             >
               <span className="block text-[10px] font-bold whitespace-nowrap overflow-hidden text-ellipsis">
-                {m.kind} {SLOT_INFO[m.kind].name}
+                {SLOT_INFO[m.kind].name}
               </span>
               <span className="block text-[10px] whitespace-nowrap tabular-nums">
                 {target === 'desktop' ? `PC ${slotSize(m.kind, 'desktop')}` : slotSize(m.kind)} · 30일 {priceMan(m.kind)}

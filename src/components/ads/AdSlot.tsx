@@ -102,8 +102,8 @@ export default function AdSlot({
       : `${sz.width}×${sz.height}`;
     const title =
       id === 'AD-P'
-        ? `AD-P 공정 스폰서 · ${processGroup ?? ''} · ${sizeText} · ${manwon(info.price)}${capped ? ' (한 화면 4곳까지만 노출)' : ''}`
-        : `${id} ${info.name} · ${sizeText} · 30일 ${manwon(info.price)} · 지역당 ${info.capacity}곳`;
+        ? `${info.name} · ${processGroup ?? ''} · ${sizeText} · ${manwon(info.price)}${capped ? ' (한 화면 4곳까지만 노출)' : ''}`
+        : `${info.name} · ${sizeText} · 30일 ${manwon(info.price)} · 지역당 ${info.capacity}곳`;
     return (
       <div
         className={`relative w-full ${boxClass(id, true)} mx-auto my-3 ${showClass} items-center justify-center text-center`}

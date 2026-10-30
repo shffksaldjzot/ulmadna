@@ -12,12 +12,12 @@ import { MarkedShot, ShotCaption, PHONE_SHOTS, PC_SHOT } from '@/components/spon
 export const revalidate = 300;
 
 // 남은 자리 표에 보일 자리(견적서 추천은 개수 제한이 없어 뺌, 공정 스폰서는 공정별이라 따로 안내)
-// 토탈 인테리어 스폰서(AD-T)는 시도당 3곳이라 같이 보여 준다(2026-10-29)
+// 토탈 인테리어 스폰서(AD-T)는 지역(시·도)당 3곳이라 같이 보여 준다(2026-10-29)
 const LEFT_KINDS: SlotKind[] = ['AD-H', 'AD-R', 'AD-T', 'AD-F'];
 
 export const metadata = {
-  title: '얼마드나 — 광고/제휴 안내 | 인테리어 견적 계산기 스폰서',
-  description: '월 방문자 타겟 광고로 인테리어 고객에게 직접 도달하세요. 지역권 타겟, 공정별 스폰서, PDF 견적서 내 광고.',
+  title: '얼마드나 — 광고/제휴 안내 | 인테리어 견적 계산기',
+  description: '월 방문자 타겟 광고로 인테리어 고객에게 직접 도달하세요. 지역권 타겟, 공정 전문 배너, 견적서 내 광고.',
 };
 
 /** 30일 요금 "n만원" 표기 — 가격 정본(SLOT_INFO)에서 읽어 와 화면과 주문 금액이 어긋나지 않게 한다 */
@@ -79,56 +79,56 @@ const BANNER_SAMPLES: { src: string; kind: SlotKind }[] = [
 const AD_SLOTS: { id: SlotKind; name: string; size: string; position: string; target: string; price: string; desc: string; mockup?: ReactNode }[] = [
   {
     id: 'AD-H',
-    name: '헤더 하단 리더보드',
+    name: '맨 위 띠 배너',
     // 2026-10-29: 실제 규격 — 휴대폰 320×100, PC 728×90
     size: '휴대폰 320×100 · PC 728×90',
-    position: '페이지 최상단',
+    position: '모든 화면 맨 위',
     target: '지역권 타겟',
-    price: `30일 ${man('AD-H')} (시도당 3개 업체, 부가세 별도)`,
+    price: `30일 ${man('AD-H')} (지역(시·도)당 3개 업체, 부가세 별도)`,
     desc: '사용자가 가장 먼저 보는 위치. IP 기반으로 해당 지역 업체만 노출됩니다.',
   },
   {
     id: 'AD-P',
-    name: '공정별 스폰서 배너',
+    name: '공정 전문 배너',
     // 2026-10-29: 실제 규격 320×50, 노출 3곳, 7만원(형아 결정)
     size: '320×50',
     position: '홈 공정 목록 · 그 공정 계산기 · 그 공정 블로그 글 (3곳)',
-    target: '공정별 브랜드 스폰서',
-    price: `30일 ${man('AD-P')} (시도·공정당 3개 업체, 부가세 별도)`,
+    target: '공정별 전문 업체',
+    price: `30일 ${man('AD-P')} (지역·공정당 3개 업체, 부가세 별도)`,
     desc: '사용자가 해당 공정을 선택할 때 자연스럽게 노출. 창호 옆에 KCC, 욕실 옆에 대림 등.',
   },
   {
     id: 'AD-T',
-    name: '토탈 인테리어 스폰서',
+    name: '올수리 업체 배너',
     // 2026-10-29 형아 결정: 30일 15만원, 지역당 3곳, 전 지역 판매
     size: '320×50',
     position: '홈 견적 결과 카드 아래 · 계산기 결과 페이지 · 인테리어 총론 블로그 글 · 견적서 PDF 하단 (4곳)',
     target: '지역권 종합 인테리어 업체',
-    price: `30일 ${man('AD-T')} (시도당 3개 업체, 부가세 별도)`,
+    price: `30일 ${man('AD-T')} (지역(시·도)당 3개 업체, 부가세 별도)`,
     desc: '전체 견적을 확인한 사람에게 올수리·종합 시공 업체로 노출. 견적서 PDF 에는 상호·전화 한 줄이 함께 실립니다.',
   },
   {
     id: 'AD-R',
-    name: '결과 패널 렉탱글',
+    name: '견적 결과 옆 큰 배너',
     size: '300×250',
     position: '견적 결과 영역',
     target: '지역권 타겟',
-    price: `30일 ${man('AD-R')} (시도당 3개 업체, 부가세 별도)`,
+    price: `30일 ${man('AD-R')} (지역(시·도)당 3개 업체, 부가세 별도)`,
     desc: '견적 결과를 확인하는 사용자에게 노출. 가장 구매 의향이 높은 시점입니다.',
   },
   {
     // 2026-10-30: 푸터 자리도 캡처·가격 꼬리표에 나오므로 카드로 안내(가격은 정본 SLOT_INFO)
     id: 'AD-F',
-    name: '푸터 로테이션',
+    name: '맨 아래 띠 배너',
     size: '휴대폰 320×50 · PC 728×90',
     position: '모든 페이지 맨 아래',
     target: '지역권 타겟',
-    price: `30일 ${man('AD-F')} (시도당 3개 업체, 부가세 별도)`,
+    price: `30일 ${man('AD-F')} (지역(시·도)당 3개 업체, 부가세 별도)`,
     desc: '어느 페이지를 보든 맨 아래에 노출됩니다. 상호·전화 한 줄 배너입니다.',
   },
   {
     id: 'AD-PDF',
-    name: 'PDF/엑셀 견적서 내 광고',
+    name: '견적서 추천 업체 줄',
     size: '견적서 하단',
     position: '다운로드 견적서',
     target: '지역권 추천업체',
@@ -151,7 +151,7 @@ const AD_SLOTS: { id: SlotKind; name: string; size: string; position: string; ta
 const STATS = [
   { value: '24', label: '공정 카테고리' },
   { value: '51+', label: '지역권 타겟 가능' },
-  { value: '12', label: '광고 슬롯 (PC+모바일+PDF)' },
+  { value: '12', label: '광고 자리 (PC+모바일+견적서)' },
   { value: '₩2만~', label: '30일 최소 광고비(부가세 별도)' },
 ];
 
@@ -191,7 +191,7 @@ export default async function SponsorPage() {
           </p>
           <div className="mt-8 flex justify-center gap-3">
             <a
-              href="mailto:cs870@naver.com?subject=[얼마드나] 스폰서 광고 문의"
+              href="mailto:cs870@naver.com?subject=[얼마드나] 광고 문의"
               className="bg-brown text-white text-sm px-6 py-3 rounded-full hover:bg-brown/90 transition-colors"
             >
               광고 문의하기
@@ -368,7 +368,6 @@ export default async function SponsorPage() {
               <thead className="bg-cream text-xs text-gray-500">
                 <tr>
                   <th className="text-left px-5 py-3">상품</th>
-                  <th className="text-left px-5 py-3">슬롯</th>
                   <th className="text-left px-5 py-3">게재 범위</th>
                   <th className="text-right px-5 py-3">30일 요금</th>
                 </tr>
@@ -376,19 +375,18 @@ export default async function SponsorPage() {
               <tbody>
                 {[
                   // 금액은 가격 정본(SLOT_INFO)에서 읽는다(2026-10-29 공정 스폰서 7만원)
-                  ['헤더 하단 리더보드', 'AD-H', '시도당 3개 업체', won('AD-H')],
-                  ['결과 옆 렉탱글', 'AD-R', '시도당 3개 업체', won('AD-R')],
-                  ['공정 스폰서', 'AD-P', '시도 × 공정당 3개 업체 · 노출 3곳', won('AD-P')],
-                  ['토탈 인테리어 스폰서', 'AD-T', '시도당 3개 업체 · 노출 4곳(견적서 포함)', won('AD-T')],
+                  ['맨 위 띠 배너', 'AD-H', '지역(시·도)당 3개 업체', won('AD-H')],
+                  ['견적 결과 옆 큰 배너', 'AD-R', '지역(시·도)당 3개 업체', won('AD-R')],
+                  ['공정 전문 배너', 'AD-P', '지역 · 공정당 3개 업체 · 노출 3곳', won('AD-P')],
+                  ['올수리 업체 배너', 'AD-T', '지역(시·도)당 3개 업체 · 노출 4곳(견적서 포함)', won('AD-T')],
                   // 2026-10-30: 푸터 자리도 카드·캡처에 안내하므로 가격표에 같이(정본 2만원)
-                  ['푸터 로테이션', 'AD-F', '시도당 3개 업체 · 모든 페이지 맨 아래', won('AD-F')],
-                  ['견적서 추천 업체', 'AD-PDF', '견적서 안 공정마다 여러 업체', won('AD-PDF')],
+                  ['맨 아래 띠 배너', 'AD-F', '지역(시·도)당 3개 업체 · 모든 페이지 맨 아래', won('AD-F')],
+                  ['견적서 추천 업체 줄', 'AD-PDF', '견적서 안 공정마다 여러 업체', won('AD-PDF')],
                   // 2026-10-29: 배너 제작 대행(기간 요금이 아니라 1회 요금)
                   ['배너 제작 대행', '-', '시안 1개 + 수정 2회 · 3영업일 · 첫 1회 무료', `${DESIGN_FEE.toLocaleString('ko-KR')}원(1회)`],
-                ].map(([name, slot, target, price], i) => (
+                ].map(([name, , target, price], i) => (
                   <tr key={i} className="border-t border-gray-50">
                     <td className="px-5 py-3 font-medium text-gray-700">{name}</td>
-                    <td className="px-5 py-3 text-gray-400">{slot}</td>
                     <td className="px-5 py-3 text-gray-400">{target}</td>
                     <td className="px-5 py-3 text-right font-semibold text-gold whitespace-nowrap">{price}</td>
                   </tr>
@@ -407,7 +405,7 @@ export default async function SponsorPage() {
         </div>
       </section>
 
-      {/* 지역별 남은 자리 — 실제 광고 주문 표에서 읽는다(2026-10-29). 시도당 3개 업체 */}
+      {/* 지역별 남은 자리 — 실제 광고 주문 표에서 읽는다(2026-10-29). 지역(시·도)당 3개 업체 */}
       <section id="left" className="pb-16 px-4">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-2xl font-bold text-brown text-center mb-2">지역별 남은 자리</h2>
@@ -418,7 +416,7 @@ export default async function SponsorPage() {
                 <tr>
                   <th className="text-left px-5 py-3">지역</th>
                   {LEFT_KINDS.map((k) => (
-                    <th key={k} className="text-center px-3 py-3 whitespace-nowrap">{SLOT_INFO[k].name}<br /><span className="text-gray-300">{k}</span></th>
+                    <th key={k} className="text-center px-3 py-3 whitespace-nowrap">{SLOT_INFO[k].name}</th>
                   ))}
                 </tr>
               </thead>
@@ -439,7 +437,7 @@ export default async function SponsorPage() {
               </tbody>
             </table>
           </div>
-          <p className="text-xs text-gray-400 text-center mt-3">공정 스폰서는 시도 × 공정마다 3개 업체입니다. 공정별 자리는 문의 시 안내해 드립니다.</p>
+          <p className="text-xs text-gray-400 text-center mt-3">공정 전문 배너는 지역 · 공정마다 3개 업체입니다. 공정별 자리는 문의 시 안내해 드립니다.</p>
         </div>
       </section>
 
@@ -477,12 +475,12 @@ export default async function SponsorPage() {
         <h2 className="text-2xl font-bold text-brown mb-3">광고 문의</h2>
         <p className="text-sm text-gray-500 mb-6">아래 이메일로 문의해 주시면 1영업일 내 회신 드립니다</p>
         <a
-          href="mailto:cs870@naver.com?subject=[얼마드나] 스폰서 광고 문의"
+          href="mailto:cs870@naver.com?subject=[얼마드나] 광고 문의"
           className="inline-block bg-brown text-white text-sm px-8 py-3 rounded-full hover:bg-brown/90 transition-colors"
         >
           cs870@naver.com 으로 문의하기
         </a>
-        <p className="text-xs text-gray-300 mt-4">제출 항목: 배너 이미지 + 클릭 URL + 업체명 + 광고 지역 + 희망 슬롯 + 게재 기간</p>
+        <p className="text-xs text-gray-300 mt-4">제출 항목: 배너 이미지 + 클릭 URL + 업체명 + 광고 지역 + 희망 광고 자리 + 게재 기간</p>
       </section>
 
       {/* 푸터 — 판매자 정보(결제사 심사 대비, 정본은 src/lib/business.ts) */}
