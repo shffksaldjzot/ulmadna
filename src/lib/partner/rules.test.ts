@@ -5,8 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { DESIGN_FEE, SLOT_INFO } from '@/lib/ads/pricing';
 import {
   PARTNER_SLOTS, badgeOf, briefProblem, cleanBrief, quoteNew, ctr, formatBizNo, isBizNo, isEmail, isPartnerRegion, lastDays, newPaymentId,
-  normalizeBizNo, normalizeEmail, passwordProblem, quote, remainDays, won,
-} from './rules';
+  normalizeBizNo, normalizeEmail, passwordProblem, quote, remainDays, won, isPhoneOk, cleanPhone } from './rules';
 
 describe('사업자번호 형식', () => {
   it('검증 숫자가 맞는 번호는 통과(하이픈 있어도)', () => {
@@ -137,5 +136,22 @@ describe('배너 제작 대행 금액(2026-10-29)', () => {
     expect(briefProblem('', '무료 실측')).not.toBeNull();
     expect(briefProblem('올수리 전문', '')).not.toBeNull();
     expect(briefProblem('올수리 전문', '무료 실측')).toBeNull();
+  });
+});
+
+describe('전화번호 검사 (2026-10-30)', () => {
+  it('숫자 9자리 이상이면 통과(02 지역번호 포함)', () => {
+    expect(isPhoneOk('010-1234-5678')).toBe(true);
+    expect(isPhoneOk('02-123-4567')).toBe(true);
+    expect(isPhoneOk('031 123 4567')).toBe(true);
+  });
+  it('모자라면 거절', () => {
+    expect(isPhoneOk('')).toBe(false);
+    expect(isPhoneOk('010-123')).toBe(false);
+    expect(isPhoneOk(undefined)).toBe(false);
+  });
+  it('저장 값은 숫자와 하이픈만', () => {
+    expect(cleanPhone('(010) 1234-5678 번')).toBe('0101234-5678');
+    expect(cleanPhone('tel 010-1234-5678')).toBe('010-1234-5678');
   });
 });

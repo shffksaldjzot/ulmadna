@@ -14,8 +14,8 @@
 import 'server-only';
 import crypto from 'crypto';
 import { adminOrNull } from '@/lib/ask/server';
-import { AD_PROCESS_GROUPS, SLOT_INFO, addDaysStr, calcOrder, checkBanner, fromDbSlot, isHttpsUrl, kstToday, toDbSlot, UNIT_DAYS, type SlotKind } from '@/lib/ads/pricing';
-import { BRIEF_MAX, PARTNER_SLOTS, PARTNER_UNITS, badgeOf, briefProblem, canManage, cleanBrief, imageKind, isPartnerRegion, newPaymentId, quote, quoteNew, regionName } from '@/lib/partner/rules';
+import { AD_PROCESS_GROUPS, SLOT_INFO, addDaysStr, calcOrder, checkBanner, fromDbSlot, normalizeClickUrl, kstToday, toDbSlot, UNIT_DAYS, type SlotKind } from '@/lib/ads/pricing';
+import { BRIEF_MAX, PARTNER_SLOTS, PARTNER_UNITS, badgeOf, briefProblem, canManage, cleanBrief, cleanPhone, imageKind, isPartnerRegion, newPaymentId, quote, quoteNew, regionName } from '@/lib/partner/rules';
 import { cancelPayment, fetchPayment, payConfig } from './portone';
 import { BUCKET, designFirstFree, myOrder } from './store';
 
@@ -68,7 +68,9 @@ export async function prepareNew(advertiserId: number, input: {
   if (kind === 'AD-P' && !process) return { ok: false, error: '공정을 골라 주세요' };
   const units = Number(input.units);
   if (!(PARTNER_UNITS as readonly number[]).includes(units)) return { ok: false, error: '기간을 골라 주세요' };
-  if (!isHttpsUrl(input.clickUrl)) return { ok: false, error: '연결 주소는 https 로 시작해야 해요' };
+  // 클릭 주소는 화면과 같은 함수로 정리(https:// 자동 붙임)해 저장
+  const clickUrl = normalizeClickUrl(input.clickUrl);
+  if (!clickUrl) return { ok: false, error: '연결 주소를 주소 형태로 적어 주세요(예: www.내가게.com)' };
   // 제작 대행이면 그림 대신 입력 내용을 검사, 직접 올리기면 배너 규격 검사
   const design = input.design ?? null;
   const intro = design ? cleanBrief(design.intro, BRIEF_MAX.intro) : '';
@@ -123,11 +125,11 @@ export async function prepareNew(advertiserId: number, input: {
   // 금액: 광고비 + 제작비(첫 회 0원) → 부가세 → 합계. 서버가 다시 계산한다(직접 올리기면 제작비 0)
   const q = quoteNew(kind, units, design ? { firstFree } : null, sido);
   const paymentId = newPaymentId(crypto.randomUUID());
-  const phone = typeof input.phone === 'string' ? input.phone.replace(/[^\d-]/g, '').slice(0, 20) || null : null;
+  const phone = cleanPhone(input.phone) || null;
   const db = toDbSlot(kind, process); // AD-T 는 AD-P + '토탈 인테리어' 로 적는다
   const { error } = await sb.from('partner_payments').insert({
     payment_id: paymentId, advertiser_id: advertiserId, kind: 'new', slot_kind: db.slot_kind, sido, process: db.process,
-    units: q.units, amount: q.amount, vat: q.vat, total: q.total, banner_path: path, click_url: input.clickUrl, phone,
+    units: q.units, amount: q.amount, vat: q.vat, total: q.total, banner_path: path, click_url: clickUrl, phone,
     // 제작 대행 칸은 맡겼을 때만 적는다(SQL 20261101 실행 전에도 직접 올리기 결제는 그대로 되게)
     ...(design
       ? {

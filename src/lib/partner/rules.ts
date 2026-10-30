@@ -197,3 +197,13 @@ export function lastDays(today: string, n: number): string[] {
 export function newPaymentId(rand: string): string {
   return `ulm-${Date.now().toString(36)}-${rand.replace(/[^a-zA-Z0-9]/g, '').slice(0, 20)}`;
 }
+
+/** 전화번호 검사(2026-10-30): 숫자만 세서 9자리 이상이면 통과(02 지역번호 9자리 포함) */
+export function isPhoneOk(v: unknown): boolean {
+  return typeof v === 'string' && v.replace(/\D/g, '').length >= 9;
+}
+
+/** 전화번호 저장 값: 숫자와 하이픈만 남김(최대 20자) */
+export function cleanPhone(v: unknown): string {
+  return typeof v === 'string' ? v.replace(/[^\d-]/g, '').slice(0, 20) : '';
+}

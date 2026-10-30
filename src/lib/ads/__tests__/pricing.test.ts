@@ -1,6 +1,6 @@
 // 광고 가격·기간·그림 검사 시험 (2026년 10월 29일)
 import { describe, expect, it } from 'vitest';
-import { SLOT_INFO, TOTAL_PROCESS, calcOrder, checkBanner, expiringSoon, fromDbSlot, imageSize, isHttpsUrl, isOrderSido, regionTier, slotPrice, toDbSlot } from '../pricing';
+import { SLOT_INFO, TOTAL_PROCESS, calcOrder, checkBanner, expiringSoon, fromDbSlot, imageSize, isHttpsUrl, normalizeClickUrl, isOrderSido, regionTier, slotPrice, toDbSlot } from '../pricing';
 
 /** 가로·세로만 담은 가짜 PNG 머리말 (extra 만큼 뒤에 덧붙여 파일 크기를 키움) */
 function fakePng(w: number, h: number, extra = 0): Uint8Array {
@@ -121,5 +121,25 @@ describe('지역 가격 단계(2026-10-30)', () => {
     expect(calcOrder('AD-H', '2026-11-01', 1, null, '51').vat).toBe(5000);
     expect(calcOrder('AD-H', '2026-11-01', 1, 0, '51').amount).toBe(0);
     expect(calcOrder('AD-H', '2026-11-01', 1).amount).toBe(100000);
+  });
+});
+
+describe('normalizeClickUrl (2026-10-30)', () => {
+  it('https:// 를 자동으로 붙이고 http 는 https 로 바꾼다', () => {
+    expect(normalizeClickUrl('www.naver.com')).toBe('https://www.naver.com/');
+    expect(normalizeClickUrl('  http://a.com/x ')).toBe('https://a.com/x');
+    expect(normalizeClickUrl('https://ulmadna.com/sponsor')).toBe('https://ulmadna.com/sponsor');
+  });
+  it('한글 도메인도 통과', () => {
+    expect(normalizeClickUrl('내가게.com')).not.toBeNull();
+    expect(normalizeClickUrl('내가게.한국')).not.toBeNull();
+  });
+  it('주소가 아닌 값은 거절', () => {
+    expect(normalizeClickUrl('')).toBeNull();
+    expect(normalizeClickUrl('javascript:alert(1)')).toBeNull();
+    expect(normalizeClickUrl('ftp://a.com')).toBeNull();
+    expect(normalizeClickUrl('가게')).toBeNull();
+    expect(normalizeClickUrl('a b.com')).toBeNull();
+    expect(normalizeClickUrl(123)).toBeNull();
   });
 });
