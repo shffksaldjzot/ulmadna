@@ -260,7 +260,6 @@ export default async function SponsorPage() {
                 <div className="flex flex-col lg:flex-row gap-6">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-[10px] bg-brown text-white px-2 py-0.5 rounded-full">{slot.id}</span>
                       <h3 className="text-base font-bold text-brown">{slot.name}</h3>
                     </div>
                     <div className="space-y-1 text-sm text-gray-600 mb-3">
