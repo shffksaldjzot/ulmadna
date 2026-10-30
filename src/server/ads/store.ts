@@ -67,7 +67,7 @@ export interface AdOrder {
   /** 배너 제작 대행(2026-10-29) — 20261101_ads_design.sql 실행 전엔 칸이 없어 undefined */
   design_requested?: boolean;
   /** 제작 대행 입력 내용 {name, phone, intro, headline, mood(원하는 느낌, 2026-10-30), logo_path} */
-  design_brief?: { name?: string; phone?: string | null; intro?: string; headline?: string; mood?: string; logo_path?: string | null } | null;
+  design_brief?: { name?: string; phone?: string | null; intro?: string; headline?: string; mood?: string; style?: string; logo_path?: string | null } | null;
   /** 제작비 공급가(원). amount 에 이미 더해져 있다 */
   design_fee?: number;
 }

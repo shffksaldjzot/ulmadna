@@ -9,6 +9,7 @@ import { LONG_DISCOUNT } from '@/lib/ads/pricing';
 import { SIDO_CODES, REGION_NAMES } from '@/server/admin/format';
 import { DESIGN_FEE, SLOT_INFO, slotPrice, type SlotKind } from '@/lib/ads/pricing';
 // 광고 자리 표시 캡처(가림막·테두리·꼬리표) — /sponsor/preview 와 같이 쓴다(2026-10-30)
+import { BANNER_STYLES, styleImg } from '@/lib/ads/bannerStyles';
 import { MarkedShot, ShotCaption, PHONE_SHOTS, PC_SHOT } from '@/components/sponsor/MarkedShots';
 
 // 남은 자리 숫자를 5분마다 새로 읽는다(광고 표가 비어 있으면 전부 3/3)
@@ -318,6 +319,26 @@ export default async function SponsorPage() {
               <MarkedShot shot={PC_SHOT} alt="PC 첫 화면 헤더 광고 자리" />
             </div>
             <ShotCaption shot={PC_SHOT} center />
+          </div>
+        </div>
+      </section>
+
+      {/* 견본 스타일 8종 — 가로로 밀어 보는 카드(2026-10-30). 제작 대행 때 이 중에서 고르거나 섞어 준다 */}
+      <section id="styles" className="pb-16 pt-4">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-2xl font-bold text-brown text-center mb-2 px-4">견본 스타일</h2>
+          <p className="text-xs text-gray-500 text-center mb-6 px-4">제작 대행을 맡기면 이 중에서 고르거나 섞어 드려요 · 견본(가상 업체)</p>
+          <div className="flex gap-3 overflow-x-auto px-4 pb-3 snap-x">
+            {BANNER_STYLES.map((st) => (
+              <div key={st.key} className="snap-start shrink-0 w-[300px] bg-cream rounded-2xl p-4" data-testid={`style-${st.key}`}>
+                <h3 className="text-sm font-bold text-brown">{st.name}</h3>
+                <p className="text-[11px] text-gray-500 mt-0.5 mb-3 h-8">{st.desc}</p>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={styleImg(st.key, '320x100')} alt={`${st.name} 휴대폰 띠 견본`} width={268} height={84} loading="lazy" className="block w-full h-auto rounded-md" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={styleImg(st.key, '300x250')} alt={`${st.name} 큰 배너 견본`} width={150} height={125} loading="lazy" className="block mt-2 w-[150px] h-auto rounded-md" />
+              </div>
+            ))}
           </div>
         </div>
       </section>

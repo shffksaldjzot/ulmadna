@@ -31,6 +31,7 @@ export async function POST(req: Request) {
         intro: form.get('intro'),
         headline: form.get('headline'),
         mood: form.get('mood'),
+        style: form.get('style'),
         logo: logo instanceof File && logo.size > 0 ? { bytes: new Uint8Array(await logo.arrayBuffer()), type: logo.type } : null,
       }
     : null;
