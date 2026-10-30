@@ -75,8 +75,11 @@ export async function prepareNew(advertiserId: number, input: {
   const units = Number(input.units);
   if (!(PARTNER_UNITS as readonly number[]).includes(units)) return { ok: false, error: '기간을 골라 주세요' };
   // 클릭 주소는 화면과 같은 함수로 정리(https:// 자동 붙임)해 저장
-  const clickUrl = normalizeClickUrl(input.clickUrl);
-  if (!clickUrl) return { ok: false, error: '연결 주소를 주소 형태로 적어 주세요(예: www.내가게.com)' };
+  //   홈페이지가 없으면 빈 값 = 전화로 연결(2026-10-30). 적었는데 형태가 틀리면 막는다
+  const urlRaw = typeof input.clickUrl === 'string' ? input.clickUrl.trim() : '';
+  const clickUrl = urlRaw ? normalizeClickUrl(urlRaw) : null;
+  if (urlRaw && !clickUrl) return { ok: false, error: '연결 주소를 주소 형태로 적어 주세요(예: www.내가게.com)' };
+  if (!clickUrl && !cleanPhone(input.phone)) return { ok: false, error: '전화로 연결하려면 전화번호가 필요해요' };
   // 제작 대행이면 그림 대신 입력 내용을 검사, 직접 올리기면 배너 규격 검사
   const design = input.design ?? null;
   const intro = design ? cleanBrief(design.intro, BRIEF_MAX.intro) : '';
@@ -213,7 +216,7 @@ export async function finalizePayment(paymentId: string, advertiserId: number | 
   if (!p) return { ok: false, error: '결제 확인에 실패했어요. 잠시 뒤 결제 기록을 확인해 주세요' };
   if (p.status !== 'PAID') {
     if (p.status === 'FAILED' || p.status === 'CANCELLED') {
-      await sb.from('partner_payments').update({ status: 'failed', fail_reason: p.status }).eq('payment_id', paymentId).eq('status', 'ready');
+      await sb.from('partner_payments').update({ status: 'failed', fail_reason: (p.failReason || p.status).slice(0, 300) }).eq('payment_id', paymentId).eq('status', 'ready');
       return { ok: false, error: '결제가 완료되지 않았어요' };
     }
     return { ok: true, data: 'wait' };
@@ -332,4 +335,21 @@ export async function paymentOrderId(paymentId: string, advertiserId: number): P
   const { data } = await sb.from('partner_payments').select('order_id,advertiser_id,kind').eq('payment_id', paymentId).maybeSingle();
   if (!data || Number(data.advertiser_id) !== advertiserId || data.kind !== 'new' || data.order_id == null) return null;
   return Number(data.order_id);
+}
+
+/**
+ * 결제창 실패 사유 기록(2026-10-30): 브라우저가 알려 준 PG 메시지를 partner_payments.fail_reason 에 남긴다.
+ *   내 결제이고 아직 'ready' 일 때만, 그리고 포트원에 다시 물어 PAID 가 아닐 때만 'failed' 로 바꾼다(거짓 신고로 결제 건이 망가지지 않게).
+ *   포트원이 사유를 갖고 있으면 그것을 우선한다.
+ */
+export async function recordPayFail(paymentId: string, advertiserId: number, message: string): Promise<boolean> {
+  const sb = adminOrNull();
+  if (!sb) return false;
+  const { data: row } = await sb.from('partner_payments').select('advertiser_id,status').eq('payment_id', paymentId).maybeSingle();
+  if (!row || Number(row.advertiser_id) !== advertiserId || row.status !== 'ready') return false;
+  const p = await fetchPayment(paymentId);
+  if (p && p.status === 'PAID') return false;
+  const reason = (p?.failReason || message || '결제 실패').slice(0, 300);
+  await sb.from('partner_payments').update({ status: 'failed', fail_reason: reason }).eq('payment_id', paymentId).eq('status', 'ready');
+  return true;
 }

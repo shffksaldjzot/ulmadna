@@ -8,7 +8,7 @@
 // ──────────────────────────────────────────────
 import { NextResponse } from 'next/server';
 import { isBotUA } from '@/server/metrics/requestInfo';
-import { clickAd } from '@/server/ads/store';
+import { clickAd, countCallClick } from '@/server/ads/store';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,6 +16,11 @@ export async function GET(req: Request) {
   const u = new URL(req.url);
   const raw = u.searchParams.get('o');
   const id = raw && /^\d{1,9}$/.test(raw) ? Number(raw) : null;
+  // 전화 걸기 광고: 브라우저가 클릭 수만 알리고(m=call) 이동은 스스로 한다 → 204
+  if (id && u.searchParams.get('m') === 'call') {
+    if (!isBotUA(req.headers.get('user-agent'))) await countCallClick(id);
+    return new NextResponse(null, { status: 204, headers: { 'Cache-Control': 'no-store' } });
+  }
   const dest = id ? await clickAd(id, !isBotUA(req.headers.get('user-agent'))) : null;
   const res = NextResponse.redirect(dest ?? new URL('/', u.origin), 302);
   res.headers.set('Cache-Control', 'no-store');

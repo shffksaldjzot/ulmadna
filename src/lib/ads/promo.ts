@@ -13,6 +13,18 @@ export function firstFreeLeft(paidAdvertisers: number, limit: number = FIRST_FRE
   return Math.max(0, limit - Math.max(0, Math.floor(paidAdvertisers) || 0));
 }
 
+/** 환불된 주문은 이행 안 된 것 — "첫 주문"·"제작 1회 무료" 셈에서 뺀다(2026-10-30). 셈에 들어가는 주문이면 true */
+export function countsAsOrder(payStatus: string | null | undefined): boolean {
+  return payStatus !== 'refunded';
+}
+
+/** 무료 대상이 아닌 이유: 'prior'=이전 주문 있음, 'full'=무료 자리 소진, null=대상(또는 프로모션 꺼짐) */
+export function firstFreeWhy(paidAdvertisers: number, myOrderCount: number, limit: number = FIRST_FREE_ADVERTISERS): 'prior' | 'full' | null {
+  if (limit <= 0) return null;
+  if (firstFreeLeft(paidAdvertisers, limit) <= 0) return 'full';
+  return myOrderCount > 0 ? 'prior' : null;
+}
+
 /** 이 광고주가 무료 대상인가 — 남은 자리가 있고, 지금까지 주문이 하나도 없어야 한다("첫 주문") */
 export function isFirstFreeEligible(paidAdvertisers: number, myOrderCount: number, limit: number = FIRST_FREE_ADVERTISERS): boolean {
   return firstFreeLeft(paidAdvertisers, limit) > 0 && myOrderCount === 0;

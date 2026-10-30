@@ -29,7 +29,21 @@ export interface PreparedPay {
 }
 
 /** 결과: 끝남 / 결제사 화면으로 넘어감(돌아오는 화면이 이어서 처리) / 실패 */
-export type PayResult = { kind: 'done'; orderId?: number } | { kind: 'redirect' } | { kind: 'fail'; error: string };
+//   fail.pgMessage 가 있으면 결제사(PG)가 거절한 사유 그대로(화면이 "결제 승인이 거절됐어요 · 사유" 로 보여 줌)
+export type PayResult = { kind: 'done'; orderId?: number } | { kind: 'redirect' } | { kind: 'fail'; error: string; pgMessage?: string };
+
+/** 결제 실패 사유를 서버에 알려 fail_reason 에 남긴다(실패해도 화면엔 영향 없음) */
+export async function reportPayFail(paymentId: string, message: string): Promise<void> {
+  try {
+    await fetch('/api/partner/pay/fail', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paymentId, message }),
+    });
+  } catch {
+    // 기록 실패는 무시
+  }
+}
 
 /** 서버 확인 API 부르기 */
 export async function confirmPay(paymentId: string): Promise<PayResult> {
@@ -86,7 +100,11 @@ export async function openCheckout(cfg: PayCfg, p: PreparedPay, email?: string, 
     });
     // 돌아오는 값이 없으면 결제사 화면으로 넘어간 것(돌아오는 화면이 확인을 이어서 한다)
     if (!response) return { kind: 'redirect' };
-    if (response.code !== undefined) return { kind: 'fail', error: response.message || '결제를 마치지 못했어요' };
+    if (response.code !== undefined) {
+      const m = response.message || '결제를 마치지 못했어요';
+      void reportPayFail(p.paymentId, m);
+      return { kind: 'fail', error: '결제 승인이 거절됐어요', pgMessage: m };
+    }
     return confirmPay(response.paymentId);
   } catch (e) {
     // 2026-10-29: 포트원 SDK 가 던진 이유(채널 키 불일치·상점 ID 오류 등)를 같이 보여 준다 — 처음 켤 때 원인을 바로 알 수 있게

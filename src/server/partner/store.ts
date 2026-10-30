@@ -15,7 +15,7 @@ import { adminOrNull } from '@/lib/ask/server';
 import { bannerUrl } from '@/server/ads/store';
 import { lastDays } from '@/lib/partner/rules';
 import { fromDbSlot, type SlotKind } from '@/lib/ads/pricing';
-import { firstFreeLeft, isFirstFreeEligible } from '@/lib/ads/promo';
+import { firstFreeLeft, firstFreeWhy, isFirstFreeEligible } from '@/lib/ads/promo';
 import { hashToken, isTokenShape } from './crypto';
 
 /** 배너 보관함 이름(관리자 업로드와 같은 곳) */
@@ -303,6 +303,7 @@ export async function designFirstFree(advertiserId: number): Promise<boolean | n
     .select('id')
     .eq('advertiser_id', advertiserId)
     .eq('design_requested', true)
+    .neq('pay_status', 'refunded') // 환불된 주문은 제작이 이행 안 된 것 → 첫 1회 무료로 안 친다
     .limit(1);
   if (error) return (error as { code?: string }).code === '42703' ? true : null;
   return !data?.length;
@@ -361,16 +362,16 @@ export async function paidAdvertiserCount(): Promise<number | null> {
  * 무료 프로모션 상태: left=남은 곳(0이면 끝·꺼짐), eligible=이 광고주가 지금 첫 달 무료 대상인가.
  *   advertiserId 가 없으면(공개 화면) eligible 은 false. 읽기 실패면 null(결제 준비에서 막음, 공개 화면은 줄 숨김).
  */
-export async function firstFreeInfo(advertiserId: number | null): Promise<{ left: number; eligible: boolean } | null> {
+export async function firstFreeInfo(advertiserId: number | null): Promise<{ left: number; eligible: boolean; why: 'prior' | 'full' | null } | null> {
   const paid = await paidAdvertiserCount();
   if (paid === null) return null;
   let mine = 1; // 모르면 "이미 주문 있음"으로 둬 무료로 새지 않게
   if (advertiserId != null) {
     const sb = adminOrNull();
     if (!sb) return null;
-    const { count, error } = await sb.from('ad_orders').select('id', { count: 'exact', head: true }).eq('advertiser_id', advertiserId);
+    const { count, error } = await sb.from('ad_orders').select('id', { count: 'exact', head: true }).eq('advertiser_id', advertiserId).neq('pay_status', 'refunded'); // 환불 주문은 없는 것으로
     if (error) return null;
     mine = count ?? 0;
   }
-  return { left: firstFreeLeft(paid), eligible: advertiserId != null && isFirstFreeEligible(paid, mine) };
+  return { left: firstFreeLeft(paid), eligible: advertiserId != null && isFirstFreeEligible(paid, mine), why: advertiserId != null ? firstFreeWhy(paid, mine) : null };
 }

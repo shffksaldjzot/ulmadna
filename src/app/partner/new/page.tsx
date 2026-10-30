@@ -28,6 +28,7 @@ export default async function PartnerNew() {
         designFree={designFree}
         promoLeft={promo?.left ?? 0}
         promoEligible={promo?.eligible ?? false}
+        promoWhy={promo?.why ?? null}
       />
     </PartnerShell>
   );

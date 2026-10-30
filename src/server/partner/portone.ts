@@ -36,6 +36,8 @@ function secret(): string | null {
 export interface PortOnePayment {
   status: string; // 'PAID' 면 결제 완료(문서 예시 기준). 그 밖: READY·FAILED·CANCELLED 등
   total: number; // amount.total — 실제 결제 금액
+  /** 실패한 결제의 PG 사유(failure.pgMessage 또는 reason, 없으면 빈 문자열) */
+  failReason: string;
 }
 
 /** 결제 한 건 조회. 열쇠가 없거나 실패하면 null */
@@ -48,8 +50,8 @@ export async function fetchPayment(paymentId: string): Promise<PortOnePayment | 
       cache: 'no-store',
     });
     if (!res.ok) return null;
-    const p = (await res.json()) as { status?: string; amount?: { total?: number } };
-    return { status: String(p.status ?? ''), total: Number(p.amount?.total ?? NaN) };
+    const p = (await res.json()) as { status?: string; amount?: { total?: number }; failure?: { reason?: string; pgMessage?: string } };
+    return { status: String(p.status ?? ''), total: Number(p.amount?.total ?? NaN), failReason: String(p.failure?.pgMessage || p.failure?.reason || '') };
   } catch {
     return null;
   }

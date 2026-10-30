@@ -20,6 +20,7 @@ import {
   resolveAdContent,
 } from '@/lib/ads/config';
 import HouseAdRenderer from './HouseAdRenderer';
+import CallBanner from './CallBanner';
 import SponsoredLabel from './SponsoredLabel';
 import { AdsenseUnit } from './AdsenseUnit';
 import { SLOT_INFO } from '@/lib/ads/pricing';
@@ -88,6 +89,7 @@ export default function AdSlot({
         bannerDesktopImageUrl: served.desktopImageUrl ?? undefined,
         bannerLinkUrl: served.href,
         bannerAdvertiserName: served.name,
+        ...(served.callOnly && served.phone ? { bannerOrderId: served.id, bannerCallPhone: served.phone } : {}),
       }
     : resolveAdContent(key, { adPPageIndex });
 
@@ -142,16 +144,9 @@ export default function AdSlot({
 
       {/* 자체 광고 — 컨테이너 구조 §5.1 충족.
           광고주 발생 시 config.ts에서 banner 반환만 하면 활성화 (코드 수정 불필요). */}
-      {content.kind === 'banner' && content.bannerImageUrl && (
-        <a
-          href={content.bannerLinkUrl ?? '#'}
-          // 미리보기('#')는 새 창을 열지 않는다. 실제 배너는 서버 경유 주소(/api/ad-click)로 클릭을 센다
-          target={content.bannerLinkUrl && content.bannerLinkUrl !== '#' ? '_blank' : undefined}
-          rel="sponsored noopener noreferrer"
-          className="block w-full h-full"
-          aria-label={content.bannerAdvertiserName ?? '광고'}
-        >
-          {/* 화면 폭에 따라 그림을 고른다: PC(1024px 이상)에 PC 그림이 있으면 그것, 아니면 휴대폰 그림 */}
+      {content.kind === 'banner' && content.bannerImageUrl && (() => {
+        // 화면 폭에 따라 그림을 고른다: PC(1024px 이상)에 PC 그림이 있으면 그것, 아니면 휴대폰 그림
+        const pic = (
           <picture className="block w-full h-full">
             {content.bannerDesktopImageUrl && (
               <source media="(min-width: 1024px)" srcSet={content.bannerDesktopImageUrl} />
@@ -163,8 +158,28 @@ export default function AdSlot({
               className="w-full h-full object-cover rounded-md"
             />
           </picture>
-        </a>
-      )}
+        );
+        // 주소 없는 광고: 누르면 전화 걸기(PC 는 번호 시트), 클릭은 그대로 센다
+        if (content.bannerCallPhone && content.bannerOrderId) {
+          return (
+            <CallBanner orderId={content.bannerOrderId} phone={content.bannerCallPhone} name={content.bannerAdvertiserName ?? '광고'} count={content.bannerLinkUrl !== '#'}>
+              {pic}
+            </CallBanner>
+          );
+        }
+        return (
+          <a
+            href={content.bannerLinkUrl ?? '#'}
+            // 미리보기('#')는 새 창을 열지 않는다. 실제 배너는 서버 경유 주소(/api/ad-click)로 클릭을 센다
+            target={content.bannerLinkUrl && content.bannerLinkUrl !== '#' ? '_blank' : undefined}
+            rel="sponsored noopener noreferrer"
+            className="block w-full h-full"
+            aria-label={content.bannerAdvertiserName ?? '광고'}
+          >
+            {pic}
+          </a>
+        );
+      })()}
 
       {/* 애드센스 — 슬롯ID 설정 시 구글 광고 게재 */}
       {content.kind === 'adsense' && content.adsenseSlot && (
