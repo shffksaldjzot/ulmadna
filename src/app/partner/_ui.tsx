@@ -47,6 +47,7 @@ const TABS = [
   { href: '/partner', label: '내 광고' },
   { href: '/partner/stats', label: '노출 추이' },
   { href: '/partner/billing', label: '결제 기록' },
+  { href: '/partner/account', label: '내 정보' },
 ] as const;
 
 /** 로그인 뒤 화면 틀: 머리(업체명·로그아웃) + 본문 + 아래 탭 */
@@ -64,7 +65,7 @@ export function PartnerShell({ name, active, children }: { name: string; active:
       </header>
       <main className="mx-auto max-w-[560px] px-4 pt-5">{children}</main>
       <nav className="fixed inset-x-0 bottom-0 z-10 border-t border-line bg-surface">
-        <div className="mx-auto grid max-w-[560px] grid-cols-3">
+        <div className="mx-auto grid max-w-[560px] grid-cols-4">
           {TABS.map((t) => (
             <Link
               key={t.href}

@@ -155,6 +155,31 @@ const STATS = [
   { value: '₩2만~', label: '30일 최소 광고비(부가세 별도)' },
 ];
 
+/** 가격표 행: [상품명, -, 게재 범위, 가격 코드] — 표(PC)와 카드(휴대폰)가 같이 쓴다 */
+const PRICE_ROWS: string[][] = [
+                  // 금액은 가격 정본(SLOT_INFO)에서 읽는다(2026-10-29 공정 스폰서 7만원)
+                  ['맨 위 띠 배너', 'AD-H', '지역(시·도)당 3개 업체 · 블로그 글 포함', 'AD-H'],
+                  ['견적 결과 옆 큰 배너', 'AD-R', '지역(시·도)당 3개 업체', 'AD-R'],
+                  ['공정 전문 배너', 'AD-P', '지역 · 공정당 3개 업체 · 노출 3곳', 'AD-P'],
+                  ['올수리 업체 배너', 'AD-T', '지역(시·도)당 3개 업체 · 노출 4곳(견적서 포함)', 'AD-T'],
+                  // 2026-10-30: 푸터 자리도 카드·캡처에 안내하므로 가격표에 같이(정본 2만원)
+                  ['맨 아래 띠 배너', 'AD-F', '지역(시·도)당 3개 업체 · 블로그 글 포함 모든 페이지 맨 아래', 'AD-F'],
+                  ['견적서 추천 업체 줄', 'AD-PDF', '견적서 안 공정마다 여러 업체', 'AD-PDF'],
+                  // 2026-10-29: 배너 제작 대행(기간 요금이 아니라 1회 요금)
+                  ['배너 제작 대행', '-', '시안 1개 + 수정 2회 · 3영업일 · 첫 1회 무료', 'DESIGN'],
+];
+
+/** 가격 3칸(서울·경기/광역시/그 외) 값 — 제작 대행·견적서 추천은 한 줄 값 */
+function priceCells(code: string): { label: string; value: string }[] {
+  if (code === 'DESIGN') return [{ label: '1회', value: `${DESIGN_FEE.toLocaleString('ko-KR')}원` }];
+  if (code === 'AD-PDF') return [{ label: '전 지역 같음', value: won('AD-PDF') }];
+  return [
+    { label: '서울·경기', value: won(code as SlotKind, '11') },
+    { label: '광역시', value: won(code as SlotKind, '26') },
+    { label: '그 외', value: won(code as SlotKind, '51') },
+  ];
+}
+
 export default async function SponsorPage() {
   // 실제 광고 표에서 오늘 기준 사용 수를 읽는다(읽기 실패·표 없음이면 빈 판 = 3/3)
   const board = await getBoard();
@@ -163,8 +188,9 @@ export default async function SponsorPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* 헤더 */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-4 lg:px-8 py-3 flex items-center justify-between">
+      {/* 2026-10-30: 고정(sticky) 해제 — 스크롤 때 아래 표 머리글과 겹치던 문제 */}
+      <header className="bg-white border-b border-gray-100">
+        <div className="max-w-5xl mx-auto px-4 lg:px-8 py-2 flex items-center justify-between">
           <Link href="/">
             <Image src="/ulmadna_logo.png" alt="얼마드나" width={100} height={34} />
           </Link>
@@ -179,10 +205,10 @@ export default async function SponsorPage() {
       </header>
 
       {/* 히어로 */}
-      <section className="bg-cream py-16 lg:py-24 px-4">
+      <section className="bg-cream py-8 lg:py-24 px-4">
         <div className="max-w-5xl mx-auto text-center">
-          <p className="text-xs text-gold tracking-widest mb-4">얼마드나 광고 파트너 안내</p>
-          <h1 className="text-3xl lg:text-4xl font-bold text-brown leading-tight mb-4">
+          <p className="text-xs text-gold tracking-widest mb-2">얼마드나 광고 파트너 안내</p>
+          <h1 className="text-2xl lg:text-4xl font-bold text-brown leading-tight mb-3">
             인테리어를 준비하는 고객에게<br />
             당신의 브랜드를 보여주세요
           </h1>
@@ -191,25 +217,19 @@ export default async function SponsorPage() {
             매일 인테리어를 알아보는 실수요자가 방문하며,
             지역과 공정에 맞춰 당신의 광고만 보여줍니다.
           </p>
-          <div className="mt-8 flex justify-center gap-3">
-            <a
-              href="mailto:cs870@naver.com?subject=[얼마드나] 광고 문의"
-              className="bg-brown text-white text-sm px-6 py-3 rounded-full hover:bg-brown/90 transition-colors"
+          {/* 2026-10-30: 주 단추 1개(내용 폭·높이 46px) + 글자 링크 2개 — 휴대폰 첫 화면에 들어오게 */}
+          <div className="mt-5 flex flex-col items-center gap-3">
+            <Link
+              href="/partner/signup"
+              className="inline-flex items-center justify-center h-[46px] px-7 bg-brown text-white text-sm font-semibold rounded-full hover:bg-brown/90 transition-colors"
             >
-              광고 문의하기
-            </a>
-            <a
-              href="#slots"
-              className="text-sm text-brown border border-brown px-6 py-3 rounded-full hover:bg-cream transition-colors"
-            >
-              광고 상품 보기
-            </a>
-            <a
-              href="/sponsor/preview"
-              className="text-sm text-gold border border-gold px-6 py-3 rounded-full hover:bg-gold/5 transition-colors"
-            >
-              실제 적용 미리보기 →
-            </a>
+              광고 신청하기
+            </Link>
+            <p className="text-xs text-gray-500">
+              <a href="#slots" className="underline underline-offset-2 py-2 px-1">광고 상품 보기</a>
+              <span className="mx-2 text-gray-300">·</span>
+              <Link href="/sponsor/preview" className="underline underline-offset-2 py-2 px-1">실제 자리 미리보기</Link>
+            </p>
           </div>
         </div>
       </section>
@@ -366,7 +386,24 @@ export default async function SponsorPage() {
       <section id="price" className="py-16 px-4">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-2xl font-bold text-brown text-center mb-8">가격표 (30일 단위)</h2>
-          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden overflow-x-auto">
+          {/* 휴대폰(640px 이하): 표 대신 카드 목록 */}
+          <ul className="sm:hidden space-y-3" data-testid="price-cards">
+            {PRICE_ROWS.map(([name, , target, code], i) => (
+              <li key={i} className="bg-white rounded-2xl border border-gray-100 p-4">
+                <p className="text-sm font-bold text-gray-700">{name}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{target}</p>
+                <div className="mt-3 flex gap-2">
+                  {priceCells(code).map((c) => (
+                    <div key={c.label} className="flex-1 min-w-0 rounded-lg bg-cream px-2 py-2 text-center">
+                      <p className="text-[11px] text-gray-500">{c.label}</p>
+                      <p className="text-sm font-semibold text-gold tabular-nums whitespace-nowrap">{c.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div className="hidden sm:block bg-white rounded-2xl border border-gray-100 overflow-hidden overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-cream text-xs text-gray-500">
                 <tr>
@@ -378,18 +415,7 @@ export default async function SponsorPage() {
                 </tr>
               </thead>
               <tbody>
-                {[
-                  // 금액은 가격 정본(SLOT_INFO)에서 읽는다(2026-10-29 공정 스폰서 7만원)
-                  ['맨 위 띠 배너', 'AD-H', '지역(시·도)당 3개 업체 · 블로그 글 포함', 'AD-H'],
-                  ['견적 결과 옆 큰 배너', 'AD-R', '지역(시·도)당 3개 업체', 'AD-R'],
-                  ['공정 전문 배너', 'AD-P', '지역 · 공정당 3개 업체 · 노출 3곳', 'AD-P'],
-                  ['올수리 업체 배너', 'AD-T', '지역(시·도)당 3개 업체 · 노출 4곳(견적서 포함)', 'AD-T'],
-                  // 2026-10-30: 푸터 자리도 카드·캡처에 안내하므로 가격표에 같이(정본 2만원)
-                  ['맨 아래 띠 배너', 'AD-F', '지역(시·도)당 3개 업체 · 블로그 글 포함 모든 페이지 맨 아래', 'AD-F'],
-                  ['견적서 추천 업체 줄', 'AD-PDF', '견적서 안 공정마다 여러 업체', 'AD-PDF'],
-                  // 2026-10-29: 배너 제작 대행(기간 요금이 아니라 1회 요금)
-                  ['배너 제작 대행', '-', '시안 1개 + 수정 2회 · 3영업일 · 첫 1회 무료', 'DESIGN'],
-                ].map(([name, , target, code], i) => (
+                {PRICE_ROWS.map(([name, , target, code], i) => (
                   <tr key={i} className="border-t border-gray-50">
                     <td className="px-5 py-3 font-medium text-gray-700">{name}</td>
                     <td className="px-5 py-3 text-gray-400">{target}</td>
@@ -435,7 +461,7 @@ export default async function SponsorPage() {
             <table className="w-full text-sm">
               <thead className="bg-cream text-xs text-gray-500">
                 <tr>
-                  <th className="text-left px-5 py-3">지역</th>
+                  <th className="text-left px-5 py-3 whitespace-nowrap min-w-[88px]">지역</th>
                   {LEFT_KINDS.map((k) => (
                     <th key={k} className="text-center px-3 py-3 whitespace-nowrap">{SLOT_INFO[k].name}</th>
                   ))}
@@ -444,7 +470,7 @@ export default async function SponsorPage() {
               <tbody>
                 {SIDO_CODES.map((c) => (
                   <tr key={c} className="border-t border-gray-50">
-                    <td className="px-5 py-2 text-gray-700">{REGION_NAMES[c]}</td>
+                    <td className="px-5 py-2 text-gray-700 whitespace-nowrap">{REGION_NAMES[c]}</td>
                     {LEFT_KINDS.map((k) => {
                       const left = remaining(board[c]?.[k], k) ?? 3;
                       return (

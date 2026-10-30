@@ -30,7 +30,7 @@ export interface AdvRow {
   lastLoginAt: string | null;
   orders: { review: number; live: number; ended: number; total: number };
   paidTotal: number; // 결제 합계(공급가+부가세, 환불 제외)
-  status: 'active' | 'blocked' | 'none'; // none = 계정 없음(관리자가 손으로 등록한 광고주)
+  status: 'active' | 'blocked' | 'withdraw_requested' | 'none'; // none = 계정 없음(관리자가 손으로 등록한 광고주)
   memo: string;
 }
 
@@ -129,7 +129,7 @@ export async function listAdminAdvertisers(): Promise<AdvRow[] | null> {
       lastLoginAt: acc?.last_login_at ? String(acc.last_login_at) : null,
       orders: ords.get(id) ?? { review: 0, live: 0, ended: 0, total: 0 },
       paidTotal: paid.get(id) ?? 0,
-      status: acc ? (acc.status === 'blocked' ? 'blocked' : 'active') : 'none',
+      status: acc ? (acc.status === 'blocked' ? 'blocked' : acc.status === 'withdraw_requested' ? 'withdraw_requested' : 'active') : 'none',
       memo: String(a.memo ?? ''),
     };
   });

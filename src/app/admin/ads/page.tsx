@@ -82,10 +82,10 @@ export default async function AdsPage() {
 
       <Card title="지역별 남은 자리">
         <div className="overflow-x-auto -mx-1">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[560px] text-sm">
             <thead>
               <tr className="border-b border-gray-100">
-                <th className="py-2 px-2 text-left text-[11px] font-medium text-gray-400">지역</th>
+                <th className="py-2 px-2 whitespace-nowrap min-w-[72px] text-left text-[11px] font-medium text-gray-400">지역</th>
                 {BOARD_KINDS.map((k) => (
                   <th key={k} className="py-2 px-2 text-center text-[11px] font-medium text-gray-400 whitespace-nowrap">
                     {k}<br /><span className="text-gray-300">{SLOT_INFO[k].name} {SLOT_INFO[k].width}×{SLOT_INFO[k].height}</span>
@@ -128,15 +128,15 @@ export default async function AdsPage() {
           <p className="text-sm text-gray-400">아직 주문이 없어요</p>
         ) : (
           <div className="overflow-x-auto -mx-1">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[760px] text-sm">
               <thead>
                 <tr className="border-b border-gray-100 text-[11px] text-gray-400 text-left">
-                  <th className="py-2 px-2">업체 · 자리</th>
-                  <th className="py-2 px-2">기간</th>
-                  <th className="py-2 px-2 text-right">금액</th>
-                  <th className="py-2 px-2">상태</th>
-                  <th className="py-2 px-2 text-right">노출 · 클릭</th>
-                  <th className="py-2 px-2">작업</th>
+                  <th className="py-2 px-2 whitespace-nowrap min-w-[200px]">업체 · 자리</th>
+                  <th className="py-2 px-2 whitespace-nowrap">기간</th>
+                  <th className="py-2 px-2 whitespace-nowrap text-right">금액</th>
+                  <th className="py-2 px-2 whitespace-nowrap">상태</th>
+                  <th className="py-2 px-2 whitespace-nowrap text-right">노출 · 클릭</th>
+                  <th className="py-2 px-2 whitespace-nowrap">작업</th>
                 </tr>
               </thead>
               <tbody>

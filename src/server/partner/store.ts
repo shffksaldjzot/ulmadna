@@ -185,7 +185,8 @@ export async function partnerFromToken(token: string | undefined): Promise<Partn
     sb.from('advertisers').select('name').eq('id', advertiserId).maybeSingle(),
   ]);
   if (e1) return { state: 'down' };
-  if (!acc || acc.status !== 'active') return { state: 'none' };
+  // 정지(blocked)만 막는다. 탈퇴 요청 중(withdraw_requested)에도 게재 중 광고 확인을 위해 로그인은 된다
+  if (!acc || (acc.status !== 'active' && acc.status !== 'withdraw_requested')) return { state: 'none' };
   return {
     state: 'ok',
     partner: { advertiserId, name: String(adv?.name ?? ''), email: String(acc.email), region: String(acc.region), bizNo: String(acc.biz_no) },
@@ -373,4 +374,90 @@ export async function firstFreeInfo(advertiserId: number | null): Promise<{ left
     mine = count ?? 0;
   }
   return { left: firstFreeLeft(paid), eligible: advertiserId != null && isFirstFreeEligible(paid, mine) };
+}
+
+// ── 내 정보(2026-10-30) ───────────────────────
+
+/** 내 정보 화면용 */
+export interface MyAccount {
+  name: string;
+  bizNo: string;
+  /** 'active' 확인됨 / 'unchecked' 미확인 / null = 칸 없음 */
+  bizStatus: string | null;
+  region: string;
+  email: string;
+  /** 'active' | 'withdraw_requested' */
+  status: string;
+  withdrawRequestedAt: string | null;
+  /** 게재 중·검토 중 광고 수(탈퇴 안내용) */
+  liveCount: number;
+}
+
+/** 내 정보 읽기. 실패하면 null */
+export async function myAccount(advertiserId: number): Promise<MyAccount | null> {
+  const sb = adminOrNull();
+  if (!sb) return null;
+  // biz_status·withdraw_requested_at 칸이 아직 없는 DB 도 있어 * 로 읽는다
+  const [{ data: acc, error }, { data: adv }, { count }] = await Promise.all([
+    sb.from('partner_accounts').select('*').eq('advertiser_id', advertiserId).maybeSingle(),
+    sb.from('advertisers').select('name').eq('id', advertiserId).maybeSingle(),
+    sb.from('ad_orders').select('id', { count: 'exact', head: true }).eq('advertiser_id', advertiserId).in('run_status', ['review', 'live']).neq('pay_status', 'refunded'),
+  ]);
+  if (error || !acc) return null;
+  return {
+    name: String(adv?.name ?? ''),
+    bizNo: String(acc.biz_no ?? ''),
+    bizStatus: acc.biz_status == null ? null : String(acc.biz_status),
+    region: String(acc.region ?? ''),
+    email: String(acc.email ?? ''),
+    status: String(acc.status ?? 'active'),
+    withdrawRequestedAt: acc.withdraw_requested_at ? String(acc.withdraw_requested_at) : null,
+    liveCount: count ?? 0,
+  };
+}
+
+/** 상호·지역 고치기(상호는 advertisers, 지역은 partner_accounts) */
+export async function updateProfile(advertiserId: number, input: { name: string; region: string }): Promise<Res> {
+  const sb = adminOrNull();
+  if (!sb) return { ok: false, error: '준비 중이에요' };
+  const { error: e1 } = await sb.from('advertisers').update({ name: input.name }).eq('id', advertiserId);
+  if (e1) return { ok: false, error: '저장하지 못했어요' };
+  const { error: e2 } = await sb.from('partner_accounts').update({ region: input.region }).eq('advertiser_id', advertiserId);
+  if (e2) return { ok: false, error: '저장하지 못했어요' };
+  return { ok: true, data: undefined };
+}
+
+/** 현재 비밀번호 해시 읽기(비밀번호 변경 확인용) */
+export async function passwordHashOf(advertiserId: number): Promise<string | null> {
+  const sb = adminOrNull();
+  if (!sb) return null;
+  const { data } = await sb.from('partner_accounts').select('password_hash').eq('advertiser_id', advertiserId).maybeSingle();
+  return data ? String(data.password_hash) : null;
+}
+
+/** 비밀번호 바꾸기 + 지금 기기(keepToken) 말고 다른 기기 세션을 전부 끊는다 */
+export async function changePassword(advertiserId: number, passwordHash: string, keepToken: string | undefined): Promise<Res> {
+  const sb = adminOrNull();
+  if (!sb) return { ok: false, error: '준비 중이에요' };
+  const { error } = await sb.from('partner_accounts').update({ password_hash: passwordHash }).eq('advertiser_id', advertiserId);
+  if (error) return { ok: false, error: '저장하지 못했어요' };
+  let q = sb.from('partner_sessions').delete().eq('advertiser_id', advertiserId);
+  if (isTokenShape(keepToken)) q = q.neq('token_hash', hashToken(keepToken));
+  await q;
+  return { ok: true, data: undefined };
+}
+
+/** 탈퇴 요청 기록(SQL 20261030_partner_withdraw.sql 실행 전이면 실패 문구) */
+export async function requestWithdraw(advertiserId: number): Promise<Res> {
+  const sb = adminOrNull();
+  if (!sb) return { ok: false, error: '준비 중이에요' };
+  const { data, error } = await sb
+    .from('partner_accounts')
+    .update({ status: 'withdraw_requested', withdraw_requested_at: new Date().toISOString() })
+    .eq('advertiser_id', advertiserId)
+    .eq('status', 'active')
+    .select('id');
+  if (error) return { ok: false, error: '지금은 요청할 수 없어요(준비 중)', code: 'down' };
+  if (!data?.length) return { ok: false, error: '이미 요청했어요' };
+  return { ok: true, data: undefined };
 }

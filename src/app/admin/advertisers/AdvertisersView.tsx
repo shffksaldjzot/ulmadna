@@ -104,8 +104,8 @@ function RowBlock({ r, open, onToggle }: { r: AdvRow; open: boolean; onToggle: (
         <td className="py-2 px-2 tabular-nums text-gray-600 whitespace-nowrap">{r.orders.review} / {r.orders.live} / {r.orders.ended}</td>
         <td className="py-2 px-2 tabular-nums text-gray-700 whitespace-nowrap text-right">{won(r.paidTotal)}</td>
         <td className="py-2 px-2 whitespace-nowrap">
-          <span className={r.status === 'blocked' ? 'text-red-600' : r.status === 'none' ? 'text-gray-400' : 'text-gray-700'}>
-            {r.status === 'blocked' ? '정지' : r.status === 'none' ? '계정 없음' : '활성'}
+          <span className={r.status === 'blocked' || r.status === 'withdraw_requested' ? 'text-red-600' : r.status === 'none' ? 'text-gray-400' : 'text-gray-700'}>
+            {r.status === 'blocked' ? '정지' : r.status === 'withdraw_requested' ? '탈퇴 요청' : r.status === 'none' ? '계정 없음' : '활성'}
           </span>
         </td>
         <td className="py-2 px-2 text-gray-500 truncate" title={r.memo}>{r.memo.slice(0, 30)}</td>
@@ -181,7 +181,7 @@ function Detail({ id }: { id: number }) {
           ['상호', d.name], ['대표자', d.ceo ?? '-'], ['연락처', d.phone ?? '-'], ['이메일', d.email || '-'],
           ['사업자번호', d.bizNo || '-'], ['사업자 상태', d.bizStatus ?? '-'], ['지역', d.region ? REGION_NAMES[d.region] ?? d.region : '-'],
           ['가입일', day(d.createdAt)], ['약관 동의', day(d.agreedAt)], ['최근 로그인', day(d.lastLoginAt)],
-          ['상태', d.status === 'blocked' ? '정지' : d.status === 'none' ? '계정 없음' : '활성'], ['결제 합계', won(d.paidTotal)],
+          ['상태', d.status === 'blocked' ? '정지' : d.status === 'withdraw_requested' ? '탈퇴 요청' : d.status === 'none' ? '계정 없음' : '활성'], ['결제 합계', won(d.paidTotal)],
         ].map(([k, v]) => (
           <div key={k}><p className="text-[11px] text-gray-400">{k}</p><p className="text-gray-800 break-all">{v}</p></div>
         ))}
