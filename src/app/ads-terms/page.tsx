@@ -24,13 +24,13 @@ export default function AdsTermsPage() {
           <div className="bg-surface rounded-card p-6 lg:p-8 border border-line space-y-6 t-body text-ink-2 leading-relaxed">
             <section>
               <h2 className="t-section text-ink mb-2">제1조 (목적)</h2>
-              <p>이 약관은 도토리 스튜디오(이하 &ldquo;판매자&rdquo;)가 운영하는 얼마드나(ulmadna.com)에서 판매하는 배너·스폰서·견적서 추천 업체 광고(이하 &ldquo;광고 서비스&rdquo;)의 이용 조건과 절차를 정함을 목적으로 합니다.</p>
+              <p>이 약관은 도토리 스튜디오(이하 &ldquo;판매자&rdquo;)가 운영하는 얼마드나(ulmadna.com)에서 판매하는 배너·견적서 추천 업체 광고(이하 &ldquo;광고 서비스&rdquo;)의 이용 조건과 절차를 정함을 목적으로 합니다.</p>
             </section>
 
             <section>
               <h2 className="t-section text-ink mb-2">제2조 (서비스 내용)</h2>
               <ol className="list-decimal pl-5 space-y-2">
-                <li>헤더 하단 배너(시도당 3개 업체), 계산 결과 옆 배너(시도당 3개 업체), 공정 스폰서 배너(시도·공정당 3개 업체), 견적서 추천 업체(견적서 안 공정마다 여러 업체)를 판매합니다.</li>
+                <li>맨 위 띠 배너(지역(시·도)당 3개 업체), 견적 결과 옆 큰 배너(지역당 3개 업체), 공정 전문 배너(지역·공정당 3개 업체), 올수리 업체 배너(지역당 3개 업체), 맨 아래 띠 배너(지역당 3개 업체), 견적서 추천 업체 줄(견적서 안 공정마다 여러 업체)을 판매합니다.</li>
                 <li>각 상품의 위치·규격·요금은 <Link href="/sponsor" className="text-accent hover:text-ink">광고 안내 페이지</Link>에 표시된 내용에 따릅니다.</li>
                 <li>모든 광고에는 &ldquo;광고&rdquo; 표시가 붙으며, 같은 상품 안에서 여러 업체가 순서를 바꿔 가며 노출될 수 있습니다.</li>
                 <li>노출 수·클릭 수·문의 수·매출 등 광고 성과는 보장하지 않습니다.</li>
