@@ -59,7 +59,7 @@ export default function SponsorPreview() {
           <ShotCaption shot={PC_SHOT} center />
         </div>
 
-        {/* 자리 요약 — 코드·이름·사이즈·30일 가격 (가격 정본에서 읽음) */}
+        {/* 자리 요약 — 이름·사이즈·30일 가격 (가격 정본에서 읽음) */}
         <section className="mt-14 bg-white rounded-2xl border border-gray-100 p-6 max-w-xl mx-auto">
           <h2 className="text-base font-bold text-brown mb-3">자리 요약</h2>
           <ul className="space-y-1.5 text-sm text-gray-600">
