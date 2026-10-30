@@ -4,7 +4,7 @@
 //   새 광고면 주문을 '배너 검토 중'으로 만들고, 연장이면 기간을 늘린다.
 // ─────────────────────────────────────────────────────────────
 import { NextResponse } from 'next/server';
-import { finalizePayment } from '@/server/partner/pay';
+import { finalizePayment, paymentOrderId } from '@/server/partner/pay';
 import { fail, partnerOr401 } from '../../_util';
 
 export const dynamic = 'force-dynamic';
@@ -17,5 +17,7 @@ export async function POST(req: Request) {
   const paymentId = typeof raw?.paymentId === 'string' ? raw.paymentId : '';
   if (!/^[A-Za-z0-9-]{8,64}$/.test(paymentId)) return fail(400, '결제 번호가 달라요');
   const r = await finalizePayment(paymentId, me.id);
-  return r.ok ? NextResponse.json({ ok: true, state: r.data }) : fail(400, r.error);
+  // 새 광고면 완료 안내용 주문 번호도 같이 준다(2026-10-30)
+  const orderId = r.ok && r.data === 'done' ? await paymentOrderId(paymentId, me.id) : null;
+  return r.ok ? NextResponse.json({ ok: true, state: r.data, orderId }) : fail(400, r.error);
 }

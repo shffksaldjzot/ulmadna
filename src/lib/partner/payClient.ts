@@ -21,13 +21,15 @@ export interface PayCfg {
 export interface PreparedPay {
   /** true 면 합계 0원(첫 달 무료)이라 서버가 주문을 바로 만들었다 — 결제창 없음 */
   free?: boolean;
+  /** 무료 신청으로 바로 만든 주문 번호(완료 안내용) */
+  orderId?: number;
   paymentId: string;
   orderName: string;
   total: number;
 }
 
 /** 결과: 끝남 / 결제사 화면으로 넘어감(돌아오는 화면이 이어서 처리) / 실패 */
-export type PayResult = { kind: 'done' } | { kind: 'redirect' } | { kind: 'fail'; error: string };
+export type PayResult = { kind: 'done'; orderId?: number } | { kind: 'redirect' } | { kind: 'fail'; error: string };
 
 /** 서버 확인 API 부르기 */
 export async function confirmPay(paymentId: string): Promise<PayResult> {
@@ -37,11 +39,23 @@ export async function confirmPay(paymentId: string): Promise<PayResult> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ paymentId }),
     });
-    const d = (await r.json().catch(() => ({}))) as { error?: string; state?: string };
+    const d = (await r.json().catch(() => ({}))) as { error?: string; state?: string; orderId?: number | null };
     if (!r.ok) return { kind: 'fail', error: d.error || '결제 확인에 실패했어요' };
-    return { kind: 'done' };
+    return { kind: 'done', orderId: d.orderId ?? undefined };
   } catch {
     return { kind: 'fail', error: '연결이 끊겼어요. 결제 기록에서 확인해 주세요' };
+  }
+}
+
+/** 서버에서 지금 결제 설정 받기(로그인 필요). 준비 안 됨·실패면 null */
+export async function fetchPayCfg(): Promise<PayCfg | null> {
+  try {
+    const r = await fetch('/api/partner/pay/config', { cache: 'no-store' });
+    if (!r.ok) return null;
+    const d = (await r.json()) as { ready?: boolean; storeId?: string; channelKey?: string };
+    return d.ready && d.storeId && d.channelKey ? { storeId: d.storeId, channelKey: d.channelKey } : null;
+  } catch {
+    return null;
   }
 }
 
@@ -49,6 +63,11 @@ export async function confirmPay(paymentId: string): Promise<PayResult> {
 // 2026-10-29: 이니시스 V2 일반결제는 구매자 휴대폰 번호가 필수(없으면 "결제 창 호출에 실패") → phone 을 받아 customer 에 넣는다
 export async function openCheckout(cfg: PayCfg, p: PreparedPay, email?: string, phone?: string, fullName?: string): Promise<PayResult> {
   try {
+    // 결제 설정은 누르는 순간 서버에서 다시 받는다(열려 있던 화면의 옛 키로 결제되는 사고 방지, 2026-10-30)
+    // 받지 못하면 화면에 박힌 값으로 대신하지 않고 멈춘다
+    const fresh = await fetchPayCfg();
+    if (!fresh) return { kind: 'fail', error: '결제 설정을 불러오지 못했어요. 새로고침 뒤 다시 눌러 주세요' };
+    cfg = fresh;
     const PortOne = await import('@portone/browser-sdk/v2');
     const response = await PortOne.requestPayment({
       storeId: cfg.storeId,

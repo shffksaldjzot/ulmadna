@@ -21,7 +21,14 @@ export default function PayReturn() {
     const job =
       q.get('code') || !paymentId
         ? Promise.resolve(q.get('message') || '결제를 마치지 못했어요')
-        : confirmPay(paymentId).then((r) => (r.kind === 'fail' ? r.error : '결제됐어요. 배너 검토가 끝나면 게재돼요'));
+        : confirmPay(paymentId).then((r) => {
+            // 성공이면 완료 안내 카드가 있는 내 광고 화면으로 바로 보낸다(2026-10-30)
+            if (r.kind === 'done' && r.orderId) {
+              location.replace(`/partner?done=${r.orderId}`);
+              return '결제됐어요';
+            }
+            return r.kind === 'fail' ? r.error : '결제됐어요. 배너 검토가 끝나면 게재돼요';
+          });
     void job.then((m) => {
       setMsg(m);
       setDone(true);

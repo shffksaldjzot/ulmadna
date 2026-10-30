@@ -59,6 +59,7 @@ export default function NewWizard({
   const [design, setDesign] = useState(false);
   const [intro, setIntro] = useState('');
   const [headline, setHeadline] = useState('');
+  const [mood, setMood] = useState(''); // 원하는 느낌(선택)
   const [logo, setLogo] = useState<File | null>(null);
   const [logoErr, setLogoErr] = useState('');
   const [err, setErr] = useState('');
@@ -148,6 +149,7 @@ export default function NewWizard({
       f.set('design', '1');
       f.set('intro', intro);
       f.set('headline', headline);
+      if (mood.trim()) f.set('mood', mood);
       if (logo) f.set('logo', logo);
     } else if (file) {
       f.set('file', file);
@@ -160,7 +162,7 @@ export default function NewWizard({
     }
     // 합계 0원(첫 달 무료): 서버가 결제창 없이 주문을 바로 만들었다
     if (p.data.free) {
-      location.href = '/partner';
+      location.href = p.data.orderId ? `/partner?done=${p.data.orderId}` : '/partner';
       return;
     }
     if (!pay) {
@@ -170,7 +172,7 @@ export default function NewWizard({
     }
     const r = await openCheckout(pay, p.data, email, phone, name);
     if (r.kind === 'done') {
-      location.href = '/partner';
+      location.href = r.orderId ? `/partner?done=${r.orderId}` : '/partner';
       return;
     }
     if (r.kind === 'fail') setErr(r.error);
@@ -270,6 +272,10 @@ export default function NewWizard({
               <label className="mt-4 block">
                 <span className="mb-1.5 block text-[15px] font-semibold text-ink">강조 문구</span>
                 <input className={inputCls} value={headline} maxLength={BRIEF_MAX.headline} onChange={(e) => setHeadline(e.target.value)} placeholder="무료 실측 · 당일 견적" />
+              </label>
+              <label className="mt-4 block">
+                <span className="mb-1.5 block text-[15px] font-semibold text-ink">원하는 느낌 <span className="font-normal text-ink-2">(선택)</span></span>
+                <input className={inputCls} value={mood} maxLength={BRIEF_MAX.mood} onChange={(e) => setMood(e.target.value)} placeholder="깔끔 · 고급 · 친근" />
               </label>
               <p className="mb-1.5 mt-4 text-[15px] font-semibold text-ink">로고 <span className="font-normal text-ink-2">(선택)</span></p>
               <label className="flex min-h-12 cursor-pointer items-center justify-center rounded-xl border border-dashed border-line bg-surface px-3 text-[14px] text-ink-2">
