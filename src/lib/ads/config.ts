@@ -121,6 +121,12 @@ export function resolveAdContent(
 // ─────────────────────────────────────────────────────────────
 export const NATIONAL_HOUSE_ENABLED = true;
 
+/**
+ * 전국 고정 슬롯 배너 그림 스타일 — 'trust'(신뢰 블루) 또는 'wood'(따뜻한 우드). 이 한 줄만 바꾸면 전환된다.
+ *  그림: public/house/incon/<스타일>/<규격>.png (만드는 법: node scripts/sponsor-banners/make-style-banners.mjs --house incon)
+ */
+export const NATIONAL_HOUSE_STYLE: 'trust' | 'wood' = 'trust';
+
 /** 전국 고정 슬롯 배너가 보내는 주소(고정값 — 쿼리로 받지 않아 열린 이동 불가) */
 export const NATIONAL_HOUSE_URL =
   'https://dtrs-incon.com/?utm_source=ulmadna&utm_medium=banner&utm_campaign=house';

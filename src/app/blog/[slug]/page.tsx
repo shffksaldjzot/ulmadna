@@ -397,7 +397,7 @@ export default async function BlogPost({
 
             {/* 전국 고정 슬롯(AD-N, 2026-11-04) — 지역 광고 자리(AD-R·AD-F) 아래. 지역 광고와 별개로
                 전국 어디서나 도토리 인테리어 컨설팅 배너가 늘 보인다(끄기: config.ts NATIONAL_HOUSE_ENABLED) */}
-            <NationalHouseSlot place="blog" />
+            <NationalHouseSlot place="blog" wide />
 
             {ADSENSE_SLOTS.blogInArticle && (
               <div className="blog-ad">

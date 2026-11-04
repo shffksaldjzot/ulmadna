@@ -7,6 +7,10 @@
 //   플레이라이트(크로미움)로 장마다 정확한 픽셀 크기로 캡처한다.
 //
 // [사용법]  node scripts/sponsor-banners/make-style-banners.mjs [스타일열쇠]
+//           node scripts/sponsor-banners/make-style-banners.mjs --house incon [스타일열쇠]
+//   --house incon (2026년 11월 04일): 견본 대신 전국 고정 슬롯용 실제 배너(도토리 인테리어 컨설팅)를
+//   같은 스타일 틀로 만들어 public/house/incon/<스타일>/<규격>.png 에 저장한다(trust·wood 2종).
+//   하우스 배너는 전화번호를 절대 넣지 않는다 — 단추는 "상담 신청 →" 글자만.
 // [바꾸는 법] STYLES 표의 문구만 고치면 된다. 전화는 반드시 010-0 으로 시작(실제 가입자에게 배정되지 않는 번호).
 //   열쇠·이름은 src/lib/ads/bannerStyles.ts 와 같아야 한다.
 // ──────────────────────────────────────────────
@@ -44,6 +48,27 @@ const STYLES = [
   { key: 'pop', tag: '바닥재 전문', hl: '바닥재 *싹* 바꿔드려요!', sub: '장판·마루·데코타일', nm: '쏙쏙바닥', phone: '010-0890-1234', bdg: '지금 전화!', ex: ['장판·마루·타일', '하루 만에 끝', '방문 견적 무료'] },
   { key: 'gold', tag: '조명 · 전기 시공', hl: '공간에 *품격*을', sub: '프리미엄 조명 설계 · 전기 시공', nm: '더클래스전기', phone: '010-0901-2345', bdg: 'PREMIUM', ex: ['간접조명 설계', '스위치·배선 교체', '프리미엄 마감'] },
 ];
+
+/**
+ * 전국 고정 슬롯 실제 배너(하우스) — 2026년 11월 04일
+ *  - 견본 표와 같은 칸을 쓰되 phone 이 없고 btn(단추 글자)이 있다.
+ *  - 컨설팅 업체라 "시공"을 약속하는 말 금지(작은 줄은 오히려 "시공 없이 컨설팅만").
+ *  - styles: 만들 스타일 열쇠(위 STYLE_CSS 의 열쇠)
+ */
+const HOUSE = {
+  incon: {
+    styles: ['trust', 'wood'],
+    tag: '하자·셀프 인테리어 상담',
+    hl: '하자·셀프 인테리어, *혼자 고민 말고* 물어보세요',
+    sub: '전국 상담 · 시공 없이 컨설팅만',
+    nm: '도토리 인테리어 컨설팅',
+    btn: '상담 신청 →',
+    // 320x50 한 줄 자리에는 긴 문구가 안 들어가서 짧은 문구를 쓴다
+    hlShort: '하자·셀프 상담',
+    bdg: '전국 상담',
+    ex: ['하자 상담', '셀프 인테리어 상담', '시공 없이 컨설팅만'],
+  },
+};
 
 const WF = 'file:///C:/Users/MS/AppData/Local/Microsoft/Windows/Fonts/';
 
@@ -186,6 +211,20 @@ const STYLE_CSS = {
   .z-p.s-gold i.d2 { display:none; } .z-p.s-gold i.d1 { inset:2px; }`,
 };
 
+/** 하우스 배너 보정 CSS — 문구가 견본보다 길어서 큰 줄 글자를 조금 줄이고, 단추는 한 줄 글자만 */
+const HOUSE_CSS = `
+.house .btn { flex-direction:row; }
+.house .hl { word-break:keep-all; letter-spacing:-.03em; }
+.z-h.house { padding:0 12px; } .z-h.s-wood.house { padding:0 14px; }
+.z-h.house .btn { width:84px; height:36px; font-size:12.5px; }
+.z-h.house .hl { font-size:14px; line-height:18px; }
+.z-h.house .nm { font-size:10.5px; }
+.z-p.house .nm { max-width:none; font-size:10.5px; } .z-p.house .hl { font-size:12px; }
+.z-w.house .hl { font-size:18px; line-height:23px; } .z-w.house .btn { font-size:16px; }
+.z-w.house .tag, .z-w.house .bdg { display:none; }
+.z-r.house .hl { font-size:21px; line-height:27px; } .z-r.house .bdg, .z-r.house .tag { display:none; } .z-r.house .top { justify-content:flex-end; }
+`;
+
 /** HTML 글자 안전 처리 + *강조* 를 em 으로 */
 const esc = (t) => t.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 const hlHtml = (t) => esc(t).replace(/\*(.+?)\*/g, '<em>$1</em>');
@@ -193,10 +232,13 @@ const hlHtml = (t) => esc(t).replace(/\*(.+?)\*/g, '<em>$1</em>');
 /** 규격별 마크업 */
 function markup(s, sz) {
   const deco = '<i class="d1"></i><i class="d2"></i>';
-  const btnTxt = sz.z === 'p' ? `<b>${s.phone}</b>` : `<span>전화하기</span><b>${s.phone}</b>`;
+  // 하우스 배너(s.btn 있음)는 전화번호 없이 단추 글자만, 견본은 전화 단추
+  const btnTxt = s.btn ? `<b>${esc(s.btn)}</b>` : sz.z === 'p' ? `<b>${s.phone}</b>` : `<span>전화하기</span><b>${s.phone}</b>`;
   const tag = `<div class="tag ell">${esc(s.tag)}</div>`;
   const nm = `<div class="nm ell">${esc(s.nm)}</div>`;
-  const hl = `<div class="hl ${sz.z === 'r' ? 'c3' : sz.z === 'p' ? 'ell' : 'c2'}">${hlHtml(s.hl)}</div>`;
+  // 한 줄 자리(320x50)는 짧은 문구가 있으면 그것을 쓴다(하우스 배너)
+  const hlText = sz.z === 'p' && s.hlShort ? s.hlShort : s.hl;
+  const hl = `<div class="hl ${sz.z === 'r' ? 'c3' : sz.z === 'p' ? 'ell' : 'c2'}">${hlHtml(hlText)}</div>`;
   const sub = `<div class="sub ell">${esc(s.sub)}</div>`;
   const bdg = `<div class="bdg">${esc(s.bdg)}</div>`;
   const ex = `<ul class="ex">${s.ex.map((e) => `<li>${esc(e)}</li>`).join('')}</ul>`;
@@ -206,12 +248,21 @@ function markup(s, sz) {
   else if (sz.z === 'r') inner = `<div class="top">${tag}${nm}</div>${hl}${sub}${ex}${bdg}${btn}`;
   else if (sz.z === 'p') inner = `${nm}${hl}${btn}`;
   else inner = `${tag}<div class="col">${hl}${sub}</div>${nm}${bdg}${btn}`;
-  return `<div class="b z-${sz.z} s-${s.key}" id="${s.key}-${sz.z}">${deco}${inner}</div>`;
+  return `<div class="b z-${sz.z} s-${s.key}${s.btn ? ' house' : ''}" id="${s.key}-${sz.z}">${deco}${inner}</div>`;
 }
 
-const only = process.argv[2];
-const list = STYLES.filter((s) => !only || s.key === only);
-const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><style>${BASE_CSS}${Object.values(STYLE_CSS).join('\n')}</style></head><body>${list.flatMap((s) => SIZES.map((sz) => markup(s, sz))).join('')}</body></html>`;
+// 명령 해석: --house <이름> 이면 하우스 배너, 아니면 견본. 남은 첫 낱말은 스타일 열쇠(한 스타일만 만들 때)
+const argv = process.argv.slice(2);
+const hi = argv.indexOf('--house');
+const houseKey = hi >= 0 ? argv[hi + 1] : null;
+if (houseKey && !HOUSE[houseKey]) throw new Error(`하우스 배너 이름 없음: ${houseKey}`);
+const only = argv.filter((_, i) => hi < 0 || (i !== hi && i !== hi + 1))[0];
+// 하우스: 스타일마다 같은 문구 한 벌, 저장 폴더는 public/house/<이름>
+const list = houseKey
+  ? HOUSE[houseKey].styles.filter((k) => !only || k === only).map((key) => ({ ...HOUSE[houseKey], key }))
+  : STYLES.filter((s) => !only || s.key === only);
+const saveRoot = houseKey ? path.resolve(here, '../../public/house', houseKey) : outRoot;
+const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><style>${BASE_CSS}${Object.values(STYLE_CSS).join('\n')}${HOUSE_CSS}</style></head><body>${list.flatMap((s) => SIZES.map((sz) => markup(s, sz))).join('')}</body></html>`;
 const tmp = path.join(os.tmpdir(), 'ulm-style-banners.html');
 fs.writeFileSync(tmp, html);
 const browser = await chromium.launch();
@@ -220,7 +271,7 @@ await page.goto(pathToFileURL(tmp).href);
 await page.evaluate(() => document.fonts.ready);
 let n = 0;
 for (const s of list) {
-  const dir = path.join(outRoot, s.key);
+  const dir = path.join(saveRoot, s.key);
   fs.mkdirSync(dir, { recursive: true });
   for (const sz of SIZES) {
     const W = sz.w * 2, H = sz.h * 2;
