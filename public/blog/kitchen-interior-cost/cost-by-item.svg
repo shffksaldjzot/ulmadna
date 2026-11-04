@@ -47,9 +47,9 @@
     <!-- 조명전기 70~140 -->
     <rect x="267" y="274" width="67" height="22" rx="4" fill="#d98b6a"/>
     <text x="342" y="290" font-size="11" fill="#6b5d52">70~140</text>
-    <!-- 철거폐기물 40~70 -->
-    <rect x="238" y="318" width="29" height="22" rx="4" fill="#cdbfb1"/>
-    <text x="275" y="334" font-size="11" fill="#6b5d52">40~70</text>
+    <!-- 싱크대 철거 17~48 (견적 줄 중앙 30) -->
+    <rect x="216" y="318" width="30" height="22" rx="4" fill="#cdbfb1"/>
+    <text x="254" y="334" font-size="11" fill="#6b5d52">17~48 (싱크대 철거)</text>
   </g>
 
   <text x="24" y="398" font-size="12" fill="#8a8175">※ 싱크대 가구 + 상판이 전체 견적의 약 45~50%를 차지합니다. 여기서 등급을 정하면 총액이 정해져요.</text>
