@@ -85,6 +85,7 @@ import ResultPanel from './ResultPanel';
 import AreaPendingCard from '../_components/AreaPendingCard';
 // 광고 자리(2026-10-29): 결과가 보일 때만 — 표시 모드(관리자)는 결과 전에도
 import CalcAdSlot from '@/components/ads/CalcAdSlot';
+import NationalHouseSlot from '@/components/ads/NationalHouseSlot';
 import { CALC_AD_PROCESS } from '@/lib/ads/pricing';
 
 /** 새로 고침 복원 열쇠·판 번호(2026-10-28 간단 단계가 바뀌어 3으로 올림 — 옛 저장값은 버린다) */
@@ -679,7 +680,13 @@ export default function TileCalculator() {
                 ) : null
               }
               adAfterCard={adsShown ? <CalcAdSlot id="AD-P" processGroup={adProcess} show /> : undefined}
-              adAfterActions={adsShown ? <CalcAdSlot id="AD-R" show /> : undefined}
+              adAfterActions={adsShown ? (
+                <>
+                  <CalcAdSlot id="AD-R" show />
+                  {/* 전국 고정 슬롯(AD-N, 2026-11-04) — 지역 광고(AD-R) 아래, 지역 광고와 별개로 늘 보임 */}
+                  <NationalHouseSlot place="calc-tile" />
+                </>
+              ) : undefined}
             />
           )}
           {/* 결과 전: 표시 모드(관리자)에서만 자리 위치를 보여 준다 */}

@@ -32,6 +32,7 @@ import { AdsenseUnit } from "@/components/ads/AdsenseUnit";
 import { ADSENSE_SLOTS } from "@/lib/ads/adsense";
 // 공정 스폰서(AD-P)·본문 끝(AD-R) 광고 자리 — 광고 스위치 꺼짐이면 미리보기 말고는 안 그림(2026년 10월 29일)
 import { BlogAdSlot } from "@/components/blog/BlogAdSlot";
+import NationalHouseSlot from "@/components/ads/NationalHouseSlot";
 import { splitAfterFirstH2 } from "@/lib/blog-process";
 import "../blog.css";
 
@@ -393,6 +394,10 @@ export default async function BlogPost({
 
             {/* 글 맨 아래 띠 광고(AD-F) — AD-R 아래. 휴대폰 320×50 / PC 728×90(2026-10-30) */}
             <BlogAdSlot id="AD-F" />
+
+            {/* 전국 고정 슬롯(AD-N, 2026-11-04) — 지역 광고 자리(AD-R·AD-F) 아래. 지역 광고와 별개로
+                전국 어디서나 도토리 인테리어 컨설팅 배너가 늘 보인다(끄기: config.ts NATIONAL_HOUSE_ENABLED) */}
+            <NationalHouseSlot place="blog" />
 
             {ADSENSE_SLOTS.blogInArticle && (
               <div className="blog-ad">

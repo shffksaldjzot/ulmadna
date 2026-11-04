@@ -48,6 +48,7 @@ import ResultPanel from './ResultPanel';
 import AreaPendingCard from '../_components/AreaPendingCard';
 // 광고 자리(2026-10-29): 결과가 보일 때만 — 표시 모드(관리자)는 결과 전에도
 import CalcAdSlot from '@/components/ads/CalcAdSlot';
+import NationalHouseSlot from '@/components/ads/NationalHouseSlot';
 import { CALC_AD_PROCESS } from '@/lib/ads/pricing';
 import { describeFlooringBottomBarAssumption } from '../_components/assumptionText';
 import FlowShell from '../_components/flow/FlowShell';
@@ -570,7 +571,13 @@ export default function FlooringCalculator({ products }: FlooringCalculatorProps
               onRemoveOldChange={(v) => patch({ removeOld: v })}
               onBaseboardChange={(v) => patch({ baseboard: v })}
               adAfterCard={adsShown ? <CalcAdSlot id="AD-P" processGroup={adProcess} show /> : undefined}
-              adAfterActions={adsShown ? <CalcAdSlot id="AD-R" show /> : undefined}
+              adAfterActions={adsShown ? (
+                <>
+                  <CalcAdSlot id="AD-R" show />
+                  {/* 전국 고정 슬롯(AD-N, 2026-11-04) — 지역 광고(AD-R) 아래, 지역 광고와 별개로 늘 보임 */}
+                  <NationalHouseSlot place="calc-flooring" />
+                </>
+              ) : undefined}
             />
           )}
           {/* 결과 전: 표시 모드(관리자)에서만 자리 위치를 보여 준다 */}

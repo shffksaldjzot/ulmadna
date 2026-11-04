@@ -56,6 +56,7 @@ import { DEFAULT_COST, buildCostRows, decodeCost, encodeCost, summarizeCost, typ
 import TileLayer, { TILE_COLORS } from './TileLayer';
 // 광고 자리(2026-10-29) — 광고 전역 스위치가 꺼져 있으면 일반 방문자에겐 아무것도 안 보인다
 import CalcAdSlot from '@/components/ads/CalcAdSlot';
+import NationalHouseSlot from '@/components/ads/NationalHouseSlot';
 
 /** 단가 기억 저장 이름(기기 안) */
 const PRICE_STORE_KEY = 'tilepro_prices_v1';
@@ -531,6 +532,8 @@ export default function TileProCalculator() {
 
             {/* 광고 자리 AD-R — 자재비 아래(2026-10-29) */}
             <CalcAdSlot id="AD-R" show />
+            {/* 전국 고정 슬롯(AD-N, 2026-11-04) — 지역 광고(AD-R) 아래, 지역 광고와 별개로 늘 보임 */}
+            <NationalHouseSlot place="calc-tile-pro" />
 
             <div className="flex flex-col gap-3">
               <Chip size="sm" className="self-start" selected={shareWithPrices} onClick={() => setShareWithPrices((v) => !v)}>

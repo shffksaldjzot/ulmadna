@@ -78,7 +78,8 @@ export function bumpCalcRun(args: {
 }
 
 /** 문의 클릭 +1 */
-export function bumpContactClick(kind: 'phone' | 'kakao', page: string, region: RegionCode): void {
+// 종류: 전화·카톡 문의, house_incon = 전국 고정 슬롯 배너 클릭(2026-11-04)
+export function bumpContactClick(kind: 'phone' | 'kakao' | 'house_incon', page: string, region: RegionCode): void {
   runLater(() => callRpc('metrics_bump_contact', { p_kind: kind, p_page: page, p_region: region }));
 }
 

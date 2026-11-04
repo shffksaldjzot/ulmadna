@@ -109,3 +109,18 @@ export function resolveAdContent(
     }
   }
 }
+
+// ─────────────────────────────────────────────────────────────
+// 전국 고정 슬롯(AD-N) — 2026년 11월 04일 형아 결정
+//  - 지역 광고 3자리(AD-H·AD-P·AD-T·AD-R·AD-F, 시도별 판매)와 완전히 별개인 자리 1개.
+//  - 지역·광고주 주문과 상관없이 전국 어디서나 "도토리 인테리어 컨설팅" 하우스 배너를 기본으로 보여 준다.
+//  - 위의 광고 전역 스위치(ADS_ENABLED)와도 따로 논다(그 스위치가 꺼져 있어도 이 자리는 보임).
+//    이 자리만 끄려면 NATIONAL_HOUSE_ENABLED 를 false 로 바꾼다(자리 자체가 사라짐, 공간 0).
+//  - 지역 광고 조회(/api/ads/serve)·노출 순서·하우스 폴백 규칙(AD-H/AD-R=자체 안내, AD-P/AD-F=접힘)에는 손대지 않는다.
+//  - 클릭은 /api/ad-click?h=incon 을 거쳐 센 뒤(문의 클릭 표, 종류 house_incon) 아래 주소로 보낸다.
+// ─────────────────────────────────────────────────────────────
+export const NATIONAL_HOUSE_ENABLED = true;
+
+/** 전국 고정 슬롯 배너가 보내는 주소(고정값 — 쿼리로 받지 않아 열린 이동 불가) */
+export const NATIONAL_HOUSE_URL =
+  'https://dtrs-incon.com/?utm_source=ulmadna&utm_medium=banner&utm_campaign=house';

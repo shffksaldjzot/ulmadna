@@ -39,6 +39,8 @@ export interface TrafficDash {
   calc7: Record<'wallpaper' | 'flooring' | 'mortar' | 'tile', number>;
   /** 문의 단추 클릭(7일) */
   contact7: { phone: number; kakao: number };
+  /** 전국 고정 슬롯(도토리 인테리어 컨설팅) 배너 클릭 7일 합 — 2026-11-04 */
+  house7: number;
   /** 인기 글 7일 상위 10 (계산기 결과 화면 calc/... 은 제외, 글만) */
   topPosts: { slug: string; views: number }[];
 }
@@ -90,12 +92,15 @@ export async function getTrafficDash(now: Date = new Date(), sbIn?: SupabaseClie
     for (const r of calcs) if (r.process in calc7) calc7[r.process as keyof typeof calc7] += num(r.runs);
     const contact7 = { phone: 0, kakao: 0 };
     for (const r of clicks) if (r.kind === 'phone' || r.kind === 'kakao') contact7[r.kind] += num(r.runs);
+    // 전국 고정 슬롯 배너 클릭(같은 표, 종류 house_incon)
+    const house7 = clicks.filter((r) => r.kind === 'house_incon').reduce((s, r) => s + num(r.runs), 0);
     const posts = views.filter((r) => !r.slug.startsWith('calc/'));
     return {
       viewsToday: views.filter((r) => r.day === today).reduce((s, r) => s + num(r.views), 0),
       views7: views.reduce((s, r) => s + num(r.views), 0),
       calc7,
       contact7,
+      house7,
       topPosts: topN(posts.map((r) => ({ key: r.slug, n: num(r.views) })), 10).map((r) => ({ slug: r.key, views: r.n })),
     };
   } catch (e) {

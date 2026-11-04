@@ -84,7 +84,7 @@ export default async function AdminDashboard() {
             ))}
           </div>
           <p className="text-xs text-gray-500 mt-3">
-            문의 단추 전화 {fmt(traffic?.contact7.phone)} · 카톡 {fmt(traffic?.contact7.kakao)}
+            문의 단추 전화 {fmt(traffic?.contact7.phone)} · 카톡 {fmt(traffic?.contact7.kakao)} · 전국 고정 배너 {fmt(traffic?.house7)}
           </p>
         </Card>
       </div>

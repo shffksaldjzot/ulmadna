@@ -35,3 +35,22 @@ export function recordContactClick(channel: 'phone' | 'kakao', headers?: Headers
     // 집계 실패가 문의 기능에 영향을 주면 안 되므로 조용히 무시
   }
 }
+
+/**
+ * 전국 고정 슬롯(하우스 배너) 클릭 1건 기록 — 2026년 11월 04일
+ * 문의 클릭과 같은 표(contact_clicks_daily)에 종류만 다르게('house_incon') 쌓는다.
+ * 표의 종류 검사를 넓히는 SQL(supabase/migrations/20261104_house_banner_click.sql)을 실행하기 전에는
+ * 서버가 거절해서 숫자만 빠지고, 이동·화면은 그대로 동작한다.
+ *
+ * @param kind 'house_incon'(도토리 인테리어 컨설팅 배너)
+ * @param headers 요청 머리글 — 지역·누른 화면(Referer)·봇 판정용
+ */
+export function recordHouseClick(kind: 'house_incon', headers?: Headers): void {
+  try {
+    if (headers && isBotUA(headers.get('user-agent'))) return; // 봇은 세지 않음
+    const page = pageFromReferer(headers?.get('referer'), headers?.get('host'));
+    bumpContactClick(kind, page, regionFromHeaders(headers));
+  } catch {
+    // 집계 실패가 배너 이동에 영향을 주면 안 되므로 조용히 무시
+  }
+}
