@@ -63,3 +63,6 @@ export default function TermsPage() {
     </>
   );
 }
+
+// [검색 색인 — 2026년 11월 09일] 정본 주소 지정(변형 주소 중복 방지)
+export const metadata = { alternates: { canonical: 'https://ulmadna.com/terms' } };

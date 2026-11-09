@@ -7,6 +7,9 @@ import { getEstimateCount } from '@/lib/stats/estimateCount';
 
 export const revalidate = 3600;
 
+// [검색 색인 — 2026년 11월 09일] 홈 정본 주소. ?utm 같은 변형 주소·/ig·/th 가 전부 이 주소로 모인다.
+export const metadata = { alternates: { canonical: 'https://ulmadna.com/' } };
+
 export default async function Home() {
   const estimateCount = await getEstimateCount();
   return <HomeClient estimateCount={estimateCount} />;
