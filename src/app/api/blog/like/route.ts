@@ -23,6 +23,7 @@
 // ──────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache"; // 좋아요 바뀐 글만 즉시 다시 그리기(2026년 11월 09일)
 import { getBlogLikeCount, toggleBlogLike } from "@/server/metrics/blogLike";
 import { getAllSlugs } from "@/lib/blog";
 
@@ -49,6 +50,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ count: null }, { status: 404 });
     }
     const count = await toggleBlogLike(slug, on);
+    // 좋아요가 바뀐 글만 즉시 다시 그린다(2026년 11월 09일) — 글 화면 숫자 캐시가 1시간이라,
+    // 이게 없으면 다른 사람 눈에는 최대 1시간 뒤에 반영된다. 글당 하루 몇 번 수준이라 비용 무시.
+    if (count !== null) revalidatePath(`/blog/${slug}`);
     return NextResponse.json({ count });
   } catch {
     // 요청 형식이 이상하거나 처리 중 오류가 나도 화면이 죽지 않도록 항상 200으로 조용히 응답

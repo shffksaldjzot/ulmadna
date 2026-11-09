@@ -31,10 +31,15 @@ export function cleanSlug(slug: string): string {
  * 글 하나의 누적 조회수·좋아요를 60초 캐시로 읽는다. 실패하면 null(화면에서 숫자 숨김).
  * 글 화면([slug]/page.tsx) 서버 렌더에서 한 번 부른다.
  */
+// [비용 — 2026년 11월 09일] 60초 → 3600초(1시간).
+//   이 revalidate 가 글 페이지(/blog/[slug]) 전체의 재생성 주기가 된다(Next.js 는 페이지 안 캐시 중
+//   가장 짧은 주기를 페이지 주기로 삼음). 60초였을 때 봇이 글 361편을 훑을 때마다 다시 그려서
+//   버셀 ISR 쓰기가 하루 7만~11만 회($0.3~0.45/일)였다. 1시간이면 글당 하루 최대 24번.
+//   좋아요는 토글 때 그 글만 즉시 다시 그리므로(api/blog/like POST 의 revalidatePath) 늦지 않는다.
 export const getCachedPostTotals = unstable_cache(
   async (slug: string) => readPostTotals(cleanSlug(slug)),
   ['metrics-post-totals-v1'],
-  { revalidate: 60 },
+  { revalidate: 3600 },
 );
 
 /** 이 글의 현재 좋아요 수 (옛 GET /api/blog/like 호환용). 실패·없음이면 0 */

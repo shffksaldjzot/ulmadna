@@ -21,7 +21,9 @@ import CountUp from '@/components/CountUp';
 import { getEstimateCount } from '@/lib/stats/estimateCount';
 import { askHref, shortDate } from '@/lib/ask/format';
 
-export const revalidate = 60;
+// [비용 — 2026년 11월 09일] 60초 → 3600초. 답·댓글·새 글 때는 /api/ask/* 가 revalidatePath 로 즉시 다시 그리므로
+// 주기 재생성은 1시간이면 충분하다(60초일 때 봇 방문마다 다시 그려 버셀 ISR 쓰기가 늘었음).
+export const revalidate = 3600;
 
 const SITE = 'https://ulmadna.com';
 
