@@ -192,6 +192,10 @@
 /* ---- 광고(애드센스) ---- */
 .blog-ad{margin:34px 0;display:flex;justify-content:center;min-height:90px;overflow:hidden;}
 .blog-ad .adsbygoogle{width:100%;}
+/* 광고가 안 채워졌을 때(구글이 data-ad-status="unfilled" 표시) 빈 상자를 접는다.
+   2026-11-12: 글 맨 아래 약 290px 빈 공간이 남던 문제 수리. 광고가 채워지면(filled) 그대로 보인다. */
+.blog-ad .adsbygoogle[data-ad-status="unfilled"]{display:none !important;}
+.blog-ad:has(.adsbygoogle[data-ad-status="unfilled"]){display:none;}
 
 /* ---- 관련글 ---- */
 .blog-related{margin-top:50px;padding-top:32px;border-top:1px solid var(--beige-200);}
