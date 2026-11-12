@@ -247,8 +247,11 @@ export default async function BlogPost({
     articleSection: primaryCat?.label,
   };
 
+  // 검색엔진용 질문·답 데이터(FAQ 구조화 데이터).
+  // 본문에 "자주 묻는 질문" 구역이 있으면 아래 화면의 질문 묶음을 숨기므로(bodyHasFaq),
+  // 화면에 안 보이는 질문을 검색엔진에만 내보내지 않게 이 데이터도 같이 뺀다(2026-11-12).
   const faqLd =
-    post.faq.length > 0
+    post.faq.length > 0 && !bodyHasFaq
       ? {
           "@context": "https://schema.org",
           "@type": "FAQPage",
