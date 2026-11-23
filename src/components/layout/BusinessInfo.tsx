@@ -34,6 +34,21 @@ function Lines() {
   );
 }
 
+/**
+ * 민원 책임 문구 — 결제사(KG이니시스) 심사 요청으로 푸터 하단에 항상 보이게 둔다 (2026년 11월 23일)
+ * 접힌 사업자 정보와 달리 접지 않는다(결제사가 "하단 고지 필수"로 요구).
+ * 메일·전화는 정본(src/lib/business.ts)에서 읽는다.
+ */
+export function LiabilityNote({ className = '' }: { className?: string }) {
+  return (
+    <p className={`t-sub leading-relaxed ${className}`}>
+      모든 거래에 대한 책임과 배송, 교환, 환불 민원 등의 처리는 {B.name}에서 진행합니다.
+      <br />
+      자세한 문의는 Email: {B.email}, 유선: {B.phone} 로 가능합니다.
+    </p>
+  );
+}
+
 export default function BusinessInfo({
   className = '',
   collapsed = false,

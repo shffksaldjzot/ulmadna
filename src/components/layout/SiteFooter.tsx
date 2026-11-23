@@ -18,7 +18,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import Container from './Container';
 import BottomTabs from './BottomTabs';
-import BusinessInfo from './BusinessInfo';
+import BusinessInfo, { LiabilityNote } from './BusinessInfo';
 
 /** 지금 보고 있는 사람 수 — blog.css에 기대지 않고 이 컴포넌트 안에서 직접 그린다 */
 function LiveNow() {
@@ -88,6 +88,8 @@ export default function SiteFooter() {
           {/* 사업자 정보(결제사 심사 대비) — 정본은 src/lib/business.ts */}
           {/* 2026-10-29 형아 요청: 푸터에선 접어서 한 줄만(누르면 펼침) */}
           <BusinessInfo className="max-w-[560px] text-[12px]" collapsed />
+          {/* 2026년 11월 23일: 결제사 심사 요청 — 민원 책임 문구는 접지 않고 항상 보이게 */}
+          <LiabilityNote className="max-w-[560px] text-[12px] text-ink-2" />
           {/* 2026-10-29: 흐린 글자(/70) → 보조 글자색 그대로(대비 확보) */}
           <p className="t-sub text-ink-2">© 2026 도토리 스튜디오 · 얼마드나</p>
         </Container>

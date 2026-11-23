@@ -12,7 +12,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { headers } from 'next/headers';
 import type { ReactNode } from 'react';
-import BusinessInfo from '@/components/layout/BusinessInfo';
+import BusinessInfo, { LiabilityNote } from '@/components/layout/BusinessInfo';
+import { PARTNER_UNITS } from '@/lib/partner/rules';
 import { getBoard, remaining } from '@/server/ads/store';
 import { firstFreeInfo } from '@/server/partner/store';
 import { FIRST_FREE_ADVERTISERS } from '@/lib/ads/config';
@@ -244,7 +245,8 @@ export default async function SponsorPage() {
           </div>
           {/* 장기 할인(2026-10-30): 정본 LONG_DISCOUNT 에서 문구를 만든다 → "90일 10% · 180일 20% 할인" */}
           <p className="text-sm font-semibold text-brown text-center mt-4" data-testid="long-discount">
-            {[...LONG_DISCOUNT].reverse().map((d) => `${d.minUnits * 30}일 ${d.pct}%`).join(' · ')} 할인
+            {/* 2026년 11월 23일: 실제로 살 수 있는 기간(최대 90일)까지만 보여 준다 — 결제사 심사에서 "사이트는 90일, 할인표는 180일"로 어긋난다는 지적 */}
+            {[...LONG_DISCOUNT].reverse().filter((d) => d.minUnits <= Math.max(...PARTNER_UNITS)).map((d) => `${d.minUnits * 30}일 ${d.pct}%`).join(' · ')} 할인
           </p>
           {promo && promo.left > 0 && (
             <p className="text-sm font-semibold text-gold text-center mt-1" data-testid="promo-line">오픈 기념 · 첫 광고주 {FIRST_FREE_ADVERTISERS}곳 첫 달 무료 (남은 {promo.left}곳)</p>
@@ -391,6 +393,8 @@ export default async function SponsorPage() {
           </p>
           <p className="font-semibold">판매자 정보</p>
           <BusinessInfo className="text-cream/70" />
+          {/* 2026년 11월 23일: 결제사 심사 요청 — 민원 책임 문구 */}
+          <LiabilityNote className="text-cream/70" />
           <p>© 2026 도토리 스튜디오 · 얼마드나 · ulmadna.com</p>
         </div>
       </footer>
