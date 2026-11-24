@@ -298,7 +298,7 @@ export default function NewWizard({
                 <input type="file" accept="image/png,image/jpeg" className="sr-only" onChange={(e) => void pickLogo(e.target.files?.[0])} />
               </label>
               {logoErr && <p className="mt-1 text-[13px] text-danger" role="alert">{logoErr}</p>}
-              <p className="mt-2 text-[13px] text-ink-2">시안 1개 · 수정 2회 · 3영업일</p>
+              <p className="mt-2 text-[13px] text-ink-2">시안 1개 · 수정 2회 · 결제 당일 제작</p>
             </div>
           ) : (
           <div>
@@ -389,7 +389,7 @@ export default function NewWizard({
             <p className="mt-3 text-[13px] font-semibold text-accent" data-testid="promo-line">오픈 기념 · 첫 광고주 {FIRST_FREE_ADVERTISERS}곳 첫 달 무료 (남은 {promoLeft}곳)</p>
           )}
           <p className="mt-3 text-[13px] text-ink-2">
-            {design ? '결제 뒤 3영업일 안에 시안을 보내 드려요' : '배너 검토 뒤 게재돼요. 반려되면 카드로 자동 환불돼요'}
+            {design ? '결제 당일 시안을 보내 드려요' : '배너 검토 뒤 게재돼요. 반려되면 카드로 자동 환불돼요'}
           </p>
         </section>
       )}

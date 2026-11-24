@@ -11,9 +11,9 @@ export default function DoneCard({ kind, design = false }: { kind: 'free' | 'des
   const router = useRouter();
   const [title, sub] =
     kind === 'free'
-      ? ['신청 완료', design ? '3영업일 안에 시안을 보내 드려요' : '배너 검토 뒤 게재돼요(보통 1영업일)']
+      ? ['신청 완료', design ? '결제 당일 시안을 보내 드려요' : '배너 검토 뒤 게재돼요(보통 1영업일)']
       : kind === 'design'
-        ? ['결제 완료', '3영업일 안에 시안을 보내 드려요']
+        ? ['결제 완료', '결제 당일 시안을 보내 드려요']
         : ['결제 완료', '배너 검토 뒤 게재돼요(보통 1영업일)'];
   return (
     <div data-testid="done-card"><Card className="mb-4">

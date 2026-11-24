@@ -80,7 +80,7 @@ const PRICE_ROWS: string[][] = [
                   ['맨 아래 띠 배너', 'AD-F', '지역(시·도)당 3개 업체 · 블로그 글 포함 모든 페이지 맨 아래', 'AD-F'],
                   ['견적서 추천 업체 줄', 'AD-PDF', '견적서 안 공정마다 여러 업체', 'AD-PDF'],
                   // 2026-10-29: 배너 제작 대행(기간 요금이 아니라 1회 요금)
-                  ['배너 제작 대행', '-', '시안 1개 + 수정 2회 · 3영업일 · 첫 1회 무료', 'DESIGN'],
+                  ['배너 제작 대행', '-', '시안 1개 + 수정 2회 · 결제 당일 제작 · 첫 1회 무료', 'DESIGN'],
 ];
 
 /** 가격 3칸(서울·경기/광역시/그 외) 값 — 제작 대행·견적서 추천은 한 줄 값 */
@@ -254,7 +254,8 @@ export default async function SponsorPage() {
           <ul className="text-xs text-gray-500 text-center mt-4 space-y-1">
             {/* 2026-10-29: PG 심사 필수 항목(서비스 제공기간·취소·환불 규정을 상품 페이지에 기재) — 카드 결제로 통일 */}
             <li>모든 금액은 부가세 별도이며, 결제는 광고주 화면에서 카드로 합니다. 기간은 30일 또는 90일(30일 단위 일시불)입니다.</li>
-            <li>서비스 제공기간: 결제 뒤 배너 검토(보통 1영업일)를 거쳐 게재가 시작되며, 신청한 일수 동안 노출됩니다.</li>
+            {/* 2026년 11월 24일: 결제사 심사(결제일부터 서비스 종료일까지 90일 이내) — 제작·검토 기간이 광고 기간 안에 들어 있음을 분명히 적는다 */}
+            <li>서비스 제공기간: 광고 기간은 결제일부터 30일 또는 90일이며, 배너 제작·검토 기간이 포함됩니다. 검토(보통 1영업일)를 마치면 바로 게재됩니다.</li>
             <li>취소·환불: 게재 시작 전 취소는 전액 환불, 배너 반려 시 전액 자동 환불, 게재 뒤에는 남은 일수만큼 환불합니다. 자세한 내용은 <Link href="/refund" className="underline">환불 규정</Link>.</li>
             <li>배너 제작 대행 제작비는 제작 착수 뒤에는 환불되지 않습니다.</li>
             <li>한 자리를 혼자 쓰고 싶다면 3개 구좌를 모두 구매하시면 됩니다(예: 맨 위 띠 3구좌 = 서울·경기 300,000원/30일). 트래픽 성장에 따라 단가가 조정될 수 있습니다.</li>
@@ -271,7 +272,7 @@ export default async function SponsorPage() {
           <p className="mt-2 text-2xl font-bold text-gold tabular-nums">{DESIGN_FEE.toLocaleString('ko-KR')}원<span className="ml-1 text-xs font-normal text-gray-400">부가세 별도</span></p>
           <ul className="mt-4 space-y-1.5 text-sm text-gray-600">
             <li>· 시안 1개 + 수정 2회</li>
-            <li>· 3영업일 안에 완성</li>
+            <li>· 결제 당일 제작</li>
             <li>· 상호·전화·강조 문구·로고(선택)만 주세요</li>
           </ul>
           <Link href="/partner/new" className="mt-5 block text-center bg-brown text-white text-sm py-3 rounded-full hover:bg-brown/90 transition-colors">
