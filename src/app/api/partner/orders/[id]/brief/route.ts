@@ -1,40 +1,43 @@
 // ─────────────────────────────────────────────────────────────
-// 제작 요청 내용 고치기 — PATCH /api/partner/orders/[id]/brief (2026-10-30)
-//   본인 주문 · 제작 대행 · 배너가 아직 없을 때(시안 만들기 전)만 고칠 수 있다.
-//   받는 값 { intro, headline, mood?, style? } — 상호·전화·로고는 그대로 둔다.
+// 제작 요청 내용 고치기 — PATCH /api/partner/orders/[id]/brief (2026-10-30, 2026년 11월 24일 바꿈)
+//   본인 주문 · 제작 대행 · 게재 전(검토 단계)이면 고칠 수 있고, 고치면 배너를 다시 자동으로 그린다(횟수 제한 없음).
+//   손으로 올린 배너가 있거나 게재가 시작됐으면 막는다. 실제 처리는 server/partner/brief.ts.
+//   받는 값: JSON { intro, headline, mood?, style? } 또는 multipart(같은 칸 + logo 파일, 로고를 바꿀 때)
+//   상호·전화는 그대로 둔다.
 // ─────────────────────────────────────────────────────────────
 import { NextResponse } from 'next/server';
-import { BRIEF_MAX, briefProblem, cleanBrief } from '@/lib/partner/rules';
-import { cleanStyleKey } from '@/lib/ads/bannerStyles';
-import { adminOrNull } from '@/lib/ask/server';
+import { updateBriefAndRedraw, type BriefInput } from '@/server/partner/brief';
 import { fail, partnerOr401 } from '../../../_util';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+// 다시 그리기가 이 처리 안에서 돈다(보통 1초 안) — 최대 시간을 정해 둔다
+export const maxDuration = 60;
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const me = await partnerOr401();
   if ('res' in me) return me.res;
   const id = Number((await ctx.params).id);
   if (!Number.isInteger(id) || id <= 0) return fail(400, '광고를 찾지 못했어요');
-  const raw = (await req.json().catch(() => null)) as { intro?: unknown; headline?: unknown; mood?: unknown; style?: unknown } | null;
-  if (!raw) return fail(400, '보낸 내용을 읽지 못했어요');
-  const intro = cleanBrief(raw.intro, BRIEF_MAX.intro);
-  const headline = cleanBrief(raw.headline, BRIEF_MAX.headline);
-  const mood = cleanBrief(raw.mood, BRIEF_MAX.mood);
-  const bp = briefProblem(intro, headline);
-  if (bp) return fail(400, bp);
-  const sb = adminOrNull();
-  if (!sb) return fail(503, '준비 중이에요');
-  const { data: o } = await sb
-    .from('ad_orders')
-    .select('id,advertiser_id,design_requested,banner_path,design_brief')
-    .eq('id', id)
-    .eq('advertiser_id', me.id)
-    .maybeSingle();
-  if (!o || o.design_requested !== true) return fail(404, '제작 대행 광고를 찾지 못했어요');
-  if (o.banner_path) return fail(409, '시안 작업이 시작돼 더는 고칠 수 없어요');
-  const prev = o.design_brief && typeof o.design_brief === 'object' ? (o.design_brief as Record<string, unknown>) : {};
-  const { error } = await sb.from('ad_orders').update({ design_brief: { ...prev, intro, headline, mood, style: 'style' in raw ? cleanStyleKey(raw.style) : prev.style ?? '' } }).eq('id', id).eq('advertiser_id', me.id);
-  if (error) return fail(500, '저장하지 못했어요');
-  return NextResponse.json({ ok: true });
+  let input: BriefInput | null = null;
+  if ((req.headers.get('content-type') ?? '').includes('multipart/form-data')) {
+    // 로고를 바꿀 때는 파일과 함께 multipart 로 온다
+    const form = await req.formData().catch(() => null);
+    if (form) {
+      const logo = form.get('logo');
+      input = {
+        intro: form.get('intro'),
+        headline: form.get('headline'),
+        mood: form.get('mood'),
+        style: form.has('style') ? form.get('style') : undefined,
+        logo: logo instanceof File && logo.size > 0 ? { bytes: new Uint8Array(await logo.arrayBuffer()), type: logo.type } : null,
+      };
+    }
+  } else {
+    const raw = (await req.json().catch(() => null)) as { intro?: unknown; headline?: unknown; mood?: unknown; style?: unknown } | null;
+    if (raw) input = { intro: raw.intro, headline: raw.headline, mood: raw.mood, style: 'style' in raw ? raw.style : undefined, logo: null };
+  }
+  if (!input) return fail(400, '보낸 내용을 읽지 못했어요');
+  const r = await updateBriefAndRedraw(me.id, id, input);
+  return r.ok ? NextResponse.json({ ok: true, redrawn: r.data.redrawn }) : fail(r.status, r.error);
 }

@@ -2,10 +2,11 @@
 // 광고주 셀프 화면 순수 함수 시험 — 사업자번호·이메일·비밀번호·금액·배지 (2026년 10월 31일)
 // ─────────────────────────────────────────────────────────────
 import { describe, expect, it } from 'vitest';
-import { DESIGN_FEE, SLOT_INFO } from '@/lib/ads/pricing';
+import { SLOT_INFO } from '@/lib/ads/pricing';
 import {
   PARTNER_SLOTS, badgeOf, briefProblem, cleanBrief, quoteNew, ctr, formatBizNo, isBizNo, isEmail, isPartnerRegion, lastDays, newPaymentId,
-  normalizeBizNo, normalizeEmail, passwordProblem, quote, remainDays, won, isPhoneOk, cleanPhone } from './rules';
+  normalizeBizNo, normalizeEmail, passwordProblem, quote, remainDays, won, isPhoneOk, cleanPhone,
+  extendSpanOk, EXTEND_MAX_REMAIN, EXTEND_TOO_EARLY } from './rules';
 
 describe('사업자번호 형식', () => {
   it('검증 숫자가 맞는 번호는 통과(하이픈 있어도)', () => {
@@ -100,7 +101,7 @@ describe('지역 단계 결제 금액(2026-10-30)', () => {
   it('광역시 70%·그 외 50%', () => {
     expect(quote('AD-H', 1, '26').amount).toBe(70000);
     expect(quote('AD-H', 1, '51').total).toBe(55000);
-    expect(quoteNew('AD-H', 1, null, '26').amount).toBe(70000);
+    expect(quoteNew('AD-H', 1, false, '26').amount).toBe(70000);
   });
 });
 
@@ -111,25 +112,24 @@ describe('토탈 인테리어 스폰서(AD-T)', () => {
   });
 });
 
-describe('배너 제작 대행 금액(2026-10-29)', () => {
+describe('배너 제작 금액 — 2026년 11월 24일 형아 결정: 광고에 무료 포함', () => {
   it('직접 올리기면 제작비 없음 — 기존 금액과 같다', () => {
-    const q = quoteNew('AD-H', 1, null);
+    const q = quoteNew('AD-H', 1, false);
     expect(q).toMatchObject({ units: 1, adAmount: 100000, designFee: 0, amount: 100000, vat: 10000, total: 110000 });
   });
-  it('첫 제작은 무료(0원)', () => {
-    const q = quoteNew('AD-P', 1, { firstFree: true });
+  it('제작을 맡겨도 제작비 0원(몇 번째든)', () => {
+    const q = quoteNew('AD-P', 1, true);
     expect(q.designFee).toBe(0);
     expect(q.amount).toBe(SLOT_INFO['AD-P'].price);
     expect(q.total).toBe(55000);
   });
-  it('두 번째부터 5만 원 + 부가세(광고비와 합쳐 계산)', () => {
-    const q = quoteNew('AD-H', 3, { firstFree: false });
-    expect(DESIGN_FEE).toBe(50000);
+  it('90일 + 제작 맡김: 광고비(할인 뒤)만', () => {
+    const q = quoteNew('AD-H', 3, true);
     expect(q.adAmount).toBe(270000); // 90일 10% 할인 뒤
-    expect(q.designFee).toBe(50000);
-    expect(q.amount).toBe(320000);
-    expect(q.vat).toBe(32000);
-    expect(q.total).toBe(352000);
+    expect(q.designFee).toBe(0);
+    expect(q.amount).toBe(270000);
+    expect(q.vat).toBe(27000);
+    expect(q.total).toBe(297000);
   });
   it('입력 정리와 빈칸 검사', () => {
     expect(cleanBrief(' 남양주  올수리 \t전문 ', 60)).toBe('남양주 올수리 전문');
@@ -171,8 +171,30 @@ describe('장기 할인·첫 달 무료 결제 금액(2026-10-30)', () => {
     expect(q.freeAmount).toBe(90000);
     expect(q.amount).toBe(180000);
   });
-  it('quoteNew 첫 달 무료 + 제작 대행 첫 회 무료면 합계 0원', () => {
-    expect(quoteNew('AD-H', 1, { firstFree: true }, null, true).total).toBe(0);
-    expect(quoteNew('AD-H', 1, { firstFree: false }, null, true).total).toBe(55000);
+  it('quoteNew 첫 달 무료면 제작을 맡겨도 합계 0원', () => {
+    expect(quoteNew('AD-H', 1, true, null, true).total).toBe(0);
+    expect(quoteNew('AD-H', 1, false, null, true).total).toBe(0);
+  });
+});
+
+describe('연장 90일 규칙(2026년 11월 24일 형아 결정)', () => {
+  it('90일 광고를 결제 당일 연장하면 거절(120일이 됨)', () => {
+    // 11-24 결제, 끝 = 11-24 + 89 = 2027-02-21
+    expect(extendSpanOk('2027-02-21', '2026-11-24')).toBe(false);
+  });
+  it('남은 날이 딱 60일(오늘 포함)이면 30일 연장 허용 = 90일', () => {
+    // 오늘 11-24, 끝 2027-01-22 → 남은 60일, 연장 뒤 끝 02-21 → 11-24 부터 90일
+    expect(remainDays('2027-01-22', '2026-11-24')).toBe(60);
+    expect(extendSpanOk('2027-01-22', '2026-11-24')).toBe(true);
+  });
+  it('남은 61일이면 거절', () => {
+    expect(extendSpanOk('2027-01-23', '2026-11-24')).toBe(false);
+  });
+  it('30일 광고 막바지(남은 3일)는 허용', () => {
+    expect(extendSpanOk('2026-11-26', '2026-11-24')).toBe(true);
+  });
+  it('안내 문구에 한도 숫자가 들어간다', () => {
+    expect(EXTEND_MAX_REMAIN).toBe(60);
+    expect(EXTEND_TOO_EARLY).toContain('60일 이하');
   });
 });

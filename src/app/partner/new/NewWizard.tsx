@@ -3,17 +3,17 @@
 // 새 광고 신청 단계 화면 — 한 화면에 한 가지씩 (2026년 10월 31일)
 //   1 자리 고르기(공정 스폰서면 공정도) → 2 지역·기간 → 3 배너·연결 주소 → 4 금액 확인·카드 결제
 //   3단계에서 "배너 직접 올리기 / 제작 대행 맡기기"를 고른다(2026-10-29).
-//   제작 대행이면 그림 대신 업체 소개 한 줄·강조 문구·로고(선택)를 받고 제작비가 더해진다(첫 회 무료).
+//   제작 대행이면 그림 대신 업체 소개 한 줄·강조 문구·로고(선택)를 받는다. 2026년 11월 24일부터 제작은 광고에 무료 포함(제작비 없음).
 //   자리·가격·규격은 광고 정본(SLOT_INFO)에서 읽는다. 금액은 화면에 보여 주기만 하고
 //   실제 결제 금액은 서버가 다시 계산한다.
 //   배너는 고르자마자 자리 규격(2배)에 가운데 맞춤으로 자동 변환한다(2026-10-30).
 //   2026-10-30: 기간 칸에 장기 할인(90일 10%) 표시, 결제 요약에 정가·할인·결제액, 첫 광고주 무료 안내 줄·합계 0원이면 결제창 없이 바로 신청
 //   2026-10-30(2차): 누르면 갈 주소는 [홈페이지 없음·전화로 연결(기본) / 주소 직접 입력] 선택 · 결제 거절 사유(PG 메시지) 표시 ·
-//                    4단계에 제작 첫 1회 무료 소진·첫 달 무료 제외 이유 한 줄
+//                    4단계에 첫 달 무료 제외 이유 한 줄(제작 첫 1회 무료 줄은 2026년 11월 24일 제작 무료 포함으로 없앰)
 //   2026-10-30 변경: 단추가 죽어 있으면 이유 한 줄 표시 · 주소 자동 https:// · 그림 자동 맞춤 · 전화 9자리 이상 · 결제 불가 시 문의 링크
 // ─────────────────────────────────────────────────────────────
 import { useEffect, useState } from 'react';
-import { AD_PROCESS_GROUPS, DESIGN_FEE, SLOT_INFO, checkBanner, longDiscountPct, slotPrice, normalizeClickUrl, type SlotKind } from '@/lib/ads/pricing';
+import { AD_PROCESS_GROUPS, SLOT_INFO, checkBanner, longDiscountPct, slotPrice, normalizeClickUrl, type SlotKind } from '@/lib/ads/pricing';
 import StylePicker from '@/components/sponsor/StylePicker';
 import BannerPreview from '@/components/sponsor/BannerPreview';
 import { BRIEF_MAX, PARTNER_REGIONS, PARTNER_SLOTS, PARTNER_UNITS, briefProblem, cleanBrief, imageKind, isPhoneOk, cleanPhone, quoteNew, regionName, won } from '@/lib/partner/rules';
@@ -39,11 +39,9 @@ const pickCls = (on: boolean) =>
   `w-full min-h-11 rounded-xl border px-4 py-3 text-left ${on ? 'border-accent bg-accent/5' : 'border-line bg-surface'}`;
 
 export default function NewWizard({
-  pay, region, email, name = '', designFree = false, promoLeft = 0, promoEligible = false, promoWhy = null,
+  pay, region, email, name = '', promoLeft = 0, promoEligible = false, promoWhy = null,
 }: {
   pay: PayCfg | null; region: string; email: string; name?: string;
-  /** 제작 대행 첫 회 무료인지(서버가 판정해 넘김 — 결제 금액은 서버가 다시 계산) */
-  designFree?: boolean;
   /** 오픈 기념 첫 광고주 무료: 남은 곳(0이면 안내 줄 숨김) · 이 광고주가 지금 대상인가(서버가 판정) */
   promoLeft?: number;
   promoEligible?: boolean;
@@ -194,7 +192,7 @@ export default function NewWizard({
   };
 
   // 화면 표시용 금액(실제 결제 금액은 서버가 첫 회 여부를 다시 보고 계산)
-  const q = kind ? quoteNew(kind, units, design ? { firstFree: designFree } : null, sido, promoEligible) : null;
+  const q = kind ? quoteNew(kind, units, design, sido, promoEligible) : null;
   const info = kind ? SLOT_INFO[kind] : null;
 
   return (
@@ -273,7 +271,7 @@ export default function NewWizard({
             </button>
             <button type="button" className={pickCls(design)} onClick={() => setDesign(true)} aria-pressed={design}>
               <span className="block text-[15px] font-semibold text-ink">제작 대행 맡기기</span>
-              <span className="mt-0.5 block text-[12px] text-ink-2">{designFree ? '첫 제작 무료' : `${won(DESIGN_FEE)} · 부가세 별도`}</span>
+              <span className="mt-0.5 block text-[12px] text-ink-2">무료 · 결제 즉시 제작</span>
             </button>
           </div>
 
@@ -301,7 +299,7 @@ export default function NewWizard({
               {logoErr && <p className="mt-1 text-[13px] text-danger" role="alert">{logoErr}</p>}
               {/* 결제하면 만들어질 배너를 그 자리에서 보여 준다(2026년 11월 24일, 같은 그리기 코드) */}
               <BannerPreview kind={kind as SlotKind} process={process} style={style} intro={intro} headline={headline} phone={cleanPhone(phone)} logo={logoErr ? null : logo} />
-              <p className="mt-2 text-[13px] text-ink-2">시안 1개 · 수정 2회 · 결제 즉시 제작</p>
+              <p className="mt-2 text-[13px] text-ink-2">결제 즉시 제작 · 게재 전엔 문구를 고치면 다시 만들어요</p>
             </div>
           ) : (
           <div>
@@ -360,13 +358,9 @@ export default function NewWizard({
                   <div className="flex justify-between"><dt className="text-ink-2">광고비</dt><dd className="tabular-nums text-ink">{won(q.adAmount)}</dd></div>
                   <div className="flex justify-between">
                     <dt className="text-ink-2">배너 제작</dt>
-                    <dd className="tabular-nums text-ink">
-                      {q.designFee === 0 ? (<><s className="mr-1.5 text-ink-2">{won(DESIGN_FEE)}</s>0원</>) : won(q.designFee)}
-                    </dd>
+                    {/* 2026년 11월 24일: 배너 제작은 광고에 무료 포함 */}
+                    <dd className="tabular-nums text-accent" data-testid="design-note">무료 포함</dd>
                   </div>
-                  {q.designFee === 0
-                    ? <p className="text-right text-[13px] font-semibold text-accent" data-testid="design-note">(첫 1회 무료)</p>
-                    : <p className="text-right text-[13px] text-ink-2" data-testid="design-note">(첫 1회 무료는 이미 썼어요)</p>}
                 </>
               )}
               {q.discountPct > 0 && (

@@ -7,7 +7,7 @@
 import { useRef, useState } from 'react';
 import { SLOT_INFO } from '@/lib/ads/pricing';
 import { fitBanner } from '@/lib/partner/bannerFit';
-import { BADGE_TEXT, badgeOf, canManage, ctr, quote, regionName, remainDays, won, type BadgeKind } from '@/lib/partner/rules';
+import { BADGE_TEXT, EXTEND_MAX_REMAIN, EXTEND_TOO_EARLY, badgeOf, canManage, ctr, quote, regionName, remainDays, won, type BadgeKind } from '@/lib/partner/rules';
 import { BRIEF_MAX } from '@/lib/partner/rules';
 import { openCheckout, preparePay, type PayCfg } from '@/lib/partner/payClient';
 import type { MyOrder } from '@/server/partner/store';
@@ -26,7 +26,11 @@ const BADGE_CLS: Record<BadgeKind, string> = {
   refunded: 'bg-danger/10 text-danger',
 };
 
-/** 제작 요청 내용 칸(접힘) — 시안 만들기 전(배너 없음)에는 [내용 고치기]로 수정할 수 있다(2026-10-30) */
+/**
+ * 제작 요청 내용 칸(접힘) — [내용 고치기](2026-10-30)
+ *   2026년 11월 24일 형아 결정: 게재 전(검토 단계)이고 배너가 비었거나 자동으로 그린 것이면 고칠 수 있고,
+ *   고치면 배너를 다시 자동으로 그린다(횟수 제한 없음). 로고도 바꿀 수 있다.
+ */
 function BriefBox({ order: o, phone }: { order: MyOrder; phone: string }) {
   const br = o.design_brief ?? {};
   const [open, setOpen] = useState(false);
@@ -35,14 +39,23 @@ function BriefBox({ order: o, phone }: { order: MyOrder; phone: string }) {
   const [headline, setHeadline] = useState(br.headline ?? '');
   const [mood, setMood] = useState(br.mood ?? '');
   const [style, setStyle] = useState(br.style ?? '');
+  const [logo, setLogo] = useState<File | null>(null); // 새 로고(고를 때만)
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
-  const canEdit = !o.has_banner; // 배너가 올라오면 시안 작업이 시작된 것
+  // 게재 전 + (배너 없음 또는 자동 배너)일 때만 — 손으로 올린 배너나 게재 중 광고는 고칠 수 없다
+  const canEdit = o.run_status === 'review' && (!o.has_banner || o.auto_banner);
   const save = async () => {
     setBusy(true);
     setErr('');
     try {
-      const r = await fetch(`/api/partner/orders/${o.id}/brief`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ intro, headline, mood, style }) });
+      // 로고까지 보내야 해서 multipart 로 보낸다(서버가 다시 그린다)
+      const f = new FormData();
+      f.set('intro', intro);
+      f.set('headline', headline);
+      f.set('mood', mood);
+      f.set('style', style);
+      if (logo) f.set('logo', logo);
+      const r = await fetch(`/api/partner/orders/${o.id}/brief`, { method: 'PATCH', body: f });
       const d = (await r.json().catch(() => ({}))) as { error?: string };
       if (r.ok) location.reload();
       else setErr(d.error || '저장하지 못했어요');
@@ -83,11 +96,13 @@ function BriefBox({ order: o, phone }: { order: MyOrder; phone: string }) {
               <label className="block"><span className="mb-1 block text-[13px] text-ink-2">강조 문구</span>
                 <input className="h-12 w-full rounded-xl border border-line bg-surface px-3.5 text-[16px] text-ink" value={headline} maxLength={BRIEF_MAX.headline} onChange={(e) => setHeadline(e.target.value)} /></label>
               <div><span className="mb-1 block text-[13px] text-ink-2">스타일 (선택)</span><StylePicker value={style} onChange={setStyle} /></div>
+              <label className="block"><span className="mb-1 block text-[13px] text-ink-2">로고 (바꿀 때만)</span>
+                <input type="file" accept="image/png,image/jpeg" className="block w-full text-[14px] text-ink-2" onChange={(e) => setLogo(e.target.files?.[0] ?? null)} /></label>
               <label className="block"><span className="mb-1 block text-[13px] text-ink-2">원하는 느낌 (선택)</span>
                 <input className="h-12 w-full rounded-xl border border-line bg-surface px-3.5 text-[16px] text-ink" value={mood} maxLength={BRIEF_MAX.mood} onChange={(e) => setMood(e.target.value)} /></label>
               <div className="grid grid-cols-2 gap-2">
                 <button type="button" className={ghostBtn} disabled={busy} onClick={() => { setEdit(false); setErr(''); }}>취소</button>
-                <button type="button" className={`${ghostBtn} !border-accent !text-accent`} disabled={busy} onClick={save}>저장</button>
+                <button type="button" className={`${ghostBtn} !border-accent !text-accent`} disabled={busy} onClick={save}>{busy ? '다시 만드는 중' : '저장하고 다시 만들기'}</button>
               </div>
               {err && <p className="text-[13px] text-danger" role="alert">{err}</p>}
             </div>
@@ -105,6 +120,8 @@ export default function AdCard({ order: o, today, pay, email, name = '' }: { ord
   const fileRef = useRef<HTMLInputElement>(null);
   const manage = canManage(b);
   const ext = quote(o.slot_kind, 1, o.sido);
+  // 연장 90일 규칙(2026년 11월 24일): 남은 날이 한도보다 많으면 연장 단추를 막고 이유 한 줄
+  const tooEarly = b !== 'expired' && remainDays(o.end_date, today) > EXTEND_MAX_REMAIN;
 
   // 30일 연장
   const extend = async () => {
@@ -197,7 +214,7 @@ export default function AdCard({ order: o, today, pay, email, name = '' }: { ord
 
       {manage && (
         <div className="mt-3 grid grid-cols-2 gap-2">
-          <button type="button" className={ghostBtn} disabled={busy || !pay || b === 'expired'} onClick={extend} title={pay ? `${won(ext.total)}` : '결제 준비 중'}>
+          <button type="button" className={ghostBtn} disabled={busy || !pay || b === 'expired' || tooEarly} onClick={extend} title={pay ? `${won(ext.total)}` : '결제 준비 중'}>
             30일 연장
           </button>
           <button type="button" className={ghostBtn} disabled={busy || b === 'expired'} onClick={() => fileRef.current?.click()}>
@@ -217,6 +234,7 @@ export default function AdCard({ order: o, today, pay, email, name = '' }: { ord
         </div>
       )}
       {manage && !pay && b !== 'expired' && <p className="mt-2 text-[12px] text-ink-2">연장 결제 준비 중</p>}
+      {manage && pay && tooEarly && <p className="mt-2 text-[12px] text-ink-2">{EXTEND_TOO_EARLY}</p>}
       {msg && <p className="mt-2 text-[13px] text-danger" role="alert">{msg}</p>}
     </div>
   );

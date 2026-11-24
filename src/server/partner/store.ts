@@ -14,6 +14,7 @@ import 'server-only';
 import { adminOrNull } from '@/lib/ask/server';
 import { bannerUrl } from '@/server/ads/store';
 import { lastDays } from '@/lib/partner/rules';
+import { isAutoBannerPath } from '@/lib/ads/autoBannerRules';
 import { fromDbSlot, type SlotKind } from '@/lib/ads/pricing';
 import { firstFreeLeft, firstFreeWhy, isFirstFreeEligible } from '@/lib/ads/promo';
 import { hashToken, isTokenShape } from './crypto';
@@ -40,6 +41,8 @@ export interface DesignBrief {
   /** 견본 스타일 열쇠(bannerStyles.ts), 없으면 맡김 */
   style?: string;
   logo_path?: string | null;
+  /** 게재 전 문구를 고쳐 다시 그린 횟수(2026년 11월 24일, 횟수 제한 없음 — 판마다 배너 파일 이름이 달라짐) */
+  redraws?: number;
 }
 
 /** 내 주문 한 줄(화면용) */
@@ -61,6 +64,8 @@ export interface MyOrder {
   design_requested: boolean;
   /** 배너 그림이 있는지(배지 '배너 제작 중' 판정용) */
   has_banner: boolean;
+  /** 배너가 자동으로 그린 것인지(2026년 11월 24일) — 게재 전이면 문구를 고쳐 다시 그릴 수 있다 */
+  auto_banner: boolean;
   /** 제작 요청 내용(제작 대행 주문만, 2026-10-30) */
   design_brief: DesignBrief | null;
   impressions: number;
@@ -252,6 +257,7 @@ export async function myAds(advertiserId: number, today: string): Promise<{ orde
     bannerUrl: bannerUrl(sb, (r.banner_path as string | null) ?? null),
     design_requested: r.design_requested === true,
     has_banner: !!r.banner_path,
+    auto_banner: isAutoBannerPath((r.banner_path as string | null) ?? null),
     design_brief: r.design_requested === true && r.design_brief && typeof r.design_brief === 'object' ? (r.design_brief as DesignBrief) : null,
     impressions: total.get(Number(r.id))?.i ?? 0,
     clicks: total.get(Number(r.id))?.c ?? 0,
@@ -289,26 +295,7 @@ export async function myOrder(advertiserId: number, orderId: number): Promise<{
 }
 
 // ── 배너 제작 대행 ─────────────────────────────
-
-/**
- * 이 광고주의 제작 대행이 "첫 회 무료"인가(2026-10-29)
- *   이전 주문(ad_orders)에 design_requested=true 가 한 줄이라도 있으면 false.
- *   칸이 아직 없으면(20261101_ads_design.sql 실행 전, 오류 42703) 맡긴 적이 없는 것이므로 true.
- *   그 밖의 연결 실패는 null(판정 불가 — 결제 준비에서 막는다).
- */
-export async function designFirstFree(advertiserId: number): Promise<boolean | null> {
-  const sb = adminOrNull();
-  if (!sb) return null;
-  const { data, error } = await sb
-    .from('ad_orders')
-    .select('id')
-    .eq('advertiser_id', advertiserId)
-    .eq('design_requested', true)
-    .neq('pay_status', 'refunded') // 환불된 주문은 제작이 이행 안 된 것 → 첫 1회 무료로 안 친다
-    .limit(1);
-  if (error) return (error as { code?: string }).code === '42703' ? true : null;
-  return !data?.length;
-}
+// (2026년 11월 24일) 제작비가 없어져(광고에 무료 포함) "첫 회 무료" 판정 함수 designFirstFree 를 지웠다.
 
 // ── 결제 기록 ─────────────────────────────────
 

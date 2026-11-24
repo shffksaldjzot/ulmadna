@@ -18,6 +18,8 @@ const nextConfig: NextConfig = {
     "/api/partner/pay/prepare": ["./assets/banner-fonts/**/*"],
     "/api/partner/banner-preview": ["./assets/banner-fonts/**/*"],
     "/api/admin/ads": ["./assets/banner-fonts/**/*"],
+    // 게재 전 문구 고치기 → 다시 그리기(2026년 11월 24일)
+    "/api/partner/orders/[id]/brief": ["./assets/banner-fonts/**/*"],
   },
   // 그리기와 무관한데 결제 코드(pay.ts)를 함께 불러 글꼴이 따라 실리던 경로에서 글꼴을 뺀다(2026년 11월 24일 검사 L11).
   //   이 경로들은 환불·결제 실패 기록·관리자 화면이라 배너를 그리지 않는다(그리기 코드는 pay.ts 가 필요할 때만 불러옴).

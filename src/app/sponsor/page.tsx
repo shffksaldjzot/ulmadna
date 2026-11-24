@@ -19,7 +19,7 @@ import { firstFreeInfo } from '@/server/partner/store';
 import { FIRST_FREE_ADVERTISERS } from '@/lib/ads/config';
 import { LONG_DISCOUNT } from '@/lib/ads/pricing';
 import { SIDO_CODES, REGION_NAMES } from '@/server/admin/format';
-import { DESIGN_FEE, SLOT_INFO, slotPrice, type SlotKind } from '@/lib/ads/pricing';
+import { SLOT_INFO, slotPrice, type SlotKind } from '@/lib/ads/pricing';
 import { BANNER_STYLES, styleImg } from '@/lib/ads/bannerStyles';
 import { MarkedShot, ShotCaption, PHONE_SHOTS, PC_SHOT } from '@/components/sponsor/MarkedShots';
 import RegionHero from '@/components/sponsor/RegionHero';
@@ -80,12 +80,13 @@ const PRICE_ROWS: string[][] = [
                   ['맨 아래 띠 배너', 'AD-F', '지역(시·도)당 3개 업체 · 블로그 글 포함 모든 페이지 맨 아래', 'AD-F'],
                   ['견적서 추천 업체 줄', 'AD-PDF', '견적서 안 공정마다 여러 업체', 'AD-PDF'],
                   // 2026-10-29: 배너 제작 대행(기간 요금이 아니라 1회 요금)
-                  ['배너 제작 대행', '-', '시안 1개 + 수정 2회 · 결제 즉시 제작 · 첫 1회 무료', 'DESIGN'],
+                  // 2026년 11월 24일 형아 결정: 배너 제작은 광고에 무료 포함(전에는 5만원·첫 1회 무료·수정 2회)
+                  ['배너 제작', '-', '결제 즉시 자동 제작 · 게재 전 문구 수정 시 다시 제작', 'DESIGN'],
 ];
 
 /** 가격 3칸(서울·경기/광역시/그 외) 값 — 제작 대행·견적서 추천은 한 줄 값 */
 function priceCells(code: string): { label: string; value: string }[] {
-  if (code === 'DESIGN') return [{ label: '1회', value: `${DESIGN_FEE.toLocaleString('ko-KR')}원` }];
+  if (code === 'DESIGN') return [{ label: '광고에 포함', value: '무료' }];
   if (code === 'AD-PDF') return [{ label: '전 지역 같음', value: won('AD-PDF') }];
   return [
     { label: '서울·경기', value: won(code as SlotKind, '11') },
@@ -229,7 +230,7 @@ export default async function SponsorPage() {
                     <td className="px-5 py-3 font-medium text-gray-700">{name}</td>
                     <td className="px-5 py-3 text-gray-400">{target}</td>
                     {code === 'DESIGN' ? (
-                      <td colSpan={3} className="px-4 py-3 text-right font-semibold text-gold whitespace-nowrap">{DESIGN_FEE.toLocaleString('ko-KR')}원(1회)</td>
+                      <td colSpan={3} className="px-4 py-3 text-right font-semibold text-gold whitespace-nowrap">무료(광고에 포함)</td>
                     ) : code === 'AD-PDF' ? (
                       <td colSpan={3} className="px-4 py-3 text-right font-semibold text-gold whitespace-nowrap">{won('AD-PDF')} (전 지역 같음)</td>
                     ) : (
@@ -257,22 +258,23 @@ export default async function SponsorPage() {
             {/* 2026년 11월 24일: 결제사 심사(결제일부터 서비스 종료일까지 90일 이내) — 제작·검토 기간이 광고 기간 안에 들어 있음을 분명히 적는다 */}
             <li>서비스 제공기간: 광고 기간은 결제일부터 30일 또는 90일이며, 배너 제작·검토 기간이 포함됩니다. 검토(보통 1영업일)를 마치면 바로 게재됩니다.</li>
             <li>취소·환불: 게재 시작 전 취소는 전액 환불, 배너 반려 시 전액 자동 환불, 게재 뒤에는 남은 일수만큼 환불합니다. 자세한 내용은 <Link href="/refund" className="underline">환불 규정</Link>.</li>
-            <li>배너 제작 대행 제작비는 제작 착수 뒤에는 환불되지 않습니다.</li>
+            {/* 2026년 11월 24일: 연장 90일 규칙(결제사 조건) — 제작비 환불 줄은 제작 무료 포함으로 삭제 */}
+            <li>연장: 남은 기간이 60일 이하일 때 30일씩 연장할 수 있습니다(연장 결제일부터 종료일까지 90일 이내).</li>
             <li>한 자리를 혼자 쓰고 싶다면 3개 구좌를 모두 구매하시면 됩니다(예: 맨 위 띠 3구좌 = 서울·경기 300,000원/30일). 트래픽 성장에 따라 단가가 조정될 수 있습니다.</li>
           </ul>
         </div>
       </section>
-      {/* 배너 제작 대행 상품 (2026-10-29 형아 결정: 5만원·부가세 별도·광고주당 첫 1회 무료) */}
+      {/* 배너 제작 (2026년 11월 24일 형아 결정: 광고에 무료 포함 · 결제 즉시 자동 제작 · 게재 전 문구 수정 시 다시 제작) */}
       <section id="design" className="pb-16 px-4">
         <div className="max-w-md mx-auto bg-cream rounded-2xl p-6 lg:p-8">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-lg font-bold text-brown">배너 제작 대행</h2>
-            <span className="text-[11px] font-semibold bg-brown text-white px-2.5 py-1 rounded-full">첫 1회 무료</span>
+            <h2 className="text-lg font-bold text-brown">배너 제작</h2>
+            <span className="text-[11px] font-semibold bg-brown text-white px-2.5 py-1 rounded-full">무료 포함</span>
           </div>
-          <p className="mt-2 text-2xl font-bold text-gold tabular-nums">{DESIGN_FEE.toLocaleString('ko-KR')}원<span className="ml-1 text-xs font-normal text-gray-400">부가세 별도</span></p>
+          <p className="mt-2 text-2xl font-bold text-gold">무료<span className="ml-1 text-xs font-normal text-gray-400">광고에 포함</span></p>
           <ul className="mt-4 space-y-1.5 text-sm text-gray-600">
-            <li>· 시안 1개 + 수정 2회</li>
-            <li>· 결제 즉시 제작</li>
+            <li>· 결제 즉시 자동 제작</li>
+            <li>· 게재 전에는 문구를 고치면 다시 만들어요</li>
             <li>· 상호·전화·강조 문구·로고(선택)만 주세요</li>
           </ul>
           <Link href="/partner/new" className="mt-5 block text-center bg-brown text-white text-sm py-3 rounded-full hover:bg-brown/90 transition-colors">
@@ -336,7 +338,7 @@ export default async function SponsorPage() {
       <section id="styles" className="pb-12 pt-4">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-xl lg:text-2xl font-bold text-brown text-center mb-2 px-4">견본 스타일</h2>
-          <p className="text-xs text-gray-500 text-center mb-6 px-4">제작 대행을 맡기면 이 중에서 고르거나 섞어 드려요 · 견본(가상 업체)</p>
+          <p className="text-xs text-gray-500 text-center mb-6 px-4">배너 제작을 맡기면 고른 스타일로 바로 만들어 드려요 · 견본(가상 업체)</p>
           <div className="flex gap-3 overflow-x-auto px-4 pb-3 snap-x">
             {BANNER_STYLES.map((st) => (
               <div key={st.key} className="snap-start shrink-0 w-[300px] bg-cream rounded-2xl p-4" data-testid={`style-${st.key}`}>

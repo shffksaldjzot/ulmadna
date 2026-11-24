@@ -7,7 +7,7 @@
 //   서버 전용 코드가 없어서 브라우저에서도 불러 쓸 수 있다.
 //   가격·자리 정보는 광고 정본(src/lib/ads/pricing.ts)을 그대로 읽는다(복사하지 않음).
 // ─────────────────────────────────────────────────────────────
-import { DESIGN_FEE, VAT_RATE, priceOf, daysBetween, kstToday, type SlotKind } from '@/lib/ads/pricing';
+import { UNIT_DAYS, VAT_RATE, addDaysStr, priceOf, daysBetween, kstToday, type SlotKind } from '@/lib/ads/pricing';
 import { REGION_NAMES, SIDO_CODES } from '@/server/admin/format';
 
 /** 광고주가 직접 살 수 있는 자리(견적서 추천 글자 광고 AD-PDF 는 관리자 상담으로만). AD-T 는 DB 에 AD-P+'토탈 인테리어'로 저장 */
@@ -92,22 +92,22 @@ export function quote(kind: SlotKind, units: number, sido?: string | null, first
 }
 
 /**
- * 새 광고 결제 금액(배너 제작 대행 포함) — 2026-10-29
- *   design=null 이면 배너를 직접 올리는 경우(제작비 없음).
- *   design.firstFree=true 면 그 광고주의 첫 제작 대행이라 제작비 0원.
- *   amount(공급가) = 광고비 + 제작비, 부가세는 합친 공급가의 10% 반올림.
- *   서버는 첫 회 여부를 DB 로 다시 판정해서 이 함수로 다시 계산한다(브라우저 값을 믿지 않음).
+ * 새 광고 결제 금액 — 2026-10-29, 2026년 11월 24일 바꿈
+ *   형아 결정(11-24 밤): 배너 제작은 광고에 무료로 포함(결제 즉시 자동 제작이라 원가 0).
+ *   그래서 제작비(전에는 5만원·첫 회 무료)는 늘 0원이고 결제 금액에 더하지 않는다.
+ *   design 은 제작을 맡겼는지(true)만 받는다 — 금액엔 영향 없음, designFee 칸은 0 으로 남겨 둔다(주문 기록 design_fee 칸에 0 저장).
  */
 export function quoteNew(
   kind: SlotKind,
   units: number,
-  design: { firstFree: boolean } | null,
+  design: boolean,
   sido?: string | null,
   firstFreeAd = false, // 오픈 기념: 첫 광고주 첫 30일 단위 무료(서버가 DB 로 판정)
 ): { units: number; adAmount: number; designFee: number; amount: number; vat: number; total: number; listAmount: number; discountPct: number; freeAmount: number } {
   const base = quote(kind, units, sido, firstFreeAd);
-  const designFee = design ? (design.firstFree ? 0 : DESIGN_FEE) : 0;
-  const amount = base.amount + designFee;
+  void design; // 제작을 맡겨도 금액은 같다(무료 포함)
+  const designFee = 0;
+  const amount = base.amount;
   const vat = Math.round(amount * VAT_RATE);
   return { units: base.units, adAmount: base.amount, designFee, amount, vat, total: amount + vat, listAmount: base.listAmount, discountPct: base.discountPct, freeAmount: base.freeAmount };
 }
@@ -188,6 +188,23 @@ export function orderStartDay(paidAt: string | null | undefined, now: Date = new
   const day = kstToday(new Date(t));
   return day > today ? today : day;
 }
+
+/**
+ * 연장 90일 규칙(2026년 11월 24일 형아 결정) — 결제사 조건 "결제일부터 서비스 종료일까지 90일 이내"
+ *   연장 결제일부터 연장 뒤 새 마지막 날까지(그날 포함)가 90일을 넘으면 연장할 수 없다.
+ *   30일 연장이면 = 남은 날(오늘 포함)이 60일 이하일 때만 된다.
+ */
+export const MAX_SPAN_DAYS = 90;
+/** 30일 연장을 할 수 있는 남은 날 한도(오늘 포함) */
+export const EXTEND_MAX_REMAIN = MAX_SPAN_DAYS - UNIT_DAYS;
+
+/** payDay(연장 결제일)에 endDate 인 광고를 addDays 만큼 늘려도 90일 안인가 */
+export function extendSpanOk(endDate: string, payDay: string, addDays: number = UNIT_DAYS): boolean {
+  return daysBetween(payDay, addDaysStr(endDate, addDays)) + 1 <= MAX_SPAN_DAYS;
+}
+
+/** 연장이 막혔을 때 보여 줄 짧은 안내 */
+export const EXTEND_TOO_EARLY = `광고 기간이 많이 남아 있어 지금은 연장할 수 없어요. 남은 기간이 ${EXTEND_MAX_REMAIN}일 이하일 때 연장할 수 있어요`;
 
 /** 남은 날(마지막 날 포함). 끝났으면 0 */
 export function remainDays(endDate: string, today: string): number {

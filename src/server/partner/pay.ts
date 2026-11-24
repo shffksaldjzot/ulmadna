@@ -18,9 +18,9 @@ import 'server-only';
 import crypto from 'crypto';
 import { adminOrNull } from '@/lib/ask/server';
 import { AD_PROCESS_GROUPS, SLOT_INFO, addDaysStr, calcOrder, checkBanner, fromDbSlot, normalizeClickUrl, kstToday, toDbSlot, UNIT_DAYS, type SlotKind } from '@/lib/ads/pricing';
-import { BRIEF_MAX, PARTNER_SLOTS, PARTNER_UNITS, badgeOf, briefProblem, canManage, cleanBrief, cleanPhone, imageKind, isPartnerRegion, newPaymentId, orderStartDay, quote, quoteNew, regionName } from '@/lib/partner/rules';
+import { BRIEF_MAX, EXTEND_TOO_EARLY, PARTNER_SLOTS, PARTNER_UNITS, badgeOf, briefProblem, canManage, cleanBrief, cleanPhone, extendSpanOk, imageKind, isPartnerRegion, newPaymentId, orderStartDay, quote, quoteNew, regionName } from '@/lib/partner/rules';
 import { cancelPayment, fetchPayment, payConfig } from './portone';
-import { BUCKET, designFirstFree, firstFreeInfo, myOrder } from './store';
+import { BUCKET, firstFreeInfo, myOrder } from './store';
 import type { AutoResult } from '@/server/banner/bannerAuto';
 
 /**
@@ -60,10 +60,10 @@ async function slotFree(kind: SlotKind, sido: string, process: string | null, fr
   return data !== false;
 }
 
-/** 주문 이름(결제창·카드 명세에 보임). 제작 대행을 맡기면 끝에 "+ 배너 제작"을 붙인다 */
+/** 주문 이름(결제창·카드 명세에 보임). 제작 대행을 맡기면 끝에 "(배너 제작 포함)"을 붙인다(2026년 11월 24일: 무료 포함) */
 function orderNameOf(kind: SlotKind, sido: string, process: string | null, units: number, extend = false, design = false): string {
   const p = process ? ` ${process}` : '';
-  return `얼마드나 광고 ${SLOT_INFO[kind].name}${p} ${regionName(sido)} ${units * UNIT_DAYS}일${extend ? ' 연장' : ''}${design ? ' + 배너 제작' : ''}`;
+  return `얼마드나 광고 ${SLOT_INFO[kind].name}${p} ${regionName(sido)} ${units * UNIT_DAYS}일${extend ? ' 연장' : ''}${design ? ' (배너 제작 포함)' : ''}`;
 }
 
 /** 제작 대행 로고 용량 한도(보관함 ad-banners 한도 1MB 와 같음) */
@@ -117,13 +117,7 @@ export async function prepareNew(advertiserId: number, input: {
 
   const sb = adminOrNull();
   if (!sb) return { ok: false, error: '지금은 신청을 받을 수 없어요(준비 중)' };
-  // 제작 대행 첫 회 무료 판정 — 브라우저가 보낸 값이 아니라 서버가 DB 로 다시 본다
-  let firstFree = false;
-  if (design) {
-    const f = await designFirstFree(advertiserId);
-    if (f === null) return { ok: false, error: '지금은 신청을 받을 수 없어요(준비 중)' };
-    firstFree = f;
-  }
+  // (2026년 11월 24일) 배너 제작은 광고에 무료 포함 — 제작 대행 첫 회 무료 판정(designFirstFree)이 필요 없어졌다
 
   // 그림(배너 또는 로고)은 결제 전에 보관함에 먼저 둔다(결제가 끝나면 주문에 이 경로를 그대로 적는다)
   const upload = async (file: { bytes: Uint8Array; type: string }, prefix: string): Promise<string | null> => {
@@ -144,11 +138,11 @@ export async function prepareNew(advertiserId: number, input: {
     if (!path) return { ok: false, error: '그림을 올리지 못했어요' };
   }
 
-  // 금액: 광고비 + 제작비(첫 회 0원) → 부가세 → 합계. 서버가 다시 계산한다(직접 올리기면 제작비 0)
+  // 금액: 광고비 → 부가세 → 합계. 서버가 다시 계산한다(배너 제작은 무료 포함이라 더하지 않음, 2026년 11월 24일)
   // 오픈 기념 첫 광고주 무료 — 이것도 서버가 DB 로 판정(남은 곳 있음 + 이 광고주의 첫 주문)
   const promo = await firstFreeInfo(advertiserId);
   if (promo === null) return { ok: false, error: '지금은 신청을 받을 수 없어요(준비 중)' };
-  const q = quoteNew(kind, units, design ? { firstFree } : null, sido, promo.eligible);
+  const q = quoteNew(kind, units, !!design, sido, promo.eligible);
   if (q.total > 0 && !payReady) return { ok: false, error: '결제 준비 중이에요' };
   const paymentId = newPaymentId(crypto.randomUUID());
   const phone = cleanPhone(input.phone) || null;
@@ -176,7 +170,7 @@ export async function prepareNew(advertiserId: number, input: {
     ...(design
       ? {
           design_requested: true,
-          design_fee: q.designFee,
+          design_fee: 0, // 무료 포함 — 칸은 남겨 두고 0 으로 적는다(2026년 11월 24일)
           design_brief: { name: partnerName.slice(0, 80), phone, intro, headline, mood, style, logo_path: logoPath },
         }
       : {}),
@@ -193,6 +187,8 @@ export async function prepareExtend(advertiserId: number, orderId: number): Prom
   const today = kstToday();
   const b = badgeOf(o, today);
   if (!canManage(b) || b === 'expired') return { ok: false, error: '연장할 수 없는 광고예요' };
+  // 연장 결제일(오늘)부터 새 마지막 날까지 90일을 넘으면 막는다(2026년 11월 24일 형아 결정, 결제사 90일 조건)
+  if (!extendSpanOk(o.end_date, today)) return { ok: false, error: EXTEND_TOO_EARLY };
   const from = addDaysStr(o.end_date, 1);
   const to = addDaysStr(o.end_date, UNIT_DAYS);
   const free = await slotFree(o.slot_kind, o.sido, o.process, from, to, o.id);
@@ -300,6 +296,13 @@ export async function finalizePayment(paymentId: string, advertiserId: number | 
   if (!o) {
     await sb.from('partner_payments').update({ fail_reason: 'order_missing' }).eq('payment_id', paymentId);
     return { ok: false, error: '결제는 됐지만 연장할 광고를 찾지 못했어요. 곧 연락드릴게요' };
+  }
+  // 결제일 기준으로 90일 규칙을 한 번 더 본다 — 연장 결제를 여러 건 미리 만들어 두고 차례로 확정하면
+  //   준비 때는 통과해도 쌓이면서 90일을 넘을 수 있다. 넘으면 이 연장 결제를 취소한다(2026년 11월 24일)
+  if (!extendSpanOk(o.end_date, orderStartDay(p.paidAt), units * UNIT_DAYS)) {
+    const ok = await cancelPayment(paymentId, '연장 기간 90일 초과');
+    await sb.from('partner_payments').update({ status: ok ? 'refunded' : 'paid', refunded_at: ok ? nowIso : null, fail_reason: 'extend_over_90' }).eq('payment_id', paymentId);
+    return { ok: false, error: ok ? `${EXTEND_TOO_EARLY}. 카드 결제는 취소했어요` : '연장할 수 없는 기간이에요. 환불은 따로 처리해 드릴게요' };
   }
   const { error } = await sb
     .from('ad_orders')

@@ -17,14 +17,18 @@ export function autoSizesOf(kind: SlotKind): { mobile: BannerSize; desktop: Bann
   return { mobile: `${info.width}x${info.height}` as BannerSize, desktop: info.desktop ? (`${info.desktop.width}x${info.desktop.height}` as BannerSize) : null };
 }
 
-/** 자동 제작 배너 파일 경로(주문마다 고정 — 두 번 그려도 같은 파일에 덮어써서 하나만 남는다) */
-export function autoBannerPath(orderId: number, size: BannerSize): string {
-  return `${orderId}/auto-${size}.png`;
+/**
+ * 자동 제작 배너 파일 경로(주문·판 번호마다 고정 — 두 번 그려도 같은 파일에 덮어써서 하나만 남는다)
+ *   rev = 광고주가 게재 전에 문구를 고쳐 다시 그린 횟수(2026년 11월 24일). 판마다 파일 이름이 달라야
+ *   보관함 공개 주소의 캐시 때문에 옛 그림이 보이는 일이 없다. 0 이면 예전과 같은 이름.
+ */
+export function autoBannerPath(orderId: number, size: BannerSize, rev = 0): string {
+  return rev > 0 ? `${orderId}/auto-${size}-r${rev}.png` : `${orderId}/auto-${size}.png`;
 }
 
-/** 자동 제작 배너인가(관리자 화면 "자동" 표시용) */
+/** 자동 제작 배너인가(관리자 화면 "자동" 표시용, 다시 그린 판 포함) */
 export function isAutoBannerPath(p: string | null | undefined): boolean {
-  return typeof p === 'string' && /\/auto-\d+x\d+\.png$/.test(p);
+  return typeof p === 'string' && /\/auto-\d+x\d+(-r\d+)?\.png$/.test(p);
 }
 
 /** 꼬리표: 공정 전문 배너면 공정 이름, 올수리 배너면 "종합 인테리어", 그 밖엔 없음(광고주가 주지 않은 말은 지어내지 않음) */

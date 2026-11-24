@@ -78,7 +78,9 @@ async function drawFor(orderId: number): Promise<AutoResult> {
   const png = await renderBanner({ ...input, size: sizes.mobile }, maxBytes);
   const why = checkBanner(kind, png); // 관리자 올리기와 같은 규격·용량 검사를 통과해야 쓴다
   if (why) return { state: 'fail', error: `규격 검사 실패: ${why}` };
-  const path = autoBannerPath(orderId, sizes.mobile);
+  // 다시 그린 횟수(게재 전 문구 고치기, 2026년 11월 24일) — 판마다 다른 파일 이름
+  const rev = Math.max(0, Math.floor(Number(brief.redraws) || 0));
+  const path = autoBannerPath(orderId, sizes.mobile, rev);
   const up = await sb.storage.from(BUCKET).upload(path, png, { contentType: 'image/png', upsert: true });
   if (up.error) return { state: 'fail', error: '보관함 올리기 실패' };
   // 배너 칸이 비어 있을 때만 적는다 — 그사이 관리자가 올린 배너가 있으면 그것을 지킨다
@@ -91,7 +93,7 @@ async function drawFor(orderId: number): Promise<AutoResult> {
     try {
       const pc = await renderBanner({ ...input, size: sizes.desktop }, maxBytes);
       if (!checkBanner(kind, pc, 'desktop')) {
-        const pcPath = autoBannerPath(orderId, sizes.desktop);
+        const pcPath = autoBannerPath(orderId, sizes.desktop, rev);
         const up2 = await sb.storage.from(BUCKET).upload(pcPath, pc, { contentType: 'image/png', upsert: true });
         if (!up2.error) await sb.from('ad_orders').update({ banner_desktop_path: pcPath }).eq('id', orderId).is('banner_desktop_path', null);
       }
