@@ -1,0 +1,23 @@
+[
+  {
+    "file": "hero.jpg",
+    "photographer": "Aleksandr Lyaptsev",
+    "profile": "https://unsplash.com/@lyaptseviridi",
+    "source": "https://unsplash.com/photos/a-hand-adjusting-components-in-a-glowing-server-rack-5FS9ci4eHg0",
+    "query": "electrical panel wiring electrician home"
+  },
+  {
+    "file": "hero.jpg",
+    "photographer": "Amadeus Moga",
+    "profile": "https://unsplash.com/@amadeusmoga",
+    "source": "https://unsplash.com/photos/a-bunch-of-electrical-boxes-hanging-on-a-wall-cAElpxD2FSs",
+    "query": "electrician fuse box apartment"
+  },
+  {
+    "file": "hero.jpg",
+    "photographer": "Fabian Kleiser",
+    "profile": "https://unsplash.com/@fabiankleiser",
+    "source": "https://unsplash.com/photos/electrical-outlet-disassembled-revealing-the-wiring-lQa1ZX0R3Os",
+    "query": "electrician installing wall socket"
+  }
+]
