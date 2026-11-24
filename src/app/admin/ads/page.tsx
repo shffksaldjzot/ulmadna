@@ -6,6 +6,7 @@
 //   2) 광고주 등록 · 주문 만들기(기간·금액·부가세 자동 계산)
 //   3) 주문 목록: 입금 확인 · 배너 올리기 · 승인·게재 · 중지/종료 · 만료 7일 전 표시 · 노출·클릭 숫자
 //      제작 대행 주문(2026-10-29)은 "제작 대행" 표시 + 입력 내용 보기. 배너를 올리면 '배너 제작 중' → '심사중'
+//      2026년 11월 24일: 결제 즉시 자동으로 그린 배너는 "자동" 표시. 자동 그리기가 실패한 주문엔 [자동 제작 다시] 단추
 //   결제는 1차로 계좌이체 수동 입금 확인. 카드(PG)가 붙으면 같은 주문 표의 결제 방식·상태 칸을 쓴다.
 //   표가 아직 없으면(SQL 미실행) 안내 한 줄만 보인다. 서버 컴포넌트라 열쇠는 브라우저로 안 나간다.
 // ──────────────────────────────────────────────
@@ -14,7 +15,8 @@ import { SLOT_INFO, SIDO_ALL, expiringSoon, kstToday, daysLeft, type SlotKind } 
 import { getBoard, listAdvertisers, listOrders, remaining } from '@/server/ads/store';
 import { Card, PageHead, fmt } from '../_ui';
 import { styleLabel } from '@/lib/ads/bannerStyles';
-import { AdvertiserForm, OrderActions, OrderForm } from './AdsForms';
+import { AdvertiserForm, AutoBannerRetry, OrderActions, OrderForm } from './AdsForms';
+import { isAutoBannerPath } from '@/lib/ads/autoBannerRules';
 // 도배 결과 화면 예시 링크 만들기용(34평 실크 기본 조건)
 import { DEFAULT_CALC_FORM, encodeWallpaperForm } from '@/lib/v1/wallpaperQuery';
 // 토탈 판정 글 예시 링크(AD-T 자리 확인용)
@@ -156,6 +158,8 @@ export default async function AdsPage() {
                         <p className="font-medium text-gray-700">{o.advertiser_name} <span className="text-[11px] text-gray-300">#{o.id}</span></p>
                         <p className="text-[11px] text-gray-500">{o.slot_kind} · {regionName(o.sido)}{o.process && o.slot_kind !== 'AD-T' ? ` · ${o.process}` : ''}</p>
                         {img && <a href={img} target="_blank" rel="noreferrer" className="text-[11px] text-brown underline">배너 보기</a>}
+                        {img && isAutoBannerPath(o.banner_path) && <span className="ml-1 rounded bg-gray-100 px-1 text-[10px] text-gray-500">자동</span>}
+                        {designing && o.pay_status === 'paid' && <div className="mt-0.5"><AutoBannerRetry id={o.id} /></div>}
                         {pcImg && <a href={pcImg} target="_blank" rel="noreferrer" className="ml-2 text-[11px] text-brown underline">PC 배너 보기</a>}
                         {o.design_requested && (
                           <details className="mt-1 text-[11px]">

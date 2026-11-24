@@ -80,7 +80,7 @@ const PRICE_ROWS: string[][] = [
                   ['맨 아래 띠 배너', 'AD-F', '지역(시·도)당 3개 업체 · 블로그 글 포함 모든 페이지 맨 아래', 'AD-F'],
                   ['견적서 추천 업체 줄', 'AD-PDF', '견적서 안 공정마다 여러 업체', 'AD-PDF'],
                   // 2026-10-29: 배너 제작 대행(기간 요금이 아니라 1회 요금)
-                  ['배너 제작 대행', '-', '시안 1개 + 수정 2회 · 결제 당일 제작 · 첫 1회 무료', 'DESIGN'],
+                  ['배너 제작 대행', '-', '시안 1개 + 수정 2회 · 결제 즉시 제작 · 첫 1회 무료', 'DESIGN'],
 ];
 
 /** 가격 3칸(서울·경기/광역시/그 외) 값 — 제작 대행·견적서 추천은 한 줄 값 */
@@ -272,7 +272,7 @@ export default async function SponsorPage() {
           <p className="mt-2 text-2xl font-bold text-gold tabular-nums">{DESIGN_FEE.toLocaleString('ko-KR')}원<span className="ml-1 text-xs font-normal text-gray-400">부가세 별도</span></p>
           <ul className="mt-4 space-y-1.5 text-sm text-gray-600">
             <li>· 시안 1개 + 수정 2회</li>
-            <li>· 결제 당일 제작</li>
+            <li>· 결제 즉시 제작</li>
             <li>· 상호·전화·강조 문구·로고(선택)만 주세요</li>
           </ul>
           <Link href="/partner/new" className="mt-5 block text-center bg-brown text-white text-sm py-3 rounded-full hover:bg-brown/90 transition-colors">

@@ -15,6 +15,7 @@ import {
   setPayStatus,
   setRunStatus,
 } from '@/server/ads/store';
+import { ensureAutoBanner } from '@/server/banner/bannerAuto';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,6 +49,13 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: '요청 형식이 달라요' }, { status: 400 });
       }
       r = await setRunStatus(id, st, typeof body.note === 'string' ? body.note.slice(0, 300) : undefined);
+      break;
+    }
+    case 'autobanner': {
+      // 제작 대행 배너 자동 제작 다시(2026년 11월 24일) — 배너가 비어 있을 때만 그린다(있으면 그대로)
+      if (!Number.isInteger(id)) return NextResponse.json({ error: '요청 형식이 달라요' }, { status: 400 });
+      const a = await ensureAutoBanner(id);
+      r = a.state === 'made' || a.state === 'exists' ? { ok: true } : { ok: false, error: a.state === 'skip' ? '제작 대행 주문이 아니에요' : `자동 제작 실패: ${a.error}` };
       break;
     }
     case 'link':

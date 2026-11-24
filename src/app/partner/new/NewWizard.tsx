@@ -15,6 +15,7 @@
 import { useEffect, useState } from 'react';
 import { AD_PROCESS_GROUPS, DESIGN_FEE, SLOT_INFO, checkBanner, longDiscountPct, slotPrice, normalizeClickUrl, type SlotKind } from '@/lib/ads/pricing';
 import StylePicker from '@/components/sponsor/StylePicker';
+import BannerPreview from '@/components/sponsor/BannerPreview';
 import { BRIEF_MAX, PARTNER_REGIONS, PARTNER_SLOTS, PARTNER_UNITS, briefProblem, cleanBrief, imageKind, isPhoneOk, cleanPhone, quoteNew, regionName, won } from '@/lib/partner/rules';
 import { FIRST_FREE_ADVERTISERS } from '@/lib/ads/config';
 import { fitBanner } from '@/lib/partner/bannerFit';
@@ -298,7 +299,9 @@ export default function NewWizard({
                 <input type="file" accept="image/png,image/jpeg" className="sr-only" onChange={(e) => void pickLogo(e.target.files?.[0])} />
               </label>
               {logoErr && <p className="mt-1 text-[13px] text-danger" role="alert">{logoErr}</p>}
-              <p className="mt-2 text-[13px] text-ink-2">시안 1개 · 수정 2회 · 결제 당일 제작</p>
+              {/* 결제하면 만들어질 배너를 그 자리에서 보여 준다(2026년 11월 24일, 같은 그리기 코드) */}
+              <BannerPreview kind={kind as SlotKind} process={process} style={style} intro={intro} headline={headline} phone={cleanPhone(phone)} logo={logoErr ? null : logo} />
+              <p className="mt-2 text-[13px] text-ink-2">시안 1개 · 수정 2회 · 결제 즉시 제작</p>
             </div>
           ) : (
           <div>
@@ -389,7 +392,7 @@ export default function NewWizard({
             <p className="mt-3 text-[13px] font-semibold text-accent" data-testid="promo-line">오픈 기념 · 첫 광고주 {FIRST_FREE_ADVERTISERS}곳 첫 달 무료 (남은 {promoLeft}곳)</p>
           )}
           <p className="mt-3 text-[13px] text-ink-2">
-            {design ? '결제 당일 시안을 보내 드려요' : '배너 검토 뒤 게재돼요. 반려되면 카드로 자동 환불돼요'}
+            {design ? '결제하면 바로 배너가 만들어져요' : '배너 검토 뒤 게재돼요. 반려되면 카드로 자동 환불돼요'}
           </p>
         </section>
       )}

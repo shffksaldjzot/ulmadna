@@ -10,6 +10,7 @@
 //      - 연장이면 그 주문의 마지막 날을 30일 × 단위만큼 늘린다
 //      결제 확인 API 와 웹훅이 동시에 와도 한 번만 처리되게, 'ready' → 'paid' 바꾸기에 성공한 쪽만 진행한다.
 //   (오픈 기념 첫 광고주 무료로 합계가 0원이면 2)·3)을 건너뛰고 준비 단계에서 바로 주문(검토 상태)을 만든다)
+//   제작 대행 주문은 주문이 만들어지는 그 자리에서 배너를 자동으로 그려 붙인다(2026년 11월 24일, server/banner/bannerAuto.ts)
 //   4) 환불(refund): 관리자가 반려하면 포트원 결제 취소 → 기록 'refunded' → 주문 중지.
 // ─────────────────────────────────────────────────────────────
 import { cleanStyleKey } from '@/lib/ads/bannerStyles';
@@ -20,6 +21,7 @@ import { AD_PROCESS_GROUPS, SLOT_INFO, addDaysStr, calcOrder, checkBanner, fromD
 import { BRIEF_MAX, PARTNER_SLOTS, PARTNER_UNITS, badgeOf, briefProblem, canManage, cleanBrief, cleanPhone, imageKind, isPartnerRegion, newPaymentId, orderStartDay, quote, quoteNew, regionName } from '@/lib/partner/rules';
 import { cancelPayment, fetchPayment, payConfig } from './portone';
 import { BUCKET, designFirstFree, firstFreeInfo, myOrder } from './store';
+import { ensureAutoBanner } from '@/server/banner/bannerAuto';
 
 type Res<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -154,6 +156,8 @@ export async function prepareNew(advertiserId: number, input: {
       ...(design ? { design_requested: true, design_fee: 0, design_brief: { name: partnerName.slice(0, 80), phone, intro, headline, mood, style, logo_path: logoPath } } : {}),
     }).select('id').single();
     if (oe) return { ok: false, error: '지금은 신청을 받을 수 없어요(준비 중)' };
+    // 제작 대행이면 신청이 확정된 지금 바로 배너를 그려 붙인다(2026년 11월 24일). 실패해도 신청은 그대로 성공
+    if (design && freeOrd) await ensureAutoBanner(Number(freeOrd.id));
     return { ok: true, data: { free: true, orderId: freeOrd ? Number(freeOrd.id) : undefined, paymentId, orderName: orderNameOf(kind, sido, process, units, false, !!design), total: 0 } };
   }
   const { error } = await sb.from('partner_payments').insert({
@@ -208,7 +212,11 @@ export async function finalizePayment(paymentId: string, advertiserId: number | 
   if (!sb) return { ok: false, error: '준비 중이에요' };
   const { data: row } = await sb.from('partner_payments').select('*').eq('payment_id', paymentId).maybeSingle();
   if (!row || (advertiserId != null && Number(row.advertiser_id) !== advertiserId)) return { ok: false, error: '결제를 찾지 못했어요' };
-  if (row.status === 'paid') return { ok: true, data: 'done' };
+  if (row.status === 'paid') {
+    // 이미 처리된 결제 — 앞 처리에서 배너 그리기가 시간 초과 등으로 빠졌으면 이번에 한 번 더 시도(그려져 있으면 아무 일 없음)
+    if (row.kind === 'new' && row.design_requested && row.order_id) await ensureAutoBanner(Number(row.order_id));
+    return { ok: true, data: 'done' };
+  }
   if (row.status !== 'ready') return { ok: false, error: '처리할 수 없는 결제예요' };
 
   // 포트원에 직접 다시 물어본다(브라우저·웹훅 내용은 믿지 않음)
@@ -271,6 +279,9 @@ export async function finalizePayment(paymentId: string, advertiserId: number | 
       return { ok: false, error: '결제는 됐지만 광고 등록에 실패했어요. 곧 연락드릴게요' };
     }
     await sb.from('partner_payments').update({ order_id: Number(ord.id) }).eq('payment_id', paymentId);
+    // 제작 대행: 결제가 확정된 이 처리 안에서 바로 배너를 그려 붙인다(2026년 11월 24일, 결제사 90일 조건).
+    //   검토(review) 상태는 그대로 — 관리자 승인 뒤 게재. 그리기가 실패해도 결제·주문은 그대로 성공으로 돌려준다
+    if (row.design_requested) await ensureAutoBanner(Number(ord.id));
     return { ok: true, data: 'done' };
   }
 

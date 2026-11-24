@@ -36,7 +36,7 @@ export default async function PartnerHome({ searchParams }: { searchParams: Prom
 
   return (
     <PartnerShell name={name} active="/partner">
-      {doneKind && <DoneCard kind={doneKind} design={!!doneOrder?.design_requested} />}
+      {doneKind && <DoneCard kind={doneKind} design={!!doneOrder?.design_requested} made={!!doneOrder?.has_banner} />}
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-[22px] font-bold text-brown">내 광고</h1>
         {data && data.orders.length > 0 && (

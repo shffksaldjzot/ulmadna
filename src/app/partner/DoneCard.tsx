@@ -6,14 +6,18 @@
 import { useRouter } from 'next/navigation';
 import { Card } from './_ui';
 
-/** kind: free=0원 신청 · design=제작 대행 · review=직접 올린 배너 */
-export default function DoneCard({ kind, design = false }: { kind: 'free' | 'design' | 'review'; design?: boolean }) {
+/**
+ * kind: free=0원 신청 · design=제작 대행 · review=직접 올린 배너
+ * made: 제작 대행 배너가 이미 자동으로 만들어졌는가(2026년 11월 24일). 그리기가 실패해 아직 없으면 사람이 당일 올린다는 안내
+ */
+export default function DoneCard({ kind, design = false, made = false }: { kind: 'free' | 'design' | 'review'; design?: boolean; made?: boolean }) {
   const router = useRouter();
+  const designSub = made ? '배너가 만들어졌어요 · 검토 뒤 게재돼요' : '결제 당일 시안을 보내 드려요';
   const [title, sub] =
     kind === 'free'
-      ? ['신청 완료', design ? '결제 당일 시안을 보내 드려요' : '배너 검토 뒤 게재돼요(보통 1영업일)']
+      ? ['신청 완료', design ? designSub : '배너 검토 뒤 게재돼요(보통 1영업일)']
       : kind === 'design'
-        ? ['결제 완료', '결제 당일 시안을 보내 드려요']
+        ? ['결제 완료', designSub]
         : ['결제 완료', '배너 검토 뒤 게재돼요(보통 1영업일)'];
   return (
     <div data-testid="done-card"><Card className="mb-4">

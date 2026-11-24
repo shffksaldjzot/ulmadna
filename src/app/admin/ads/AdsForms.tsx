@@ -228,3 +228,34 @@ export function OrderActions({
     </div>
   );
 }
+
+/**
+ * 제작 대행 배너 자동 제작 다시 하기(2026년 11월 24일)
+ *   결제 때 자동 그리기가 실패해 '배너 제작 중'으로 남은 주문에만 보인다.
+ *   서버가 같은 그리기 코드로 다시 그려 주문에 붙인다(이미 배너가 있으면 아무 일 없음). 검토 상태는 그대로.
+ */
+export function AutoBannerRetry({ id }: { id: number }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState('');
+  return (
+    <span className="inline-flex items-center gap-1">
+      <button
+        type="button"
+        className="rounded border border-orange-300 px-1.5 py-0.5 text-[11px] text-orange-700 disabled:opacity-50"
+        disabled={busy}
+        onClick={async () => {
+          setBusy(true);
+          setMsg('');
+          const err = await post({ action: 'autobanner', id });
+          setBusy(false);
+          if (err) setMsg(err);
+          else router.refresh();
+        }}
+      >
+        {busy ? '그리는 중' : '자동 제작 다시'}
+      </button>
+      {msg && <span className="text-[11px] text-red-600">{msg}</span>}
+    </span>
+  );
+}

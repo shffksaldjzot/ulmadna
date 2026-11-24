@@ -4,6 +4,20 @@ const nextConfig: NextConfig = {
   /* config options here */
 
   // ──────────────────────────────────────────────
+  // 배너 자동 제작 글꼴 싣기 (2026년 11월 24일)
+  //   서버가 배너를 그릴 때 assets/banner-fonts/ 의 글꼴 파일을 fs 로 읽는다(src/server/banner/bannerFonts.ts).
+  //   코드에서 import 하지 않는 파일이라 Vercel 함수에 자동으로 안 실리므로, 그리는 경로에만 실어 준다.
+  //   결제 확정(confirm·webhook·0원 신청 prepare) · 미리 보기 · 관리자 [자동 제작 다시]
+  // ──────────────────────────────────────────────
+  outputFileTracingIncludes: {
+    "/api/partner/pay/confirm": ["./assets/banner-fonts/**/*"],
+    "/api/partner/pay/webhook": ["./assets/banner-fonts/**/*"],
+    "/api/partner/pay/prepare": ["./assets/banner-fonts/**/*"],
+    "/api/partner/banner-preview": ["./assets/banner-fonts/**/*"],
+    "/api/admin/ads": ["./assets/banner-fonts/**/*"],
+  },
+
+  // ──────────────────────────────────────────────
   // 옛 계산기 주소(/v1, /v1/calc/*) → 새 주소(/calc, /calc/*) 영구 이전 (2026-09-11)
   //
   // /v1 밑에 있던 계산기 허브가 본서비스로 승격되면서 주소가 /calc 로 바뀌었다.
