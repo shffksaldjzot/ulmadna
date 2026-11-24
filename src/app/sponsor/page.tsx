@@ -243,7 +243,7 @@ export default async function SponsorPage() {
               </tbody>
             </table>
           </div>
-          {/* 장기 할인(2026-10-30): 정본 LONG_DISCOUNT 에서 문구를 만든다 → "90일 10% · 180일 20% 할인" */}
+          {/* 장기 할인(2026-10-30): 정본 LONG_DISCOUNT 에서 문구를 만든다 → 지금 보이는 문구는 "90일 10% 할인"(180일 구간은 아래 줄에서 걸러 안 보임) */}
           <p className="text-sm font-semibold text-brown text-center mt-4" data-testid="long-discount">
             {/* 2026년 11월 23일: 실제로 살 수 있는 기간(최대 90일)까지만 보여 준다 — 결제사 심사에서 "사이트는 90일, 할인표는 180일"로 어긋난다는 지적 */}
             {[...LONG_DISCOUNT].reverse().filter((d) => d.minUnits <= Math.max(...PARTNER_UNITS)).map((d) => `${d.minUnits * 30}일 ${d.pct}%`).join(' · ')} 할인
