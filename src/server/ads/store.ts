@@ -26,6 +26,7 @@ import {
   toDbSlot,
   type SlotKind,
 } from '@/lib/ads/pricing';
+import { isAutoBannerPath } from '@/lib/ads/autoBannerRules';
 
 const BUCKET = 'ad-banners';
 
@@ -291,9 +292,12 @@ export async function saveBanner(id: number, bytes: Uint8Array, contentType: str
   const path = `${id}/${target === 'desktop' ? 'pc-' : ''}${Date.now()}.${ext}`;
   const up = await sb.storage.from(BUCKET).upload(path, bytes, { contentType, upsert: false });
   if (up.error) return { ok: false, error: '그림을 올리지 못했어요(보관함 ad-banners 확인)' };
-  const { data: cur } = await sb.from('ad_orders').select('run_status').eq('id', id).single();
+  // select('*') — PC 그림 칸이 아직 없는 DB 에서도 실패하지 않게
+  const { data: cur } = await sb.from('ad_orders').select('*').eq('id', id).single();
   const patch: Record<string, unknown> = target === 'desktop' ? { banner_desktop_path: path } : { banner_path: path };
   if (cur?.run_status === 'live') patch.run_status = 'review';
+  // 휴대폰 그림을 손으로 바꾸면, 자동으로 만든 PC 그림(728x90)은 옛 문구라 비운다 — 휴대폰·PC 그림이 서로 다르지 않게(2026년 11월 24일 검사 L3)
+  if (target === 'mobile' && isAutoBannerPath((cur as { banner_desktop_path?: string | null } | null)?.banner_desktop_path)) patch.banner_desktop_path = null;
   const { error } = await sb.from('ad_orders').update(patch).eq('id', id);
   if (error) {
     return { ok: false, error: target === 'desktop' ? 'PC 그림 칸이 없어요(20261030_ads_desktop_banner.sql 실행 필요)' : '저장하지 못했어요' };

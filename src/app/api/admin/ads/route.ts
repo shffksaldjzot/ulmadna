@@ -18,6 +18,9 @@ import {
 import { ensureAutoBanner } from '@/server/banner/bannerAuto';
 
 export const dynamic = 'force-dynamic';
+// 배너 자동 제작(그리기)이 이 처리 안에서 돌 수 있어 최대 시간을 정해 둔다(2026년 11월 24일, 프로젝트 기본값에 기대지 않음).
+//   그리기는 보통 1초 안. 8초를 넘기면 응답을 먼저 돌려주고 after 로 마저 그린다(src/server/banner/bannerAuto.ts).
+export const maxDuration = 60;
 
 export async function POST(req: Request) {
   if (!isAdminRequest(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

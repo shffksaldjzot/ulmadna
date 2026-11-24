@@ -146,7 +146,7 @@ export function won(n: number): string {
 export type BadgeKind = 'design' | 'review' | 'live' | 'waiting' | 'expired' | 'stopped' | 'refunded';
 
 export const BADGE_TEXT: Record<BadgeKind, string> = {
-  design: '시안 준비 중 · 결제 당일', // 제작 대행 주문인데 아직 배너가 없을 때(2026-10-29). 2026년 11월 24일 "3영업일" → "결제 당일"(결제사 90일 조건)
+  design: '배너 준비 중', // 제작 대행 주문인데 아직 배너가 없을 때(2026-10-29). 2026년 11월 24일: 자동 제작이 실패한 경우에만 보이므로 시간 약속을 뺐다
   review: '배너 검토 중 · 1영업일',
   live: '게재 중',
   waiting: '게재 대기',

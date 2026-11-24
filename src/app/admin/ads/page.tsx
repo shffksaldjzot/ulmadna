@@ -31,6 +31,11 @@ const PAY_LABEL: Record<string, string> = { pending: '입금 대기', paid: '입
 const RUN_LABEL: Record<string, string> = { review: '심사중', live: '게재', ended: '종료', stopped: '중지' };
 const won = (n: number) => `${n.toLocaleString('ko-KR')}원`;
 
+/** 주문이 만들어진 지 3분이 지났는가(자동 제작 실패 판정용 — 결제 처리 안에서 바로 그리므로 정상이면 몇 초 안에 배너가 붙음) */
+function olderThan3Min(createdAt: string): boolean {
+  return Date.now() - new Date(createdAt).getTime() > 3 * 60_000;
+}
+
 export default async function AdsPage() {
   const today = kstToday();
   const [board, advs, ord] = await Promise.all([getBoard(today), listAdvertisers(), listOrders()]);
@@ -150,6 +155,8 @@ export default async function AdsPage() {
                   const pcImg = ord.bannerBase(o.banner_desktop_path ?? null);
                   // 제작 대행 주문: 배너가 아직 없으면 '배너 제작 중'
                   const designing = !!o.design_requested && !o.banner_path && o.run_status === 'review';
+                  // 자동 제작 실패: 결제된 제작 대행 주문인데 3분이 지나도 배너가 없다(결제 처리 안에서 바로 그리므로 정상이면 몇 초 안에 붙음)
+                  const autoFailed = designing && o.pay_status === 'paid' && olderThan3Min(o.created_at);
                   const brief = o.design_requested ? o.design_brief ?? null : null;
                   const logo = brief?.logo_path ? ord.bannerBase(brief.logo_path) : null;
                   return (
@@ -159,7 +166,12 @@ export default async function AdsPage() {
                         <p className="text-[11px] text-gray-500">{o.slot_kind} · {regionName(o.sido)}{o.process && o.slot_kind !== 'AD-T' ? ` · ${o.process}` : ''}</p>
                         {img && <a href={img} target="_blank" rel="noreferrer" className="text-[11px] text-brown underline">배너 보기</a>}
                         {img && isAutoBannerPath(o.banner_path) && <span className="ml-1 rounded bg-gray-100 px-1 text-[10px] text-gray-500">자동</span>}
-                        {designing && o.pay_status === 'paid' && <div className="mt-0.5"><AutoBannerRetry id={o.id} /></div>}
+                        {designing && o.pay_status === 'paid' && (
+                          <div className="mt-0.5 flex flex-wrap items-center gap-1">
+                            {autoFailed && <span className="rounded bg-red-50 px-1.5 py-0.5 text-[11px] font-semibold text-red-700">자동 제작 실패</span>}
+                            <AutoBannerRetry id={o.id} />
+                          </div>
+                        )}
                         {pcImg && <a href={pcImg} target="_blank" rel="noreferrer" className="ml-2 text-[11px] text-brown underline">PC 배너 보기</a>}
                         {o.design_requested && (
                           <details className="mt-1 text-[11px]">
@@ -191,7 +203,7 @@ export default async function AdsPage() {
                       <td className="py-2 px-2 whitespace-nowrap text-[12px]">
                         <span className={o.pay_status === 'paid' ? 'text-brown' : o.pay_status === 'refunded' ? 'text-red-700' : 'text-gray-500'}>{PAY_LABEL[o.pay_status]}</span>
                         <br />
-                        <span className={o.run_status === 'live' ? 'text-brown font-medium' : designing ? 'text-orange-700' : 'text-gray-500'}>{designing ? '배너 제작 중' : RUN_LABEL[o.run_status]}</span>
+                        <span className={o.run_status === 'live' ? 'text-brown font-medium' : autoFailed ? 'text-red-700 font-semibold' : designing ? 'text-orange-700' : 'text-gray-500'}>{autoFailed ? '자동 제작 실패' : designing ? '배너 제작 중' : RUN_LABEL[o.run_status]}</span>
                       </td>
                       <td className="py-2 px-2 text-right whitespace-nowrap text-[12px] tabular-nums text-gray-600">
                         {fmt(o.impressions)} · {fmt(o.clicks)}<br /><span className="text-gray-400">클릭률 {ctr}{ctr === '-' ? '' : '%'}</span>

@@ -1,5 +1,8 @@
 import type { NextConfig } from "next";
 
+// 그리기와 무관한 경로에서 뺄 것: 배너 글꼴 + next/og(그리기 도구). pay.ts 는 그리기 코드를 결제 확정 때만 동적으로 불러온다
+const NO_DRAW = ["./assets/banner-fonts/**/*", "./node_modules/next/dist/compiled/@vercel/og/**/*"];
+
 const nextConfig: NextConfig = {
   /* config options here */
 
@@ -15,6 +18,16 @@ const nextConfig: NextConfig = {
     "/api/partner/pay/prepare": ["./assets/banner-fonts/**/*"],
     "/api/partner/banner-preview": ["./assets/banner-fonts/**/*"],
     "/api/admin/ads": ["./assets/banner-fonts/**/*"],
+  },
+  // 그리기와 무관한데 결제 코드(pay.ts)를 함께 불러 글꼴이 따라 실리던 경로에서 글꼴을 뺀다(2026년 11월 24일 검사 L11).
+  //   이 경로들은 환불·결제 실패 기록·관리자 화면이라 배너를 그리지 않는다(그리기 코드는 pay.ts 가 필요할 때만 불러옴).
+  outputFileTracingExcludes: {
+    "/api/partner/pay/fail": NO_DRAW,
+    "/api/partner/pay/refund": NO_DRAW,
+    "/api/admin/advertisers": NO_DRAW,
+    "/api/admin/advertisers/[id]": NO_DRAW,
+    "/admin": NO_DRAW,
+    "/admin/advertisers": NO_DRAW,
   },
 
   // ──────────────────────────────────────────────

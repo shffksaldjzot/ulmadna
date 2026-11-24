@@ -19,6 +19,9 @@ vi.mock('@/server/partner/portone', () => ({
   fetchPayment: async () => ({ status: 'PAID', total: 165000, failReason: '', paidAt: new Date().toISOString() }),
   cancelPayment: async () => true,
 }));
+// 관리자 텔레그램 알림은 가짜로 받아 몇 번 보냈는지 센다(실제 전송 없음)
+const sent: string[] = [];
+vi.mock('@/server/notify/adminTelegram', () => ({ notifyAdminTelegram: async (t: string) => { sent.push(t); return true; } }));
 // 그리기를 일부러 실패시킬 스위치(시험 4)
 const breakRender = { on: false };
 vi.mock('@/server/banner/bannerRender', async (orig) => {
@@ -80,6 +83,11 @@ describe('결제 확정 → 배너 자동 제작', () => {
     const o = fake.tables.ad_orders[0];
     expect(o.pay_status).toBe('paid');
     expect(o.banner_path ?? null).toBeNull();
+    // 관리자에게 알림이 한 번 갔다
+    expect(sent.filter((t) => t.includes(`주문 #${o.id}`))).toHaveLength(1);
+    // 웹훅이 한 번 더 와도(여전히 실패) 알림은 더 가지 않는다
+    await finalizePayment('ulm-design-1', null);
+    expect(sent.filter((t) => t.includes(`주문 #${o.id}`))).toHaveLength(1);
     // 웹훅 재시도(이미 paid) 때 다시 그린다
     breakRender.on = false;
     expect(await finalizePayment('ulm-design-1', null)).toEqual({ ok: true, data: 'done' });

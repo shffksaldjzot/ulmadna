@@ -5,7 +5,8 @@
 import { describe, expect, it } from 'vitest';
 import sharp from 'sharp';
 import { renderBanner, SIZE_INFO } from '../bannerRender';
-import { cleanBannerText, fitText, emphasize, lineWidth } from '../bannerText';
+import { cleanBannerText, cleanBannerTextReport, fitText, emphasize, lineWidth } from '../bannerText';
+import metrics from '../../../../assets/banner-fonts/metrics.json';
 import { BANNER_STYLE_KEYS } from '@/lib/ads/bannerStyles';
 import { SLOT_INFO, checkBanner, type SlotKind } from '@/lib/ads/pricing';
 import { autoSizesOf } from '@/lib/ads/autoBannerRules';
@@ -67,5 +68,37 @@ describe('배너 그리기 — 8종 x 규격', () => {
     const png = await renderBanner({ style: '없는스타일', size: '320x50', name: '가', headline: '나', logo: new Uint8Array([1, 2, 3]) });
     const m = await sharp(png).metadata();
     expect([m.width, m.height]).toEqual([640, 100]);
+  });
+});
+
+describe('바깥 요청 없음(2026년 11월 24일 검사 지적)', () => {
+  it('그릴 수 있는 글자 전부를 8종 스타일로 그려도 바깥(구글 글꼴 서버 등) 요청이 0회', async () => {
+    // 그릴 수 있는 글자 = 고딕 폭 표에 있는 글자 전부 + 대표 한글
+    const all = Object.keys((metrics as Record<string, { chars: Record<string, number> }>)['NotoSansKR-400.ttf'].chars).join('') + '가힣뷁쀍똠';
+    // 지워져야 할 글자(한자·이모지·글꼴에 없는 기호)도 섞어 넣는다
+    const junk = '韓國😀👍🏻‗‛‱▬';
+    const orig = globalThis.fetch;
+    const calls: string[] = [];
+    globalThis.fetch = (async (u: unknown) => {
+      calls.push(String(u));
+      throw new Error('바깥 요청 금지(시험)');
+    }) as typeof fetch;
+    try {
+      for (const style of BANNER_STYLE_KEYS) {
+        for (let i = 0; i < all.length; i += 60) {
+          const chunk = all.slice(i, i + 60);
+          await renderBanner({ style, size: '728x90', name: chunk.slice(0, 12) + junk, headline: chunk.slice(12, 40) + junk, intro: chunk.slice(40) + junk, phone: null });
+        }
+      }
+    } finally {
+      globalThis.fetch = orig;
+    }
+    expect(calls).toEqual([]);
+  }, 300_000);
+
+  it('㎡·★·① 같은 흔한 기호는 그대로 남기고, 그릴 수 없는 글자는 빼면서 알려 준다', () => {
+    const r = cleanBannerTextReport('84㎡ ★한결★ ①② 韓😀');
+    expect(r.text).toBe('84㎡ ★한결★ ①②');
+    expect(r.dropped).toEqual(['韓', '😀']);
   });
 });

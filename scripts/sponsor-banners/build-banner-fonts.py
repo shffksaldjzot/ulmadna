@@ -26,12 +26,17 @@ WIN = 'C:/Windows/Fonts/'
 USER = os.path.expanduser('~/AppData/Local/Microsoft/Windows/Fonts/')
 
 # 남길 글자 범위(유니코드). 한자·이모지는 넣지 않는다 — 들어오면 서버가 지운다(bannerText.ts 의 cleanBannerText)
+# 범위 안이라도 원본 글꼴에 없는 글자는 결과에 없다. 서버는 metrics.json 에 실제로 있는 글자만 그린다
+# (없는 글자를 그리려 하면 그리기 도구가 바깥 글꼴 서버에 요청을 보내기 때문 — 2026년 11월 24일 검사 지적)
 RANGES = [
     (0x20, 0x7E), (0xA0, 0xFF),          # 영문·숫자·라틴 기호
     (0x2010, 0x2027), (0x2030, 0x203B),  # 줄표·가운뎃점·말줄임표
-    (0x2116, 0x2116), (0x2122, 0x2122),  # № ™
-    (0x2190, 0x2193),                    # 화살표
+    (0x2100, 0x218F),                    # ℃ № ™ ℓ 로마 숫자 같은 글자꼴 기호(2026년 11월 24일 넓힘)
+    (0x2190, 0x21FF),                    # 화살표
+    (0x2460, 0x24FF),                    # 동그라미·괄호 숫자(광고주가 넣을 수 있어서)
     (0x25A0, 0x25FF),                    # ◆ ● 같은 도형
+    (0x2600, 0x26FF),                    # ★ ☆ ☎ ♥ 같은 기호(글꼴에 있는 것만 남음)
+    (0x3380, 0x33FF),                    # ㎡ ㎏ ㎝ 같은 단위 글자
     (0x3000, 0x303F),                    # 한중일 문장 부호
     (0x3131, 0x318E),                    # 한글 낱자(ㄱ ㅏ)
     (0x3200, 0x327F),                    # ㈜ 같은 괄호 한글
@@ -82,6 +87,15 @@ def build(name, src, wght, only_ksx=False):
     s = subset.Subsetter(opts)
     s.populate(unicodes=UNICODES_KSX if only_ksx else UNICODES)
     s.subset(font)
+    # 바꾼 글꼴(부분집합)은 원래 이름을 쓰지 않는다 — OFL 은 "예약 글꼴 이름"(G마켓 산스·Pretendard 등)을
+    # 바꾼 판에 쓰지 못하게 한다. 저작권(0)·허가(13·14) 줄은 그대로 두고 이름 줄만 바꾼다.
+    # 새 이름에는 원래 글꼴 이름을 한 글자도 넣지 않는다(예약 이름과 헷갈리지 않게)
+    alias = {'NotoSansKR': 'Gothic', 'NotoSerifKR': 'Myeongjo', 'BlackHanSans': 'Display', 'GmarketSans': 'Round', 'Pretendard': 'Neo'}
+    stem, wt = os.path.splitext(name)[0].split('-')
+    new = f'UlmBanner {alias[stem]} {wt}'
+    for rec in list(font['name'].names):
+        if rec.nameID in (1, 3, 4, 6, 16, 17, 21, 22):
+            rec.string = new.replace(' ', '-') if rec.nameID == 6 else new
     path = os.path.join(OUT, name)
     font.save(path)
     return path

@@ -12,7 +12,8 @@ import { Card } from './_ui';
  */
 export default function DoneCard({ kind, design = false, made = false }: { kind: 'free' | 'design' | 'review'; design?: boolean; made?: boolean }) {
   const router = useRouter();
-  const designSub = made ? '배너가 만들어졌어요 · 검토 뒤 게재돼요' : '결제 당일 시안을 보내 드려요';
+  // 자동 제작이 실패했으면 시간 약속 없이 "준비 중"만 알린다(관리자가 텔레그램 알림을 받고 처리)
+  const designSub = made ? '배너가 만들어졌어요 · 검토 뒤 게재돼요' : '배너를 준비하고 있어요';
   const [title, sub] =
     kind === 'free'
       ? ['신청 완료', design ? designSub : '배너 검토 뒤 게재돼요(보통 1영업일)']

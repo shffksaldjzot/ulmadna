@@ -189,7 +189,8 @@ export default function AdCard({ order: o, today, pay, email, name = '' }: { ord
         ))}
       </div>
 
-      {b === 'design' && <p className="mt-2 text-[13px] text-ink-2">결제 당일 시안을 보내 드려요</p>}
+      {/* 자동 제작이 실패해 아직 배너가 없을 때만 보인다 — 지킬 수 있는 말만(시간 약속 없음, 2026년 11월 24일) */}
+      {b === 'design' && <p className="mt-2 text-[13px] text-ink-2">배너를 준비하고 있어요</p>}
       {o.design_requested && o.design_brief && <BriefBox order={o} phone={(o as { phone?: string | null }).phone ?? ''} />}
       {b === 'review' && o.pay_status === 'paid' && <p className="mt-2 text-[13px] text-ink-2">반려되면 카드로 자동 환불돼요</p>}
       {o.note && (b === 'stopped' || b === 'refunded') && <p className="mt-2 text-[13px] text-danger">{o.note}</p>}

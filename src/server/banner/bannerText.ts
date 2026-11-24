@@ -48,29 +48,44 @@ export function fontFileFor(family: string, weight: number): string {
   return table[order[0]];
 }
 
-/** 글꼴에 있는 글자인가(build-banner-fonts.py 의 RANGES 와 같은 범위) */
-function isDrawable(cp: number): boolean {
-  return (
-    (cp >= 0x20 && cp <= 0x7e) || (cp >= 0xa0 && cp <= 0xff) ||
-    (cp >= 0x2010 && cp <= 0x2027) || (cp >= 0x2030 && cp <= 0x203b) ||
-    cp === 0x2116 || cp === 0x2122 || (cp >= 0x2190 && cp <= 0x2193) ||
-    (cp >= 0x25a0 && cp <= 0x25ff) || (cp >= 0x3000 && cp <= 0x303f) ||
-    (cp >= 0x3131 && cp <= 0x318e) || (cp >= 0x3200 && cp <= 0x327f) ||
-    (cp >= 0xac00 && cp <= 0xd7a3) || (cp >= 0xff01 && cp <= 0xff5e)
-  );
+/**
+ * 그릴 수 있는 글자 = 고딕(Noto Sans KR) 부분집합 글꼴에 실제로 들어 있는 글자(metrics.json 기준)
+ *   2026년 11월 24일 검사 지적: 범위로만 거르면 글꼴에 없는 글자가 섞여 들어가고, 그러면 그리기 도구(next/og)가
+ *   빠진 글자를 구하려고 구글 글꼴 서버에 바깥 요청을 보낸다(결제 처리가 바깥 서버를 기다리게 됨).
+ *   고딕은 어느 스타일에서나 마지막 대체 글꼴로 함께 실리므로, 고딕에 있는 글자면 바깥 요청 없이 그려진다.
+ */
+const DRAWABLE = new Set(Object.keys(METRICS['NotoSansKR-400.ttf']?.chars ?? {}));
+function isDrawable(ch: string): boolean {
+  const cp = ch.codePointAt(0) ?? 0;
+  if (cp >= 0xac00 && cp <= 0xd7a3) return true; // 한글 11,172자는 고딕에 전부 있다
+  return DRAWABLE.has(ch);
 }
 
-/** 그릴 수 없는 글자(한자·이모지 등)를 지우고 빈칸을 하나로 모은다 */
-export function cleanBannerText(v: unknown, max = 80): string {
-  if (typeof v !== 'string') return '';
+/** 정리 결과: 글과, 그릴 수 없어 뺀 글자 목록(미리 보기에서 광고주에게 알려 준다) */
+export interface CleanResult {
+  text: string;
+  dropped: string[];
+}
+
+/** 그릴 수 없는 글자(한자·이모지 등)를 지우고 빈칸을 하나로 모은다. 뺀 글자도 돌려준다 */
+export function cleanBannerTextReport(v: unknown, max = 80): CleanResult {
+  if (typeof v !== 'string') return { text: '', dropped: [] };
   // 한글 자모가 따로 들어온 경우(맥 등에서 풀어진 한글)를 완성형으로 합친다
   const s = v.normalize('NFC');
   let out = '';
+  const dropped: string[] = [];
   for (const ch of s) {
     const cp = ch.codePointAt(0) ?? 0;
-    out += isDrawable(cp) ? ch : cp <= 0x20 || ch === '　' ? ' ' : '';
+    if (cp <= 0x20 || cp === 0x3000) out += ' '; // 제어 문자·전각 빈칸은 빈칸으로
+    else if (isDrawable(ch)) out += ch;
+    else if (!(cp >= 0xfe00 && cp <= 0xfe0f) && cp !== 0x200d && !dropped.includes(ch)) dropped.push(ch); // 이모지 꾸밈 부호는 알릴 필요 없음
   }
-  return out.replace(/\s+/g, ' ').trim().slice(0, max);
+  return { text: out.replace(/\s+/g, ' ').trim().slice(0, max), dropped };
+}
+
+/** 그릴 수 없는 글자를 지운 글만 */
+export function cleanBannerText(v: unknown, max = 80): string {
+  return cleanBannerTextReport(v, max).text;
 }
 
 /**

@@ -21,7 +21,16 @@ import { AD_PROCESS_GROUPS, SLOT_INFO, addDaysStr, calcOrder, checkBanner, fromD
 import { BRIEF_MAX, PARTNER_SLOTS, PARTNER_UNITS, badgeOf, briefProblem, canManage, cleanBrief, cleanPhone, imageKind, isPartnerRegion, newPaymentId, orderStartDay, quote, quoteNew, regionName } from '@/lib/partner/rules';
 import { cancelPayment, fetchPayment, payConfig } from './portone';
 import { BUCKET, designFirstFree, firstFreeInfo, myOrder } from './store';
-import { ensureAutoBanner } from '@/server/banner/bannerAuto';
+import type { AutoResult } from '@/server/banner/bannerAuto';
+
+/**
+ * 배너 자동 제작 부르기 — 그리기 코드(next/og·sharp·글꼴)는 필요할 때만 불러온다(2026년 11월 24일 검사 L11).
+ *   pay.ts 는 환불·결제 실패 기록 같은 그리기와 무관한 경로도 불러 쓰므로, 맨 위에서 불러오면 그 함수들까지 무거워진다.
+ */
+async function ensureAutoBanner(orderId: number): Promise<AutoResult> {
+  const m = await import('@/server/banner/bannerAuto');
+  return m.ensureAutoBanner(orderId);
+}
 
 type Res<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -214,7 +223,8 @@ export async function finalizePayment(paymentId: string, advertiserId: number | 
   if (!row || (advertiserId != null && Number(row.advertiser_id) !== advertiserId)) return { ok: false, error: '결제를 찾지 못했어요' };
   if (row.status === 'paid') {
     // 이미 처리된 결제 — 앞 처리에서 배너 그리기가 시간 초과 등으로 빠졌으면 이번에 한 번 더 시도(그려져 있으면 아무 일 없음)
-    if (row.kind === 'new' && row.design_requested && row.order_id) await ensureAutoBanner(Number(row.order_id));
+    //   웹훅 재시도(advertiserId 없음)일 때만 — 광고주 브라우저가 결제 확인을 부를 때마다 다시 그리지 않게(검사 L4)
+    if (advertiserId == null && row.kind === 'new' && row.design_requested && row.order_id) await ensureAutoBanner(Number(row.order_id));
     return { ok: true, data: 'done' };
   }
   if (row.status !== 'ready') return { ok: false, error: '처리할 수 없는 결제예요' };

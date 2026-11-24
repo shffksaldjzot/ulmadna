@@ -53,6 +53,12 @@ export interface Theme {
   btn: TextLook & { box: St; spanOpacity?: number };
   /** 300x250 을 가운데 맞춤으로(골드) */
   centerR?: boolean;
+  /** 바탕 상자 테두리 굵기(1배 px) — 글자 칸 폭에서 빼야 테두리에 안 닿는다(팝 3px, 2026년 11월 24일 검사 지적) */
+  frame?: number;
+  /** 단추 테두리(양쪽 합)·그림자가 차지하는 폭(1배 px) — 글자 칸 계산에 더한다 */
+  btnExtra?: number;
+  /** 300x250 에서 바닥으로부터 이 높이(1배 px)에 가로선 장식이 있다 — 글자가 선을 넘지 않게(미니멀) */
+  rLine?: number;
 }
 
 /** 테두리 문자열(1배 굵기 w 를 2배로) */
@@ -89,9 +95,12 @@ export function themeOf(key: string, S: number): Theme {
           em: { color: '#111111', underline: '#111111' },
           size: { h: { fs: 19, lh: 23 }, p: { fs: 19, lh: 23 }, w: { fs: 19, lh: 23 }, r: { fs: 27, lh: 34 } },
         },
-        nm: { family: 'NotoKR', weight: 400, color: '#777777' },
-        sub: { family: 'NotoKR', weight: 300, color: '#8a8a8a' },
+        // 상호·소개는 작은 규격에서 너무 흐려 보여 견본(#777·#8a8a8a)보다 한 단계 진하게(2026년 11월 24일 검사 지적)
+        nm: { family: 'NotoKR', weight: 400, color: '#555555' },
+        sub: { family: 'NotoKR', weight: 300, color: '#6e6e6e' },
         btn: { family: 'NotoKR', weight: 600, color: '#111111', spacing: 0.02, box: { backgroundColor: '#ffffff', border: border(1.5, '#111111', S), borderRadius: 0 } },
+        btnExtra: 3,
+        rLine: 70,
       };
     case 'neon':
       return {
@@ -162,6 +171,8 @@ export function themeOf(key: string, S: number): Theme {
           family: 'NotoKR', weight: 900, color: '#ffffff', spanOpacity: 1,
           box: { backgroundColor: '#ff6a00', border: border(2.5, '#111111', S), borderRadius: 10 * S, boxShadow: `${3 * S}px ${3 * S}px 0 #111111` },
         },
+        frame: 3,
+        btnExtra: 8, // 테두리 2.5 x 2 + 그림자 3
       };
     case 'gold':
       return {

@@ -14,6 +14,7 @@ export default function BannerPreview({ kind, process, style, intro, headline, p
   const [url, setUrl] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const [dropped, setDropped] = useState(''); // 그릴 수 없어 빠진 글자(서버가 알려 줌)
   const seq = useRef(0); // 늦게 온 옛 응답이 새 그림을 덮지 않게 순번을 센다
   const info = SLOT_INFO[kind];
 
@@ -40,6 +41,7 @@ export default function BannerPreview({ kind, process, style, intro, headline, p
             return URL.createObjectURL(blob);
           });
           setErr('');
+          setDropped(decodeURIComponent(r.headers.get('X-Banner-Dropped') ?? ''));
         } else {
           const d = (await r.json().catch(() => ({}))) as { error?: string };
           setErr(d.error || '');
@@ -71,6 +73,7 @@ export default function BannerPreview({ kind, process, style, intro, headline, p
           <span className="text-[13px] text-ink-2">그리는 중</span>
         )}
       </div>
+      {dropped && <p className="mt-1 text-[13px] text-ink-2">빠지는 글자: {dropped}</p>}
       {err && <p className="mt-1 text-[13px] text-ink-2">{err}</p>}
     </div>
   );
