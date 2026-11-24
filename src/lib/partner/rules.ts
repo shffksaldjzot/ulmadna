@@ -7,7 +7,7 @@
 //   서버 전용 코드가 없어서 브라우저에서도 불러 쓸 수 있다.
 //   가격·자리 정보는 광고 정본(src/lib/ads/pricing.ts)을 그대로 읽는다(복사하지 않음).
 // ─────────────────────────────────────────────────────────────
-import { DESIGN_FEE, VAT_RATE, priceOf, daysBetween, type SlotKind } from '@/lib/ads/pricing';
+import { DESIGN_FEE, VAT_RATE, priceOf, daysBetween, kstToday, type SlotKind } from '@/lib/ads/pricing';
 import { REGION_NAMES, SIDO_CODES } from '@/server/admin/format';
 
 /** 광고주가 직접 살 수 있는 자리(견적서 추천 글자 광고 AD-PDF 는 관리자 상담으로만). AD-T 는 DB 에 AD-P+'토탈 인테리어'로 저장 */
@@ -171,6 +171,22 @@ export function badgeOf(
   if (o.run_status === 'review') return 'review';
   if (o.start_date > today) return 'waiting';
   return 'live';
+}
+
+/**
+ * 카드 결제 주문의 시작일(2026년 11월 24일)
+ *   결제사 조건이 "결제일부터 서비스 종료일까지 90일 이내"라서, 끝나는 날은 결제일 + 30 x 단위 - 1 을 넘으면 안 된다.
+ *   결제 확인이 늦게 처리되면(웹훅 재시도가 자정을 넘김 등) "처리한 날"을 시작일로 잡을 때 하루 이상 밀린다.
+ *   그래서 포트원이 알려 준 결제 시각(paidAt)의 한국 날짜를 시작일로 쓴다.
+ *   결제 시각이 없거나 읽을 수 없거나, 시계 차이로 오늘보다 뒤면 오늘로 둔다(뒤로 밀리는 쪽으로는 가지 않음).
+ */
+export function orderStartDay(paidAt: string | null | undefined, now: Date = new Date()): string {
+  const today = kstToday(now);
+  if (!paidAt) return today;
+  const t = Date.parse(paidAt);
+  if (!Number.isFinite(t)) return today;
+  const day = kstToday(new Date(t));
+  return day > today ? today : day;
 }
 
 /** 남은 날(마지막 날 포함). 끝났으면 0 */

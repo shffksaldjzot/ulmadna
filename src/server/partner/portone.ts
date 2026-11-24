@@ -38,6 +38,8 @@ export interface PortOnePayment {
   total: number; // amount.total — 실제 결제 금액
   /** 실패한 결제의 PG 사유(failure.pgMessage 또는 reason, 없으면 빈 문자열) */
   failReason: string;
+  /** 결제가 끝난 시각(ISO, 포트원 paidAt). 없으면 null — 2026년 11월 24일: 광고 시작일을 "처리한 날"이 아니라 "결제한 날"로 잡으려고 */
+  paidAt?: string | null;
 }
 
 /** 결제 한 건 조회. 열쇠가 없거나 실패하면 null */
@@ -50,8 +52,13 @@ export async function fetchPayment(paymentId: string): Promise<PortOnePayment | 
       cache: 'no-store',
     });
     if (!res.ok) return null;
-    const p = (await res.json()) as { status?: string; amount?: { total?: number }; failure?: { reason?: string; pgMessage?: string } };
-    return { status: String(p.status ?? ''), total: Number(p.amount?.total ?? NaN), failReason: String(p.failure?.pgMessage || p.failure?.reason || '') };
+    const p = (await res.json()) as { status?: string; amount?: { total?: number }; failure?: { reason?: string; pgMessage?: string }; paidAt?: string };
+    return {
+      status: String(p.status ?? ''),
+      total: Number(p.amount?.total ?? NaN),
+      failReason: String(p.failure?.pgMessage || p.failure?.reason || ''),
+      paidAt: typeof p.paidAt === 'string' && p.paidAt ? p.paidAt : null,
+    };
   } catch {
     return null;
   }

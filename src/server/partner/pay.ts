@@ -17,7 +17,7 @@ import 'server-only';
 import crypto from 'crypto';
 import { adminOrNull } from '@/lib/ask/server';
 import { AD_PROCESS_GROUPS, SLOT_INFO, addDaysStr, calcOrder, checkBanner, fromDbSlot, normalizeClickUrl, kstToday, toDbSlot, UNIT_DAYS, type SlotKind } from '@/lib/ads/pricing';
-import { BRIEF_MAX, PARTNER_SLOTS, PARTNER_UNITS, badgeOf, briefProblem, canManage, cleanBrief, cleanPhone, imageKind, isPartnerRegion, newPaymentId, quote, quoteNew, regionName } from '@/lib/partner/rules';
+import { BRIEF_MAX, PARTNER_SLOTS, PARTNER_UNITS, badgeOf, briefProblem, canManage, cleanBrief, cleanPhone, imageKind, isPartnerRegion, newPaymentId, orderStartDay, quote, quoteNew, regionName } from '@/lib/partner/rules';
 import { cancelPayment, fetchPayment, payConfig } from './portone';
 import { BUCKET, designFirstFree, firstFreeInfo, myOrder } from './store';
 
@@ -243,7 +243,8 @@ export async function finalizePayment(paymentId: string, advertiserId: number | 
   const screenProcess = kind === 'AD-T' ? null : (row.process as string | null);
   const units = Number(row.units);
   if (row.kind === 'new') {
-    const today = kstToday();
+    // 시작일 = 결제한 날(포트원 paidAt 의 한국 날짜). 처리가 늦어져도 끝나는 날이 결제일 기준에서 밀리지 않는다(2026년 11월 24일)
+    const today = orderStartDay(p.paidAt);
     const c = calcOrder(kind, today, units, null, String(row.sido));
     // 결제하는 사이 자리가 찼으면 바로 카드 취소
     const free = await slotFree(kind, row.sido, screenProcess, today, c.endDate);
