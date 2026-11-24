@@ -41,8 +41,8 @@ export default function RefundPage() {
                   </thead>
                   <tbody>
                     <tr className="border-t border-line"><td className="px-3 py-2">게재 시작 전</td><td className="px-3 py-2">전액 환불</td></tr>
-                    <tr className="border-t border-line"><td className="px-3 py-2">게재 시작 후 7일 이내</td><td className="px-3 py-2">남은 일수만큼 일 단위로 계산해 환불</td></tr>
-                    <tr className="border-t border-line"><td className="px-3 py-2">게재 시작 후 7일 지난 뒤</td><td className="px-3 py-2">환불 불가</td></tr>
+                    {/* 2026년 11월 25일 시행본: "게재 7일 지난 뒤 환불 불가" 를 없애고 게재 뒤에는 늘 남은 일수만큼 환불(형아 결정 11-24) */}
+                    <tr className="border-t border-line"><td className="px-3 py-2">게재 시작 후</td><td className="px-3 py-2">남은 일수만큼 일 단위로 계산해 환불</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -52,7 +52,7 @@ export default function RefundPage() {
 
             <section>
               <h2 className="t-section text-ink mb-2">3. 판매자 사유로 인한 환불</h2>
-              <p>판매자의 사정으로 게재하지 못했거나 배너 심사에서 거절되어 게재할 수 없는 경우, 게재하지 못한 기간만큼(게재 전이면 전액) 환불합니다. 광고주가 약관을 위반해 게재가 중단된 경우에는 환불하지 않을 수 있습니다.</p>
+              <p>판매자의 사정으로 게재하지 못했거나 배너 심사에서 거절되어 게재할 수 없는 경우, 게재하지 못한 기간만큼(게재 전이면 전액) 환불합니다. 배너 심사에서 거절되면 카드 결제를 자동으로 취소합니다. 광고주가 약관을 위반해 게재가 중단된 경우에는 환불하지 않을 수 있습니다.</p>
             </section>
 
             <section>
