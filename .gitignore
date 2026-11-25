@@ -42,3 +42,11 @@ next-env.d.ts
 
 .vercel
 .playwright-cli/
+
+# 2026-11-25 토리: 작업자 작업 폴더·자동 도구 산출물(VS Code "변경 너무 많음" 경고 원인)
+.claude/worktrees/
+.bkit/
+output/playwright/
+_captures/
+check-live-result.json
+v2 data/

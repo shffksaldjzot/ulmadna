@@ -1,0 +1,16 @@
+[
+  {
+    "file": "hero.jpg",
+    "photographer": "Felix",
+    "profile": "https://unsplash.com/@felifox",
+    "source": "https://unsplash.com/photos/white-concrete-building-near-road-during-daytime-uLh3tTzEqCs",
+    "query": "korean apartment renovation warm interior"
+  },
+  {
+    "file": "hero.jpg",
+    "photographer": "Danilo Rios",
+    "profile": "https://unsplash.com/@danrop",
+    "source": "https://unsplash.com/photos/a-living-room-with-a-large-window-AgK_XAqSbfk",
+    "query": "renovated apartment living room warm minimal interior"
+  }
+]

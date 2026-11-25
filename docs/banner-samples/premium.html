@@ -1,0 +1,32 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@700;900&family=Noto+Serif+KR:wght@900&display=swap" rel="stylesheet">
+<style>
+/* 고급형 배너 견본 — 사진 없이 코드만으로: 어두운 원목 바탕 + 위에서 떨어지는 조명 + 금속 금색 글자 */
+body{margin:0;padding:20px;background:#333;font-family:"Noto Sans KR",sans-serif}
+.r{position:relative;width:300px;height:250px;overflow:hidden;color:#fff;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 18%,rgba(255,214,140,.38),transparent 70%),
+    repeating-linear-gradient(90deg,rgba(0,0,0,.22) 0 1px,transparent 1px 38px),
+    linear-gradient(180deg,#3a2414 0%,#1e130b 70%,#120b06 100%)}
+/* 금속 금색 글자: 위아래로 밝고 어두운 띠가 번갈아 반사되는 느낌 */
+.gold{background:linear-gradient(180deg,#fff6d8 0%,#f3cf7a 32%,#b9822c 52%,#f7dc94 70%,#a86f22 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 2px 0 rgba(0,0,0,.55)) drop-shadow(0 0 10px rgba(255,200,110,.35))}
+.serif{font-family:"Noto Serif KR",serif}
+.ribbon{position:absolute;left:0;right:0;bottom:0;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;
+  background:linear-gradient(180deg,#8f1d1d,#5e0f0f);box-shadow:0 -1px 0 rgba(255,215,140,.5) inset}
+.spark{position:absolute;width:3px;height:3px;border-radius:50%;background:#ffe3a3;box-shadow:0 0 6px 2px rgba(255,220,150,.7)}
+</style></head><body>
+<div id="r" class="r">
+  <span class="spark" style="left:40px;top:30px"></span><span class="spark" style="left:250px;top:46px;opacity:.7"></span><span class="spark" style="left:220px;top:18px;opacity:.5"></span>
+  <div style="position:absolute;top:18px;left:0;right:0;text-align:center;font-size:11px;letter-spacing:.3em;color:#e9c987;font-weight:700">ULMADNA PARTNER</div>
+  <div class="gold serif" style="position:absolute;top:40px;left:0;right:0;text-align:center;font-size:46px;font-weight:900;line-height:1.05;letter-spacing:-.02em">도배·장판</div>
+  <div style="position:absolute;top:100px;left:0;right:0;text-align:center;font-size:17px;font-weight:900">계산한 평수 그대로</div>
+  <div class="gold" style="position:absolute;top:122px;left:0;right:0;text-align:center;font-size:30px;font-weight:900">실측 상담</div>
+  <div style="position:absolute;top:166px;left:0;right:0;text-align:center;font-size:11px;color:#cdb68a">서울·경기 · 벽지·장판·마루 시공</div>
+  <div class="ribbon">
+    <div class="serif" style="font-size:16px;font-weight:900;color:#ffe7b0">도토리스튜디오</div>
+    <div style="font-size:18px;font-weight:900;color:#fff">☎ 1533-9829</div>
+  </div>
+</div>
+</body></html>

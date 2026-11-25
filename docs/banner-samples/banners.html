@@ -1,0 +1,56 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+/* 광고 배너 견본(1배 크기로 그리고 2배로 찍음) — 도토리스튜디오 도배·바닥재 예시 */
+body{margin:0;padding:20px;background:#ddd;font-family:"Noto Sans KR",sans-serif;display:flex;flex-direction:column;gap:20px;align-items:flex-start}
+.b{position:relative;overflow:hidden;box-sizing:border-box;color:#2b2118}
+/* 벽지 결 무늬(가는 세로줄) — 사진 없이도 '도배' 느낌 */
+.paper{background:#f6efe2;background-image:repeating-linear-gradient(90deg,rgba(120,90,50,.06) 0 1px,transparent 1px 7px)}
+/* 마루 판 무늬 — 바닥재 느낌 */
+.floor{background:#7a5232;background-image:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 22px),repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 60px,rgba(0,0,0,.06) 60px 61px,transparent 61px 140px)}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:#2b2118;color:#f6efe2}
+.call{display:inline-flex;align-items:center;gap:6px;font-weight:900;background:#c8891f;color:#fff;border-radius:8px}
+</style></head><body>
+
+<!-- AD-H 320x100 -->
+<div id="h" class="b paper" style="width:320px;height:100px;padding:12px 14px;display:flex;align-items:center;gap:12px">
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+    <span class="tag" style="align-self:flex-start">서울·경기 도배·장판</span>
+    <div style="font-size:19px;font-weight:900;line-height:1.2">계산하신 그 평수,<br>그대로 상담드립니다</div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+    <div style="font-size:12px;font-weight:700;color:#7a5a12">도토리스튜디오</div>
+    <span class="call" style="font-size:13px;padding:7px 10px">☎ 1533-9829</span>
+  </div>
+</div>
+
+<!-- AD-R 300x250 -->
+<div id="r" class="b" style="width:300px;height:250px;display:flex;flex-direction:column">
+  <div class="paper" style="flex:1;padding:16px 16px 10px;display:flex;flex-direction:column;gap:8px">
+    <span class="tag" style="align-self:flex-start">도배 · 장판 · 마루</span>
+    <div style="font-size:23px;font-weight:900;line-height:1.25">방금 본 견적,<br>실측으로 확정하세요</div>
+    <div style="font-size:12.5px;color:#5c4a36;line-height:1.5">벽지·장판 종류별 실제 단가로<br>평수 그대로 다시 계산해 드립니다</div>
+  </div>
+  <div class="floor" style="height:74px;padding:0 16px;display:flex;align-items:center;justify-content:space-between">
+    <div style="color:#fff">
+      <div style="font-size:15px;font-weight:900">도토리스튜디오</div>
+      <div style="font-size:11px;opacity:.85">서울·경기 시공</div>
+    </div>
+    <span class="call" style="font-size:15px;padding:9px 12px">☎ 1533-9829</span>
+  </div>
+</div>
+
+<!-- AD-P 320x50 (도배 공정 스폰서) -->
+<div id="p" class="b paper" style="width:320px;height:50px;padding:0 10px 0 12px;display:flex;align-items:center;gap:10px">
+  <span class="tag">도배</span>
+  <div style="flex:1;min-width:0;font-size:14px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">도배 견적, 평수 그대로 상담</div>
+  <span class="call" style="font-size:12px;padding:6px 8px">☎ 1533-9829</span>
+</div>
+
+<!-- AD-P 320x50 (바닥재 공정 스폰서) -->
+<div id="p2" class="b floor" style="width:320px;height:50px;padding:0 10px 0 12px;display:flex;align-items:center;gap:10px;color:#fff">
+  <span class="tag" style="background:#f6efe2;color:#2b2118">바닥재</span>
+  <div style="flex:1;min-width:0;font-size:14px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">장판·마루 실측 상담</div>
+  <span class="call" style="font-size:12px;padding:6px 8px">☎ 1533-9829</span>
+</div>
+</body></html>
